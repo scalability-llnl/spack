@@ -4,8 +4,11 @@
 """Static analysis to optimize input creation for clingo"""
 from typing import Dict, List, Optional, Set, Tuple
 
+import archspec.cpu
+
 import spack.config
 import spack.deptypes as dt
+import spack.platforms
 import spack.repo
 import spack.spec
 import spack.store
@@ -21,6 +24,9 @@ class Context:
         self.repo = spack.repo.create(configuration)
         self.store = spack.store.create(configuration)
 
+        # Caches for faster look-up operations
+        self._pkg_allowed_on_host: Dict[str, bool] = {}
+
     def runtime_pkgs(self) -> Tuple[Set[str], Set[str]]:
         """Returns the runtime packages for this context, and the virtuals they may provide"""
         runtime_pkgs = set(self.repo.packages_with_tags(RUNTIME_TAG))
@@ -33,8 +39,42 @@ class Context:
     def is_virtual(self, name: str) -> bool:
         return self.repo.is_virtual(name)
 
-    def providers_for(self, name: str) -> List[spack.spec.Spec]:
-        return self.repo.providers_for(name)
+    def providers_for(self, virtual_str: str) -> List[spack.spec.Spec]:
+        candidates = self.repo.providers_for(virtual_str)
+
+        result = []
+        for spec in candidates:
+            if not self.is_provider_candidate(pkg_name=spec.name, virtual=virtual_str):
+                continue
+            result.append(spec)
+
+        return result
+
+    def is_allowed_on_this_platform(self, *, pkg_name: str) -> bool:
+        if pkg_name in self._pkg_allowed_on_host:
+            return self._pkg_allowed_on_host[pkg_name]
+
+        # Check the package recipe
+        pkg_cls = self.repo.get_pkg_class(pkg_name)
+        platform_condition = (
+            f"platform={spack.platforms.host()} target={archspec.cpu.host().family}:"
+        )
+        for when_spec, conditions in pkg_cls.requirements.items():
+            if not when_spec.intersects(platform_condition):
+                continue
+            for requirements, _, _ in conditions:
+                if not any(x.intersects(platform_condition) for x in requirements):
+                    print(f"{pkg_name} is not for this platform")
+                    self._pkg_allowed_on_host[pkg_name] = False
+                    return False
+
+        self._pkg_allowed_on_host[pkg_name] = True
+        return True
+
+    def is_provider_candidate(self, *, pkg_name: str, virtual: str) -> bool:
+        if not self.is_allowed_on_this_platform(pkg_name=pkg_name):
+            return False
+        return True
 
 
 class PossibleDependenciesAnalyzer:
@@ -144,7 +184,7 @@ class PossibleDependenciesAnalyzer:
                 virtuals.add(name)
                 if expand_virtuals:
                     providers = self.context.providers_for(name)
-                    dep_names = [spec.name for spec in providers]
+                    dep_names = {spec.name for spec in providers}
                 else:
                     visited.setdefault(pkg_cls.name, set()).add(name)
                     visited.setdefault(name, set())
@@ -161,6 +201,9 @@ class PossibleDependenciesAnalyzer:
                     continue
 
                 visited.setdefault(dep_name, set())
+
+                if not self.context.is_allowed_on_this_platform(pkg_name=dep_name):
+                    continue
 
                 # skip the rest if not transitive
                 if not transitive:
