@@ -57,8 +57,6 @@ set decompose_after {}
 set decompose_found 0
 set decompose_split_sentinel "spack-sentinel"
 
-module set-path SPACK_PATH $decompose_before
-
 foreach dir $decompose_path {
     if {!$decompose_found && [string match $decompose_split_sentinel $dir]} {
         set decompose_found 1
@@ -71,6 +69,8 @@ foreach dir $decompose_path {
 
 set decompose_before_path [join $decompose_before ":"]
 set decompose_after_path [join $decompose_after ":"]
+
+set-path PATH $decompose_before_path
 
 {% block environment %}
 {% for command_name, cmd in environment_modifications %}
@@ -105,8 +105,8 @@ append-path MANPATH {{ '{' }}{{ '}' }}
 {% endif %}
 {% endblock %}
 
-set combined_path [join [list $decompose_before_path $decompose_split_sentinel $decompose_after_path] ":"]
-module set-path PATH $combined_path
+set combined_path [join [list $decompose_split_sentinel $decompose_after_path] ":"]
+append-path PATH $combined_path
 
 {% block footer %}
 {# In case the module needs to be extended with custom Tcl code #}
