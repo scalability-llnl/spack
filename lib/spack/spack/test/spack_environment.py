@@ -17,7 +17,7 @@ def test_dev_use_git(tmpdir, mock_packages, mutable_database, mutable_mock_env_p
     existing_dev_path = tmpdir.ensure("dev-path", dir=True)
     spack_yaml = str(tmpdir.ensure("spack.yaml"))
 
-    with open(spack_yaml, "w") as f:
+    with open(spack_yaml, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:

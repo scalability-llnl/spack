@@ -825,7 +825,7 @@ class TestGitRepoChangeDetector:
         assert not git_change_detector.update_current()
 
         with fs.working_dir(repo_path):
-            with open(managed_file, "a") as f:
+            with open(managed_file, "a", encoding="utf-8") as f:
                 f.write("extra content")
 
         # A change has occurred since the last time we updated our
