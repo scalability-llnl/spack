@@ -6,6 +6,8 @@ from typing import Dict, List, Optional, Set, Tuple
 
 import archspec.cpu
 
+from llnl.util import lang
+
 import spack.config
 import spack.deptypes as dt
 import spack.platforms
@@ -24,9 +26,6 @@ class Context:
         self.repo = spack.repo.create(configuration)
         self.store = spack.store.create(configuration)
 
-        # Caches for faster look-up operations
-        self._pkg_allowed_on_host: Dict[str, bool] = {}
-
     def runtime_pkgs(self) -> Tuple[Set[str], Set[str]]:
         """Returns the runtime packages for this context, and the virtuals they may provide"""
         runtime_pkgs = set(self.repo.packages_with_tags(RUNTIME_TAG))
@@ -39,21 +38,18 @@ class Context:
     def is_virtual(self, name: str) -> bool:
         return self.repo.is_virtual(name)
 
+    @lang.memoized
     def providers_for(self, virtual_str: str) -> List[spack.spec.Spec]:
         candidates = self.repo.providers_for(virtual_str)
-
         result = []
         for spec in candidates:
-            if not self.is_provider_candidate(pkg_name=spec.name, virtual=virtual_str):
+            if not self._is_provider_candidate(pkg_name=spec.name, virtual=virtual_str):
                 continue
             result.append(spec)
-
         return result
 
+    @lang.memoized
     def is_allowed_on_this_platform(self, *, pkg_name: str) -> bool:
-        if pkg_name in self._pkg_allowed_on_host:
-            return self._pkg_allowed_on_host[pkg_name]
-
         # Check the package recipe
         pkg_cls = self.repo.get_pkg_class(pkg_name)
         platform_condition = (
@@ -65,15 +61,33 @@ class Context:
             for requirements, _, _ in conditions:
                 if not any(x.intersects(platform_condition) for x in requirements):
                     print(f"{pkg_name} is not for this platform")
-                    self._pkg_allowed_on_host[pkg_name] = False
                     return False
 
-        self._pkg_allowed_on_host[pkg_name] = True
         return True
 
-    def is_provider_candidate(self, *, pkg_name: str, virtual: str) -> bool:
+    @lang.memoized
+    def can_be_installed(self, *, pkg_name) -> bool:
+        if self.configuration.get(f"packages:{pkg_name}:buildable", True):
+            return True
+
+        if self.configuration.get(f"packages:{pkg_name}:externals", []):
+            return True
+
+        if self.store.db.query(pkg_name):
+            return True
+
+        # TODO: query buildcaches
+        print(f"{pkg_name} cannot be installed")
+        return False
+
+    @lang.memoized
+    def _is_provider_candidate(self, *, pkg_name: str, virtual: str) -> bool:
         if not self.is_allowed_on_this_platform(pkg_name=pkg_name):
             return False
+
+        if not self.can_be_installed(pkg_name=pkg_name):
+            return False
+
         return True
 
 
@@ -206,6 +220,9 @@ class PossibleDependenciesAnalyzer:
                 visited.setdefault(dep_name, set())
 
                 if not self.context.is_allowed_on_this_platform(pkg_name=dep_name):
+                    continue
+
+                if not self.context.can_be_installed(pkg_name=dep_name):
                     continue
 
                 # skip the rest if not transitive
