@@ -82,6 +82,16 @@ class Context:
 
     @lang.memoized
     def _is_provider_candidate(self, *, pkg_name: str, virtual: str) -> bool:
+        if self.configuration.get("concretizer:preferred_providers_only", False):
+            virtual_spec = spack.spec.Spec(virtual)
+            preferred_providers = self.configuration.get(
+                f"packages:all:providers:{virtual_spec.name}"
+            )
+            preferred_providers = [spack.spec.Spec(x) for x in preferred_providers]
+            if not any(x.intersects(pkg_name) for x in preferred_providers):
+                print(f"{pkg_name} is not among preferred providers for {virtual}")
+                return False
+
         if not self.is_allowed_on_this_platform(pkg_name=pkg_name):
             return False
 
@@ -114,13 +124,13 @@ class PossibleDependenciesAnalyzer:
                 packages.extend(
                     [
                         (current_spec, p.package_class)
-                        for p in spack.repo.PATH.providers_for(current_spec.name)
+                        for p in self.context.providers_for(current_spec.name)
                     ]
                 )
                 continue
             packages.append((current_spec, current_spec.package_class))
 
-        visited = {}
+        visited: Dict[str, Set[str]] = {}
         for input_spec, pkg_cls in packages:
             self._possible_dependencies(
                 pkg_cls,
@@ -207,10 +217,10 @@ class PossibleDependenciesAnalyzer:
                     visited.setdefault(name, set())
                     continue
             else:
-                dep_names = [name]
+                dep_names = {name}
 
             # add the dependency names to the visited dict
-            visited.setdefault(pkg_cls.name, set()).update(set(dep_names))
+            visited.setdefault(pkg_cls.name, set()).update(dep_names)
 
             # recursively traverse dependencies
             for dep_name in dep_names:
