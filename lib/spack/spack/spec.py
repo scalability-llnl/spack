@@ -86,7 +86,6 @@ import llnl.util.tty.color as clr
 import spack
 import spack.compiler
 import spack.compilers
-import spack.config
 import spack.deptypes as dt
 import spack.error
 import spack.hash_types as ht
@@ -94,7 +93,6 @@ import spack.paths
 import spack.platforms
 import spack.provider_index
 import spack.repo
-import spack.solver
 import spack.spec_parser
 import spack.store
 import spack.traverse
@@ -580,14 +578,9 @@ class ArchSpec:
             target_data = str(self.target)
         else:
             # Get rid of compiler flag information before turning the uarch into a dict
-            uarch_dict = self.target.to_dict()
-            uarch_dict.pop("compilers", None)
-            target_data = syaml.syaml_dict(uarch_dict.items())
-
-        d = syaml.syaml_dict(
-            [("platform", self.platform), ("platform_os", self.os), ("target", target_data)]
-        )
-        return syaml.syaml_dict([("arch", d)])
+            target_data = self.target.to_dict()
+            target_data.pop("compilers", None)
+        return {"arch": {"platform": self.platform, "platform_os": self.os, "target": target_data}}
 
     @staticmethod
     def from_dict(d):
@@ -712,10 +705,7 @@ class CompilerSpec:
         yield self.versions
 
     def to_dict(self):
-        d = syaml.syaml_dict([("name", self.name)])
-        d.update(self.versions.to_dict())
-
-        return syaml.syaml_dict([("compiler", d)])
+        return {"compiler": {"name": self.name, **self.versions.to_dict()}}
 
     @staticmethod
     def from_dict(d):
@@ -2292,9 +2282,7 @@ class Spec:
         Arguments:
             hash (spack.hash_types.SpecHashDescriptor) type of hash to generate.
         """
-        d = syaml.syaml_dict()
-
-        d["name"] = self.name
+        d = {"name": self.name}
 
         if self.versions:
             d.update(self.versions.to_dict())
@@ -2308,7 +2296,7 @@ class Spec:
         if self.namespace:
             d["namespace"] = self.namespace
 
-        params = syaml.syaml_dict(sorted(v.yaml_entry() for _, v in self.variants.items()))
+        params = dict(sorted(v.yaml_entry() for v in self.variants.values()))
 
         # Only need the string compiler flag for yaml file
         params.update(
@@ -2334,13 +2322,16 @@ class Spec:
             )
 
         if self.external:
-            d["external"] = syaml.syaml_dict(
-                [
-                    ("path", self.external_path),
-                    ("module", self.external_modules),
-                    ("extra_attributes", self.extra_attributes),
-                ]
-            )
+            if self.extra_attributes:
+                extra_attributes = syaml.sorted_dict(self.extra_attributes)
+            else:
+                extra_attributes = None
+
+            d["external"] = {
+                "path": self.external_path,
+                "module": self.external_modules,
+                "extra_attributes": extra_attributes,
+            }
 
         if not self._concrete:
             d["concrete"] = False
@@ -2371,29 +2362,25 @@ class Spec:
         # Note: Relies on sorting dict by keys later in algorithm.
         deps = self._dependencies_dict(depflag=hash.depflag)
         if deps:
-            deps_list = []
-            for name, edges_for_name in sorted(deps.items()):
-                name_tuple = ("name", name)
-                for dspec in edges_for_name:
-                    hash_tuple = (hash.name, dspec.spec._cached_hash(hash))
-                    parameters_tuple = (
-                        "parameters",
-                        syaml.syaml_dict(
-                            (
-                                ("deptypes", dt.flag_to_tuple(dspec.depflag)),
-                                ("virtuals", dspec.virtuals),
-                            )
-                        ),
-                    )
-                    ordered_entries = [name_tuple, hash_tuple, parameters_tuple]
-                    deps_list.append(syaml.syaml_dict(ordered_entries))
-            d["dependencies"] = deps_list
+            d["dependencies"] = [
+                {
+                    "name": name,
+                    hash.name: dspec.spec._cached_hash(hash),
+                    "parameters": {
+                        "deptypes": dt.flag_to_tuple(dspec.depflag),
+                        "virtuals": dspec.virtuals,
+                    },
+                }
+                for name, edges_for_name in sorted(deps.items())
+                for dspec in edges_for_name
+            ]
 
         # Name is included in case this is replacing a virtual.
         if self._build_spec:
-            d["build_spec"] = syaml.syaml_dict(
-                [("name", self.build_spec.name), (hash.name, self.build_spec._cached_hash(hash))]
-            )
+            d["build_spec"] = {
+                "name": self.build_spec.name,
+                hash.name: self.build_spec._cached_hash(hash),
+            }
         return d
 
     def to_dict(self, hash=ht.dag_hash):
@@ -2495,10 +2482,7 @@ class Spec:
                         node_list.append(node)
                         hash_set.add(node_hash)
 
-        meta_dict = syaml.syaml_dict([("version", SPECFILE_FORMAT_VERSION)])
-        inner_dict = syaml.syaml_dict([("_meta", meta_dict), ("nodes", node_list)])
-        spec_dict = syaml.syaml_dict([("spec", inner_dict)])
-        return spec_dict
+        return {"spec": {"_meta": {"version": SPECFILE_FORMAT_VERSION}, "nodes": node_list}}
 
     def node_dict_with_hashes(self, hash=ht.dag_hash):
         """Returns a node_dict of this spec with the dag hash added.  If this
@@ -2949,44 +2933,16 @@ class Spec:
             raise SpecDeprecatedError(msg)
 
     def concretize(self, tests: Union[bool, Iterable[str]] = False) -> None:
-        """Concretize the current spec.
+        from spack.concretize import concretize_one
 
-        Args:
-            tests: if False disregard 'test' dependencies, if a list of names activate them for
-                the packages in the list, if True activate 'test' dependencies for all packages.
-        """
-        import spack.solver.asp
+        warnings.warn(
+            "`Spec.concretize` is deprecated and will be removed in version 1.0.0. Use "
+            "`spack.concretize.concretize_one` instead.",
+            category=spack.error.SpackAPIWarning,
+            stacklevel=2,
+        )
 
-        self.replace_hash()
-
-        for node in self.traverse():
-            if not node.name:
-                raise spack.error.SpecError(
-                    f"Spec {node} has no name; cannot concretize an anonymous spec"
-                )
-
-        if self._concrete:
-            return
-
-        allow_deprecated = spack.config.get("config:deprecated", False)
-        solver = spack.solver.asp.Solver()
-        result = solver.solve([self], tests=tests, allow_deprecated=allow_deprecated)
-
-        # take the best answer
-        opt, i, answer = min(result.answers)
-        name = self.name
-        # TODO: Consolidate this code with similar code in solve.py
-        if self.virtual:
-            providers = [spec.name for spec in answer.values() if spec.package.provides(name)]
-            name = providers[0]
-
-        node = spack.solver.asp.SpecBuilder.make_node(pkg=name)
-        assert (
-            node in answer
-        ), f"cannot find {name} in the list of specs {','.join([n.pkg for n in answer.keys()])}"
-
-        concretized = answer[node]
-        self._dup(concretized)
+        self._dup(concretize_one(self, tests))
 
     def _mark_root_concrete(self, value=True):
         """Mark just this spec (not dependencies) concrete."""
@@ -3076,19 +3032,16 @@ class Spec:
             spec._cached_hash(ht.dag_hash)
 
     def concretized(self, tests: Union[bool, Iterable[str]] = False) -> "Spec":
-        """This is a non-destructive version of concretize().
+        from spack.concretize import concretize_one
 
-        First clones, then returns a concrete version of this package
-        without modifying this package.
+        warnings.warn(
+            "`Spec.concretized` is deprecated and will be removed in version 1.0.0. Use "
+            "`spack.concretize.concretize_one` instead.",
+            category=spack.error.SpackAPIWarning,
+            stacklevel=2,
+        )
 
-        Args:
-            tests (bool or list): if False disregard 'test' dependencies,
-                if a list of names activate them for the packages in the list,
-                if True activate 'test' dependencies for all packages.
-        """
-        clone = self.copy()
-        clone.concretize(tests=tests)
-        return clone
+        return concretize_one(self, tests)
 
     def index(self, deptype="all"):
         """Return a dictionary that points to all the dependencies in this
@@ -3624,25 +3577,16 @@ class Spec:
 
         return self._patches
 
-    def _dup(self, other, deps: Union[bool, dt.DepTypes, dt.DepFlag] = True, cleardeps=True):
-        """Copy the spec other into self.  This is an overwriting
-        copy. It does not copy any dependents (parents), but by default
-        copies dependencies.
-
-        To duplicate an entire DAG, call _dup() on the root of the DAG.
+    def _dup(self, other: "Spec", deps: Union[bool, dt.DepTypes, dt.DepFlag] = True) -> bool:
+        """Copies "other" into self, by overwriting all attributes.
 
         Args:
-            other (Spec): spec to be copied onto ``self``
-            deps: if True copies all the dependencies. If
-                False copies None. If deptype/depflag, copy matching types.
-            cleardeps (bool): if True clears the dependencies of ``self``,
-                before possibly copying the dependencies of ``other`` onto
-                ``self``
+            other: spec to be copied onto ``self``
+            deps: if True copies all the dependencies. If False copies None.
+                If deptype, or depflag, copy matching types.
 
         Returns:
-            True if ``self`` changed because of the copy operation,
-            False otherwise.
-
+            True if ``self`` changed because of the copy operation, False otherwise.
         """
         # We don't count dependencies as changes here
         changed = True
@@ -3667,13 +3611,14 @@ class Spec:
         self.versions = other.versions.copy()
         self.architecture = other.architecture.copy() if other.architecture else None
         self.compiler = other.compiler.copy() if other.compiler else None
-        if cleardeps:
-            self._dependents = _EdgeMap(store_by_child=False)
-            self._dependencies = _EdgeMap(store_by_child=True)
         self.compiler_flags = other.compiler_flags.copy()
         self.compiler_flags.spec = self
         self.variants = other.variants.copy()
         self._build_spec = other._build_spec
+
+        # Clear dependencies
+        self._dependents = _EdgeMap(store_by_child=False)
+        self._dependencies = _EdgeMap(store_by_child=True)
 
         # FIXME: we manage _patches_in_order_of_appearance specially here
         # to keep it from leaking out of spec.py, but we should figure
@@ -4557,7 +4502,7 @@ class Spec:
 
         return spec
 
-    def clear_caches(self, ignore=()):
+    def clear_caches(self, ignore: Tuple[str, ...] = ()) -> None:
         """
         Clears all cached hashes in a Spec, while preserving other properties.
         """
@@ -4942,9 +4887,7 @@ class SpecfileReaderBase:
                 spec.external_modules = node["external"]["module"]
                 if spec.external_modules is False:
                     spec.external_modules = None
-                spec.extra_attributes = node["external"].get(
-                    "extra_attributes", syaml.syaml_dict()
-                )
+                spec.extra_attributes = node["external"].get("extra_attributes", {})
 
         # specs read in are concrete unless marked abstract
         if node.get("concrete", True):

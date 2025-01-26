@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import glob
 import os
 
 from spack.package import *
@@ -25,8 +26,13 @@ class Julia(MakefilePackage):
     maintainers("vchuravy", "haampie", "giordano")
 
     version("master", branch="master")
+    version("1.11.2", sha256="5d56c7163aefbf4dfb97d97388f93175826bcc3f4b0e885fa351694f84dc70c4")
+    version("1.11.1", sha256="895549f40b21dee66b6380e30811f40d2d938c2baba0750de69c9a183cccd756")
     version("1.11.0", sha256="a938c6b7758a83e817b56db3e542bd85e6d74db75e1381b1ba24cd6e3dc8c566")
 
+    version("1.10.7", sha256="9ff0fec7ff92e27c5909982047d1bd2dc80a32173e21a2e2e029eca2ccc1c0e1")
+    version("1.10.6", sha256="16a2227840a2acda80f375fc21fbd42a3da3be24bd375bc9a40ca8321e3172fe")
+    version("1.10.5", sha256="12b1bf720b76e51a116127b30f7a824d601347bc0999cf36a0c90f1f53d00833")
     version("1.10.4", sha256="c46ed8166fe860a7258d088a0add68dfdf11ad64cc4c0b1f113570862d3ef777")
     version("1.10.3", sha256="b3cd34c839d25b98a162070b4e3abd5f34564ffdad13e07073be7885e5678a18")
     version("1.10.2", sha256="e3d20c02975da054aeb18d32ed84c5d760d54d2563e45e25017684a5a105d185")
@@ -149,7 +155,7 @@ class Julia(MakefilePackage):
         depends_on("llvm@11.0.1")
         depends_on("mbedtls@2.24.0:2.24")
         depends_on("openlibm@0.7.0:0.7", when="+openlibm")
-        depends_on("curl@7.73.0:")
+        depends_on("curl@7.73.0:8.9")  # patch for forward compat with curl@8.10 does not apply
 
     # Patches for llvm
     depends_on("llvm", patches="llvm7-symver-jlprefix.patch", when="@:1.7")
@@ -298,6 +304,26 @@ class Julia(MakefilePackage):
     # which is creating symlinks to those libraries.
     patch("julia-1.10-rm-suite-sparse-cuda-stubs.patch", when="@1.10.0:1.10")
 
+    # Patches needed for curl 8.10 forward compatibility. They cannot be ordinary patches because
+    # they apply to files in embedded tarballs.
+    resource(
+        url="https://github.com/JuliaLang/Downloads.jl/commit/e692e77fb5427bf3c6e81514b323c39a88217eec.patch?full_index=1",
+        sha256="405044654ac2c5ee491c09496901f0538197201f06006c61779a4319045596eb",
+        name="downloads-patch-1",
+        placement="downloads-patch-1",
+        expand=False,
+        when="@1.7:1.11 ^curl@8.10:",
+    )
+
+    resource(
+        url="https://github.com/JuliaLang/Downloads.jl/commit/91a71b9597a5379735404af215035b5f5aa6b4d5.patch?full_index=1",
+        sha256="98e5ba550e957568c31fb2351b1623277a4514a830f2988bf37ebc3fd753d951",
+        name="downloads-jl-patch-2",
+        placement="downloads-patch-2",
+        expand=False,
+        when="@1.7:1.11 ^curl@8.10:",
+    )
+
     def patch(self):
         # The system-libwhich-libblastrampoline.patch causes a rebuild of docs as it
         # touches the main Makefile, so we reset the a/m-time to doc/_build's.
@@ -419,6 +445,19 @@ class Julia(MakefilePackage):
 
         with open("Make.user", "w") as f:
             f.write("\n".join(options) + "\n")
+
+    @run_before("build", when="@1.7:1.11 ^curl@8.10:")
+    def patch_downloads_stdlib(self):
+        # stdlibs are distributed as tarballs, which we need to unpack so we can patch Downloads.jl
+        # making it forward compatible with curl.
+        make("-C", "stdlib")
+
+        downloads_glob = glob.glob("stdlib/Downloads-*")
+        assert len(downloads_glob) == 1, "Expected exactly one stdlib/Downloads-* directory"
+        downloads_dir = downloads_glob[0]
+
+        for patch in sorted(glob.glob("downloads-patch-*/*")):
+            Executable("patch")("-s", "-p1", "-i", os.path.abspath(patch), "-d", downloads_dir)
 
     # julia's sys/package images are lacking rpaths, but this is fine because julia dlopen's them
     # at which point their dependencies are already loaded. ccalllazyfoo.so is from tests.

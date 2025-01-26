@@ -492,7 +492,7 @@ def extend_with_additional_versions(specs, num_versions):
         mirror_specs = spack.mirrors.utils.get_all_versions(specs)
     else:
         mirror_specs = spack.mirrors.utils.get_matching_versions(specs, num_versions=num_versions)
-    mirror_specs = [x.concretized() for x in mirror_specs]
+    mirror_specs = [spack.concretize.concretize_one(x) for x in mirror_specs]
     return mirror_specs
 
 

@@ -19,6 +19,7 @@ import llnl.util.tty as tty
 from llnl.util.symlink import readlink
 
 import spack.cmd.env
+import spack.concretize
 import spack.config
 import spack.environment as ev
 import spack.environment.depfile as depfile
@@ -957,7 +958,7 @@ def test_lockfile_spliced_specs(environment_from_manifest, install_mockery):
     """Test that an environment can round-trip a spliced spec."""
     # Create a local install for zmpi to splice in
     # Default concretization is not using zmpi
-    zmpi = spack.spec.Spec("zmpi").concretized()
+    zmpi = spack.concretize.concretize_one("zmpi")
     PackageInstaller([zmpi.package], fake=True).install()
 
     e1 = environment_from_manifest(
@@ -1320,39 +1321,43 @@ spack:
     with e:
         # List of requirements, flip a variant
         config("change", "packages:mpich:require:~debug")
-        test_spec = spack.spec.Spec("mpich").concretized()
+        test_spec = spack.concretize.concretize_one("mpich")
         assert test_spec.satisfies("@3.0.2~debug")
 
         # List of requirements, change the version (in a different scope)
         config("change", "packages:mpich:require:@3.0.3")
-        test_spec = spack.spec.Spec("mpich").concretized()
+        test_spec = spack.concretize.concretize_one("mpich")
         assert test_spec.satisfies("@3.0.3")
 
         # "require:" as a single string, also try specifying
         # a spec string that requires enclosing in quotes as
         # part of the config path
         config("change", 'packages:libelf:require:"@0.8.12:"')
-        spack.spec.Spec("libelf@0.8.12").concretized()
+        spack.concretize.concretize_one("libelf@0.8.12")
         # No need for assert, if there wasn't a failure, we
         # changed the requirement successfully.
 
         # Use change to add a requirement for a package that
         # has no requirements defined
         config("change", "packages:fftw:require:+mpi")
-        test_spec = spack.spec.Spec("fftw").concretized()
+        test_spec = spack.concretize.concretize_one("fftw")
         assert test_spec.satisfies("+mpi")
         config("change", "packages:fftw:require:~mpi")
-        test_spec = spack.spec.Spec("fftw").concretized()
+        test_spec = spack.concretize.concretize_one("fftw")
         assert test_spec.satisfies("~mpi")
         config("change", "packages:fftw:require:@1.0")
-        test_spec = spack.spec.Spec("fftw").concretized()
+        test_spec = spack.concretize.concretize_one("fftw")
         assert test_spec.satisfies("@1.0~mpi")
 
         # Use "--match-spec" to change one spec in a "one_of"
         # list
         config("change", "packages:bowtie:require:@1.2.2", "--match-spec", "@1.2.0")
-        spack.spec.Spec("bowtie@1.3.0").concretize()
-        spack.spec.Spec("bowtie@1.2.2").concretized()
+        # confirm that we can concretize to either value
+        spack.concretize.concretize_one("bowtie@1.3.0")
+        spack.concretize.concretize_one("bowtie@1.2.2")
+        # confirm that we cannot concretize to the old value
+        with pytest.raises(spack.solver.asp.UnsatisfiableSpecError):
+            spack.concretize.concretize_one("bowtie@1.2.0")
 
 
 def test_config_change_new(mutable_mock_env_path, tmp_path, mock_packages, mutable_config):
@@ -1367,8 +1372,8 @@ spack:
     with ev.Environment(tmp_path):
         config("change", "packages:mpich:require:~debug")
         with pytest.raises(spack.solver.asp.UnsatisfiableSpecError):
-            spack.spec.Spec("mpich+debug").concretized()
-        spack.spec.Spec("mpich~debug").concretized()
+            spack.concretize.concretize_one("mpich+debug")
+        spack.concretize.concretize_one("mpich~debug")
 
     # Now check that we raise an error if we need to add a require: constraint
     # when preexisting config manually specified it as a singular spec
@@ -1382,7 +1387,7 @@ spack:
 """
     )
     with ev.Environment(tmp_path):
-        assert spack.spec.Spec("mpich").concretized().satisfies("@3.0.3")
+        assert spack.concretize.concretize_one("mpich").satisfies("@3.0.3")
         with pytest.raises(spack.error.ConfigError, match="not a list"):
             config("change", "packages:mpich:require:~debug")
 
@@ -1690,7 +1695,7 @@ def test_stage(mock_stage, mock_fetch, install_mockery):
     root = str(mock_stage)
 
     def check_stage(spec):
-        spec = Spec(spec).concretized()
+        spec = spack.concretize.concretize_one(spec)
         for dep in spec.traverse():
             stage_name = f"{stage_prefix}{dep.name}-{dep.version}-{dep.dag_hash()}"
             assert os.path.isdir(os.path.join(root, stage_name))
@@ -1791,7 +1796,7 @@ def test_indirect_build_dep(tmp_path):
 
     with spack.repo.use_repositories(builder.root):
         x_spec = Spec("x")
-        x_concretized = x_spec.concretized()
+        x_concretized = spack.concretize.concretize_one(x_spec)
 
         _env_create("test", with_view=False)
         e = ev.read("test")
@@ -1824,10 +1829,10 @@ def test_store_different_build_deps(tmp_path):
 
     with spack.repo.use_repositories(builder.root):
         y_spec = Spec("y ^z@3")
-        y_concretized = y_spec.concretized()
+        y_concretized = spack.concretize.concretize_one(y_spec)
 
         x_spec = Spec("x ^z@2")
-        x_concretized = x_spec.concretized()
+        x_concretized = spack.concretize.concretize_one(x_spec)
 
         # Even though x chose a different 'z', the y it chooses should be identical
         # *aside* from the dependency on 'z'.  The dag_hash() will show the difference
@@ -2120,15 +2125,7 @@ def configure_reuse(reuse_mode, combined_env) -> Optional[ev.Environment]:
         "from_environment_raise",
     ],
 )
-def test_env_include_concrete_reuse(monkeypatch, reuse_mode):
-
-    # The mock packages do not use the gcc-runtime
-    def mock_has_runtime_dependencies(*args, **kwargs):
-        return True
-
-    monkeypatch.setattr(
-        spack.solver.asp, "_has_runtime_dependencies", mock_has_runtime_dependencies
-    )
+def test_env_include_concrete_reuse(do_not_check_runtimes_on_reuse, reuse_mode):
     # The default mpi version is 3.x provided by mpich in the mock repo.
     # This test verifies that concretizing with an included concrete
     # environment with "concretizer:reuse:true" the included

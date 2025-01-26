@@ -6,6 +6,7 @@ These tests check Spec DAG operations using dummy packages.
 """
 import pytest
 
+import spack.concretize
 import spack.deptypes as dt
 import spack.error
 import spack.repo
@@ -74,7 +75,7 @@ def test_test_deptype(tmpdir):
     builder.add_package("w", dependencies=[("x", "test", None), ("y", None, None)])
 
     with spack.repo.use_repositories(builder.root):
-        spec = Spec("w").concretized(tests=("w",))
+        spec = spack.concretize.concretize_one("w", tests=("w",))
         assert "x" in spec
         assert "z" not in spec
 
@@ -106,8 +107,7 @@ def test_installed_deps(monkeypatch, mock_packages):
     # BUT d is only a build dependency of C, so it won't constrain
     # link/run dependents of C when C is depended on as an existing
     # (concrete) installation.
-    c_spec = Spec(c)
-    c_spec.concretize()
+    c_spec = spack.concretize.concretize_one(c)
     assert c_spec[d].version == spack.version.Version("2")
 
     installed_names = [s.name for s in c_spec.traverse()]
@@ -122,7 +122,7 @@ def test_installed_deps(monkeypatch, mock_packages):
     # *if* we're doing a fresh installation.
     a_spec = Spec(a)
     a_spec._add_dependency(c_spec, depflag=dt.BUILD | dt.LINK, virtuals=())
-    a_spec.concretize()
+    a_spec = spack.concretize.concretize_one(a_spec)
     assert spack.version.Version("2") == a_spec[c][d].version
     assert spack.version.Version("2") == a_spec[e].version
     assert spack.version.Version("3") == a_spec[b][d].version
@@ -140,12 +140,12 @@ def test_specify_preinstalled_dep(tmpdir, monkeypatch):
     builder.add_package("pkg-a", dependencies=[("pkg-b", None, None)])
 
     with spack.repo.use_repositories(builder.root):
-        b_spec = Spec("pkg-b").concretized()
+        b_spec = spack.concretize.concretize_one("pkg-b")
         monkeypatch.setattr(Spec, "installed", property(lambda x: x.name != "pkg-a"))
 
         a_spec = Spec("pkg-a")
         a_spec._add_dependency(b_spec, depflag=dt.BUILD | dt.LINK, virtuals=())
-        a_spec.concretize()
+        a_spec = spack.concretize.concretize_one(a_spec)
 
         assert {x.name for x in a_spec.traverse()} == {"pkg-a", "pkg-b", "pkg-c"}
 
@@ -167,7 +167,7 @@ def test_conditional_dep_with_user_constraints(tmpdir, spec_str, expr_str, expec
     builder.add_package("x", dependencies=[("y", None, "x@2:")])
 
     with spack.repo.use_repositories(builder.root):
-        spec = Spec(spec_str).concretized()
+        spec = spack.concretize.concretize_one(spec_str)
         result = expr_str in spec
         assert result is expected, "{0} in {1}".format(expr_str, spec)
 
@@ -181,10 +181,10 @@ class TestSpecDag:
         spec = Spec("mpileaks ^mpich ^callpath ^dyninst ^libelf ^libdwarf")
 
         with pytest.raises(spack.error.UnsatisfiableSpecError):
-            spec.concretize()
+            spack.concretize.concretize_one(spec)
 
     def test_preorder_node_traversal(self):
-        dag = Spec("mpileaks ^zmpi").concretized()
+        dag = spack.concretize.concretize_one("mpileaks ^zmpi")
 
         names = ["mpileaks", "callpath", "dyninst", "libdwarf", "libelf", "zmpi", "fake"]
         pairs = list(zip([0, 1, 2, 3, 4, 2, 3], names))
@@ -196,7 +196,7 @@ class TestSpecDag:
         assert [(x, y.name) for x, y in traversal] == pairs
 
     def test_preorder_edge_traversal(self):
-        dag = Spec("mpileaks ^zmpi").concretized()
+        dag = spack.concretize.concretize_one("mpileaks ^zmpi")
 
         names = [
             "mpileaks",
@@ -218,7 +218,7 @@ class TestSpecDag:
         assert [(x, y.name) for x, y in traversal] == pairs
 
     def test_preorder_path_traversal(self):
-        dag = Spec("mpileaks ^zmpi").concretized()
+        dag = spack.concretize.concretize_one("mpileaks ^zmpi")
 
         names = [
             "mpileaks",
@@ -241,7 +241,7 @@ class TestSpecDag:
         assert [(x, y.name) for x, y in traversal] == pairs
 
     def test_postorder_node_traversal(self):
-        dag = Spec("mpileaks ^zmpi").concretized()
+        dag = spack.concretize.concretize_one("mpileaks ^zmpi")
 
         names = ["libelf", "libdwarf", "dyninst", "fake", "zmpi", "callpath", "mpileaks"]
         pairs = list(zip([4, 3, 2, 3, 2, 1, 0], names))
@@ -253,7 +253,7 @@ class TestSpecDag:
         assert [(x, y.name) for x, y in traversal] == pairs
 
     def test_postorder_edge_traversal(self):
-        dag = Spec("mpileaks ^zmpi").concretized()
+        dag = spack.concretize.concretize_one("mpileaks ^zmpi")
 
         names = [
             "libelf",
@@ -275,7 +275,7 @@ class TestSpecDag:
         assert [(x, y.name) for x, y in traversal] == pairs
 
     def test_postorder_path_traversal(self):
-        dag = Spec("mpileaks ^zmpi").concretized()
+        dag = spack.concretize.concretize_one("mpileaks ^zmpi")
 
         names = [
             "libelf",
@@ -310,8 +310,8 @@ class TestSpecDag:
             }
         )
         check_links(spec)
-        spec.concretize()
-        check_links(spec)
+        concrete = spack.concretize.concretize_one(spec)
+        check_links(concrete)
 
     @pytest.mark.parametrize(
         "constraint_str,spec_str",
@@ -328,7 +328,7 @@ class TestSpecDag:
         """
         set_dependency("mpileaks", constraint_str)
         with pytest.raises(spack.error.UnsatisfiableSpecError):
-            Spec(spec_str).concretize()
+            spack.concretize.concretize_one(spec_str)
 
     @pytest.mark.parametrize(
         "spec_str", ["libelf ^mpich", "libelf ^libdwarf", "mpich ^dyninst ^libelf"]
@@ -336,7 +336,7 @@ class TestSpecDag:
     def test_invalid_dep(self, spec_str):
         spec = Spec(spec_str)
         with pytest.raises(spack.error.SpecError):
-            spec.concretize()
+            spack.concretize.concretize_one(spec)
 
     def test_equal(self):
         # Different spec structures to test for equality
@@ -398,8 +398,7 @@ class TestSpecDag:
         assert not orig_ids.intersection(copy_ids)
 
     def test_copy_concretized(self):
-        orig = Spec("mpileaks")
-        orig.concretize()
+        orig = spack.concretize.concretize_one("mpileaks")
         copy = orig.copy()
 
         check_links(copy)
@@ -417,7 +416,7 @@ class TestSpecDag:
         """Check that copying dependencies using id(node) as a fast identifier of the
         node works when the spec is wrapped in a SpecBuildInterface object.
         """
-        s = Spec("mpileaks").concretized()
+        s = spack.concretize.concretize_one("mpileaks")
 
         c0 = s.copy()
         assert c0 == s
@@ -500,7 +499,7 @@ class TestSpecDag:
         ],
     )
     def test_deptype_traversal(self, spec_str, deptypes, expected):
-        dag = Spec(spec_str).concretized()
+        dag = spack.concretize.concretize_one(spec_str)
         traversal = dag.traverse(deptype=deptypes)
         assert [x.name for x in traversal] == expected
 
@@ -620,20 +619,18 @@ class TestSpecDag:
 
     def test_concretize_deptypes(self):
         """Ensure that dependency types are preserved after concretization."""
-        s = Spec("dt-diamond")
-        s.concretize()
+        s = spack.concretize.concretize_one("dt-diamond")
         self.check_diamond_deptypes(s)
 
     def test_copy_deptypes(self):
         """Ensure that dependency types are preserved by spec copy."""
-        s1 = Spec("dt-diamond").concretized()
+        s1 = spack.concretize.concretize_one("dt-diamond")
         self.check_diamond_deptypes(s1)
         s2 = s1.copy()
         self.check_diamond_deptypes(s2)
 
     def test_getitem_query(self):
-        s = Spec("mpileaks")
-        s.concretize()
+        s = spack.concretize.concretize_one("mpileaks")
 
         # Check a query to a non-virtual package
         a = s["callpath"]
@@ -663,8 +660,7 @@ class TestSpecDag:
         assert query.isvirtual
 
     def test_getitem_exceptional_paths(self):
-        s = Spec("mpileaks")
-        s.concretize()
+        s = spack.concretize.concretize_one("mpileaks")
         # Needed to get a proxy object
         q = s["mpileaks"]
 
@@ -735,7 +731,7 @@ class TestSpecDag:
 
     def test_spec_tree_respect_deptypes(self):
         # Version-test-root uses version-test-pkg as a build dependency
-        s = Spec("version-test-root").concretized()
+        s = spack.concretize.concretize_one("version-test-root")
         out = s.tree(deptypes="all")
         assert "version-test-pkg" in out
         out = s.tree(deptypes=("link", "run"))
@@ -819,9 +815,9 @@ def test_synthetic_construction_of_split_dependencies_from_same_package(mock_pac
     #
     # To demonstrate that a spec can now hold two direct
     # dependencies from the same package
-    root = Spec("pkg-b").concretized()
-    link_run_spec = Spec("pkg-c@=1.0").concretized()
-    build_spec = Spec("pkg-c@=2.0").concretized()
+    root = spack.concretize.concretize_one("pkg-b")
+    link_run_spec = spack.concretize.concretize_one("pkg-c@=1.0")
+    build_spec = spack.concretize.concretize_one("pkg-c@=2.0")
 
     root.add_dependency_edge(link_run_spec, depflag=dt.LINK, virtuals=())
     root.add_dependency_edge(link_run_spec, depflag=dt.RUN, virtuals=())
@@ -848,8 +844,8 @@ def test_synthetic_construction_bootstrapping(mock_packages, config):
     #    | build
     #  pkg-b@1.0
     #
-    root = Spec("pkg-b@=2.0").concretized()
-    bootstrap = Spec("pkg-b@=1.0").concretized()
+    root = spack.concretize.concretize_one("pkg-b@=2.0")
+    bootstrap = spack.concretize.concretize_one("pkg-b@=1.0")
 
     root.add_dependency_edge(bootstrap, depflag=dt.BUILD, virtuals=())
 
@@ -866,8 +862,8 @@ def test_addition_of_different_deptypes_in_multiple_calls(mock_packages, config)
     #  pkg-b@1.0
     #
     # with three calls and check we always have a single edge
-    root = Spec("pkg-b@=2.0").concretized()
-    bootstrap = Spec("pkg-b@=1.0").concretized()
+    root = spack.concretize.concretize_one("pkg-b@=2.0")
+    bootstrap = spack.concretize.concretize_one("pkg-b@=1.0")
 
     for current_depflag in (dt.BUILD, dt.LINK, dt.RUN):
         root.add_dependency_edge(bootstrap, depflag=current_depflag, virtuals=())
@@ -894,9 +890,9 @@ def test_addition_of_different_deptypes_in_multiple_calls(mock_packages, config)
 def test_adding_same_deptype_with_the_same_name_raises(
     mock_packages, config, c1_depflag, c2_depflag
 ):
-    p = Spec("pkg-b@=2.0").concretized()
-    c1 = Spec("pkg-b@=1.0").concretized()
-    c2 = Spec("pkg-b@=2.0").concretized()
+    p = spack.concretize.concretize_one("pkg-b@=2.0")
+    c1 = spack.concretize.concretize_one("pkg-b@=1.0")
+    c2 = spack.concretize.concretize_one("pkg-b@=2.0")
 
     p.add_dependency_edge(c1, depflag=c1_depflag, virtuals=())
     with pytest.raises(spack.error.SpackError):
