@@ -47,10 +47,10 @@ spack:
   - fastjet plugins=all
   - feynhiggs
   - fjcontrib
-  - garfieldpp
+  #- garfieldpp
   - gaudi +aida +examples +heppdt +xercesc ^gdb +debuginfod +python
   - geant4 +opengl +qt +threads ~vtk ^[virtuals=qmake] qt
-  - genie +atmo
+  #- genie +atmo
   - hepmc
   - hepmc3 +interfaces +protobuf +python +rootio
   #- herwig3 +njet +vbfnlo  # Note: herwig3 fails to find evtgen
