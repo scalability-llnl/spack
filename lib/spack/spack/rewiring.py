@@ -3,15 +3,11 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
-import shutil
 import tempfile
 
 import spack.binary_distribution as bindist
-import spack.deptypes as dt
 import spack.error
 import spack.hooks
-import spack.platforms
-import spack.relocate as relocate
 import spack.store
 
 

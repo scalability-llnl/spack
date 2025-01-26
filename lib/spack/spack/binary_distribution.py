@@ -2455,13 +2455,6 @@ def extract_tarball(spec, download_result, force=False, timer=timer.NULL_TIMER):
     except Exception as e:
         shutil.rmtree(spec.prefix, ignore_errors=True)
         raise e
-    else:
-        manifest_file = os.path.join(
-            spec.prefix,
-            spack.store.STORE.layout.metadata_dir,
-            spack.store.STORE.layout.manifest_file_name,
-        )
-
     finally:
         if tmpdir:
             shutil.rmtree(tmpdir, ignore_errors=True)
