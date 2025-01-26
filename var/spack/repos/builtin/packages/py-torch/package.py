@@ -353,10 +353,17 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     # Fixes compilation with Clang 9.0.0 and Apple Clang 11.0.3
     # https://github.com/pytorch/pytorch/pull/37086
     patch(
+        "https://github.com/pytorch/pytorch/commit/e921cd222a8fbeabf5a3e74e83e0d8dfb01aa8b5.patch?full_index=1",
+        sha256="0f3ad037a95af9d34b1d085050c1e7771fd00f0b89e5b3a276097b7c9f4fabf8",
+        when="@:1.5",
+    )
+    # Fixes build failure from py-torch version 1.5 to 2.2 with with rocm
+    patch(
         "https://github.com/ROCm/pytorch/commit/bac5378c734e74b5d58b8e82f9dbaa1454cfa5bd.patch?full_index=1",
         sha256="f0a64e6347e67ec84286994f1ac5e77dba7fa6992c5f083e70a4e2765a86c0c6",
         when="@1.5:2.2.2 +rocm",
     )
+    # Fixes build failure from pytorch version 2.3 to 2.5.1 with with rocm
     patch(
         "https://github.com/ROCm/pytorch/commit/81b1b13beff255201ae0caa675fcbb8f71bceef9.patch?full_index=1",
         sha256="aac76b3636e71a44adabba96185c3ddac110f007a2c02c6fd6ac82ead361e395",
