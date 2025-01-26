@@ -7,14 +7,34 @@ import os
 import re
 import sys
 
+import llnl.util.lang
 import llnl.util.tty as tty
 
 import spack.compilers
+import spack.platforms
 import spack.version
 from spack.package import *
+from spack.platforms.cray import slingshot_network
 
 
-class Openmpi(AutotoolsPackage, CudaPackage):
+@llnl.util.lang.memoized
+def is_CrayEX():
+    # Credit to upcxx and chapel packages for this hpe-cray-ex detection function
+    if spack.platforms.host().name == "linux":
+        target = os.environ.get("CRAYPE_NETWORK_TARGET")
+        if target in ["ofi", "ucx"]:  # normal case
+            return True
+        elif target is None:  # but some systems lack Cray PrgEnv
+            fi_info = which("fi_info")
+            if (
+                fi_info
+                and fi_info("-l", output=str, error=str, fail_on_error=False).find("cxi") >= 0
+            ):
+                return True
+    return False
+
+
+class Openmpi(AutotoolsPackage, CudaPackage, ROCmPackage):
     """An open source Message Passing Interface implementation.
 
     The Open MPI Project is an open source Message Passing Interface
@@ -621,6 +641,7 @@ with '-Wl,-commons,use_dylibs' and without
     depends_on("hwloc@:1", when="@:3 ~internal-hwloc")
 
     depends_on("hwloc +cuda", when="+cuda ~internal-hwloc")
+    depends_on("hwloc +rocm", when="+rocm ~internal-hwloc")
     depends_on("java", when="+java")
     depends_on("sqlite", when="+sqlite3")
     depends_on("zlib-api", when="@3:")
@@ -644,12 +665,20 @@ with '-Wl,-commons,use_dylibs' and without
     depends_on("fca", when="fabrics=fca")
     depends_on("hcoll", when="fabrics=hcoll")
     depends_on("ucc", when="fabrics=ucc")
+    depends_on("ucc +rocm", when="fabrics=ucc +rocm")
     depends_on("xpmem", when="fabrics=xpmem")
     depends_on("knem", when="fabrics=knem")
 
     depends_on("lsf", when="schedulers=lsf")
     depends_on("pbs", when="schedulers=tm")
     depends_on("slurm", when="schedulers=slurm")
+
+    with when("+rocm"):
+        requires(
+            "fabrics=ucx ^ucx +rocm",
+            "^libfabric" + (" fabrics=cxi" if slingshot_network() or is_CrayEX() else ""),
+            policy="one_of",
+        )
 
     # PMIx is unavailable for @1, and required for @2:
     # OpenMPI @2: includes a vendored version:
@@ -668,6 +697,7 @@ with '-Wl,-commons,use_dylibs' and without
     depends_on("openssh", type="run", when="+rsh")
 
     depends_on("cuda", type=("build", "link", "run"), when="@5: +cuda")
+    depends_on("hip", type=("build", "link", "run"), when="@5: +rocm")
 
     conflicts("+cxx_exceptions", when="%nvhpc", msg="nvc does not ignore -fexceptions, but errors")
 
@@ -675,6 +705,8 @@ with '-Wl,-commons,use_dylibs' and without
     # parent package we must express as a conflict rather than a conditional
     # variant.
     conflicts("+cuda", when="@:1.6")
+    # Same goes with ROCm support added in 5.0
+    conflicts("+rocm", when="@:4")
     # PSM2 support was added in 1.10.0
     conflicts("fabrics=psm2", when="@:1.8")
     # MXM support was added in 1.5.4
@@ -780,6 +812,15 @@ with '-Wl,-commons,use_dylibs' and without
                 variants.append("+cuda")
             else:
                 variants.append("~cuda")
+
+            # rocm
+            match = re.search(
+                r'parameter "mpi_built_with_rocm_support" ' + r'\(current value: "(\S+)"', output
+            )
+            if match and is_enabled(match.group(1)):
+                variants.append("+rocm")
+            else:
+                variants.append("~rocm")
 
             # wrapper-rpath
             if version in spack.version.ver("1.7.4:"):
@@ -1159,6 +1200,13 @@ with '-Wl,-commons,use_dylibs' and without
                 config_args.append("--enable-mca-no-build=pml-bfo")
         elif spec.satisfies("@1.7:"):
             config_args.append("--without-cuda")
+
+        # ROCm support
+        # See https://docs.open-mpi.org/en/v5.0.x/tuning-apps/networking/rocm.html
+        if "+rocm" in spec:
+            config_args.append("--with-rocm={0}".format(spec["hip"].prefix))
+        elif spec.satisfies("@5:"):
+            config_args.append("--without-rocm")
 
         if spec.satisfies("%nvhpc@:20.11"):
             # Workaround compiler issues
