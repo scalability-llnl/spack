@@ -37,6 +37,7 @@ import spack.binary_distribution
 import spack.concretize
 import spack.config
 import spack.detection
+import spack.error
 import spack.mirrors.mirror
 import spack.platforms
 import spack.spec
@@ -323,11 +324,9 @@ def create_bootstrapper(conf: ConfigDictionary):
     return _bootstrap_methods[btype](conf)
 
 
-def source_is_enabled_or_raise(conf: ConfigDictionary):
-    """Raise ValueError if the source is not enabled for bootstrapping"""
-    trusted, name = spack.config.get("bootstrap:trusted"), conf["name"]
-    if not trusted.get(name, False):
-        raise ValueError("source is not trusted")
+def source_is_enabled(conf: ConfigDictionary) -> bool:
+    """Returns true if the source is not enabled for bootstrapping"""
+    return spack.config.get("bootstrap:trusted").get(conf["name"], False)
 
 
 def ensure_module_importable_or_raise(module: str, abstract_spec: Optional[str] = None):
@@ -357,24 +356,23 @@ def ensure_module_importable_or_raise(module: str, abstract_spec: Optional[str] 
     exception_handler = GroupedExceptionHandler()
 
     for current_config in bootstrapping_sources():
+        if not source_is_enabled(current_config):
+            continue
         with exception_handler.forward(current_config["name"], Exception):
-            source_is_enabled_or_raise(current_config)
-            current_bootstrapper = create_bootstrapper(current_config)
-            if current_bootstrapper.try_import(module, abstract_spec):
+            if create_bootstrapper(current_config).try_import(module, abstract_spec):
                 return
 
-    assert exception_handler, (
-        f"expected at least one exception to have been raised at this point: "
-        f"while bootstrapping {module}"
-    )
     msg = f'cannot bootstrap the "{module}" Python module '
     if abstract_spec:
         msg += f'from spec "{abstract_spec}" '
-    if tty.is_debug():
+
+    if not exception_handler:
+        msg += ": no bootstrapping sources are enabled"
+    elif spack.error.debug or spack.error.SHOW_BACKTRACE:
         msg += exception_handler.grouped_message(with_tracebacks=True)
     else:
         msg += exception_handler.grouped_message(with_tracebacks=False)
-        msg += "\nRun `spack --debug ...` for more detailed errors"
+        msg += "\nRun `spack --backtrace ...` for more detailed errors"
     raise ImportError(msg)
 
 
@@ -412,8 +410,9 @@ def ensure_executables_in_path_or_raise(
     exception_handler = GroupedExceptionHandler()
 
     for current_config in bootstrapping_sources():
+        if not source_is_enabled(current_config):
+            continue
         with exception_handler.forward(current_config["name"], Exception):
-            source_is_enabled_or_raise(current_config)
             current_bootstrapper = create_bootstrapper(current_config)
             if current_bootstrapper.try_search_path(executables, abstract_spec):
                 # Additional environment variables needed
@@ -429,18 +428,17 @@ def ensure_executables_in_path_or_raise(
                 )
                 return cmd
 
-    assert exception_handler, (
-        f"expected at least one exception to have been raised at this point: "
-        f"while bootstrapping {executables_str}"
-    )
     msg = f"cannot bootstrap any of the {executables_str} executables "
     if abstract_spec:
         msg += f'from spec "{abstract_spec}" '
-    if tty.is_debug():
+
+    if not exception_handler:
+        msg += ": no bootstrapping sources are enabled"
+    elif spack.error.debug or spack.error.SHOW_BACKTRACE:
         msg += exception_handler.grouped_message(with_tracebacks=True)
     else:
         msg += exception_handler.grouped_message(with_tracebacks=False)
-        msg += "\nRun `spack --debug ...` for more detailed errors"
+        msg += "\nRun `spack --backtrace ...` for more detailed errors"
     raise RuntimeError(msg)
 
 

@@ -123,6 +123,15 @@ DEFAULT_INSTALL_RECORD_FIELDS = (
     "deprecated_for",
 )
 
+#: File where the database is written
+INDEX_JSON_FILE = "index.json"
+
+# Verifier file to check last modification of the DB
+_INDEX_VERIFIER_FILE = "index_verifier"
+
+# Lockfile for the database
+_LOCK_FILE = "lock"
+
 
 @llnl.util.lang.memoized
 def _getfqdn():
@@ -260,7 +269,7 @@ class ForbiddenLockError(SpackError):
 
 class ForbiddenLock:
     def __getattr__(self, name):
-        raise ForbiddenLockError("Cannot access attribute '{0}' of lock".format(name))
+        raise ForbiddenLockError(f"Cannot access attribute '{name}' of lock")
 
     def __reduce__(self):
         return ForbiddenLock, tuple()
@@ -589,9 +598,9 @@ class Database:
         self.layout = layout
 
         # Set up layout of database files within the db dir
-        self._index_path = self.database_directory / "index.json"
-        self._verifier_path = self.database_directory / "index_verifier"
-        self._lock_path = self.database_directory / "lock"
+        self._index_path = self.database_directory / INDEX_JSON_FILE
+        self._verifier_path = self.database_directory / _INDEX_VERIFIER_FILE
+        self._lock_path = self.database_directory / _LOCK_FILE
 
         self.is_upstream = is_upstream
         self.last_seen_verifier = ""
@@ -606,7 +615,7 @@ class Database:
 
         # initialize rest of state.
         self.db_lock_timeout = lock_cfg.database_timeout
-        tty.debug("DATABASE LOCK TIMEOUT: {0}s".format(str(self.db_lock_timeout)))
+        tty.debug(f"DATABASE LOCK TIMEOUT: {str(self.db_lock_timeout)}s")
 
         self.lock: Union[ForbiddenLock, lk.Lock]
         if self.is_upstream:
@@ -1090,7 +1099,7 @@ class Database:
                 self._state_is_inconsistent = False
             return
         elif self.is_upstream:
-            tty.warn("upstream not found: {0}".format(self._index_path))
+            tty.warn(f"upstream not found: {self._index_path}")
 
     def _add(
         self,

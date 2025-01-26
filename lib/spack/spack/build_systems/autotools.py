@@ -534,7 +534,7 @@ To resolve this problem, please try the following:
         return build_dir
 
     @spack.phase_callbacks.run_before("autoreconf")
-    def delete_configure_to_force_update(self) -> None:
+    def _delete_configure_to_force_update(self) -> None:
         if self.force_autoreconf:
             fs.force_remove(self.configure_abs_path)
 
@@ -547,7 +547,7 @@ To resolve this problem, please try the following:
         return _autoreconf_search_path_args(self.spec)
 
     @spack.phase_callbacks.run_after("autoreconf")
-    def set_configure_or_die(self) -> None:
+    def _set_configure_or_die(self) -> None:
         """Ensure the presence of a "configure" script, or raise. If the "configure"
         is found, a module level attribute is set.
 
@@ -571,10 +571,7 @@ To resolve this problem, please try the following:
         return []
 
     def autoreconf(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: AutotoolsPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Not needed usually, configure should be already there"""
 
@@ -603,10 +600,7 @@ To resolve this problem, please try the following:
             self.pkg.module.autoreconf(*autoreconf_args)
 
     def configure(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: AutotoolsPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Run "configure", with the arguments specified by the builder and an
         appropriately set prefix.
@@ -619,10 +613,7 @@ To resolve this problem, please try the following:
             pkg.module.configure(*options)
 
     def build(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: AutotoolsPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Run "make" on the build targets specified by the builder."""
         # See https://autotools.io/automake/silent.html
@@ -632,10 +623,7 @@ To resolve this problem, please try the following:
             pkg.module.make(*params)
 
     def install(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: AutotoolsPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Run "make" on the install targets specified by the builder."""
         with fs.working_dir(self.build_directory):
@@ -832,7 +820,7 @@ To resolve this problem, please try the following:
             self.pkg._if_make_target_execute("installcheck")
 
     @spack.phase_callbacks.run_after("install")
-    def remove_libtool_archives(self) -> None:
+    def _remove_libtool_archives(self) -> None:
         """Remove all .la files in prefix sub-folders if the package sets
         ``install_libtool_archives`` to be False.
         """
