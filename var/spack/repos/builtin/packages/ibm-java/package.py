@@ -62,9 +62,7 @@ class IbmJava(Package):
             version(ver, sha256=sha, expand=False)
 
     provides("java@8")
-
-    conflicts("target=x86_64:", msg="ibm-java is only available for ppc64 and ppc64le")
-    conflicts("target=aarch64", msg="ibm-java is only available for ppc64 and ppc64le")
+    requires("target=ppc64le:")
 
     # This assumes version numbers are 4-tuples: 8.0.5.30
     def url_for_version(self, version):

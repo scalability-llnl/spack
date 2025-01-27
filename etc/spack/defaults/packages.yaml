@@ -73,15 +73,27 @@ packages:
     permissions:
       read: world
       write: user
+  cray-fftw:
+    buildable: false
+  cray-libsci:
+    buildable: false
   cray-mpich:
     buildable: false
   cray-mvapich2:
     buildable: false
+  cray-pmi:
+    buildable: false
   egl:
+    buildable: false
+  essl:
     buildable: false
   fujitsu-mpi:
     buildable: false
+  fujitsu-ssl2:
+    buildable: false
   hpcx-mpi:
+    buildable: false
+  mpt:
     buildable: false
   spectrum-mpi:
     buildable: false
