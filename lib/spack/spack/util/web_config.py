@@ -42,6 +42,9 @@ def _create_global() -> WebConfig:
 CONFIG: WebConfig = llnl.util.lang.Singleton(_create_global)  # type: ignore
 
 
+# This feature leverages the fact that spack.confg.CONFIG's get() method
+# is similar enough to the normal dict get() that we can ignore the type
+# in order to get this to work without a circular import of spack.config.
 def update(config: dict):
     """Re-instantiate the configuration by passing spack.config.CONFIG."""
     global CONFIG
