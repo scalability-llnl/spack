@@ -11,9 +11,8 @@ from pathlib import Path, PurePath
 
 import pytest
 
-from llnl.util.filesystem import working_dir
-
 import llnl.util.tty as tty
+from llnl.util.filesystem import working_dir
 
 import spack.config
 import spack.mirrors.mirror
