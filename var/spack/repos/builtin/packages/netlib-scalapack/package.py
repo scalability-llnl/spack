@@ -135,7 +135,7 @@ class NetlibScalapack(ScalapackBase):
     # a separated package
 
     def url_for_version(self, version):
-        if version >= Version("2.2.0"):
+        if self.spec.satisfies("@2.2:"):
             return super().url_for_version(version)
         url_fmt = "https://www.netlib.org/scalapack/scalapack-{0}.tgz"
         return url_fmt.format(version)
