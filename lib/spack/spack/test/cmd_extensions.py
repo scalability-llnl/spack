@@ -9,6 +9,8 @@ from pathlib import Path, PurePath
 
 import pytest
 
+from llnl.util.filesystem import working_dir
+
 import spack.cmd
 import spack.config
 import spack.extensions
@@ -233,12 +235,10 @@ def test_extension_naming(tmp_path, extension_path, expected_exception, config):
     """
     # NOTE: if the directory is a valid extension directory name the "vacuous" test will
     # fail because it resolves to current working directory
-    cwd = Path.cwd()
-    os.chdir(tmp_path)
-    with spack.config.override("config:extensions", [extension_path]):
-        with pytest.raises(expected_exception):
-            spack.cmd.get_module("no-such-command")
-    os.chdir(cwd)
+    with working_dir(str(tmp_path)):
+        with spack.config.override("config:extensions", [extension_path]):
+            with pytest.raises(expected_exception):
+                spack.cmd.get_module("no-such-command")
 
 
 def test_missing_command_function(extension_creator, capsys):
