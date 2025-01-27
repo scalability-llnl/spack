@@ -7,7 +7,7 @@ import os
 import pickle
 import ssl
 import urllib.request
-from pathlib import Path
+from pathlib import Path, PurePath
 
 import pytest
 
@@ -20,12 +20,11 @@ import spack.url
 import spack.util.s3
 import spack.util.url as url_util
 import spack.util.web
-from spack.util.path import abstract_path, concrete_path, fs_path
 from spack.version import Version
 
 
 def _create_url(relative_url):
-    web_data_path = abstract_path(spack.paths.test_path, "data", "web")
+    web_data_path = PurePath(spack.paths.test_path, "data", "web")
     return url_util.path_to_file_url(web_data_path / relative_url)
 
 
@@ -384,13 +383,13 @@ def ssl_scrubbed_env(mutable_config, monkeypatch):
     "cert_path,cert_creator",
     [
         pytest.param(
-            lambda base_path: fs_path(base_path / "mock_cert.crt"),
+            lambda base_path: os.fspath(base_path / "mock_cert.crt"),
             lambda cert_path: open(cert_path, "w", encoding="utf-8").close(),
             id="cert_file",
         ),
         pytest.param(
-            lambda base_path: fs_path(base_path / "mock_cert"),
-            lambda cert_path: concrete_path(cert_path).mkdir(),
+            lambda base_path: os.fspath(base_path / "mock_cert"),
+            lambda cert_path: Path(cert_path).mkdir(),
             id="cert_directory",
         ),
     ],
@@ -407,9 +406,9 @@ def test_ssl_urllib(
         """overwrite ssl's verification to simply check for valid file/path"""
         assert cafile or capath
         if cafile:
-            assert concrete_path(cafile).is_file()
+            assert Path(cafile).is_file()
         if capath:
-            assert concrete_path(capath).is_dir()
+            assert Path(capath).is_dir()
 
     monkeypatch.setattr(ssl.SSLContext, "load_verify_locations", mock_verify_locations)
 
@@ -436,7 +435,7 @@ def test_ssl_curl_cert_file(cert_exists, tmp_path, ssl_scrubbed_env, mutable_con
     cwd = Path.cwd()
     os.chdir(tmp_path)
     mock_cert = tmp_path / "mock_cert.crt"
-    spack.config.set("config:ssl_certs", fs_path(mock_cert))
+    spack.config.set("config:ssl_certs", os.fspath(mock_cert))
     if cert_exists:
         open(mock_cert, "w", encoding="utf-8").close()
         assert mock_cert.is_file()
@@ -447,7 +446,7 @@ def test_ssl_curl_cert_file(cert_exists, tmp_path, ssl_scrubbed_env, mutable_con
     curl("--help", output=str, _dump_env=dump_env)
 
     if cert_exists:
-        assert dump_env["CURL_CA_BUNDLE"] == fs_path(mock_cert)
+        assert dump_env["CURL_CA_BUNDLE"] == os.fspath(mock_cert)
     else:
         assert "CURL_CA_BUNDLE" not in dump_env
     os.chdir(cwd)

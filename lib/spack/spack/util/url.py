@@ -6,13 +6,15 @@
 Utility functions for parsing, formatting, and manipulating URLs.
 """
 
+import os
 import posixpath
 import re
 import urllib.parse
 import urllib.request
+from pathlib import Path
 from typing import Optional
 
-from spack.util.path import concrete_path, fs_path, sanitize_filename
+from spack.util.path import sanitize_filename
 
 
 def validate_scheme(scheme):
@@ -39,10 +41,10 @@ def local_file_path(url):
 
 
 def path_to_file_url(path):
-    path = concrete_path(path)
+    path = Path(path)
     if not path.is_absolute():
         path = path.resolve()
-    return urllib.parse.urljoin("file:", urllib.request.pathname2url(fs_path(path)))
+    return urllib.parse.urljoin("file:", urllib.request.pathname2url(os.fspath(path)))
 
 
 def file_url_string_to_path(url):
