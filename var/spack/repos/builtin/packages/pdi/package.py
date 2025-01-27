@@ -1,10 +1,10 @@
-# Copyright (C) 2020-2022 Commissariat a l'energie atomique et aux energies alternatives (CEA)
-# and others. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
 from spack.package import *
+from spack.hooks.sbang import sbang_shebang_line
 
 
 class Pdi(CMakePackage):
@@ -17,6 +17,8 @@ class Pdi(CMakePackage):
 
     homepage = "https://pdi.dev"
     git = "https://github.com/pdidev/pdi.git"
+
+    license("BSD-3-Clause")
 
     maintainers("jbigot")
 
@@ -67,7 +69,7 @@ class Pdi(CMakePackage):
     depends_on("paraconf@0.4.14: +shared", type=("link", "run"))
     depends_on("pkgconfig", type=("build"))
     depends_on("python@3.6.5:", type=("build", "link", "run"), when="+python")
-    depends_on("python@3.8.2:", type=("build", "link", "run"), when="@1.8: +python")
+    depends_on("python@3.8.2:3.11.9", type=("build", "link", "run"), when="@1.8: +python")
     depends_on("py-pybind11@2.3:2", type=("link"), when="+python")
     depends_on("py-pybind11@:2.11", type=("link"), when="@:1.6 +python")
     depends_on("py-pybind11@2.4.3:", type=("link"), when="@1.8: +python")
@@ -77,6 +79,18 @@ class Pdi(CMakePackage):
     depends_on("zpp@1.0.15:", type=("build"), when="@1.5:1.7 +fortran")
 
     root_cmakelists_dir = "pdi"
+
+    def patch(self):
+        # Run before build so that the standard Spack sbang install hook can fix
+        # up the path to the python binary the zpp scripts requires. We dont use
+        # filter_shebang("vendor/zpp-1.0.16/bin/zpp.in") because the template is
+        # not yet instantiated and PYTHON_EXECUTABLE is not yet large enough to
+        # trigger the replacement via filter_shebang.
+
+        if self.spec.satisfies("@1.8"):
+            filter_file(r"#!@PYTHON_EXECUTABLE@ -B",
+                        sbang_shebang_line() + "\n#!@PYTHON_EXECUTABLE@ -B",
+                        "vendor/zpp-1.0.16/bin/zpp.in")
 
     def url_for_version(self, version):
         if version <= Version("1.7.1"):

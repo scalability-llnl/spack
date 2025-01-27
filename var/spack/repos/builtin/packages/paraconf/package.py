@@ -1,5 +1,4 @@
-# Copyright (C) 2020-2022 Commissariat a l'energie atomique et aux energies alternatives (CEA)
-# and others. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,8 @@ class Paraconf(CMakePackage):
 
     homepage = "https://github.com/pdidev/paraconf"
     url = "https://github.com/pdidev/paraconf/archive/1.0.0.tar.gz"
+
+    license("BSD-3-Clause")
 
     maintainers("jbigot")
 
