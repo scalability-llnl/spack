@@ -83,7 +83,15 @@ class GoBuilder(BuilderWithDefaults):
     def build_args(self):
         """Arguments for ``go build``."""
         # Pass ldflags -s = --strip-all and -w = --no-warnings by default
-        return ["-modcacherw", "-ldflags", "-s -w", "-o", f"{self.pkg.name}"]
+        return [
+            "-p",
+            str(self.pkg.module.make_jobs),
+            "-modcacherw",
+            "-ldflags",
+            "-s -w",
+            "-o",
+            f"{self.pkg.name}",
+        ]
 
     @property
     def check_args(self):
