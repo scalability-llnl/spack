@@ -119,7 +119,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     variant("dftd4", when="@2024.2:", default=False, description="Enable DFT-D4 support")
     variant("mpi_f08", default=False, description="Use MPI F08 module")
     variant("smeagol", default=False, description="Enable libsmeagol support", when="@2025.2:")
-    variant("grpp", default=False, description="Enable libgrrp support")
+    variant("grpp", default=False, description="Enable libgrpp support", when="@master")
     variant("trexio", default=False, description="Enable Trex-IO support", when="+grpp")
     variant(
         "enable_regtests",
