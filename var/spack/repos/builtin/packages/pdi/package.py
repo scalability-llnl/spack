@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack import *
-from spack.package import *
 from spack.hooks.sbang import sbang_shebang_line
+from spack.package import *
 
 
 class Pdi(CMakePackage):
@@ -88,9 +88,11 @@ class Pdi(CMakePackage):
         # trigger the replacement via filter_shebang.
 
         if self.spec.satisfies("@1.8"):
-            filter_file(r"#!@PYTHON_EXECUTABLE@ -B",
-                        sbang_shebang_line() + "\n#!@PYTHON_EXECUTABLE@ -B",
-                        "vendor/zpp-1.0.16/bin/zpp.in")
+            filter_file(
+                r"#!@PYTHON_EXECUTABLE@ -B",
+                sbang_shebang_line() + "\n#!@PYTHON_EXECUTABLE@ -B",
+                "vendor/zpp-1.0.16/bin/zpp.in",
+            )
 
     def url_for_version(self, version):
         if version <= Version("1.7.1"):
