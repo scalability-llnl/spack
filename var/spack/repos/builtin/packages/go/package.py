@@ -117,8 +117,6 @@ class Go(Package):
     def setup_dependent_package(self, module, dependent_spec):
         """Called before go modules' build(), install() methods.
 
-        In most cases, extensions will only need to set GOPATH and use go::
-
         go('get', '<package>', env=env)
         install_tree('bin', prefix.bin)
         """
