@@ -67,7 +67,7 @@ class Context:
                 continue
             for requirements, _, _ in conditions:
                 if not any(x.intersects(platform_condition) for x in requirements):
-                    print(f"{pkg_name} is not for this platform")
+                    # print(f"{pkg_name} is not for this platform")
                     return False
         return True
 
@@ -83,7 +83,7 @@ class Context:
             return True
 
         # TODO: query buildcaches
-        print(f"{pkg_name} cannot be installed")
+        # print(f"{pkg_name} cannot be installed")
         return False
 
     @lang.memoized
@@ -95,7 +95,7 @@ class Context:
             )
             preferred_providers = [spack.spec.Spec(x) for x in preferred_providers]
             if not any(x.intersects(pkg_name) for x in preferred_providers):
-                print(f"{pkg_name} is not among preferred providers for {virtual}")
+                # print(f"{pkg_name} is not among preferred providers for {virtual}")
                 return False
 
         if not self.is_allowed_on_this_platform(pkg_name=pkg_name):
@@ -105,6 +105,32 @@ class Context:
             return False
 
         return True
+
+    @lang.memoized
+    def unreachable(self, *, pkg_name: str, when_spec: spack.spec.Spec) -> bool:
+        """Returns true if the context can determine that the condition cannot ever
+        be met on pkg_name.
+        """
+        # TODO: extend to more complex requirements
+        candidates = self.configuration.get(
+            f"packages:{pkg_name}:require", []
+        ) or self.configuration.get("packages:all:require", [])
+        if not candidates:
+            return False
+
+        if isinstance(candidates, str):
+            candidates = [candidates]
+
+        union_requirement = spack.spec.Spec()
+        for c in candidates:
+            if not isinstance(c, str):
+                continue
+            union_requirement.constrain(c)
+
+        if not when_spec.intersects(union_requirement):
+            return True
+
+        return False
 
 
 class PossibleDependenciesAnalyzer:
@@ -117,7 +143,11 @@ class PossibleDependenciesAnalyzer:
         self.runtime_pkgs, self.runtime_virtuals = self.context.runtime_pkgs()
 
     def possible_dependencies(
-        self, *specs: spack.spec.Spec, allowed_deps: dt.DepFlag, transitive: bool = True, strict_depflag: bool = False
+        self,
+        *specs: spack.spec.Spec,
+        allowed_deps: dt.DepFlag,
+        transitive: bool = True,
+        strict_depflag: bool = False,
     ) -> Tuple[Set[str], Set[str]]:
         virtuals: Set[str] = set()
         packages = []
@@ -144,7 +174,7 @@ class PossibleDependenciesAnalyzer:
                 expand_virtuals=True,
                 depflag=allowed_deps,
                 virtuals=virtuals,
-                strict_depflag=strict_depflag
+                strict_depflag=strict_depflag,
             )
 
         virtuals.update(self.runtime_virtuals)
@@ -201,7 +231,21 @@ class PossibleDependenciesAnalyzer:
 
         visited.setdefault(pkg_cls.name, set())
 
+        # At the moment exit early. Since libc is not buildable, there is no
+        # need to extend the search space with libc dependencies.
+        if pkg_cls.name in self.context.libc_pkgs():
+            return visited
+
         for name, conditions in pkg_cls.dependencies_by_name(when=True).items():
+            if all(
+                self.context.unreachable(pkg_name=pkg_cls.name, when_spec=x) for x in conditions
+            ):
+                # print(
+                #     f"Not adding {name} as a dep of {pkg_cls.name}, "
+                #     f"because conditions cannot be met"
+                # )
+                continue
+
             # check whether this dependency could be of the type asked for
             if strict_depflag is False:
                 depflag_union = 0
@@ -211,7 +255,9 @@ class PossibleDependenciesAnalyzer:
                 if not (depflag & depflag_union):
                     continue
             else:
-                if all(dep.depflag != depflag for deplist in conditions.values() for dep in deplist):
+                if all(
+                    dep.depflag != depflag for deplist in conditions.values() for dep in deplist
+                ):
                     continue
 
             if self.context.is_virtual(name) and name in virtuals:

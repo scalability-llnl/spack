@@ -2605,7 +2605,12 @@ class SpackSolverSetup:
         # Tell the concretizer about possible values from specs seen in spec_clauses().
         # We might want to order these facts by pkg and name if we are debugging.
         for pkg_name, variant_def_id, value in self.variant_values_from_specs:
-            vid = self.variant_ids_by_def_id[variant_def_id]
+            try:
+                vid = self.variant_ids_by_def_id[variant_def_id]
+            except KeyError:
+                # print(f"cannot retrieve id of the {value} variant from {pkg_name}")
+                continue
+
             self.gen.fact(fn.pkg_fact(pkg_name, fn.variant_possible_value(vid, value)))
 
     def register_concrete_spec(self, spec, possible):
