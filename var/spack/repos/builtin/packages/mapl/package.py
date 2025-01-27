@@ -390,11 +390,11 @@ class Mapl(CMakePackage):
         if fflags:
             args.append(self.define("CMAKE_Fortran_FLAGS", " ".join(fflags)))
 
-        # If oneapi is used and it gets past the conflict above, we might be
+        # If oneapi@:2024 is used and it gets past the conflict above, we might be
         # using ifx or ifort. If we are using ifx and the MAPL version is 2.50 or older
         # we need to raise an error
 
-        if self.spec.satisfies("%oneapi@:2025"):
+        if self.spec.satisfies("@:2.50 %oneapi@:2024"):
             # We now need to get which Fortran compiler is used here but there
             # isn't an easy way like:
             #   if self.spec["fortran"].name == "ifx":
