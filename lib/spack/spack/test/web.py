@@ -11,6 +11,8 @@ from pathlib import Path, PurePath
 
 import pytest
 
+from llnl.util.filesystem import working_dir
+
 import llnl.util.tty as tty
 
 import spack.config
@@ -211,14 +213,14 @@ def test_list_url(tmp_path):
 
     (tmp_path / "dir").mkdir()
 
-    with open((tmp_path / "file-0.txt"), "w", encoding="utf-8"):
+    with open(tmp_path / "file-0.txt", "w", encoding="utf-8"):
         pass
-    with open((tmp_path / "file-1.txt"), "w", encoding="utf-8"):
+    with open(tmp_path / "file-1.txt", "w", encoding="utf-8"):
         pass
-    with open((tmp_path / "file-2.txt"), "w", encoding="utf-8"):
+    with open(tmp_path / "file-2.txt", "w", encoding="utf-8"):
         pass
 
-    with open((tmp_path / "dir" / "another-file.txt"), "w", encoding="utf-8"):
+    with open(tmp_path / "dir" / "another-file.txt", "w", encoding="utf-8"):
         pass
 
     list_url = lambda recursive: list(
@@ -412,17 +414,15 @@ def test_ssl_urllib(
 
     monkeypatch.setattr(ssl.SSLContext, "load_verify_locations", mock_verify_locations)
 
-    cwd = Path.cwd()
-    os.chdir(tmp_path)
-    mock_cert = cert_path(tmp_path)
-    cert_creator(mock_cert)
-    spack.config.set("config:ssl_certs", mock_cert)
+    with working_dir(str(tmp_path)):
+        mock_cert = cert_path(tmp_path)
+        cert_creator(mock_cert)
+        spack.config.set("config:ssl_certs", mock_cert)
 
-    assert mock_cert == spack.config.get("config:ssl_certs", None)
+        assert mock_cert == spack.config.get("config:ssl_certs", None)
 
-    ssl_context = spack.util.web.ssl_create_default_context()
-    assert ssl_context.verify_mode == ssl.CERT_REQUIRED
-    os.chdir(cwd)
+        ssl_context = spack.util.web.ssl_create_default_context()
+        assert ssl_context.verify_mode == ssl.CERT_REQUIRED
 
 
 @pytest.mark.parametrize("cert_exists", [True, False], ids=["exists", "missing"])
@@ -432,21 +432,19 @@ def test_ssl_curl_cert_file(cert_exists, tmp_path, ssl_scrubbed_env, mutable_con
     with CURL_CA_BUNDLE in the env
     """
     spack.config.set("config:url_fetch_method", "curl")
-    cwd = Path.cwd()
-    os.chdir(tmp_path)
-    mock_cert = tmp_path / "mock_cert.crt"
-    spack.config.set("config:ssl_certs", os.fspath(mock_cert))
-    if cert_exists:
-        open(mock_cert, "w", encoding="utf-8").close()
-        assert mock_cert.is_file()
-    curl = spack.util.web.require_curl()
+    with working_dir(str(tmp_path)):
+        mock_cert = tmp_path / "mock_cert.crt"
+        spack.config.set("config:ssl_certs", os.fspath(mock_cert))
+        if cert_exists:
+            open(mock_cert, "w", encoding="utf-8").close()
+            assert mock_cert.is_file()
+        curl = spack.util.web.require_curl()
 
-    # arbitrary call to query the run env
-    dump_env = {}
-    curl("--help", output=str, _dump_env=dump_env)
+        # arbitrary call to query the run env
+        dump_env = {}
+        curl("--help", output=str, _dump_env=dump_env)
 
-    if cert_exists:
-        assert dump_env["CURL_CA_BUNDLE"] == os.fspath(mock_cert)
-    else:
-        assert "CURL_CA_BUNDLE" not in dump_env
-    os.chdir(cwd)
+        if cert_exists:
+            assert dump_env["CURL_CA_BUNDLE"] == os.fspath(mock_cert)
+        else:
+            assert "CURL_CA_BUNDLE" not in dump_env
