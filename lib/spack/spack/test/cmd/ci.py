@@ -5,7 +5,6 @@ import json
 import os
 import pathlib
 import shutil
-from io import BytesIO
 from typing import NamedTuple
 
 import jsonschema
@@ -32,6 +31,7 @@ from spack.database import INDEX_JSON_FILE
 from spack.schema.buildcache_spec import schema as specfile_schema
 from spack.schema.database_index import schema as db_idx_schema
 from spack.spec import Spec
+from spack.test.conftest import MockHTTPResponse
 
 config_cmd = spack.main.SpackCommand("config")
 ci_cmd = spack.main.SpackCommand("ci")
@@ -239,7 +239,7 @@ spack:
     # That fake token should have resulted in being unable to
     # register build group with cdash, but the workload should
     # still have been generated.
-    assert "Problem populating buildgroup" in output
+    assert "Failed to create or retrieve buildgroups" in output
     expected_keys = ["rebuild-index", "stages", "variables", "workflow"]
     assert all([key in yaml_contents.keys() for key in expected_keys])
 
@@ -1548,10 +1548,10 @@ def test_ci_dynamic_mapping_empty(
     ci_base_environment,
 ):
     # The test will always return an empty dictionary
-    def fake_dyn_mapping_urlopener(*args, **kwargs):
-        return BytesIO("{}".encode())
+    def _urlopen(*args, **kwargs):
+        return MockHTTPResponse.with_json(200, "OK", headers={}, body={})
 
-    monkeypatch.setattr(ci.common, "_dyn_mapping_urlopener", fake_dyn_mapping_urlopener)
+    monkeypatch.setattr(ci.common, "_urlopen", _urlopen)
 
     _ = dynamic_mapping_setup(tmpdir)
     with tmpdir.as_cwd():
@@ -1572,15 +1572,15 @@ def test_ci_dynamic_mapping_full(
     monkeypatch,
     ci_base_environment,
 ):
-    # The test will always return an empty dictionary
-    def fake_dyn_mapping_urlopener(*args, **kwargs):
-        return BytesIO(
-            json.dumps(
-                {"variables": {"MY_VAR": "hello"}, "ignored_field": 0, "unallowed_field": 0}
-            ).encode()
+    def _urlopen(*args, **kwargs):
+        return MockHTTPResponse.with_json(
+            200,
+            "OK",
+            headers={},
+            body={"variables": {"MY_VAR": "hello"}, "ignored_field": 0, "unallowed_field": 0},
         )
 
-    monkeypatch.setattr(ci.common, "_dyn_mapping_urlopener", fake_dyn_mapping_urlopener)
+    monkeypatch.setattr(ci.common, "_urlopen", _urlopen)
 
     label = dynamic_mapping_setup(tmpdir)
     with tmpdir.as_cwd():
