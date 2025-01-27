@@ -1,9 +1,8 @@
 # Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import os
-import os.path
 import traceback
+from pathlib import Path
 
 import llnl.util.tty as tty
 from llnl.util.filesystem import mkdirp
@@ -132,7 +131,8 @@ def mirror_cache_and_stats(path, skip_unstable_versions=False):
             ``fetch_strategy.stable_target``)
     """
     # Get the absolute path of the root before we start jumping around.
-    if not os.path.isdir(path):
+    path = Path(path)
+    if not path.is_dir():
         try:
             mkdirp(path)
         except OSError as e:

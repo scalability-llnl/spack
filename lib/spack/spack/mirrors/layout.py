@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
 import os.path
+from pathlib import Path
 from typing import Optional
 
 import llnl.url
@@ -46,12 +47,13 @@ class DefaultLayout(MirrorLayout):
         if not self.digest_path:
             return
 
-        alias, digest = os.path.join(root, self.alias), os.path.join(root, self.digest_path)
+        root = Path(root)
+        alias, digest = root / self.alias, root / self.digest_path
 
-        alias_dir = os.path.dirname(alias)
+        alias_dir = alias.parent
         relative_dst = os.path.relpath(digest, start=alias_dir)
 
-        mkdirp(alias_dir)
+        mkdirp(os.fspath(alias_dir))
         tmp = f"{alias}.tmp"
         llnl.util.symlink.symlink(relative_dst, tmp)
 
