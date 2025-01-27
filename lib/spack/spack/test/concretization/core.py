@@ -720,7 +720,7 @@ class TestConcretize:
         assert spec.satisfies("^second-dependency-foo-bar-fee +fee")
         assert not spec.satisfies("parent-foo-bar +fee")
 
-    def test_no_matching_compiler_specs(self, mock_low_high_config):
+    def test_no_matching_compiler_specs(self):
         # only relevant when not building compilers as needed
         with spack.concretize.enable_compiler_existence_check():
             s = Spec("pkg-a %gcc@=0.0.0")
