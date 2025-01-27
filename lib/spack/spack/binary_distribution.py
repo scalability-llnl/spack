@@ -5,6 +5,7 @@
 import codecs
 import collections
 import concurrent.futures
+import contextlib
 import copy
 import hashlib
 import io
@@ -2270,6 +2271,24 @@ def relocate_package(spec: spack.spec.Spec) -> None:
             with fsys.edit_in_place_through_temporary_file(binary) as tmp_binary:
                 codesign("-fs-", tmp_binary)
 
+    install_manifest = os.path.join(
+        spec.prefix,
+        spack.store.STORE.layout.metadata_dir,
+        spack.store.STORE.layout.manifest_file_name,
+    )
+    if not os.path.exists(install_manifest):
+        spec_id = spec.format("{name}/{hash:7}")
+        tty.warn("No manifest file in tarball for spec %s" % spec_id)
+
+    # overwrite old metadata with new
+    if spec.spliced:
+        # rewrite spec on disk
+        spack.store.STORE.layout.write_spec(spec, spack.store.STORE.layout.spec_file_path(spec))
+
+        # de-cache the install manifest
+        with contextlib.suppress(FileNotFoundError):
+            os.unlink(install_manifest)
+
 
 def _extract_inner_tarball(spec, filename, extract_to, signature_required: bool, remote_checksum):
     stagepath = os.path.dirname(filename)
@@ -2436,15 +2455,6 @@ def extract_tarball(spec, download_result, force=False, timer=timer.NULL_TIMER):
     except Exception as e:
         shutil.rmtree(spec.prefix, ignore_errors=True)
         raise e
-    else:
-        manifest_file = os.path.join(
-            spec.prefix,
-            spack.store.STORE.layout.metadata_dir,
-            spack.store.STORE.layout.manifest_file_name,
-        )
-        if not os.path.exists(manifest_file):
-            spec_id = spec.format("{name}/{hash:7}")
-            tty.warn("No manifest file in tarball for spec %s" % spec_id)
     finally:
         if tmpdir:
             shutil.rmtree(tmpdir, ignore_errors=True)
@@ -2549,10 +2559,6 @@ def install_root_node(
         tty.msg('Installing "{0}" from a buildcache'.format(spec.format()))
         extract_tarball(spec, download_result, force)
         spec.package.windows_establish_runtime_linkage()
-        if spec.spliced:  # overwrite old metadata with new
-            spack.store.STORE.layout.write_spec(
-                spec, spack.store.STORE.layout.spec_file_path(spec)
-            )
         spack.hooks.post_install(spec, False)
         spack.store.STORE.db.add(spec, allow_missing=allow_missing)
 

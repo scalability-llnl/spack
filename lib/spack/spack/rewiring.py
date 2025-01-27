@@ -3,15 +3,11 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
-import shutil
 import tempfile
 
 import spack.binary_distribution as bindist
-import spack.deptypes as dt
 import spack.error
 import spack.hooks
-import spack.platforms
-import spack.relocate as relocate
 import spack.store
 
 
@@ -42,63 +38,11 @@ def rewire_node(spec, explicit):
 
     spack.hooks.pre_install(spec)
     bindist.extract_buildcache_tarball(tarball, destination=spec.prefix)
-    buildinfo = bindist.read_buildinfo_file(spec.prefix)
+    bindist.relocate_package(spec)
 
-    # compute prefix-to-prefix for every node from the build spec to the spliced
-    # spec
-    prefix_to_prefix = {spec.build_spec.prefix: spec.prefix}
-    build_spec_ids = set(id(s) for s in spec.build_spec.traverse(deptype=dt.ALL & ~dt.BUILD))
-    for s in bindist.specs_to_relocate(spec):
-        analog = s
-        if id(s) not in build_spec_ids:
-            analogs = [
-                d
-                for d in spec.build_spec.traverse(deptype=dt.ALL & ~dt.BUILD)
-                if s._splice_match(d, self_root=spec, other_root=spec.build_spec)
-            ]
-            if analogs:
-                # Prefer same-name analogs and prefer higher versions
-                # This matches the preferences in Spec.splice, so we will find same node
-                analog = max(analogs, key=lambda a: (a.name == s.name, a.version))
-
-        prefix_to_prefix[analog.prefix] = s.prefix
-
-    platform = spack.platforms.by_name(spec.platform)
-
-    text_to_relocate = [
-        os.path.join(spec.prefix, rel_path) for rel_path in buildinfo["relocate_textfiles"]
-    ]
-    if text_to_relocate:
-        relocate.relocate_text(files=text_to_relocate, prefix_to_prefix=prefix_to_prefix)
-    links = [os.path.join(spec.prefix, f) for f in buildinfo["relocate_links"]]
-    relocate.relocate_links(links, prefix_to_prefix)
-    bins_to_relocate = [
-        os.path.join(spec.prefix, rel_path) for rel_path in buildinfo["relocate_binaries"]
-    ]
-    if bins_to_relocate:
-        if "macho" in platform.binary_formats:
-            relocate.relocate_macho_binaries(bins_to_relocate, prefix_to_prefix)
-        if "elf" in platform.binary_formats:
-            relocate.relocate_elf_binaries(bins_to_relocate, prefix_to_prefix)
-        relocate.relocate_text_bin(binaries=bins_to_relocate, prefix_to_prefix=prefix_to_prefix)
-    shutil.rmtree(tempdir)
-    install_manifest = os.path.join(
-        spec.prefix,
-        spack.store.STORE.layout.metadata_dir,
-        spack.store.STORE.layout.manifest_file_name,
-    )
-    try:
-        os.unlink(install_manifest)
-    except FileNotFoundError:
-        pass
-    # Write the spliced spec into spec.json. Without this, Database.add would fail because it
-    # checks the spec.json in the prefix against the spec being added to look for mismatches
-    spack.store.STORE.layout.write_spec(spec, spack.store.STORE.layout.spec_file_path(spec))
-    # add to database, not sure about explicit
-    spack.store.STORE.db.add(spec, explicit=explicit)
-
-    # run post install hooks
+    # run post install hooks and add to db
     spack.hooks.post_install(spec, explicit)
+    spack.store.STORE.db.add(spec, explicit=explicit)
 
 
 class RewireError(spack.error.SpackError):
