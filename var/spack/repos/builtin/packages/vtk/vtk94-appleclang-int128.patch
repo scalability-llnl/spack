@@ -1,0 +1,34 @@
+--- a/ThirdParty/fmt/vtkfmt/vtkfmt/core.h
++++ b/ThirdParty/fmt/vtkfmt/vtkfmt/core.h
+@@ -354,11 +354,15 @@
+ #endif
+
+ #ifdef FMT_USE_INT128
+-// Do nothing.
++using int128_opt = __int128;  // An optional native 128-bit integer.
++using uint128_opt = __uint128_t;
++template <typename T> inline auto convert_for_visit(T value) -> T {
++  return value;
++}
+ #elif defined(__SIZEOF_INT128__) && !defined(__NVCC__) && \
+     !(FMT_CLANG_VERSION && FMT_MSC_VERSION)
+ #  define FMT_USE_INT128 1
+-using int128_opt = __int128_t;  // An optional native 128-bit integer.
++using int128_opt = __int128;  // An optional native 128-bit integer.
+ using uint128_opt = __uint128_t;
+ template <typename T> inline auto convert_for_visit(T value) -> T {
+   return value;
+
+--- a/IO/IOSS/vtkIOSSUtilities.cxx
++++ b/IO/IOSS/vtkIOSSUtilities.cxx
+@@ -301,8 +301,8 @@
+   }
+
+   // Check for Transient 2D data that should be 3D for WarpByVector/Glyphs
+-  if (entity->type() == vtkioss_Ioss::NODEBLOCK &&
+-    field.get_role() == vtkioss_Ioss::Field::RoleType::TRANSIENT && // Nodal / Elem Variables
++  if (entity->type() == Ioss::EntityType::NODEBLOCK &&
++    field.get_role() == Ioss::Field::RoleType::TRANSIENT && // Nodal / Elem Variables
+     entity->get_property("component_degree").get_int() == 2 &&      // dimension 2 mesh nodeblock
+     field.raw_storage()->component_count() == 2)                    // 2D Vector
+   {
