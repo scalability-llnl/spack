@@ -36,7 +36,7 @@ packages:
       go-or-gccgo-bootstrap: [go-bootstrap, gcc]
       iconv: [libiconv]
       ipp: [intel-oneapi-ipp]
-      java: [openjdk, jdk, ibm-java]
+      java: [openjdk, jdk]
       jpeg: [libjpeg-turbo, libjpeg]
       lapack: [openblas, amdlibflame]
       libc: [glibc, musl]
