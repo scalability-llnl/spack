@@ -173,7 +173,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
         depends_on("grpp@2023.12.25")
 
     # the regtests depend on both libraries to be present otherwise they fail
-    conflicts("trexio", when="~grpp")
+    conflicts("+trexio", when="~grpp")
 
     # Force openmp propagation on some providers of blas / fftw-api
     with when("+openmp"):
