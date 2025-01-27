@@ -492,6 +492,16 @@ class Vtk(CMakePackage):
             if "%intel" in spec and spec.version >= Version("8.2"):
                 cmake_args.append("-DVTK_MODULE_ENABLE_VTK_IOMotionFX:BOOL=OFF")
 
+        # @9.4+ requires c++17
+        if spec.satisfies("@9.4:"):
+             cmake_args.extend(
+                [
+                    "-DCMAKE_CXX_STANDARD=17",
+                    "-DCMAKE_CXX_STANDARD_REQUIRED=ON",
+                    "-DCMAKE_CXX_EXTENSIONS=OFF"
+                ]
+            )
+
         # -no-ipo prevents an internal compiler error from multi-file
         # optimization (https://github.com/spack/spack/issues/20471)
         if "%intel" in spec:
@@ -515,7 +525,7 @@ class Vtk(CMakePackage):
         # CMake Error at CMake/vtkModule.cmake:5552 (message):
         # The variable `SEACASIoss_INCLUDE_DIRS` was expected to have been available,
         # but was not defined:
-        with when("^seacas@2023-05-30:"):
+        if spec.satisfies("^seacas@2023-05-30:"):
             cmake_args.extend(
                 [
                     "-DSEACASIoss_INCLUDE_DIRS="+self.spec['seacas'].prefix.include
