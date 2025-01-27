@@ -57,17 +57,7 @@ def activate_header(env, shell, prompt=None, view: Optional[str] = None):
         if view:
             cmds += "$Env:SPACK_ENV_VIEW='%s'\n" % view
         if prompt:
-            cmds += """@"
-function prompt {\n
-}"""
-            
-            """function prompt {\n
-    $pth = $(Convert-Path $(Get-Location)) | Split-Path -leaf
-    $spack_prompt = "[womp] PS $pth>"
-    if(!"$Env:SPACK_OLD_PROMPT") {$Env:SPACK_OLD_PROMPT=$spack_prompt}
-    $spack_prompt}\n""".format(prompt=prompt)
-    """@"function prompt {$pth = $(Convert-Path $(Get-Location)) | Split-Path -leaf}; "[womp] PS $pth>""@"""
-
+            cmds += 'function global:prompt { $pth = $(Convert-Path $(Get-Location)) | Split-Path -leaf; if(!"$Env:SPACK_OLD_PROMPT") {$Env:SPACK_OLD_PROMPT="[spack] PS $pth>"}; "%s PS $pth>"}\n' % prompt
     else:
         bash_color_prompt = colorize(f"@G{{{prompt}}}", color=True, enclose=True)
         zsh_color_prompt = colorize(f"@G{{{prompt}}}", color=True, enclose=False, zsh=True)
@@ -128,10 +118,7 @@ def deactivate_header(shell):
     elif shell == "pwsh":
         cmds += "Set-Item -Path Env:SPACK_ENV\n"
         cmds += "Set-Item -Path Env:SPACK_ENV_VIEW\n"
-        cmds += """function global:prompt { 
-    $pth = $(Convert-Path $(Get-Location)) | Split-Path -leaf
-    "[spack] PS $pth>"
-}\n"""
+        cmds += 'function global:prompt { $pth = $(Convert-Path $(Get-Location)) | Split-Path -leaf; $spack_prompt = "[spack] $pth >"; if("$Env:SPACK_OLD_PROMPT") {$spack_prompt=$Env:SPACK_OLD_PROMPT}; $spack_prompt}\n'
     else:
         cmds += "if [ ! -z ${SPACK_ENV+x} ]; then\n"
         cmds += "unset SPACK_ENV; export SPACK_ENV;\n"
