@@ -10,7 +10,7 @@ class PyFastapi(PythonPackage):
     """FastAPI framework, high performance, easy to learn, fast to code, ready for production"""
 
     homepage = "https://github.com/fastapi/fastapi"
-    pypi = "fastapi/fastapi-0.115.4.tar.gz"
+    pypi = "fastapi/fastapi-0.88.0.tar.gz"
 
     license("MIT")
 
@@ -38,13 +38,12 @@ class PyFastapi(PythonPackage):
     depends_on("py-starlette@0.37.2:0.40", when="@0.115.2", type=("build", "run"))
     depends_on("py-starlette@0.37.2:0.38", when="@0.112.1:0.115.1", type=("build", "run"))
     depends_on("py-starlette@0.37.2:0.37", when="@0.110.1:0.112.0", type=("build", "run"))
-    depends_on("py-starlette@0.36.3:0.37.0", when="@0.109.2:0.110.0", type=("build", "run"))
+    depends_on("py-starlette@0.36.3:0.36", when="@0.109.2:0.110.0", type=("build", "run"))
     depends_on("py-starlette@0.35:0.35", when="@0.109.0:0.109.1", type=("build", "run"))
     depends_on("py-starlette@0.29:0.32", when="@0.108.0:0.108", type=("build", "run"))
     depends_on("py-starlette@0.28", when="@0.107.0:0.107", type=("build", "run"))
     depends_on("py-starlette@0.27", when="@0.95.2:0.106", type=("build", "run"))
     depends_on("py-starlette@0.22.0", when="@:0.89.1", type=("build", "run"))
-    depends_on("py-pydantic@2.7.4:", when="@0.109.2", type=("build", "run"))
     depends_on("py-pydantic@1.7.4:1,2.1.1:2", when="@0.101:", type=("build", "run"))
     depends_on("py-pydantic@1.7.4:1", when="@0.96.1:", type=("build", "run"))
     depends_on("py-pydantic@1.6.2:1", when="@:0.96.0", type=("build", "run"))
