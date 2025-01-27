@@ -67,7 +67,7 @@ spack:
   - pandorasdk
   - photos +hepmc3
   - podio +rntuple +sio
-  - professor
+  #- professor
   - py-awkward
   - py-boost-histogram
   - py-hepunits
