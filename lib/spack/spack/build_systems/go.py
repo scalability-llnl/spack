@@ -9,7 +9,7 @@ import spack.package_base
 import spack.phase_callbacks
 import spack.spec
 import spack.util.prefix
-from spack.directives import build_system, extends
+from spack.directives import build_system, depends_on
 from spack.multimethod import when
 
 from ._checks import BuilderWithDefaults, execute_install_time_tests
@@ -28,9 +28,7 @@ class GoPackage(spack.package_base.PackageBase):
     build_system("go")
 
     with when("build_system=go"):
-        # TODO: this seems like it should be depends_on, see
-        # setup_dependent_build_environment in go for why I kept it like this
-        extends("go@1.14:", type="build")
+        depends_on("go", type="build")
 
 
 @spack.builder.builder("go")
@@ -73,6 +71,7 @@ class GoBuilder(BuilderWithDefaults):
     def setup_build_environment(self, env):
         env.set("GO111MODULE", "on")
         env.set("GOTOOLCHAIN", "local")
+        env.set("GOPATH", fs.join_path(self.pkg.stage.path, "go"))
 
     @property
     def build_directory(self):
