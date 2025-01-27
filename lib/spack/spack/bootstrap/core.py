@@ -46,6 +46,7 @@ import spack.user_environment
 import spack.util.executable
 import spack.util.path
 import spack.util.spack_yaml
+import spack.util.url
 import spack.version
 from spack.installer import PackageInstaller
 
@@ -97,8 +98,12 @@ class Bootstrapper:
         self.name = conf["name"]
         self.metadata_dir = spack.util.path.canonicalize_path(conf["metadata"])
 
-        # Promote (relative) paths to file urls
-        self.url = spack.mirrors.mirror.Mirror(conf["info"]["url"]).fetch_url
+        # Check for relative paths, and turn them into absolute paths
+        # root is the metadata_dir
+        maybe_url = conf["info"]["url"]
+        if spack.util.url.is_path_instead_of_url(maybe_url) and not os.path.isabs(maybe_url):
+            maybe_url = os.path.join(self.metadata_dir, maybe_url)
+        self.url = spack.mirrors.mirror.Mirror(maybe_url).fetch_url
 
     @property
     def mirror_scope(self) -> spack.config.InternalConfigScope:
