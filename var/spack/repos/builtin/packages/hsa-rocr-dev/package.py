@@ -151,8 +151,8 @@ class HsaRocrDev(CMakePackage):
 
     def setup_build_environment(self, env):
         if self.spec.satisfies("@5.7: +asan"):
-            numa_inc = self.spec['numactl'].prefix.include
-            numa_lib = self.spec['numactl'].prefix.lib
+            numa_inc = self.spec["numactl"].prefix.include
+            numa_lib = self.spec["numactl"].prefix.lib
             env.set("CC", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang")
             env.set("CXX", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang++")
             env.set("ASAN_OPTIONS", "detect_leaks=0")
