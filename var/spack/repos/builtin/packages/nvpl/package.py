@@ -22,7 +22,7 @@ class Nvpl(Package):
     skip_version_audit = ["platform=darwin", "platform=windows"]
 
     redistribute(source=False, binary=False)
-    
+
     version("24.7", sha256="25362d64629fcf85fcb4b2ad59f7d492dc5f14dca2c9e35e822063a9b39507fc")
 
     # TODO: add "fftw" when Fortran FFTW API completed
@@ -44,7 +44,7 @@ class Nvpl(Package):
     conflicts("target=x86:", msg="Only available on Aarch64")
     conflicts("target=ppc64:", msg="Only available on Aarch64")
     conflicts("target=ppc64le:", msg="Only available on Aarch64")
-    
+
     requires("target=armv8.2a:", msg="Any CPU with Arm-v8.2a+ microarch")
 
     conflicts("%gcc@:7")
@@ -77,7 +77,7 @@ class Nvpl(Package):
         name = ["libnvpl_blas_core", f"libnvpl_blas_{int_type}_{threading_type}"]
 
         return find_libraries(name, spec.prefix.lib, shared=True, recursive=True)
-    
+
     @property
     def lapack_headers(self):
         return find_all_headers(self.spec.prefix.include)
@@ -103,3 +103,4 @@ class Nvpl(Package):
 
     def install(self, spec, prefix):
         install_tree(".", prefix)
+
