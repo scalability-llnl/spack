@@ -1152,8 +1152,13 @@ def set(path: str, value: Any, scope: Optional[str] = None) -> None:
     result = CONFIG.set(path, value, scope)
 
     # Ensure web configuration is up-to-date
+    #
+    # spack.util.web_config() needs to be able to update configuration options
+    # without the module having to import this module. The following leverages
+    # fact get) interface is similar enough to the normal dict get() that we
+    # can ignore the type to avoid circular import issue here.
     if path.startswith("config:"):
-        web_config.update(CONFIG)
+        web_config.update(CONFIG)  # type: ignore
 
     return result
 
