@@ -413,7 +413,7 @@ def test_ssl_urllib(
 
     monkeypatch.setattr(ssl.SSLContext, "load_verify_locations", mock_verify_locations)
 
-    with working_dir(str(tmp_path)):
+    with working_dir(tmp_path):
         mock_cert = cert_path(tmp_path)
         cert_creator(mock_cert)
         spack.config.set("config:ssl_certs", mock_cert)
@@ -431,7 +431,7 @@ def test_ssl_curl_cert_file(cert_exists, tmp_path, ssl_scrubbed_env, mutable_con
     with CURL_CA_BUNDLE in the env
     """
     spack.config.set("config:url_fetch_method", "curl")
-    with working_dir(str(tmp_path)):
+    with working_dir(tmp_path):
         mock_cert = tmp_path / "mock_cert.crt"
         spack.config.set("config:ssl_certs", os.fspath(mock_cert))
         if cert_exists:
