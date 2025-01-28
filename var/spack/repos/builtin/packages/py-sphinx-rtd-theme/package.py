@@ -27,7 +27,6 @@ class PySphinxRtdTheme(PythonPackage):
     depends_on("python@:3.11", when="@:1.0.0")  # distutils was removed in python@3.12
     depends_on("py-sphinx@1.6:", when="@1:", type=("build", "run"))
     depends_on("py-sphinx@:6", when="@0", type=("build", "run"))
-    depends_on("py-docutils", type=("build", "run"))
     depends_on("py-sphinxcontrib-jquery@4", when="@1.2.2:", type=("build", "run"))
     depends_on("py-sphinxcontrib-jquery@2:", when="@1.2:1.2.1", type=("build", "run"))
     conflicts("^py-sphinxcontrib-jquery@3.0.0")
