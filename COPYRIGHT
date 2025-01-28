@@ -8,8 +8,9 @@ or http://www.apache.org/licenses/LICENSE-2.0) or the MIT license,
 Copyrights and patents in the Spack project are retained by contributors.
 No copyright assignment is required to contribute to Spack.
 
-Spack was originally distributed under the LGPL-2.1 license. Consent from
-contributors to relicense to Apache-2.0/MIT is documented at
+Spack was originally developed in 2013 by Lawrence Livermore National
+Security, LLC. It was originally distributed under the LGPL-2.1 license.
+Consent from contributors to relicense to Apache-2.0/MIT is documented at
 https://github.com/spack/spack/issues/9137.
 
 
@@ -102,6 +103,6 @@ PackageName: sbang
 PackageHomePage: https://github.com/spack/sbang
 PackageLicenseDeclared: Apache-2.0 OR MIT
 
-PackageName: six
-PackageHomePage: https://pypi.python.org/pypi/six
-PackageLicenseDeclared: MIT
+PackageName: typing_extensions
+PackageHomePage: https://pypi.org/project/typing-extensions/
+PackageLicenseDeclared: Python-2.0

@@ -1,12 +1,9 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 import re
-
-from llnl.util import tty
 
 from spack.package import *
 
@@ -41,6 +38,7 @@ class Go(Package):
 
     license("BSD-3-Clause")
 
+    version("1.23.4", sha256="ad345ac421e90814293a9699cca19dd5238251c3f687980bbcae28495b263531")
     version("1.23.3", sha256="8d6a77332487557c6afa2421131b50f83db4ae3c579c3bc72e670ee1f6968599")
     version("1.23.2", sha256="36930162a93df417d90bd22c6e14daff4705baac2b02418edda671cdfa9cd07f")
     version("1.23.1", sha256="6ee44e298379d146a5e5aa6b1c5b5d5f5d0a3365eabdd70741e6e21340ec3b0d")
@@ -119,30 +117,8 @@ class Go(Package):
     def setup_dependent_package(self, module, dependent_spec):
         """Called before go modules' build(), install() methods.
 
-        In most cases, extensions will only need to set GOPATH and use go::
-
-        env['GOPATH'] = self.source_path + ':' + env['GOPATH']
         go('get', '<package>', env=env)
         install_tree('bin', prefix.bin)
         """
         #  Add a go command/compiler for extensions
         module.go = self.spec["go"].command
-
-    def generate_path_components(self, dependent_spec):
-        if os.environ.get("GOROOT", False):
-            tty.warn("GOROOT is set, this is not recommended")
-
-        # Set to include paths of dependencies
-        path_components = [dependent_spec.prefix]
-        for d in dependent_spec.traverse():
-            if d.package.extends(self.spec):
-                path_components.append(d.prefix)
-        return ":".join(path_components)
-
-    def setup_dependent_build_environment(self, env, dependent_spec):
-        # This *MUST* be first, this is where new code is installed
-        env.prepend_path("GOPATH", self.generate_path_components(dependent_spec))
-
-    def setup_dependent_run_environment(self, env, dependent_spec):
-        # Allow packages to find this when using module files
-        env.prepend_path("GOPATH", self.generate_path_components(dependent_spec))

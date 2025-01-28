@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -69,7 +68,7 @@ class OsuMicroBenchmarks(AutotoolsPackage, CudaPackage, ROCmPackage):
             config_args.extend(["--enable-rocm", "--with-rocm=%s" % spec["hip"].prefix])
             rocm_arch = spec.variants["amdgpu_target"].value
             if "none" not in rocm_arch:
-                config_args.append("HCC_AMDGPU_TARGET=" + " ".join(self.hip_flags(rocm_arch)))
+                config_args.append("HCC_AMDGPU_TARGET=" + self.hip_flags(rocm_arch))
 
         if "+papi" in spec:
             config_args.extend(["--enable-papi", "--with-papi=%s" % spec["papi"].prefix])

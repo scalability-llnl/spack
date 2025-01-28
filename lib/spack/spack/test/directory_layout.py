@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -7,13 +6,13 @@
 This test verifies that the Spack directory layout works properly.
 """
 import os
-import os.path
 from pathlib import Path
 
 import pytest
 
 from llnl.path import path_to_os_path
 
+import spack.concretize
 import spack.hash_types
 import spack.paths
 import spack.repo
@@ -60,7 +59,7 @@ def test_yaml_directory_layout_parameters(tmpdir, default_mock_concretization):
     assert package7 == path_package7
 
     # Test separation of architecture or namespace
-    spec2 = Spec("libelf").concretized()
+    spec2 = spack.concretize.concretize_one("libelf")
 
     arch_scheme = (
         "{architecture.platform}/{architecture.target}/{architecture.os}/{name}/{version}/{hash:7}"
@@ -98,7 +97,7 @@ def test_read_and_write_spec(temporary_store, config, mock_packages):
         # If a spec fails to concretize, just skip it.  If it is a
         # real error, it will be caught by concretization tests.
         try:
-            spec = spack.spec.Spec(name).concretized()
+            spec = spack.concretize.concretize_one(name)
         except Exception:
             continue
 
@@ -128,7 +127,7 @@ def test_read_and_write_spec(temporary_store, config, mock_packages):
         assert spec_from_file.concrete
 
         # Ensure that specs that come out "normal" are really normal.
-        with open(spec_path) as spec_file:
+        with open(spec_path, encoding="utf-8") as spec_file:
             read_separately = Spec.from_yaml(spec_file.read())
 
         # TODO: revise this when build deps are in dag_hash
@@ -137,7 +136,7 @@ def test_read_and_write_spec(temporary_store, config, mock_packages):
         assert norm.eq_dag(spec_from_file)
 
         # TODO: revise this when build deps are in dag_hash
-        conc = read_separately.concretized().copy(deps=stored_deptypes)
+        conc = spack.concretize.concretize_one(read_separately).copy(deps=stored_deptypes)
         assert conc == spec_from_file
         assert conc.eq_dag(spec_from_file)
 
@@ -173,12 +172,10 @@ def test_handle_unknown_package(temporary_store, config, mock_packages, tmp_path
     # Create all the packages that are not in mock.
     installed_specs = {}
     for pkg_name in packages:
-        spec = spack.spec.Spec(pkg_name)
-
         # If a spec fails to concretize, just skip it.  If it is a
         # real error, it will be caught by concretization tests.
         try:
-            spec.concretize()
+            spec = spack.concretize.concretize_one(pkg_name)
         except Exception:
             continue
 
@@ -210,7 +207,7 @@ def test_find(temporary_store, config, mock_packages):
         if name.startswith("external"):
             # External package tests cannot be installed
             continue
-        spec = spack.spec.Spec(name).concretized()
+        spec = spack.concretize.concretize_one(name)
         installed_specs[spec.name] = spec
         layout.create_install_directory(spec)
 

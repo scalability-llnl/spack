@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,13 +16,16 @@ class RocmSmiLib(CMakePackage):
 
     homepage = "https://github.com/ROCm/rocm_smi_lib"
     git = "https://github.com/ROCm/rocm_smi_lib.git"
-    url = "https://github.com/ROCm/rocm_smi_lib/archive/rocm-6.1.2.tar.gz"
+    url = "https://github.com/ROCm/rocm_smi_lib/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
     maintainers("srekolam", "renjithravindrankannath")
     libraries = ["librocm_smi64"]
 
     version("master", branch="master")
+    version("6.3.1", sha256="0f45e4823e361a1c6ac560eabf6000c3b59e08bcd96e87150149149e861c6a63")
+    version("6.3.0", sha256="573cfb759f8c7700fdcb0c28d045aed0f2d950692bb66a10bd589b89b8f48d0f")
+    version("6.2.4", sha256="eb8986dd571f5862c2db693398c0dbec28e2754f764f6bd3cfb21be7699e4452")
     version("6.2.1", sha256="28543d099fa44b4b79644533644aba4b67fa48d477628dd5802c3b50cc78583a")
     version("6.2.0", sha256="95010dfc9de9c608b9ce159107585ff4adce82a52a38daab2a37870aca2428bf")
     version("6.1.2", sha256="01f46fb1cb8c7a16a4c4db61871ee710ed37c0f8bd3a2dbe3415d3de2dffb4ef")
@@ -66,6 +68,9 @@ class RocmSmiLib(CMakePackage):
         "6.1.2",
         "6.2.0",
         "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 

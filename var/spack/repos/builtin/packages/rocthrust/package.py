@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,7 +16,10 @@ class Rocthrust(CMakePackage):
     url = "https://github.com/ROCm/rocThrust/archive/rocm-6.1.0.tar.gz"
     tags = ["rocm"]
 
-    maintainers("cgmb", "srekolam", "renjithravindrankannath")
+    maintainers("cgmb", "srekolam", "renjithravindrankannath", "afzpatel")
+    version("6.3.1", sha256="a63dd161f4b30be7fcc4ad4184b948646233d59b5ca13c239f723ab59c607a1a")
+    version("6.3.0", sha256="553e67bc0a7fb2d129b15fd4b8889f9ee56ebd29bc885a1fb32918dfcfa3b955")
+    version("6.2.4", sha256="ec212f3f5ff1ff3c71b85dae50d19c1faa344d400b5d1fa376471c2390361dc8")
     version("6.2.1", sha256="de6121e354e4d2d5f90243acc1071e9afb2a335e17570d293b590b85f3f58fa2")
     version("6.2.0", sha256="8037aadf7ec3d548aa17944e0a47465d608dc6eb7347173a6d76cbf5342e4ab6")
     version("6.1.2", sha256="149ca325fb8a8527781ec2853282a73bf66f60366652c19e8583afc3f1a9c4b6")
@@ -37,7 +39,8 @@ class Rocthrust(CMakePackage):
         version("5.3.3", sha256="0c2fc8d437efaf5c4c859d97adb049d4025025d0be0e0908f59a8112508234e5")
         version("5.3.0", sha256="0e11b12f208d2751e3e507e3a32403c9bd45da4e191671d765d33abd727d9b96")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     amdgpu_targets = ROCmPackage.amdgpu_targets
 
@@ -71,6 +74,9 @@ class Rocthrust(CMakePackage):
         "6.1.2",
         "6.2.0",
         "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
     ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"rocprim@{ver}", when=f"@{ver}")

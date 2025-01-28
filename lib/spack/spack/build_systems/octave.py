@@ -1,9 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import spack.builder
 import spack.package_base
+import spack.spec
+import spack.util.prefix
 from spack.directives import build_system, extends
 from spack.multimethod import when
 
@@ -43,7 +44,9 @@ class OctaveBuilder(BuilderWithDefaults):
     #: Names associated with package attributes in the old build-system format
     legacy_attributes = ()
 
-    def install(self, pkg, spec, prefix):
+    def install(
+        self, pkg: OctavePackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Install the package from the archive file"""
         pkg.module.octave(
             "--quiet",

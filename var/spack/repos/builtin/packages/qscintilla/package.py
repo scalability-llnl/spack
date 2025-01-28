@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -102,9 +101,7 @@ class Qscintilla(QMakePackage):
 
         with working_dir(join_path(self.stage.source_path, "Python")):
             copy(ftoml, "pyproject.toml")
-            sip_inc_dir = join_path(
-                self.spec[py_pyqtx].package.module.python_platlib, pyqtx, "bindings"
-            )
+            sip_inc_dir = join_path(self[py_pyqtx].module.python_platlib, pyqtx, "bindings")
 
             with open("pyproject.toml", "a") as tomlfile:
                 # https://pyqt-builder.readthedocs.io/en/latest/pyproject_toml.html
@@ -113,8 +110,10 @@ class Qscintilla(QMakePackage):
                 # also add link statement to fix "undefined symbol _Z...Qsciprinter...
                 link_qscilibs = "LIBS += -L" + self.prefix.lib + " -lqscintilla2_" + qtx
                 tomlfile.write(
-                    f'\n[tool.sip.builder]\nqmake-settings = \
-                    ["QT += widgets", "QT += printsupport", "{link_qscilibs}"]\n'
+                    f"""
+[tool.sip.builder]
+qmake-settings = ["QT += widgets", "QT += printsupport", "{link_qscilibs}"]
+"""
                 )
 
             mkdirp(os.path.join(self.prefix.share.sip, pyqtx))

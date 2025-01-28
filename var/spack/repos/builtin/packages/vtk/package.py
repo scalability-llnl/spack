@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,10 +24,11 @@ class Vtk(CMakePackage):
     license("BSD-3-Clause")
 
     version(
-        "9.3.1",
-        sha256="8354ec084ea0d2dc3d23dbe4243823c4bfc270382d0ce8d658939fd50061cab8",
+        "9.4.1",
+        sha256="c253b0c8d002aaf98871c6d0cb76afc4936c301b72358a08d5f3f72ef8bc4529",
         preferred=True,
     )
+    version("9.3.1", sha256="8354ec084ea0d2dc3d23dbe4243823c4bfc270382d0ce8d658939fd50061cab8")
     version("9.2.6", sha256="06fc8d49c4e56f498c40fcb38a563ed8d4ec31358d0101e8988f0bb4d539dd12")
     version("9.2.2", sha256="1c5b0a2be71fac96ff4831af69e350f7a0ea3168981f790c000709dcf9121075")
     version("9.1.0", sha256="8fed42f4f8f1eb8083107b68eaa9ad71da07110161a3116ad807f43e5ca5ce96")
@@ -87,14 +87,19 @@ class Vtk(CMakePackage):
 
     conflicts("%gcc@13", when="@9.2")
 
-    with when("+python"):
-        # Depend on any Python, add bounds below.
-        extends("python@2.7:", type=("build", "run"))
-        depends_on("python@:3.7", when="@:8.2.0", type=("build", "run"))
-        # Python 3.8 support from vtk 9 and patched 8.2
-        depends_on("python@:3.8", when="@:8.2.1a", type=("build", "run"))
-        # Python 3.10 support from vtk 9.2
-        depends_on("python@:3.9", when="@:9.1", type=("build", "run"))
+    # VTK 8 vendors a heavily outdated version of CMake's GenerateExportHeader module, which
+    # has a bogus version check for GCC/Intel version to early exit. This drops the early exit.
+    patch("vtk-bogus-compiler-check.patch", when="@7.1:8")
+
+    # Based on PyPI wheel availability
+    with when("+python"), default_args(type=("build", "link", "run")):
+        depends_on("python@:3.13")
+        depends_on("python@:3.12", when="@:9.3")
+        depends_on("python@:3.11", when="@:9.2")
+        depends_on("python@:3.10", when="@:9.2.2")
+        depends_on("python@:3.9", when="@:9.1")
+        depends_on("python@:3.8", when="@:9.0.1")
+        depends_on("python@:3.7", when="@:8.2.0")
 
     # We need mpi4py if buidling python wrappers and using MPI
     depends_on("py-mpi4py", when="+python+mpi", type="run")
@@ -200,6 +205,8 @@ class Vtk(CMakePackage):
         depends_on("seacas+mpi", when="+mpi")
         depends_on("seacas~mpi", when="~mpi")
         depends_on("seacas@2021-05-12:")
+    with when("@9.4:"):
+        depends_on("seacas@2024-06-27:")
 
     # seacas@2023-05-30 does not provide needed SEACASIoss_INCLUDE_DIRS:
     # CMake Error at CMake/vtkModule.cmake:5552 (message):
@@ -302,6 +309,7 @@ class Vtk(CMakePackage):
                     "-DVTK_MODULE_USE_EXTERNAL_VTK_fast_float:BOOL=OFF",
                     "-DVTK_MODULE_USE_EXTERNAL_VTK_libharu:BOOL=OFF",
                     "-DVTK_MODULE_USE_EXTERNAL_VTK_pegtl:BOOL=OFF",
+                    "-DVTK_MODULE_USE_EXTERNAL_VTK_token:BOOL=OFF",
                     "-DHDF5_ROOT={0}".format(spec["hdf5"].prefix),
                 ]
             )
