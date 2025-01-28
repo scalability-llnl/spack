@@ -405,7 +405,6 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
         for pkg_dep in rocm_dependencies:
             depends_on(f"{pkg_dep}@6.0:", when="@2.14:")
             depends_on(pkg_dep)
-        depends_on("hipblaslt@6.0:", when="@2.18:")
 
     # Check configure and configure.py to see when these variants are supported
     conflicts("+mkl", when="platform=darwin", msg="Darwin is not yet supported")
