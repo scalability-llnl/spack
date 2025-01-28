@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,12 @@ class Rccl(CMakePackage):
 
     maintainers("srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["librccl"]
+    version(
+        "6.3.1",
+        tag="rocm-6.3.1",
+        commit="4ab67f5a5946d851a963b281cd9aa7b86eee752a",
+        submodules=True,
+    )
     version(
         "6.3.0",
         tag="rocm-6.3.0",
@@ -87,6 +92,7 @@ class Rccl(CMakePackage):
         "6.2.1",
         "6.2.4",
         "6.3.0",
+        "6.3.1",
     ]:
         depends_on(f"rocm-cmake@{ver}:", type="build", when=f"@{ver}")
         depends_on(f"hip@{ver}", when=f"@{ver}")
@@ -109,10 +115,11 @@ class Rccl(CMakePackage):
         "6.2.1",
         "6.2.4",
         "6.3.0",
+        "6.3.1",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 
-    depends_on("googletest@1.11.0:", when="@5.3:")
+    depends_on("googletest@1.11.0:", type="test", when="@5.3:")
 
     @classmethod
     def determine_version(cls, lib):
@@ -139,10 +146,10 @@ class Rccl(CMakePackage):
             args.append(self.define_from_variant("AMDGPU_TARGETS", "amdgpu_target"))
 
         if self.spec.satisfies("^cmake@3.21.0:3.21.2"):
-            args.append(self.define("__skip_rocmclang", "ON"))
+            args.append(self.define("__skip_rocmclang", True))
 
         if self.spec.satisfies("@5.3.0:"):
-            args.append(self.define("BUILD_TESTS", "ON"))
+            args.append(self.define("BUILD_TESTS", self.run_tests))
         return args
 
     def test_unit(self):

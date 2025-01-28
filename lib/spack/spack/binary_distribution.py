@@ -1,11 +1,11 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import codecs
 import collections
 import concurrent.futures
+import contextlib
 import copy
 import hashlib
 import io
@@ -24,13 +24,12 @@ import urllib.parse
 import urllib.request
 import warnings
 from contextlib import closing
-from typing import Dict, Iterable, List, NamedTuple, Optional, Set, Tuple, Union
+from typing import IO, Callable, Dict, Iterable, List, NamedTuple, Optional, Set, Tuple, Union
 
 import llnl.util.filesystem as fsys
 import llnl.util.lang
 import llnl.util.tty as tty
-from llnl.util.filesystem import BaseDirectoryVisitor, mkdirp, visit_directory_tree
-from llnl.util.symlink import readlink
+from llnl.util.filesystem import mkdirp
 
 import spack.caches
 import spack.config as config
@@ -54,7 +53,6 @@ import spack.user_environment
 import spack.util.archive
 import spack.util.crypto
 import spack.util.file_cache as file_cache
-import spack.util.filesystem as ssys
 import spack.util.gpg
 import spack.util.parallel
 import spack.util.path
@@ -92,6 +90,9 @@ BUILD_CACHE_KEYS_RELATIVE_PATH = "_pgp"
 #: The build cache layout version that this version of Spack creates.
 #: Version 2: includes parent directories of the package prefix in the tarball
 CURRENT_BUILD_CACHE_LAYOUT_VERSION = 2
+
+
+INDEX_HASH_FILE = "index.json.hash"
 
 
 class BuildCacheDatabase(spack_db.Database):
@@ -505,7 +506,7 @@ class BinaryCacheIndex:
         scheme = urllib.parse.urlparse(mirror_url).scheme
 
         if scheme != "oci" and not web_util.url_exists(
-            url_util.join(mirror_url, BUILD_CACHE_RELATIVE_PATH, "index.json")
+            url_util.join(mirror_url, BUILD_CACHE_RELATIVE_PATH, spack_db.INDEX_JSON_FILE)
         ):
             return False
 
@@ -587,173 +588,39 @@ def read_buildinfo_file(prefix):
         return syaml.load(f)
 
 
-class BuildManifestVisitor(BaseDirectoryVisitor):
-    """Visitor that collects a list of files and symlinks
-    that can be checked for need of relocation. It knows how
-    to dedupe hardlinks and deal with symlinks to files and
-    directories."""
-
-    def __init__(self):
-        # Save unique identifiers of hardlinks to avoid relocating them multiple times
-        self.visited = set()
-
-        # Lists of files we will check
-        self.files = []
-        self.symlinks = []
-
-    def seen_before(self, root, rel_path):
-        stat_result = os.lstat(os.path.join(root, rel_path))
-        if stat_result.st_nlink == 1:
-            return False
-        identifier = (stat_result.st_dev, stat_result.st_ino)
-        if identifier in self.visited:
-            return True
-        else:
-            self.visited.add(identifier)
-            return False
-
-    def visit_file(self, root, rel_path, depth):
-        if self.seen_before(root, rel_path):
-            return
-        self.files.append(rel_path)
-
-    def visit_symlinked_file(self, root, rel_path, depth):
-        # Note: symlinks *can* be hardlinked, but it is unclear if
-        # symlinks can be relinked in-place (preserving inode).
-        # Therefore, we do *not* de-dupe hardlinked symlinks.
-        self.symlinks.append(rel_path)
-
-    def before_visit_dir(self, root, rel_path, depth):
-        return os.path.basename(rel_path) not in (".spack", "man")
-
-    def before_visit_symlinked_dir(self, root, rel_path, depth):
-        # Treat symlinked directories simply as symlinks.
-        self.visit_symlinked_file(root, rel_path, depth)
-        # Never recurse into symlinked directories.
-        return False
+def file_matches(f: IO[bytes], regex: llnl.util.lang.PatternBytes) -> bool:
+    try:
+        return bool(regex.search(f.read()))
+    finally:
+        f.seek(0)
 
 
-def file_matches(path, regex):
-    with open(path, "rb") as f:
-        contents = f.read()
-    return bool(regex.search(contents))
-
-
-def get_buildfile_manifest(spec):
-    """
-    Return a data structure with information about a build, including
-    text_to_relocate, binary_to_relocate, binary_to_relocate_fullpath
-    link_to_relocate, and other, which means it doesn't fit any of previous
-    checks (and should not be relocated). We exclude docs (man) and
-    metadata (.spack). This can be used to find a particular kind of file
-    in spack, or to generate the build metadata.
-    """
-    data = {
-        "text_to_relocate": [],
-        "binary_to_relocate": [],
-        "link_to_relocate": [],
-        "other": [],
-        "binary_to_relocate_fullpath": [],
-        "hardlinks_deduped": True,
-    }
-
-    # Guard against filesystem footguns of hardlinks and symlinks by using
-    # a visitor to retrieve a list of files and symlinks, so we don't have
-    # to worry about hardlinks of symlinked dirs and what not.
-    visitor = BuildManifestVisitor()
-    root = spec.prefix
-    visit_directory_tree(root, visitor)
-
-    # Collect a list of prefixes for this package and it's dependencies, Spack will
-    # look for them to decide if text file needs to be relocated or not
-    prefixes = [d.prefix for d in spec.traverse(root=True, deptype="all") if not d.external]
-    prefixes.append(spack.hooks.sbang.sbang_install_path())
-    prefixes.append(str(spack.store.STORE.layout.root))
-
-    # Create a giant regex that matches all prefixes
-    regex = utf8_paths_to_single_binary_regex(prefixes)
-
-    # Symlinks.
-
-    # Obvious bugs:
-    #   1. relative links are not relocated.
-    #   2. paths are used as strings.
-    for rel_path in visitor.symlinks:
-        abs_path = os.path.join(root, rel_path)
-        link = readlink(abs_path)
-        if os.path.isabs(link) and link.startswith(spack.store.STORE.layout.root):
-            data["link_to_relocate"].append(rel_path)
-
-    # Non-symlinks.
-    for rel_path in visitor.files:
-        abs_path = os.path.join(root, rel_path)
-        m_type, m_subtype = ssys.mime_type(abs_path)
-
-        if relocate.needs_binary_relocation(m_type, m_subtype):
-            # Why is this branch not part of needs_binary_relocation? :(
-            if (
-                (
-                    m_subtype in ("x-executable", "x-sharedlib", "x-pie-executable")
-                    and sys.platform != "darwin"
-                )
-                or (m_subtype in ("x-mach-binary") and sys.platform == "darwin")
-                or (not rel_path.endswith(".o"))
-            ):
-                data["binary_to_relocate"].append(rel_path)
-                data["binary_to_relocate_fullpath"].append(abs_path)
-                continue
-
-        elif relocate.needs_text_relocation(m_type, m_subtype) and file_matches(abs_path, regex):
-            data["text_to_relocate"].append(rel_path)
-            continue
-
-        data["other"].append(abs_path)
-
-    return data
-
-
-def deps_to_relocate(spec):
-    """Return the transitive link and direct run dependencies of the spec.
-
-    This is a special traversal for dependencies we need to consider when relocating a package.
-
-    Package binaries, scripts, and other files may refer to the prefixes of  dependencies, so
-    we need to rewrite those locations when dependencies are in a different place at install time
-    than they were at build time.
-
-    This traversal covers transitive link dependencies and direct run dependencies because:
-
-    1. Spack adds RPATHs for transitive link dependencies so that packages can find needed
-       dependency libraries.
-    2. Packages may call any of their *direct* run dependencies (and may bake their paths into
-       binaries or scripts), so we also need to search for run dependency prefixes when relocating.
-
-    This returns a deduplicated list of transitive link dependencies and direct run dependencies.
-    """
-    deps = [
+def specs_to_relocate(spec: spack.spec.Spec) -> List[spack.spec.Spec]:
+    """Return the set of specs that may be referenced in the install prefix of the provided spec.
+    We currently include non-external transitive link and direct run dependencies."""
+    specs = [
         s
         for s in itertools.chain(
-            spec.traverse(root=True, deptype="link"), spec.dependencies(deptype="run")
+            spec.traverse(root=True, deptype="link", order="breadth", key=traverse.by_dag_hash),
+            spec.dependencies(deptype="run"),
         )
         if not s.external
     ]
-    return llnl.util.lang.dedupe(deps, key=lambda s: s.dag_hash())
+    return list(llnl.util.lang.dedupe(specs, key=lambda s: s.dag_hash()))
 
 
 def get_buildinfo_dict(spec):
     """Create metadata for a tarball"""
-    manifest = get_buildfile_manifest(spec)
-
     return {
         "sbang_install_path": spack.hooks.sbang.sbang_install_path(),
         "buildpath": spack.store.STORE.layout.root,
         "spackprefix": spack.paths.prefix,
         "relative_prefix": os.path.relpath(spec.prefix, spack.store.STORE.layout.root),
-        "relocate_textfiles": manifest["text_to_relocate"],
-        "relocate_binaries": manifest["binary_to_relocate"],
-        "relocate_links": manifest["link_to_relocate"],
-        "hardlinks_deduped": manifest["hardlinks_deduped"],
-        "hash_to_prefix": {d.dag_hash(): str(d.prefix) for d in deps_to_relocate(spec)},
+        # "relocate_textfiles": [],
+        # "relocate_binaries": [],
+        # "relocate_links": [],
+        "hardlinks_deduped": True,
+        "hash_to_prefix": {d.dag_hash(): str(d.prefix) for d in specs_to_relocate(spec)},
     }
 
 
@@ -806,19 +673,24 @@ def sign_specfile(key: str, specfile_path: str) -> str:
 
 
 def _read_specs_and_push_index(
-    file_list, read_method, cache_prefix, db: BuildCacheDatabase, temp_dir, concurrency
+    file_list: List[str],
+    read_method: Callable,
+    cache_prefix: str,
+    db: BuildCacheDatabase,
+    temp_dir: str,
+    concurrency: int,
 ):
     """Read all the specs listed in the provided list, using thread given thread parallelism,
         generate the index, and push it to the mirror.
 
     Args:
-        file_list (list(str)): List of urls or file paths pointing at spec files to read
+        file_list: List of urls or file paths pointing at spec files to read
         read_method: A function taking a single argument, either a url or a file path,
             and which reads the spec file at that location, and returns the spec.
-        cache_prefix (str): prefix of the build cache on s3 where index should be pushed.
+        cache_prefix: prefix of the build cache on s3 where index should be pushed.
         db: A spack database used for adding specs and then writing the index.
-        temp_dir (str): Location to write index.json and hash for pushing
-        concurrency (int): Number of parallel processes to use when fetching
+        temp_dir: Location to write index.json and hash for pushing
+        concurrency: Number of parallel processes to use when fetching
     """
     for file in file_list:
         contents = read_method(file)
@@ -836,7 +708,7 @@ def _read_specs_and_push_index(
 
     # Now generate the index, compute its hash, and push the two files to
     # the mirror.
-    index_json_path = os.path.join(temp_dir, "index.json")
+    index_json_path = os.path.join(temp_dir, spack_db.INDEX_JSON_FILE)
     with open(index_json_path, "w", encoding="utf-8") as f:
         db._write_to_file(f)
 
@@ -846,14 +718,14 @@ def _read_specs_and_push_index(
         index_hash = compute_hash(index_string)
 
     # Write the hash out to a local file
-    index_hash_path = os.path.join(temp_dir, "index.json.hash")
+    index_hash_path = os.path.join(temp_dir, INDEX_HASH_FILE)
     with open(index_hash_path, "w", encoding="utf-8") as f:
         f.write(index_hash)
 
     # Push the index itself
     web_util.push_to_url(
         index_json_path,
-        url_util.join(cache_prefix, "index.json"),
+        url_util.join(cache_prefix, spack_db.INDEX_JSON_FILE),
         keep_original=False,
         extra_args={"ContentType": "application/json", "CacheControl": "no-cache"},
     )
@@ -861,7 +733,7 @@ def _read_specs_and_push_index(
     # Push the hash
     web_util.push_to_url(
         index_hash_path,
-        url_util.join(cache_prefix, "index.json.hash"),
+        url_util.join(cache_prefix, INDEX_HASH_FILE),
         keep_original=False,
         extra_args={"ContentType": "text/plain", "CacheControl": "no-cache"},
     )
@@ -930,7 +802,7 @@ def _specs_from_cache_fallback(url: str):
         try:
             _, _, spec_file = web_util.read_from_url(url)
             contents = codecs.getreader("utf-8")(spec_file).read()
-        except web_util.SpackWebError as e:
+        except (web_util.SpackWebError, OSError) as e:
             tty.error(f"Error reading specfile: {url}: {e}")
         return contents
 
@@ -998,9 +870,12 @@ def _url_generate_package_index(url: str, tmpdir: str, concurrency: int = 32):
     tty.debug(f"Retrieving spec descriptor files from {url} to build index")
 
     db = BuildCacheDatabase(tmpdir)
+    db._write()
 
     try:
-        _read_specs_and_push_index(file_list, read_fn, url, db, db.database_directory, concurrency)
+        _read_specs_and_push_index(
+            file_list, read_fn, url, db, str(db.database_directory), concurrency
+        )
     except Exception as e:
         raise GenerateIndexError(f"Encountered problem pushing package index to {url}: {e}") from e
 
@@ -1042,7 +917,55 @@ def generate_key_index(key_prefix: str, tmpdir: str) -> None:
         ) from e
 
 
-def tarfile_of_spec_prefix(tar: tarfile.TarFile, prefix: str) -> None:
+class FileTypes:
+    BINARY = 0
+    TEXT = 1
+    UNKNOWN = 2
+
+
+NOT_ISO8859_1_TEXT = re.compile(b"[\x00\x7F-\x9F]")
+
+
+def file_type(f: IO[bytes]) -> int:
+    try:
+        # first check if this is an ELF or mach-o binary.
+        magic = f.read(8)
+        if len(magic) < 8:
+            return FileTypes.UNKNOWN
+        elif relocate.is_elf_magic(magic) or relocate.is_macho_magic(magic):
+            return FileTypes.BINARY
+
+        f.seek(0)
+
+        # Then try utf-8, which has a fast exponential decay in false positive rate with file size.
+        # Use chunked reads for fast early exit.
+        f_txt = io.TextIOWrapper(f, encoding="utf-8", errors="strict")
+        try:
+            while f_txt.read(1024):
+                pass
+            return FileTypes.TEXT
+        except UnicodeError:
+            f_txt.seek(0)
+            pass
+        finally:
+            f_txt.detach()
+        # Finally try iso-8859-1 heuristically. In Python, all possible 256 byte values are valid.
+        # We classify it as text if it does not contain any control characters / null bytes.
+        data = f.read(1024)
+        while data:
+            if NOT_ISO8859_1_TEXT.search(data):
+                break
+            data = f.read(1024)
+        else:
+            return FileTypes.TEXT
+        return FileTypes.UNKNOWN
+    finally:
+        f.seek(0)
+
+
+def tarfile_of_spec_prefix(
+    tar: tarfile.TarFile, prefix: str, prefixes_to_relocate: List[str]
+) -> dict:
     """Create a tarfile of an install prefix of a spec. Skips existing buildinfo file.
 
     Args:
@@ -1058,6 +981,33 @@ def tarfile_of_spec_prefix(tar: tarfile.TarFile, prefix: str) -> None:
     except OSError:
         skip = lambda entry: False
 
+    binary_regex = utf8_paths_to_single_binary_regex(prefixes_to_relocate)
+
+    relocate_binaries = []
+    relocate_links = []
+    relocate_textfiles = []
+
+    # use callbacks to add files and symlinks, so we can register which files need relocation upon
+    # extraction.
+    def add_file(tar: tarfile.TarFile, info: tarfile.TarInfo, path: str):
+        with open(path, "rb") as f:
+            relpath = os.path.relpath(path, prefix)
+            # no need to relocate anything in the .spack directory
+            if relpath.split(os.sep, 1)[0] == ".spack":
+                tar.addfile(info, f)
+                return
+            f_type = file_type(f)
+            if f_type == FileTypes.BINARY:
+                relocate_binaries.append(os.path.relpath(path, prefix))
+            elif f_type == FileTypes.TEXT and file_matches(f, binary_regex):
+                relocate_textfiles.append(os.path.relpath(path, prefix))
+            tar.addfile(info, f)
+
+    def add_symlink(tar: tarfile.TarFile, info: tarfile.TarInfo, path: str):
+        if os.path.isabs(info.linkname) and binary_regex.match(info.linkname.encode("utf-8")):
+            relocate_links.append(os.path.relpath(path, prefix))
+        tar.addfile(info)
+
     spack.util.archive.reproducible_tarfile_from_prefix(
         tar,
         prefix,
@@ -1065,29 +1015,51 @@ def tarfile_of_spec_prefix(tar: tarfile.TarFile, prefix: str) -> None:
         # used in runtimes like AWS lambda.
         include_parent_directories=True,
         skip=skip,
+        add_file=add_file,
+        add_symlink=add_symlink,
+    )
+
+    return {
+        "relocate_binaries": relocate_binaries,
+        "relocate_links": relocate_links,
+        "relocate_textfiles": relocate_textfiles,
+    }
+
+
+def create_tarball(spec: spack.spec.Spec, tarfile_path: str) -> Tuple[str, str]:
+    """Create a tarball of a spec and return the checksums of the compressed tarfile and the
+    uncompressed tarfile."""
+    return _do_create_tarball(
+        tarfile_path,
+        spec.prefix,
+        buildinfo=get_buildinfo_dict(spec),
+        prefixes_to_relocate=prefixes_to_relocate(spec),
     )
 
 
-def _do_create_tarball(tarfile_path: str, binaries_dir: str, buildinfo: dict):
+def _do_create_tarball(
+    tarfile_path: str, prefix: str, buildinfo: dict, prefixes_to_relocate: List[str]
+) -> Tuple[str, str]:
     with spack.util.archive.gzip_compressed_tarfile(tarfile_path) as (
         tar,
-        inner_checksum,
-        outer_checksum,
+        tar_gz_checksum,
+        tar_checksum,
     ):
         # Tarball the install prefix
-        tarfile_of_spec_prefix(tar, binaries_dir)
+        files_to_relocate = tarfile_of_spec_prefix(tar, prefix, prefixes_to_relocate)
+        buildinfo.update(files_to_relocate)
 
         # Serialize buildinfo for the tarball
         bstring = syaml.dump(buildinfo, default_flow_style=True).encode("utf-8")
         tarinfo = tarfile.TarInfo(
-            name=spack.util.archive.default_path_to_name(buildinfo_file_name(binaries_dir))
+            name=spack.util.archive.default_path_to_name(buildinfo_file_name(prefix))
         )
         tarinfo.type = tarfile.REGTYPE
         tarinfo.size = len(bstring)
         tarinfo.mode = 0o644
         tar.addfile(tarinfo, io.BytesIO(bstring))
 
-    return inner_checksum.hexdigest(), outer_checksum.hexdigest()
+    return tar_gz_checksum.hexdigest(), tar_checksum.hexdigest()
 
 
 class ExistsInBuildcache(NamedTuple):
@@ -1137,6 +1109,13 @@ def _exists_in_buildcache(spec: spack.spec.Spec, tmpdir: str, out_url: str) -> E
     return ExistsInBuildcache(signed, unsigned, tarball)
 
 
+def prefixes_to_relocate(spec):
+    prefixes = [s.prefix for s in specs_to_relocate(spec)]
+    prefixes.append(spack.hooks.sbang.sbang_install_path())
+    prefixes.append(str(spack.store.STORE.layout.root))
+    return prefixes
+
+
 def _url_upload_tarball_and_specfile(
     spec: spack.spec.Spec,
     tmpdir: str,
@@ -1146,7 +1125,7 @@ def _url_upload_tarball_and_specfile(
 ):
     files = BuildcacheFiles(spec, tmpdir, out_url)
     tarball = files.local_tarball()
-    checksum, _ = _do_create_tarball(tarball, spec.prefix, get_buildinfo_dict(spec))
+    checksum, _ = create_tarball(spec, tarball)
     spec_dict = spec.to_dict(hash=ht.dag_hash)
     spec_dict["buildcache_layout_version"] = CURRENT_BUILD_CACHE_LAYOUT_VERSION
     spec_dict["binary_cache_checksum"] = {"hash_algorithm": "sha256", "hash": checksum}
@@ -1470,13 +1449,11 @@ def _oci_push_pkg_blob(
     filename = os.path.join(tmpdir, f"{spec.dag_hash()}.tar.gz")
 
     # Create an oci.image.layer aka tarball of the package
-    compressed_tarfile_checksum, tarfile_checksum = _do_create_tarball(
-        filename, spec.prefix, get_buildinfo_dict(spec)
-    )
+    tar_gz_checksum, tar_checksum = create_tarball(spec, filename)
 
     blob = spack.oci.oci.Blob(
-        Digest.from_sha256(compressed_tarfile_checksum),
-        Digest.from_sha256(tarfile_checksum),
+        Digest.from_sha256(tar_gz_checksum),
+        Digest.from_sha256(tar_checksum),
         os.path.getsize(filename),
     )
 
@@ -1812,7 +1789,7 @@ def _oci_update_index(
         db.mark(spec, "in_buildcache", True)
 
     # Create the index.json file
-    index_json_path = os.path.join(tmpdir, "index.json")
+    index_json_path = os.path.join(tmpdir, spack_db.INDEX_JSON_FILE)
     with open(index_json_path, "w", encoding="utf-8") as f:
         db._write_to_file(f)
 
@@ -2033,7 +2010,7 @@ def download_tarball(spec, unsigned: Optional[bool] = False, mirrors_for_spec=No
 
                 # Download the config = spec.json and the relevant tarball
                 try:
-                    manifest = json.loads(response.read())
+                    manifest = json.load(response)
                     spec_digest = spack.oci.image.Digest.from_string(manifest["config"]["digest"])
                     tarball_digest = spack.oci.image.Digest.from_string(
                         manifest["layers"][-1]["digest"]
@@ -2160,10 +2137,9 @@ def download_tarball(spec, unsigned: Optional[bool] = False, mirrors_for_spec=No
 
 
 def dedupe_hardlinks_if_necessary(root, buildinfo):
-    """Updates a buildinfo dict for old archives that did
-    not dedupe hardlinks. De-duping hardlinks is necessary
-    when relocating files in parallel and in-place. This
-    means we must preserve inodes when relocating."""
+    """Updates a buildinfo dict for old archives that did not dedupe hardlinks. De-duping hardlinks
+    is necessary when relocating files in parallel and in-place. This means we must preserve inodes
+    when relocating."""
 
     # New archives don't need this.
     if buildinfo.get("hardlinks_deduped", False):
@@ -2192,65 +2168,48 @@ def dedupe_hardlinks_if_necessary(root, buildinfo):
         buildinfo[key] = new_list
 
 
-def relocate_package(spec):
-    """
-    Relocate the given package
-    """
-    workdir = str(spec.prefix)
-    buildinfo = read_buildinfo_file(workdir)
-    new_layout_root = str(spack.store.STORE.layout.root)
-    new_prefix = str(spec.prefix)
-    new_rel_prefix = str(os.path.relpath(new_prefix, new_layout_root))
-    new_spack_prefix = str(spack.paths.prefix)
-
-    old_sbang_install_path = None
-    if "sbang_install_path" in buildinfo:
-        old_sbang_install_path = str(buildinfo["sbang_install_path"])
+def relocate_package(spec: spack.spec.Spec) -> None:
+    """Relocate binaries and text files in the given spec prefix, based on its buildinfo file."""
+    spec_prefix = str(spec.prefix)
+    buildinfo = read_buildinfo_file(spec_prefix)
     old_layout_root = str(buildinfo["buildpath"])
-    old_spack_prefix = str(buildinfo.get("spackprefix"))
-    old_rel_prefix = buildinfo.get("relative_prefix")
-    old_prefix = os.path.join(old_layout_root, old_rel_prefix)
-    rel = buildinfo.get("relative_rpaths", False)
 
-    # In the past prefix_to_hash was the default and externals were not dropped, so prefixes
-    # were not unique.
+    # Warn about old style tarballs created with the --rel flag (removed in Spack v0.20)
+    if buildinfo.get("relative_rpaths", False):
+        tty.warn(
+            f"Tarball for {spec} uses relative rpaths, which can cause library loading issues."
+        )
+
+    # In Spack 0.19 and older prefix_to_hash was the default and externals were not dropped, so
+    # prefixes were not unique.
     if "hash_to_prefix" in buildinfo:
         hash_to_old_prefix = buildinfo["hash_to_prefix"]
     elif "prefix_to_hash" in buildinfo:
-        hash_to_old_prefix = dict((v, k) for (k, v) in buildinfo["prefix_to_hash"].items())
+        hash_to_old_prefix = {v: k for (k, v) in buildinfo["prefix_to_hash"].items()}
     else:
-        hash_to_old_prefix = dict()
+        raise NewLayoutException(
+            "Package tarball was created from an install prefix with a different directory layout "
+            "and an older buildcache create implementation. It cannot be relocated."
+        )
 
-    if old_rel_prefix != new_rel_prefix and not hash_to_old_prefix:
-        msg = "Package tarball was created from an install "
-        msg += "prefix with a different directory layout and an older "
-        msg += "buildcache create implementation. It cannot be relocated."
-        raise NewLayoutException(msg)
+    prefix_to_prefix: Dict[str, str] = {}
 
-    # Spurious replacements (e.g. sbang) will cause issues with binaries
-    # For example, the new sbang can be longer than the old one.
-    # Hence 2 dictionaries are maintained here.
-    prefix_to_prefix_text = collections.OrderedDict()
-    prefix_to_prefix_bin = collections.OrderedDict()
+    if "sbang_install_path" in buildinfo:
+        old_sbang_install_path = str(buildinfo["sbang_install_path"])
+        prefix_to_prefix[old_sbang_install_path] = spack.hooks.sbang.sbang_install_path()
 
-    if old_sbang_install_path:
-        install_path = spack.hooks.sbang.sbang_install_path()
-        prefix_to_prefix_text[old_sbang_install_path] = install_path
+    # First match specific prefix paths. Possibly the *local* install prefix of some dependency is
+    # in an upstream, so we cannot assume the original spack store root can be mapped uniformly to
+    # the new spack store root.
 
-    # First match specific prefix paths. Possibly the *local* install prefix
-    # of some dependency is in an upstream, so we cannot assume the original
-    # spack store root can be mapped uniformly to the new spack store root.
-    #
-    # If the spec is spliced, we need to handle the simultaneous mapping
-    # from the old install_tree to the new install_tree and from the build_spec
-    # to the spliced spec.
-    # Because foo.build_spec is foo for any non-spliced spec, we can simplify
-    # by checking for spliced-in nodes by checking for nodes not in the build_spec
-    # without any explicit check for whether the spec is spliced.
-    # An analog in this algorithm is any spec that shares a name or provides the same virtuals
-    # in the context of the relevant root spec. This ensures that the analog for a spec s
-    # is the spec that s replaced when we spliced.
-    relocation_specs = deps_to_relocate(spec)
+    # If the spec is spliced, we need to handle the simultaneous mapping from the old install_tree
+    # to the new install_tree and from the build_spec to the spliced spec. Because foo.build_spec
+    # is foo for any non-spliced spec, we can simplify by checking for spliced-in nodes by checking
+    # for nodes not in the build_spec without any explicit check for whether the spec is spliced.
+    # An analog in this algorithm is any spec that shares a name or provides the same virtuals in
+    # the context of the relevant root spec. This ensures that the analog for a spec s is the spec
+    # that s replaced when we spliced.
+    relocation_specs = specs_to_relocate(spec)
     build_spec_ids = set(id(s) for s in spec.build_spec.traverse(deptype=dt.ALL & ~dt.BUILD))
     for s in relocation_specs:
         analog = s
@@ -2269,98 +2228,66 @@ def relocate_package(spec):
         lookup_dag_hash = analog.dag_hash()
         if lookup_dag_hash in hash_to_old_prefix:
             old_dep_prefix = hash_to_old_prefix[lookup_dag_hash]
-            prefix_to_prefix_bin[old_dep_prefix] = str(s.prefix)
-            prefix_to_prefix_text[old_dep_prefix] = str(s.prefix)
+            prefix_to_prefix[old_dep_prefix] = str(s.prefix)
 
     # Only then add the generic fallback of install prefix -> install prefix.
-    prefix_to_prefix_text[old_prefix] = new_prefix
-    prefix_to_prefix_bin[old_prefix] = new_prefix
-    prefix_to_prefix_text[old_layout_root] = new_layout_root
-    prefix_to_prefix_bin[old_layout_root] = new_layout_root
+    prefix_to_prefix[old_layout_root] = str(spack.store.STORE.layout.root)
 
-    # This is vestigial code for the *old* location of sbang. Previously,
-    # sbang was a bash script, and it lived in the spack prefix. It is
-    # now a POSIX script that lives in the install prefix. Old packages
-    # will have the old sbang location in their shebangs.
-    orig_sbang = "#!/bin/bash {0}/bin/sbang".format(old_spack_prefix)
-    new_sbang = spack.hooks.sbang.sbang_shebang_line()
-    prefix_to_prefix_text[orig_sbang] = new_sbang
+    # Delete identity mappings from prefix_to_prefix
+    prefix_to_prefix = {k: v for k, v in prefix_to_prefix.items() if k != v}
 
-    tty.debug("Relocating package from", "%s to %s." % (old_layout_root, new_layout_root))
+    # If there's nothing to relocate, we're done.
+    if not prefix_to_prefix:
+        return
 
-    # Old archives maybe have hardlinks repeated.
-    dedupe_hardlinks_if_necessary(workdir, buildinfo)
+    for old, new in prefix_to_prefix.items():
+        tty.debug(f"Relocating: {old} => {new}.")
 
-    def is_backup_file(file):
-        return file.endswith("~")
+    # Old archives may have hardlinks repeated.
+    dedupe_hardlinks_if_necessary(spec_prefix, buildinfo)
 
     # Text files containing the prefix text
-    text_names = list()
-    for filename in buildinfo["relocate_textfiles"]:
-        text_name = os.path.join(workdir, filename)
-        # Don't add backup files generated by filter_file during install step.
-        if not is_backup_file(text_name):
-            text_names.append(text_name)
+    textfiles = [os.path.join(spec_prefix, f) for f in buildinfo["relocate_textfiles"]]
+    binaries = [os.path.join(spec_prefix, f) for f in buildinfo.get("relocate_binaries")]
+    links = [os.path.join(spec_prefix, f) for f in buildinfo.get("relocate_links", [])]
 
-    # If we are not installing back to the same install tree do the relocation
-    if old_prefix != new_prefix:
-        files_to_relocate = [
-            os.path.join(workdir, filename) for filename in buildinfo.get("relocate_binaries")
-        ]
-        # If the buildcache was not created with relativized rpaths
-        # do the relocation of path in binaries
-        platform = spack.platforms.by_name(spec.platform)
-        if "macho" in platform.binary_formats:
-            relocate.relocate_macho_binaries(
-                files_to_relocate,
-                old_layout_root,
-                new_layout_root,
-                prefix_to_prefix_bin,
-                rel,
-                old_prefix,
-                new_prefix,
-            )
-        elif "elf" in platform.binary_formats and not rel:
-            # The new ELF dynamic section relocation logic only handles absolute to
-            # absolute relocation.
-            relocate.new_relocate_elf_binaries(files_to_relocate, prefix_to_prefix_bin)
-        elif "elf" in platform.binary_formats and rel:
-            relocate.relocate_elf_binaries(
-                files_to_relocate,
-                old_layout_root,
-                new_layout_root,
-                prefix_to_prefix_bin,
-                rel,
-                old_prefix,
-                new_prefix,
-            )
+    platform = spack.platforms.by_name(spec.platform)
+    if "macho" in platform.binary_formats:
+        relocate.relocate_macho_binaries(binaries, prefix_to_prefix)
+    elif "elf" in platform.binary_formats:
+        relocate.relocate_elf_binaries(binaries, prefix_to_prefix)
 
-        # Relocate links to the new install prefix
-        links = [os.path.join(workdir, f) for f in buildinfo.get("relocate_links", [])]
-        relocate.relocate_links(links, prefix_to_prefix_bin)
+    relocate.relocate_links(links, prefix_to_prefix)
+    relocate.relocate_text(textfiles, prefix_to_prefix)
+    changed_files = relocate.relocate_text_bin(binaries, prefix_to_prefix)
 
-        # For all buildcaches
-        # relocate the install prefixes in text files including dependencies
-        relocate.relocate_text(text_names, prefix_to_prefix_text)
+    # Add ad-hoc signatures to patched macho files when on macOS.
+    if "macho" in platform.binary_formats and sys.platform == "darwin":
+        codesign = which("codesign")
+        if not codesign:
+            return
+        for binary in changed_files:
+            # preserve the original inode by running codesign on a copy
+            with fsys.edit_in_place_through_temporary_file(binary) as tmp_binary:
+                codesign("-fs-", tmp_binary)
 
-        # relocate the install prefixes in binary files including dependencies
-        changed_files = relocate.relocate_text_bin(files_to_relocate, prefix_to_prefix_bin)
+    install_manifest = os.path.join(
+        spec.prefix,
+        spack.store.STORE.layout.metadata_dir,
+        spack.store.STORE.layout.manifest_file_name,
+    )
+    if not os.path.exists(install_manifest):
+        spec_id = spec.format("{name}/{hash:7}")
+        tty.warn("No manifest file in tarball for spec %s" % spec_id)
 
-        # Add ad-hoc signatures to patched macho files when on macOS.
-        if "macho" in platform.binary_formats and sys.platform == "darwin":
-            codesign = which("codesign")
-            if not codesign:
-                return
-            for binary in changed_files:
-                # preserve the original inode by running codesign on a copy
-                with fsys.edit_in_place_through_temporary_file(binary) as tmp_binary:
-                    codesign("-fs-", tmp_binary)
+    # overwrite old metadata with new
+    if spec.spliced:
+        # rewrite spec on disk
+        spack.store.STORE.layout.write_spec(spec, spack.store.STORE.layout.spec_file_path(spec))
 
-    # If we are installing back to the same location
-    # relocate the sbang location if the spack directory changed
-    else:
-        if old_spack_prefix != new_spack_prefix:
-            relocate.relocate_text(text_names, prefix_to_prefix_text)
+        # de-cache the install manifest
+        with contextlib.suppress(FileNotFoundError):
+            os.unlink(install_manifest)
 
 
 def _extract_inner_tarball(spec, filename, extract_to, signature_required: bool, remote_checksum):
@@ -2435,6 +2362,14 @@ def _tar_strip_component(tar: tarfile.TarFile, prefix: str):
         yield m
 
 
+def extract_buildcache_tarball(tarfile_path: str, destination: str) -> None:
+    with closing(tarfile.open(tarfile_path, "r")) as tar:
+        # Remove common prefix from tarball entries and directly extract them to the install dir.
+        tar.extractall(
+            path=destination, members=_tar_strip_component(tar, prefix=_ensure_common_prefix(tar))
+        )
+
+
 def extract_tarball(spec, download_result, force=False, timer=timer.NULL_TIMER):
     """
     extract binary tarball for given package into install area
@@ -2504,12 +2439,7 @@ def extract_tarball(spec, download_result, force=False, timer=timer.NULL_TIMER):
                 tarfile_path, size, contents, "sha256", expected, local_checksum
             )
     try:
-        with closing(tarfile.open(tarfile_path, "r")) as tar:
-            # Remove install prefix from tarfil to extract directly into spec.prefix
-            tar.extractall(
-                path=spec.prefix,
-                members=_tar_strip_component(tar, prefix=_ensure_common_prefix(tar)),
-            )
+        extract_buildcache_tarball(tarfile_path, destination=spec.prefix)
     except Exception:
         shutil.rmtree(spec.prefix, ignore_errors=True)
         _delete_staged_downloads(download_result)
@@ -2525,15 +2455,6 @@ def extract_tarball(spec, download_result, force=False, timer=timer.NULL_TIMER):
     except Exception as e:
         shutil.rmtree(spec.prefix, ignore_errors=True)
         raise e
-    else:
-        manifest_file = os.path.join(
-            spec.prefix,
-            spack.store.STORE.layout.metadata_dir,
-            spack.store.STORE.layout.manifest_file_name,
-        )
-        if not os.path.exists(manifest_file):
-            spec_id = spec.format("{name}/{hash:7}")
-            tty.warn("No manifest file in tarball for spec %s" % spec_id)
     finally:
         if tmpdir:
             shutil.rmtree(tmpdir, ignore_errors=True)
@@ -2638,10 +2559,6 @@ def install_root_node(
         tty.msg('Installing "{0}" from a buildcache'.format(spec.format()))
         extract_tarball(spec, download_result, force)
         spec.package.windows_establish_runtime_linkage()
-        if spec.spliced:  # overwrite old metadata with new
-            spack.store.STORE.layout.write_spec(
-                spec, spack.store.STORE.layout.spec_file_path(spec)
-            )
         spack.hooks.post_install(spec, False)
         spack.store.STORE.db.add(spec, allow_missing=allow_missing)
 
@@ -2679,11 +2596,14 @@ def try_direct_fetch(spec, mirrors=None):
         )
         try:
             _, _, fs = web_util.read_from_url(buildcache_fetch_url_signed_json)
+            specfile_contents = codecs.getreader("utf-8")(fs).read()
             specfile_is_signed = True
-        except web_util.SpackWebError as e1:
+        except (web_util.SpackWebError, OSError) as e1:
             try:
                 _, _, fs = web_util.read_from_url(buildcache_fetch_url_json)
-            except web_util.SpackWebError as e2:
+                specfile_contents = codecs.getreader("utf-8")(fs).read()
+                specfile_is_signed = False
+            except (web_util.SpackWebError, OSError) as e2:
                 tty.debug(
                     f"Did not find {specfile_name} on {buildcache_fetch_url_signed_json}",
                     e1,
@@ -2693,7 +2613,6 @@ def try_direct_fetch(spec, mirrors=None):
                     f"Did not find {specfile_name} on {buildcache_fetch_url_json}", e2, level=2
                 )
                 continue
-        specfile_contents = codecs.getreader("utf-8")(fs).read()
 
         # read the spec from the build cache file. All specs in build caches
         # are concrete (as they are built) so we need to mark this spec
@@ -2787,8 +2706,9 @@ def get_keys(install=False, trust=False, force=False, mirrors=None):
 
         try:
             _, _, json_file = web_util.read_from_url(keys_index)
-            json_index = sjson.load(codecs.getreader("utf-8")(json_file))
-        except web_util.SpackWebError as url_err:
+            json_index = sjson.load(json_file)
+        except (web_util.SpackWebError, OSError, ValueError) as url_err:
+            # TODO: avoid repeated request
             if web_util.url_exists(keys_index):
                 tty.error(
                     f"Unable to find public keys in {url_util.format(fetch_url)},"
@@ -3035,14 +2955,14 @@ class DefaultIndexFetcher:
 
     def get_remote_hash(self):
         # Failure to fetch index.json.hash is not fatal
-        url_index_hash = url_util.join(self.url, BUILD_CACHE_RELATIVE_PATH, "index.json.hash")
+        url_index_hash = url_util.join(self.url, BUILD_CACHE_RELATIVE_PATH, INDEX_HASH_FILE)
         try:
             response = self.urlopen(urllib.request.Request(url_index_hash, headers=self.headers))
-        except (TimeoutError, urllib.error.URLError):
+            remote_hash = response.read(64)
+        except OSError:
             return None
 
         # Validate the hash
-        remote_hash = response.read(64)
         if not re.match(rb"[a-f\d]{64}$", remote_hash):
             return None
         return remote_hash.decode("utf-8")
@@ -3056,17 +2976,17 @@ class DefaultIndexFetcher:
             return FetchIndexResult(etag=None, hash=None, data=None, fresh=True)
 
         # Otherwise, download index.json
-        url_index = url_util.join(self.url, BUILD_CACHE_RELATIVE_PATH, "index.json")
+        url_index = url_util.join(self.url, BUILD_CACHE_RELATIVE_PATH, spack_db.INDEX_JSON_FILE)
 
         try:
             response = self.urlopen(urllib.request.Request(url_index, headers=self.headers))
-        except (TimeoutError, urllib.error.URLError) as e:
-            raise FetchIndexError("Could not fetch index from {}".format(url_index), e) from e
+        except OSError as e:
+            raise FetchIndexError(f"Could not fetch index from {url_index}", e) from e
 
         try:
             result = codecs.getreader("utf-8")(response).read()
-        except ValueError as e:
-            raise FetchIndexError("Remote index {} is invalid".format(url_index), e) from e
+        except (ValueError, OSError) as e:
+            raise FetchIndexError(f"Remote index {url_index} is invalid") from e
 
         computed_hash = compute_hash(result)
 
@@ -3100,7 +3020,7 @@ class EtagIndexFetcher:
 
     def conditional_fetch(self) -> FetchIndexResult:
         # Just do a conditional fetch immediately
-        url = url_util.join(self.url, BUILD_CACHE_RELATIVE_PATH, "index.json")
+        url = url_util.join(self.url, BUILD_CACHE_RELATIVE_PATH, spack_db.INDEX_JSON_FILE)
         headers = {"User-Agent": web_util.SPACK_USER_AGENT, "If-None-Match": f'"{self.etag}"'}
 
         try:
@@ -3110,12 +3030,12 @@ class EtagIndexFetcher:
                 # Not modified; that means fresh.
                 return FetchIndexResult(etag=None, hash=None, data=None, fresh=True)
             raise FetchIndexError(f"Could not fetch index {url}", e) from e
-        except (TimeoutError, urllib.error.URLError) as e:
+        except OSError as e:  # URLError, socket.timeout, etc.
             raise FetchIndexError(f"Could not fetch index {url}", e) from e
 
         try:
             result = codecs.getreader("utf-8")(response).read()
-        except ValueError as e:
+        except (ValueError, OSError) as e:
             raise FetchIndexError(f"Remote index {url} is invalid", e) from e
 
         headers = response.headers
@@ -3147,11 +3067,11 @@ class OCIIndexFetcher:
                     headers={"Accept": "application/vnd.oci.image.manifest.v1+json"},
                 )
             )
-        except (TimeoutError, urllib.error.URLError) as e:
+        except OSError as e:
             raise FetchIndexError(f"Could not fetch manifest from {url_manifest}", e) from e
 
         try:
-            manifest = json.loads(response.read())
+            manifest = json.load(response)
         except Exception as e:
             raise FetchIndexError(f"Remote index {url_manifest} is invalid", e) from e
 
@@ -3166,14 +3086,16 @@ class OCIIndexFetcher:
             return FetchIndexResult(etag=None, hash=None, data=None, fresh=True)
 
         # Otherwise fetch the blob / index.json
-        response = self.urlopen(
-            urllib.request.Request(
-                url=self.ref.blob_url(index_digest),
-                headers={"Accept": "application/vnd.oci.image.layer.v1.tar+gzip"},
+        try:
+            response = self.urlopen(
+                urllib.request.Request(
+                    url=self.ref.blob_url(index_digest),
+                    headers={"Accept": "application/vnd.oci.image.layer.v1.tar+gzip"},
+                )
             )
-        )
-
-        result = codecs.getreader("utf-8")(response).read()
+            result = codecs.getreader("utf-8")(response).read()
+        except (OSError, ValueError) as e:
+            raise FetchIndexError(f"Remote index {url_manifest} is invalid", e) from e
 
         # Make sure the blob we download has the advertised hash
         if compute_hash(result) != index_digest.digest:

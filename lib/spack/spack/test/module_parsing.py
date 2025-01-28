@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -33,6 +32,53 @@ def test_module_function_change_env(tmp_path):
     src_file.write_text("export TEST_MODULE_ENV_VAR=TEST_SUCCESS\n")
     module("load", str(src_file), module_template=f". {src_file} 2>&1", environb=environb)
     assert environb[b"TEST_MODULE_ENV_VAR"] == b"TEST_SUCCESS"
+    assert environb[b"NOT_AFFECTED"] == b"NOT_AFFECTED"
+
+
+def test_module_function_change_env_with_module_src_cmd(tmp_path):
+    environb = {
+        b"MODULESHOME": b"here",
+        b"TEST_MODULE_ENV_VAR": b"TEST_FAIL",
+        b"TEST_ANOTHER_MODULE_ENV_VAR": b"TEST_FAIL",
+        b"NOT_AFFECTED": b"NOT_AFFECTED",
+    }
+    src_file = tmp_path / "src_me"
+    src_file.write_text("export TEST_MODULE_ENV_VAR=TEST_SUCCESS\n")
+    module_src_file = tmp_path / "src_me_too"
+    module_src_file.write_text("export TEST_ANOTHER_MODULE_ENV_VAR=TEST_SUCCESS\n")
+    module("load", str(src_file), module_template=f". {src_file} 2>&1", environb=environb)
+    module(
+        "load",
+        str(src_file),
+        module_template=f". {src_file} 2>&1",
+        module_src_cmd=f". {module_src_file} 2>&1; ",
+        environb=environb,
+    )
+    assert environb[b"TEST_MODULE_ENV_VAR"] == b"TEST_SUCCESS"
+    assert environb[b"TEST_ANOTHER_MODULE_ENV_VAR"] == b"TEST_SUCCESS"
+    assert environb[b"NOT_AFFECTED"] == b"NOT_AFFECTED"
+
+
+def test_module_function_change_env_without_moduleshome_no_module_src_cmd(tmp_path):
+    environb = {
+        b"TEST_MODULE_ENV_VAR": b"TEST_FAIL",
+        b"TEST_ANOTHER_MODULE_ENV_VAR": b"TEST_FAIL",
+        b"NOT_AFFECTED": b"NOT_AFFECTED",
+    }
+    src_file = tmp_path / "src_me"
+    src_file.write_text("export TEST_MODULE_ENV_VAR=TEST_SUCCESS\n")
+    module_src_file = tmp_path / "src_me_too"
+    module_src_file.write_text("export TEST_ANOTHER_MODULE_ENV_VAR=TEST_SUCCESS\n")
+    module("load", str(src_file), module_template=f". {src_file} 2>&1", environb=environb)
+    module(
+        "load",
+        str(src_file),
+        module_template=f". {src_file} 2>&1",
+        module_src_cmd=f". {module_src_file} 2>&1; ",
+        environb=environb,
+    )
+    assert environb[b"TEST_MODULE_ENV_VAR"] == b"TEST_SUCCESS"
+    assert environb[b"TEST_ANOTHER_MODULE_ENV_VAR"] == b"TEST_FAIL"
     assert environb[b"NOT_AFFECTED"] == b"NOT_AFFECTED"
 
 

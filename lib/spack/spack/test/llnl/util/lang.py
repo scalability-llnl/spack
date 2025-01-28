@@ -1,9 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import os.path
+import os
 import re
 import sys
 from datetime import datetime, timedelta
@@ -24,7 +23,7 @@ def now():
 def module_path(tmpdir):
     m = tmpdir.join("foo.py")
     content = """
-import os.path
+import os
 
 value = 1
 path = os.path.join('/usr', 'bin')

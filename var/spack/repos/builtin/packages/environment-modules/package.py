@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -63,6 +62,7 @@ class EnvironmentModules(Package):
 
     variant("X", default=True, description="Build with X functionality")
 
+    depends_on("gmake", type="build")
     depends_on("util-linux", type=("build", "run"), when="@5.5:")
     depends_on("less", type=("build", "run"), when="@4.1:")
     with when("@main"):

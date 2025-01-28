@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,7 @@ class PyScikitImage(PythonPackage):
         "skimage.future.graph",
     ]
 
+    version("0.25.1", sha256="d4ab30540d114d37c35fe5c837f89b94aaba2a7643afae8354aa353319e9bbbb")
     version("0.25.0", sha256="58d94fea11b6b3306b3770417dc1cbca7fa9bcbd6a13945d7910399c88c2018c")
     version("0.24.0", sha256="5d16efe95da8edbeb363e0c4157b99becbd650a60b77f6e3af5768b66cf007ab")
     version("0.23.2", sha256="c9da4b2c3117e3e30364a3d14496ee5c72b09eb1a4ab1292b302416faa360590")
@@ -39,8 +39,8 @@ class PyScikitImage(PythonPackage):
     version("0.14.2", sha256="1afd0b84eefd77afd1071c5c1c402553d67be2d7db8950b32d6f773f25850c1f")
     version("0.12.3", sha256="82da192f0e524701e89c5379c79200bc6dc21373f48bf7778a864c583897d7c7")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     # Get dependencies for:
     #

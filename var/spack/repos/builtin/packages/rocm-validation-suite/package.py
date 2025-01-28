@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,7 @@ class RocmValidationSuite(CMakePackage):
     license("MIT")
 
     maintainers("srekolam", "renjithravindrankannath", "afzpatel")
+    version("6.3.1", sha256="5a5ec682729292d57838191e217a3475d662c5c25a7bd79c4996fdf4b5e36a5a")
     version("6.3.0", sha256="1e2b7eee002dd922625bcf792104e265cc5a57bec21f13d79d68036aa84b422f")
     version("6.2.4", sha256="ccdea6e955ca145a29d47da74d77b14196c935b57502edaed37fd18029b5220c")
     version("6.2.1", sha256="7e1f4f391a5b31087585b250136f3a8c1fdf4c609880499575291c61b3ebbc15")
@@ -62,7 +62,7 @@ class RocmValidationSuite(CMakePackage):
     patch("009-replacing-rocm-path-with-package-path.patch", when="@6.0")
     patch("009-replacing-rocm-path-with-package-path-6.1.patch", when="@6.1:6.2.0")
     patch("009-replacing-rocm-path-with-package-path-6.2.1.patch", when="@6.2.1:6.2.4")
-    patch("009-replacing-rocm-path-with-package-path-6.3.patch", when="@6.3.0")
+    patch("009-replacing-rocm-path-with-package-path-6.3.patch", when="@6.3.0:")
     depends_on("cmake@3.5:", type="build")
     depends_on("zlib-api", type="link")
     depends_on("yaml-cpp~shared")
@@ -115,17 +115,19 @@ class RocmValidationSuite(CMakePackage):
         "6.2.1",
         "6.2.4",
         "6.3.0",
+        "6.3.1",
     ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"rocminfo@{ver}", when=f"@{ver}")
         depends_on(f"rocblas@{ver}", when=f"@{ver}")
         depends_on(f"rocm-smi-lib@{ver}", when=f"@{ver}")
         depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")
-    for ver in ["6.2.1", "6.2.4", "6.3.0"]:
+    for ver in ["6.2.1", "6.2.4", "6.3.0", "6.3.1"]:
         depends_on(f"hiprand@{ver}", when=f"@{ver}")
         depends_on(f"rocrand@{ver}", when=f"@{ver}")
 
-    depends_on("hipblaslt@6.3.0", when="@6.3.0")
+    for ver in ["6.3.0", "6.3.1"]:
+        depends_on(f"hipblaslt@{ver}", when=f"@{ver}")
 
     def patch(self):
         if self.spec.satisfies("@5.2:5.4"):

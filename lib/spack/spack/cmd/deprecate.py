@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Deprecate one Spack install in favor of another
@@ -19,6 +18,7 @@ import llnl.util.tty as tty
 from llnl.util.symlink import symlink
 
 import spack.cmd
+import spack.concretize
 import spack.environment as ev
 import spack.installer
 import spack.store
@@ -104,7 +104,7 @@ def deprecate(parser, args):
     )
 
     if args.install:
-        deprecator = specs[1].concretized()
+        deprecator = spack.concretize.concretize_one(specs[1])
     else:
         deprecator = spack.cmd.disambiguate_spec(specs[1], env, local=True)
 

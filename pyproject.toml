@@ -92,7 +92,6 @@ src_paths = "lib"
 honor_noqa = true
 
 [tool.mypy]
-python_version = 3.7
 files = ['lib/spack/llnl/**/*.py', 'lib/spack/spack/**/*.py', './var/spack/repos/builtin/packages/*/package.py']
 mypy_path = ['bin', 'lib/spack', 'lib/spack/external', 'var/spack/repos/builtin']
 allow_redefinition = true

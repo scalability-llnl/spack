@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -33,6 +32,7 @@ from spack.oci.opener import (
     get_bearer_challenge,
     parse_www_authenticate,
 )
+from spack.test.conftest import MockHTTPResponse
 from spack.test.oci.mock_registry import (
     DummyServer,
     DummyServerUrllibHandler,
@@ -40,7 +40,6 @@ from spack.test.oci.mock_registry import (
     InMemoryOCIRegistryWithAuth,
     MiddlewareError,
     MockBearerTokenServer,
-    MockHTTPResponse,
     create_opener,
 )
 

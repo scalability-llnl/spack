@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,7 @@ class RocprofilerDev(CMakePackage):
     maintainers("srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["librocprofiler64"]
     license("MIT")
+    version("6.3.1", sha256="c4666c1167e551cfafc343b092506834477556ba6f7b0739552d660fd69c30fb")
     version("6.3.0", sha256="45ddc1d87a33bb27e9445e642a3495fef21cec1e545793b2ca5f551743961b1f")
     version("6.2.4", sha256="898eae91938c2d08207b615db03a784c7f3090989bcf09260635d18aa5930a2c")
     version("6.2.1", sha256="6eb36dad67e3b294f210e21987c52aec666652cffa87b8af1f8077d5b7812245")
@@ -87,6 +87,7 @@ class RocprofilerDev(CMakePackage):
         "6.2.1",
         "6.2.4",
         "6.3.0",
+        "6.3.1",
     ]:
         depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")
         depends_on(f"rocminfo@{ver}", when=f"@{ver}")
@@ -104,6 +105,7 @@ class RocprofilerDev(CMakePackage):
         "6.2.1",
         "6.2.4",
         "6.3.0",
+        "6.3.1",
     ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"rocm-smi-lib@{ver}", when=f"@{ver}")
@@ -124,6 +126,7 @@ class RocprofilerDev(CMakePackage):
         "6.2.1",
         "6.2.4",
         "6.3.0",
+        "6.3.1",
     ]:
         depends_on(f"aqlprofile@{ver}", when=f"@{ver}")
         depends_on(f"comgr@{ver}", when=f"@{ver}")
@@ -151,8 +154,7 @@ class RocprofilerDev(CMakePackage):
     def patch(self):
         filter_file(
             "${HSA_RUNTIME_LIB_PATH}/../include",
-            "${HSA_RUNTIME_LIB_PATH}/../include ${HSA_KMT_LIB_PATH}/..\
-                     /include",
+            "${HSA_RUNTIME_LIB_PATH}/../include ${HSA_KMT_LIB_PATH}/../include",
             "test/CMakeLists.txt",
             string=True,
         )

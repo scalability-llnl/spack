@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,7 @@ class Hipfort(CMakePackage):
     license("MIT")
 
     maintainers("cgmb", "srekolam", "renjithravindrankannath", "afzpatel")
+    version("6.3.1", sha256="8141bf3d05ab4f91c561815134707123e3d06486bf775224b9a3a4cc8ee8f56f")
     version("6.3.0", sha256="9e7f4420c75430cdb9046c0c4dbe656f22128b0672b2e261d50a6e92e47cc6d3")
     version("6.2.4", sha256="32daa4ee52c2d44790bff7a7ddde9d572e4785b2f54766a5e45d10228da0534b")
     version("6.2.1", sha256="5258f2dd63aeebe29ce566e654c47b8e2e1f5eb8ca3da92af09c54517b259f32")
@@ -67,6 +67,7 @@ class Hipfort(CMakePackage):
         "6.2.1",
         "6.2.4",
         "6.3.0",
+        "6.3.1",
     ]:
         depends_on(f"hip@{ver}", type="build", when=f"@{ver}")
 

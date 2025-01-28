@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,4 +15,5 @@ class HipblasCommon(CMakePackage):
 
     license("MIT")
 
+    version("6.3.1", sha256="512e652483b5580713eca14db3fa633d0441cd7c02cdb0d26e631ea605b9231b")
     version("6.3.0", sha256="240bb1b0f2e6632447e34deae967df259af1eec085470e58a6d0aa040c8530b0")

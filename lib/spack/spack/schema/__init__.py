@@ -1,11 +1,12 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """This module contains jsonschema files for all of Spack's YAML formats."""
 import copy
 import typing
 import warnings
+
+import jsonschema
 
 import llnl.util.lang
 
@@ -20,12 +21,8 @@ class DeprecationMessage(typing.NamedTuple):
 # jsonschema is imported lazily as it is heavy to import
 # and increases the start-up time
 def _make_validator():
-    import jsonschema
-
     def _validate_spec(validator, is_spec, instance, schema):
         """Check if the attributes on instance are valid specs."""
-        import jsonschema
-
         import spack.spec_parser
 
         if not validator.is_type(instance, "object"):
@@ -34,8 +31,8 @@ def _make_validator():
         for spec_str in instance:
             try:
                 spack.spec_parser.parse(spec_str)
-            except SpecSyntaxError as e:
-                yield jsonschema.ValidationError(str(e))
+            except SpecSyntaxError:
+                yield jsonschema.ValidationError(f"the key '{spec_str}' is not a valid spec")
 
     def _deprecated_properties(validator, deprecated, instance, schema):
         if not (validator.is_type(instance, "object") or validator.is_type(instance, "array")):
@@ -68,7 +65,7 @@ def _make_validator():
             yield jsonschema.ValidationError("\n".join(errors))
 
     return jsonschema.validators.extend(
-        jsonschema.Draft4Validator,
+        jsonschema.Draft7Validator,
         {"validate_spec": _validate_spec, "deprecatedProperties": _deprecated_properties},
     )
 

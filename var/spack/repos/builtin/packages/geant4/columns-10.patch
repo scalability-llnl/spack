@@ -1,0 +1,13 @@
+diff --git a/source/externals/g4tools/include/tools/wroot/columns.icc b/source/externals/g4tools/include/tools/wroot/columns.icc
+index 0df2c16620..af9b15e0ab 100644
+--- a/source/analysis/g4tools/include/tools/wroot/columns.icc
++++ b/source/analysis/g4tools/include/tools/wroot/columns.icc
+@@ -399,7 +399,7 @@
+   protected:
+     std_vector_column_ref(const std_vector_column_ref& a_from)
+     :icol(a_from)
+-    ,m_branch(a_from.m_barnch)
++    ,m_branch(a_from.m_branch)
+     ,m_ref(a_from.m_ref)
+     ,m_leaf(0)
+     ,m_leaf_count(0)

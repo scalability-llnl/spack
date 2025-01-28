@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -324,8 +323,8 @@ class Tau(Package):
                 env["F77"] = spec["mpi"].mpif77
                 env["FC"] = spec["mpi"].mpifc
             if spec["mpi"].name == "intel-oneapi-mpi":
-                options.append("-mpiinc=%s/include" % spec["mpi"].package.component_prefix)
-                options.append("-mpilib=%s/lib" % spec["mpi"].package.component_prefix)
+                options.append("-mpiinc=%s/include" % self["mpi"].component_prefix)
+                options.append("-mpilib=%s/lib" % self["mpi"].component_prefix)
             else:
                 options.append("-mpiinc=%s" % spec["mpi"].prefix.include)
                 options.append("-mpilib=%s" % spec["mpi"].prefix.lib)

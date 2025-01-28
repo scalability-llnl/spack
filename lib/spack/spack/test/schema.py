@@ -1,10 +1,9 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import json
-import os.path
+import os
 
 import jsonschema
 import pytest
@@ -65,7 +64,7 @@ def test_validate_spec(validate_spec_schema):
 
     # Check that invalid data throws
     data["^python@3.7@"] = "baz"
-    with pytest.raises(jsonschema.ValidationError, match="unexpected characters"):
+    with pytest.raises(jsonschema.ValidationError, match="is not a valid spec"):
         v.validate(data)
 
 
@@ -74,7 +73,7 @@ def test_module_suffixes(module_suffixes_schema):
     v = spack.schema.Validator(module_suffixes_schema)
     data = {"tcl": {"all": {"suffixes": {"^python@2.7@": "py2.7"}}}}
 
-    with pytest.raises(jsonschema.ValidationError, match="unexpected characters"):
+    with pytest.raises(jsonschema.ValidationError, match="is not a valid spec"):
         v.validate(data)
 
 

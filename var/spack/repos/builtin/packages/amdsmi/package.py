@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,7 @@ class Amdsmi(CMakePackage):
     libraries = ["libamd_smi"]
 
     license("MIT")
+    version("6.3.1", sha256="a3a5a711052e813b9be9304d5e818351d3797f668ec2a455e61253a73429c355")
     version("6.3.0", sha256="7234c46648938239385cd5db57516ed53985b8c09d2f0828ae8f446386d8bd1e")
     version("6.2.4", sha256="5ebe8d0f176bf4a73b0e7000d9c47cb7f65ecca47011d3f9b08b93047dcf7ac5")
     version("6.2.1", sha256="136941e3f13e0d373ee3698bd60d4fc36353a2df6406e5a50b6ac78f1b639698")
@@ -42,6 +42,11 @@ class Amdsmi(CMakePackage):
     depends_on("pkgconfig")
     depends_on("libdrm")
     depends_on("py-pyyaml")
+    patch(
+        "https://github.com/ROCm/amdsmi/commit/2858e51b4e8ff124ed67e23e0cd131e8b2140fae.patch?full_index=1",
+        sha256="1cac40d057cb19f0cfac83ea427c8e98f7808be9a2778cd53cdbf963910798e8",
+        when="@6.2",
+    )
 
     @classmethod
     def determine_version(cls, lib):

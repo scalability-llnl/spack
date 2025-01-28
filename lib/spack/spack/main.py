@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,7 +14,6 @@ import inspect
 import io
 import operator
 import os
-import os.path
 import pstats
 import re
 import shlex
@@ -504,16 +502,16 @@ def make_argument_parser(**kwargs):
     return parser
 
 
-def send_warning_to_tty(message, *args):
+def showwarning(message, category, filename, lineno, file=None, line=None):
     """Redirects messages to tty.warn."""
-    tty.warn(message)
+    if category is spack.error.SpackAPIWarning:
+        tty.warn(f"{filename}:{lineno}: {message}")
+    else:
+        tty.warn(message)
 
 
 def setup_main_options(args):
     """Configure spack globals based on the basic options."""
-    # Assign a custom function to show warnings
-    warnings.showwarning = send_warning_to_tty
-
     # Set up environment based on args.
     tty.set_verbose(args.verbose)
     tty.set_debug(args.debug)
@@ -904,9 +902,10 @@ def _main(argv=None):
     # main() is tricky to get right, so be careful where you put things.
     #
     # Things in this first part of `main()` should *not* require any
-    # configuration. This doesn't include much -- setting up th parser,
+    # configuration. This doesn't include much -- setting up the parser,
     # restoring some key environment variables, very simple CLI options, etc.
     # ------------------------------------------------------------------------
+    warnings.showwarning = showwarning
 
     # Create a parser with a simple positional argument first.  We'll
     # lazily load the subcommand(s) we need later. This allows us to

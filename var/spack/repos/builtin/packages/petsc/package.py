@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -241,9 +240,24 @@ class Petsc(Package, CudaPackage, ROCmPackage):
         "memalign",
         default="none",
         description="Specify alignment of allocated arrays",
-        values=("4", "8", "16", "32", "64", "none"),
+        values=(
+            "4",
+            "8",
+            "16",
+            "32",
+            "64",
+            "128",
+            "256",
+            "512",
+            "1024",
+            "2048",
+            "4096",
+            "8192",
+            "none",
+        ),
         multi=False,
     )
+
     variant("p4est", default=False, description="Activates support for P4Est (only parallel)")
     variant("saws", default=False, description="Activates support for Saws")
     variant("libyaml", default=False, description="Activates support for YAML")
@@ -302,7 +316,8 @@ class Petsc(Package, CudaPackage, ROCmPackage):
     # older versions of petsc did not support mumps when +int64
     conflicts("+mumps", when="@:3.12+int64")
 
-    filter_compiler_wrappers("petscvariables", relative_root="lib/petsc/conf")
+    filter_compiler_wrappers("petscvariables", "reconfigure*.py", relative_root="lib/petsc/conf")
+    filter_compiler_wrappers("petsc.pc", "PETSc.pc", relative_root="lib/pkgconfig")
 
     @run_before("configure")
     def check_fortran_compiler(self):
@@ -399,6 +414,7 @@ class Petsc(Package, CudaPackage, ROCmPackage):
     depends_on("hypre@2.14:2.22.0", when="@3.14:3.15+hypre")
     depends_on("hypre@2.14:2.28.0", when="@3.16:3.19+hypre")
     depends_on("hypre@2.14:", when="@3.20+hypre")
+    depends_on("hypre@2.32:", when="@3.22:+hypre")
     depends_on("hypre@develop", when="@main+hypre")
 
     depends_on("superlu-dist@:4.3~int64", when="@3.4.4:3.6.4+superlu-dist+mpi~int64")
@@ -612,8 +628,8 @@ class Petsc(Package, CudaPackage, ROCmPackage):
             ("superlu-dist", "superlu_dist", True, True),
             ("scotch", "ptscotch", True, True),
             (
-                "suite-sparse:umfpack,klu,cholmod,btf,ccolamd,colamd,camd,amd, \
-                suitesparseconfig,spqr",
+                "suite-sparse:umfpack,klu,cholmod,btf,ccolamd,colamd,camd,amd,"
+                "suitesparseconfig,spqr",
                 "suitesparse",
                 True,
                 True,
@@ -704,6 +720,8 @@ class Petsc(Package, CudaPackage, ROCmPackage):
                 hip_ipkgs.extend(["rocrand"])
             else:
                 hip_lpkgs.extend(["rocrand"])
+            if spec.satisfies("^hipblas@6.3.0:"):
+                hip_ipkgs.extend(["hipblas-common"])
             hip_inc = ""
             hip_lib = ""
             for pkg in hip_ipkgs:

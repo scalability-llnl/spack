@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,11 +21,11 @@ class Osmesa(BundlePackage):
 
     @property
     def headers(self):
-        return self.spec["mesa"].package.libosmesa_headers
+        return self["mesa"].libosmesa_headers
 
     @property
     def libs(self):
-        return self.spec["mesa"].package.libosmesa_libs
+        return self["mesa"].libosmesa_libs
 
     @property
     def gl_headers(self):
@@ -34,4 +33,4 @@ class Osmesa(BundlePackage):
 
     @property
     def gl_libs(self):
-        return self.spec["mesa"].package.libosmesa_libs
+        return self["mesa"].libosmesa_libs

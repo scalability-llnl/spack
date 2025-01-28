@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,7 @@ class Rocprim(CMakePackage):
     license("MIT")
 
     maintainers("cgmb", "srekolam", "renjithravindrankannath", "afzpatel")
+    version("6.3.1", sha256="37690d9f326d68379d52a21fe9184061d38b15263a566f1f182d539e4b3277d5")
     version("6.3.0", sha256="d97c6edcf1f636721f8c023b54f3fad968b48b0709a95ecd640ec0ab1057069e")
     version("6.2.4", sha256="c567aa5e3209dd00aefe5052dde8ceb5bcc3a4aeeeb3ad8dc322f8d0791fc07f")
     version("6.2.1", sha256="55cfa8a4224bcd2dcf2298e7938c983a8bb0c1c072fc8295c198e53785b521ac")
@@ -78,6 +78,7 @@ class Rocprim(CMakePackage):
         "6.2.1",
         "6.2.4",
         "6.3.0",
+        "6.3.1",
     ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"comgr@{ver}", when=f"@{ver}")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Here we consolidate the logic for creating an abstract description
@@ -32,7 +31,7 @@ import contextlib
 import copy
 import datetime
 import inspect
-import os.path
+import os
 import re
 import string
 from typing import List, Optional

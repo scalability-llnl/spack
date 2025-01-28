@@ -36,7 +36,7 @@ packages:
       go-or-gccgo-bootstrap: [go-bootstrap, gcc]
       iconv: [libiconv]
       ipp: [intel-oneapi-ipp]
-      java: [openjdk, jdk, ibm-java]
+      java: [openjdk, jdk]
       jpeg: [libjpeg-turbo, libjpeg]
       lapack: [openblas, amdlibflame]
       libc: [glibc, musl]
@@ -65,6 +65,7 @@ packages:
       unwind: [libunwind]
       uuid: [util-linux-uuid, libuuid]
       wasi-sdk: [wasi-sdk-prebuilt]
+      xkbdata-api: [xkeyboard-config, xkbdata]
       xxd: [xxd-standalone, vim]
       yacc: [bison, byacc]
       ziglang: [zig]
@@ -72,15 +73,27 @@ packages:
     permissions:
       read: world
       write: user
+  cray-fftw:
+    buildable: false
+  cray-libsci:
+    buildable: false
   cray-mpich:
     buildable: false
   cray-mvapich2:
     buildable: false
+  cray-pmi:
+    buildable: false
   egl:
+    buildable: false
+  essl:
     buildable: false
   fujitsu-mpi:
     buildable: false
+  fujitsu-ssl2:
+    buildable: false
   hpcx-mpi:
+    buildable: false
+  mpt:
     buildable: false
   spectrum-mpi:
     buildable: false

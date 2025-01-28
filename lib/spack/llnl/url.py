@@ -1,10 +1,9 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """URL primitives that just require Python standard library."""
 import itertools
-import os.path
+import os
 import re
 from typing import Optional, Set, Tuple
 from urllib.parse import urlsplit, urlunsplit
