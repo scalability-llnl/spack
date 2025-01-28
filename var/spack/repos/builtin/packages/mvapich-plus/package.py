@@ -22,7 +22,6 @@ class MvapichPlus(AutotoolsPackage):
 
     maintainers("natshineman", "harisubramoni", "MatthewLieber")
 
-
     license("Unlicense")
 
     # Prefer the latest stable release
@@ -185,9 +184,9 @@ class MvapichPlus(AutotoolsPackage):
     def network_options(self):
         opts = []
         # From here on I can suppose that only one variant has been selected
-        if self.spec.satisfies("netmod=ofi":
+        if self.spec.satisfies("netmod=ofi"):
             opts = ["--with-device=ch4:ofi"]
-        elif self.spec.satisfies("netmod=ucx":
+        elif self.spec.satisfies("netmod=ucx"):
             opts = ["--with-device=ch4:ucx"]
         return opts
 
@@ -311,7 +310,7 @@ class MvapichPlus(AutotoolsPackage):
             "--disable-gl",
             "--enable-fortran=all",
             "-disable-omb",
-            f"--enable-wrapper-rpath={'no' if spec.satisfies('~wrapperrpath') else 'yes')}",
+            f"--enable-wrapper-rpath={'no' if spec.satisfies('~wrapperrpath') else 'yes'}",
         ]
 
         args.extend(self.enable_or_disable("alloca"))
@@ -335,19 +334,17 @@ class MvapichPlus(AutotoolsPackage):
             args.extend(
                 [
                     "--enable-cuda",
-                    f"--with-cuda={(spec["cuda"].prefix)}",
-                    f"NVCCFLAGS=-gencode=arch=compute_{gpu_map[spec.variants['nvidia_arch'].value]},code=sm_{gpu_map[spec.variants['nvidia_arch'].value]}",
+                    f"--with-cuda={(spec['cuda'].prefix)}",
+                    f"NVCCFLAGS=-gencode=arch=\
+                    compute_{gpu_map[spec.variants['nvidia_arch'].value]},\
+                    code=sm_{gpu_map[spec.variants['nvidia_arch'].value]}",
                     f"CFLAGS=-I{spec['cuda'].prefix + '/include'}",
                     f"CXXFLAGS=-I{spec['cuda'].prefix + '/include'}",
                 ]
             )
         if "+rocm" in self.spec:
             args.extend(
-                [
-                    "--enable-rocm",
-                    f"--with-rocm={0spec['hip'].prefix}",
-                    "--enable-hip=basic",
-                ]
+                ["--enable-rocm", f"--with-rocm={spec['hip'].prefix}", "--enable-hip=basic"]
             )
 
         if "+regcache" in self.spec:
