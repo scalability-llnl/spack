@@ -13,7 +13,6 @@ from llnl.util.filesystem import mkdirp, touchp, visit_directory_tree, working_d
 from llnl.util.link_tree import DestinationMergeVisitor, LinkTree, SourceMergeVisitor
 from llnl.util.symlink import _windows_can_symlink, islink, readlink, symlink
 
-from spack.filesystem_view import is_folder_on_case_insensitive_filesystem
 from spack.stage import Stage
 
 
@@ -397,50 +396,6 @@ def test_source_merge_visitor_does_deals_with_dangling_symlinks(tmp_path: pathli
 
     # The first file encountered should be listed.
     assert visitor.files == {str(tmp_path / "view" / "file"): (str(tmp_path / "dir_a"), "file")}
-
-
-# Mocks for the os.path.exists function. Implemented fairly generically to not
-# tailor too much to the implementaion of
-# is_folder_on_case_insensitive_filesystem (should be a detail)
-def _iter_path_components(path: str):
-    drive, path = os.path.splitdrive(path)
-    if path.startswith(os.sep):
-        root = os.sep
-        path = path[len(os.sep) :]
-    else:
-        root = ""
-    parts = path.split(os.sep)
-    for i in range(len(parts)):
-        yield os.path.split(drive + root + os.path.join(*parts[: i + 1]))
-
-
-def _mock_exists_case_insensitive(path: str):
-    for head, tail in _iter_path_components(path):
-        contents = [c.lower() for c in os.listdir(head)]
-        if tail.lower() not in contents:
-            return False
-    return True
-
-
-def _mock_exists_case_sensitive(path: str):
-    for head, tail in _iter_path_components(path):
-        contents = os.listdir(head)
-        if tail not in contents:
-            return False
-    return True
-
-
-def test_is_folder_on_case_sensitive_filesystem(tmp_path: pathlib.Path, monkeypatch):
-    # we need to mock out both case sensitive and case insensitive cases since
-    # we could be running on either
-
-    with monkeypatch.context() as m:
-        m.setattr(os.path, "exists", _mock_exists_case_insensitive)
-        assert is_folder_on_case_insensitive_filesystem(str(tmp_path))
-
-    with monkeypatch.context() as m:
-        m.setattr(os.path, "exists", _mock_exists_case_sensitive)
-        assert not is_folder_on_case_insensitive_filesystem(str(tmp_path))
 
 
 def test_source_visitor_no_path_normalization(tmp_path: pathlib.Path):
