@@ -230,7 +230,7 @@ def ensure_modern_format_string(fmt: str) -> None:
 def _make_microarchitecture(name: str) -> archspec.cpu.Microarchitecture:
     if isinstance(name, archspec.cpu.Microarchitecture):
         return name
-    return archspec.cpu.TARGETS.get(name, archspec.cpu.generic_microarchitecture(name))
+    return archspec.cpu.TARGETS.get(name) or archspec.cpu.generic_microarchitecture(name)
 
 
 @lang.lazy_lexicographic_ordering
@@ -467,10 +467,10 @@ class ArchSpec:
         if not other._target_satisfies(self, strict=False):
             raise UnsatisfiableArchitectureSpecError(self, other)
 
-        if self.target_concrete:
+        if self._target_concrete:
             return False
 
-        elif other.target_concrete:
+        elif other._target_concrete:
             self.target = other.target
             return True
 
@@ -485,8 +485,8 @@ class ArchSpec:
         self.target = intersection_target
         return True
 
-    def _target_intersection(self, other):
-        results = []
+    def _target_intersection(self, other: "ArchSpec") -> List[str]:
+        results: List[str] = []
 
         if not self.target or not other.target:
             return results
@@ -593,23 +593,23 @@ class ArchSpec:
 
         return constrained
 
-    def copy(self):
+    def copy(self) -> "ArchSpec":
         """Copy the current instance and returns the clone."""
         return ArchSpec(self)
 
     @property
     def concrete(self):
         """True if the spec is concrete, False otherwise"""
-        return self.platform and self.os and self.target and self.target_concrete
+        return self.platform and self.os and self.target and self._target_concrete
 
     @property
-    def target_concrete(self):
+    def _target_concrete(self) -> bool:
         """True if the target is not a range or list."""
         return (
             self.target is not None and ":" not in str(self.target) and "," not in str(self.target)
         )
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         # Generic targets represent either an architecture family (like x86_64)
         # or a custom micro-architecture
         if self.target.vendor == "generic":
@@ -621,7 +621,7 @@ class ArchSpec:
         return {"arch": {"platform": self.platform, "platform_os": self.os, "target": target_data}}
 
     @staticmethod
-    def from_dict(d):
+    def from_dict(d: dict) -> "ArchSpec":
         """Import an ArchSpec from raw YAML/JSON data"""
         arch = d["arch"]
         target_name = arch["target"]
@@ -631,13 +631,12 @@ class ArchSpec:
         return ArchSpec((arch["platform"], arch["platform_os"], target))
 
     def __str__(self):
-        return "%s-%s-%s" % (self.platform, self.os, self.target)
+        return f"{self.platform}-{self.os}-{self.target}"
 
     def __repr__(self):
-        fmt = "ArchSpec(({0.platform!r}, {0.os!r}, {1!r}))"
-        return fmt.format(self, str(self.target))
+        return f"ArchSpec(({self.platform!r}, {self.os!r}, {str(self.target)!r}))"
 
-    def __contains__(self, string):
+    def __contains__(self, string) -> bool:
         return string in str(self) or string in self.target
 
 
