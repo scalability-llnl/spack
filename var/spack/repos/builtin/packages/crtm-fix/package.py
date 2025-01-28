@@ -27,6 +27,7 @@ class CrtmFix(Package):
     variant("big_endian", default=True, description="Install big_endian fix files")
     variant("little_endian", default=False, description="Install little endian fix files")
     variant("netcdf", default=True, description="Install netcdf fix files")
+    variant("testfiles", default=False, description="Install test files", when="@3:")
 
     conflicts("+big_endian", when="+little_endian", msg="big_endian and little_endian conflict")
 
@@ -52,8 +53,11 @@ class CrtmFix(Package):
 
         fix_files = []
         for d in endian_dirs:
-            fix_files = fix_files + find(".", "*/{}/*".format(d))
-        fix_files = [f for f in fix_files if "/fix/test_data/" not in f]
+            fix_files = fix_files + find(".", "*/{}/*".format(d), recursive=False)
+            fix_files = fix_files + find(".", "*/*/{}/*".format(d), recursive=False)
+        if self.spec.satisfies("~testfiles"):
+            fix_files = [f for f in fix_files if "/fix/test_data/" not in f]
+        fix_files = [f for f in fix_files if os.path.isfile(f)]
 
         # Big_Endian amsua_metop-c.SpcCoeff.bin is incorrect
         # Little_Endian amsua_metop-c_v2.SpcCoeff.bin is what it's supposed to be.
