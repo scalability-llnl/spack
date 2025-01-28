@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -77,6 +76,7 @@ class Papi(AutotoolsPackage, ROCmPackage):
     depends_on("lm-sensors", when="+lmsensors")
     depends_on("cuda", when="+cuda")
     depends_on("cuda", when="+nvml")
+    depends_on("bc", when="+cuda", type="build")
     depends_on("hsa-rocr-dev", when="+rocm")
     depends_on("rocprofiler-dev", when="+rocm")
     depends_on("llvm-amdgpu", when="+rocm")
@@ -102,7 +102,7 @@ class Papi(AutotoolsPackage, ROCmPackage):
     # 7.1.0 erroneously adds -ffree-form for all fortran compilers
     patch("sysdetect-free-form-fix.patch", when="@7.1.0")
     patch("crayftn-fixes.patch", when="@6.0.0:%cce@9:")
-    patch("intel-oneapi-compiler-fixes.patch", when="@6.0.0:%oneapi")
+    patch("intel-oneapi-compiler-fixes.patch", when="@6.0.0:7.0.1%oneapi")
     patch("intel-cray-freeform.patch", when="@7.0.1")
     patch("spack-hip-path.patch", when="@7.0.1")
 
@@ -230,6 +230,7 @@ class Papi(AutotoolsPackage, ROCmPackage):
             raise SkipTest("Skipping smoke tests, directory doesn't exist")
         with working_dir(test_dir, create=False):
             with spack.util.environment.set_env(PAPIROOT=self.prefix):
+                make = self.spec["gmake"].command
                 make()
                 exe_simple = which("simple")
                 exe_simple()

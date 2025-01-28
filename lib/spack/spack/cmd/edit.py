@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -76,7 +75,7 @@ def locate_package(name: str, repo: spack.repo.Repo) -> str:
     path = repo.filename_for_package_name(name)
 
     try:
-        with open(path, "r"):
+        with open(path, "r", encoding="utf-8"):
             return path
     except OSError as e:
         if e.errno == errno.ENOENT:
@@ -93,7 +92,7 @@ def locate_file(name: str, path: str) -> str:
 
     # Try to open direct match.
     try:
-        with open(file_path, "r"):
+        with open(file_path, "r", encoding="utf-8"):
             return file_path
     except OSError as e:
         if e.errno != errno.ENOENT:

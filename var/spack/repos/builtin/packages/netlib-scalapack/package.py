@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -92,6 +91,8 @@ class ScalapackBase(CMakePackage):
             or spec.satisfies("%apple-clang")
             or spec.satisfies("%oneapi")
             or spec.satisfies("%arm")
+            or spec.satisfies("%cce")
+            or spec.satisfies("%rocmcc")
         ):
             c_flags.append("-Wno-error=implicit-function-declaration")
 
@@ -115,6 +116,8 @@ class NetlibScalapack(ScalapackBase):
     url = "https://www.netlib.org/scalapack/scalapack-2.0.2.tgz"
     git = "https://github.com/Reference-ScaLAPACK/scalapack"
     tags = ["e4s"]
+
+    maintainers("etiennemlb")
 
     license("BSD-3-Clause-Open-MPI")
 

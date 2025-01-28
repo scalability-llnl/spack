@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import platform
@@ -134,5 +133,5 @@ def test_concretize_target_ranges(root_target_range, dep_target_range, result, m
         f"pkg-a %gcc@10 foobar=bar target={root_target_range} ^pkg-b target={dep_target_range}"
     )
     with spack.concretize.disable_compiler_existence_check():
-        spec.concretize()
+        spec = spack.concretize.concretize_one(spec)
     assert spec.target == spec["pkg-b"].target == result

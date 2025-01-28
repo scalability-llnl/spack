@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -88,8 +87,7 @@ class Gunrock(CMakePackage, CudaPackage):
     conflicts(
         "cuda_arch=none",
         when="+cuda",
-        msg='Must specify CUDA compute capabilities of your GPU. \
-See "spack info gunrock"',
+        msg='Must specify CUDA compute capabilities of your GPU. See "spack info gunrock"',
     )
 
     def cmake_args(self):

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,7 +17,11 @@ class ApacheTvm(CMakePackage, CudaPackage):
 
     license("Apache-2.0", checked_by="alex391")
 
-    version("0.16.0", sha256="55e2629c39248ef3b1ee280e34a960182bd17bea7ae0d0fa132bbdaaf5aba1ac")
+    version(
+        "0.16.0",
+        sha256="55e2629c39248ef3b1ee280e34a960182bd17bea7ae0d0fa132bbdaaf5aba1ac",
+        deprecated=True,
+    )
 
     variant("llvm", default=True, description="Build with llvm for CPU codegen")
 

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -119,7 +118,7 @@ def test_dump_environment(prepare_environment_for_tests, shell_as, shell, tmpdir
     os.environ["TEST_ENV_VAR"] = test_paths
     dumpfile_path = str(tmpdir.join("envdump.txt"))
     envutil.dump_environment(dumpfile_path)
-    with open(dumpfile_path, "r") as dumpfile:
+    with open(dumpfile_path, "r", encoding="utf-8") as dumpfile:
         if shell == "pwsh":
             assert "$Env:TEST_ENV_VAR={}\n".format(test_paths) in list(dumpfile)
         elif shell == "bat":
