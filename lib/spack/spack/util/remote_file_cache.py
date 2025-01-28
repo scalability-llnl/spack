@@ -3,12 +3,16 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os.path
+import urllib.parse
+import urllib.request
 
 import llnl.util.tty as tty
 from llnl.util.filesystem import join_path
 
 import spack.error
 import spack.util.web as web_util
+from spack.util.path import substitute_path_variables
+from spack.util.url import validate_scheme
 
 
 def raw_github_gitlab_url(url: str) -> str:
@@ -118,3 +122,48 @@ def fetch_remote_files(url: str, extension: str, dest_dir: str, skip_existing: b
         # return dest_dir if len(paths) > 1 else paths[0]
 
     raise spack.error.RemoteFileError(f"Cannot retrieve remote ({extension}) file(s) from {url}")
+
+
+def local_path(raw_path: str, stage_dir: str) -> str:
+    """Determine the actual path and, if remote, stage its contents locally.
+
+    Args:
+        raw_path: raw path with possible variables needing substitution
+        stage_dir: local stage directory for remote files
+
+    Returns: resolved local path
+
+    Raises:
+        ValueError: unsupported remote file scheme
+    """
+    # Allow paths (and URLs) to contain spack config/environment variables,
+    # etc.
+    path = substitute_path_variables(raw_path)
+    url = urllib.parse.urlparse(path)
+
+    # If scheme is not valid, path is not a url
+    # of a type Spack is generally aware
+    if validate_scheme(url.scheme):
+        # Transform file:// URLs to direct includes.
+        if url.scheme == "file":
+            path = urllib.request.url2pathname(url.path)
+
+        # Any other URL should be fetched.
+        elif url.scheme in ("http", "https", "ftp"):
+            if stage_dir is None:
+                raise ValueError("Local stage directory is required to cache remote files")
+
+            # Stage any remote configuration file(s)
+            staged_files = os.listdir(stage_dir) if os.path.exists(stage_dir) else []
+            tty.debug(f"Remote staged files in {stage_dir} are: {staged_files}")
+            try:
+                staged_path = fetch_remote_files(path, ".yaml", str(stage_dir), skip_existing=True)
+            except (spack.error.RemoteFileError, ValueError):
+                staged_path = None
+
+            path = staged_path
+
+        elif url.scheme:
+            raise ValueError(f"Unsupported URL scheme ({url.scheme}) for include: {path}")
+
+    return path

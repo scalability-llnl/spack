@@ -9,7 +9,8 @@ import llnl.util.tty as tty
 from llnl.util.filesystem import join_path, mkdirp, touchp
 
 import spack.config
-import spack.util.web
+import spack.error
+import spack.util.remote_file_cache as rfc_util
 
 github_url = "https://github.com/fake/fake/{0}/develop"
 gitlab_url = "https://gitlab.fake.io/user/repo/-/blob/config/defaults"
@@ -31,7 +32,7 @@ def mock_collect_urls(mock_config_data, monkeypatch):
 
         return [join_path(base_url, f) for f in config_files]
 
-    monkeypatch.setattr(spack.util.web, "collect_urls", _collect)
+    monkeypatch.setattr(rfc_util, "collect_urls", _collect)
 
     yield
 
@@ -48,7 +49,7 @@ def mock_collect_urls(mock_config_data, monkeypatch):
 )
 def test_collect_urls(mutable_empty_config, mock_spider_configs, url, isfile):
     with spack.config.override("config:url_fetch_method", "curl"):
-        urls = spack.util.web.collect_urls(url, ".yaml")
+        urls = rfc_util.collect_urls(url, ".yaml")
         if url:
             if isfile:
                 expected = 1 if url.endswith(".yaml") else 0
@@ -86,15 +87,16 @@ def test_fetch_remote_configs(
         return False
 
     dest_dir = join_path(tmpdir.strpath, "cache")
+
     if fail:
         msg = "Cannot retrieve"
-        error = ValueError if url is None else spack.util.web.RemoteFileError
+        error = ValueError if url is None else spack.error.RemoteFileError
         with spack.config.override("config:url_fetch_method", "curl"):
             with pytest.raises(error, match=msg):
-                spack.util.web.fetch_remote_files(url, ".yaml", dest_dir)
+                rfc_util.fetch_remote_files(url, ".yaml", dest_dir)
     else:
         with spack.config.override("config:url_fetch_method", "curl"):
-            path = spack.util.web.fetch_remote_files(url, ".yaml", dest_dir)
+            path = rfc_util.fetch_remote_files(url, ".yaml", dest_dir)
             assert os.path.exists(path)
             if isfile and os.path.isfile(path):
                 # Ensure correct file is "fetched"
@@ -116,14 +118,14 @@ def test_fetch_remote_configs_skip(
     url = f"{gitlab_url}/{filename}"
 
     # Create the stage directory with an empty configuration file
-    dest_path = spack.util.web.local_cache_path(dest_dir, url)
+    dest_path = rfc_util.local_cache_path(dest_dir, url)
 
     mkdirp(os.path.dirname(dest_path))
     join_path(dest_path, filename)
     touchp(dest_path)
 
     with spack.config.override("config:url_fetch_method", "curl"):
-        cached_path = spack.util.web.fetch_remote_files(url, filename, dest_dir, True)
+        cached_path = rfc_util.fetch_remote_files(url, filename, dest_dir, True)
         # The resulting path must be a file under the destination directory
         assert cached_path.startswith(dest_dir)
         assert os.path.isfile(cached_path)
