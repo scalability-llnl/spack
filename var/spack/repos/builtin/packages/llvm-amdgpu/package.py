@@ -313,6 +313,11 @@ class LlvmAmdgpu(CMakePackage, CompilerPackage):
     def setup_dependent_run_environment(self, env, dependent_spec):
         llvm_amdgpu_home = self.spec["llvm-amdgpu"].prefix
         env.prepend_path("LD_LIBRARY_PATH", llvm_amdgpu_home + "/lib")
+        # Required for enabling asan on dependent packages
+        for root, _, files in os.walk(self.spec["llvm-amdgpu"].prefix):
+            if "libclang_rt.asan-x86_64.so" in files:
+                env.prepend_path("LD_LIBRARY_PATH", root)
+        env.prune_duplicate_paths("LD_LIBRARY_PATH")
 
     @run_after("install")
     def post_install(self):
