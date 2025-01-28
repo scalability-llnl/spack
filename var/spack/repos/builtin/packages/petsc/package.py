@@ -720,6 +720,8 @@ class Petsc(Package, CudaPackage, ROCmPackage):
                 hip_ipkgs.extend(["rocrand"])
             else:
                 hip_lpkgs.extend(["rocrand"])
+            if spec.satisfies("^hipblas@6.3.0:"):
+                hip_ipkgs.extend(["hipblas-common"])
             hip_inc = ""
             hip_lib = ""
             for pkg in hip_ipkgs:
