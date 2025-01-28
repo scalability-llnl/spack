@@ -19,7 +19,8 @@ class Cusz(CMakePackage, CudaPackage):
     conflicts("cuda_arch=none", when="+cuda")
 
     version("develop", branch="develop")
-    version("0.6.0", commit="cafed521dc338fe2159ebb5b09a36fc318524bf7")
+    # 0.9.0rc1 was listed as 0.6.0 for a while in spack
+    version("0.9.0rc1", commit="cafed521dc338fe2159ebb5b09a36fc318524bf7")
     version("0.3.1", commit="02be3cbd07db467decaf45ec9eb593ba6173c809")
     version("0.3", sha256="0feb4f7fd64879fe147624dd5ad164adf3983f79b2e0383d35724f8d185dcb11")
 
