@@ -1834,6 +1834,16 @@ def test_abstract_contains_semantic(lhs, rhs, expected, mock_packages):
         # Different virtuals intersect if there is at least package providing both
         (Spec, "mpi", "lapack", (True, False, False)),
         (Spec, "mpi", "pkgconfig", (False, False, False)),
+        # Intersection among target ranges for different architectures
+        (Spec, "target=x86_64:", "target=ppc64le:", (False, False, False)),
+        (Spec, "target=x86_64:", "target=:power9", (False, False, False)),
+        (Spec, "target=:haswell", "target=:power9", (False, False, False)),
+        (Spec, "target=:haswell", "target=ppc64le:", (False, False, False)),
+        # Intersection among target ranges for the same architecture
+        (Spec, "target=:haswell", "target=x86_64:", (True, True, True)),
+        (Spec, "target=:haswell", "target=x86_64_v4:", (False, False, False)),
+        # Edge case of uarch that split in a diamond structure, from a common ancestor
+        (Spec, "target=:cascadelake", "target=:cannonlake", (False, False, False)),
     ],
 )
 def test_intersects_and_satisfies(factory, lhs_str, rhs_str, results):
@@ -1883,6 +1893,16 @@ def test_intersects_and_satisfies(factory, lhs_str, rhs_str, results):
         # Flags
         (Spec, "cppflags=-foo", "cppflags=-foo", False, "cppflags=-foo"),
         (Spec, "cppflags=-foo", "cflags=-foo", True, "cppflags=-foo cflags=-foo"),
+        # Target ranges
+        (Spec, "target=x86_64:", "target=x86_64:", False, "target=x86_64:"),
+        (Spec, "target=x86_64:", "target=:haswell", True, "target=x86_64:haswell"),
+        (
+            Spec,
+            "target=x86_64:haswell",
+            "target=x86_64_v2:icelake",
+            True,
+            "target=x86_64_v2:haswell",
+        ),
     ],
 )
 def test_constrain(factory, lhs_str, rhs_str, result, constrained_str):
