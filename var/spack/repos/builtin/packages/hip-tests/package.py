@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,9 @@ class HipTests(CMakePackage):
 
     maintainers("srekolam", "renjithravindrankannath", "afzpatel")
 
+    version("6.3.1", sha256="0fc1cf4f46f2bbef377d65803d86c2489b01b598c468070c79c5114a661f07c6")
+    version("6.3.0", sha256="8081d4ab1a43ffa1cebd646668d83008b799ab98c14daf7b455922355a439c8a")
+    version("6.2.4", sha256="1478b49583d09cb3a96e26ec3bf8dc5ff3e3ec72fa133bb6d7768595d825051e")
     version("6.2.1", sha256="90fcf0169889533b882d289f9cb8a7baf9bd46a3ce36752b915083931dc839f1")
     version("6.2.0", sha256="314837dbac78be71844ceb959476470c484fdcd4fb622ff8de9277783e0fcf1c")
     version("6.1.2", sha256="5b14e4a30d8d8fb56c43e262009646ba9188eac1c8ff882d9a606a4bec69b56b")
@@ -29,7 +31,17 @@ class HipTests(CMakePackage):
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
     depends_on("cmake", type="run")
-    for ver in ["6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1"]:
+
+    for ver in [
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
+    ]:
         depends_on(f"rocm-cmake@{ver}:", type="build", when=f"@{ver}")
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
