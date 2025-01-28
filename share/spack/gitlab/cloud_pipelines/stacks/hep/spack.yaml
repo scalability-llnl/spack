@@ -117,30 +117,3 @@ spack:
 
   cdash:
     build-group: HEP
-  compilers:
-  - compiler:
-      spec: gcc@=9.4.0
-      paths:
-        cc: /usr/bin/gcc
-        cxx: /usr/bin/g++
-        f77: null
-        fc: null
-      flags: {}
-      operating_system: ubuntu20.04
-      target: x86_64
-      modules: []
-      environment: {}
-      extra_rpaths: []
-  - compiler:
-      spec: clang@=10.0.0
-      paths:
-        cc: /usr/bin/clang
-        cxx: /usr/bin/clang++
-        f77: null
-        fc: null
-      flags: {}
-      operating_system: ubuntu20.04
-      target: x86_64
-      modules: []
-      environment: {}
-      extra_rpaths: []
