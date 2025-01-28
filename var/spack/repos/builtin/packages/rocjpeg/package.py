@@ -22,7 +22,7 @@ class Rocjpeg(CMakePackage):
 
     depends_on("cxx", type="build")
 
-    for ver in ["6.3.0","6.3.1"]:
+    for ver in ["6.3.0", "6.3.1"]:
         depends_on(f"llvm-amdgpu@{ver}", when=f"@{ver}")
         depends_on(f"hip@{ver}", when=f"@{ver}")
 
