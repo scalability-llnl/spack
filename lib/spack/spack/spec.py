@@ -448,6 +448,9 @@ class ArchSpec:
         return bool(self._target_intersection(other))
 
     def _target_constrain(self, other: "ArchSpec") -> bool:
+        if self.target is None and other.target is None:
+            return False
+
         if not other._target_satisfies(self, strict=False):
             raise UnsatisfiableArchitectureSpecError(self, other)
 
@@ -496,21 +499,56 @@ class ArchSpec:
                     if (not s_min or o_comp >= s_min) and (not s_max or o_comp <= s_max):
                         results.append(o_min)
                 else:
-                    # Take intersection of two ranges
-                    # Lots of comparisons needed
-                    _s_min = _make_microarchitecture(s_min)
-                    _s_max = _make_microarchitecture(s_max)
-                    _o_min = _make_microarchitecture(o_min)
-                    _o_max = _make_microarchitecture(o_max)
+                    # Take the "min" of the two max, if there is a partial ordering.
+                    n_max = ""
+                    if s_max and o_max:
+                        _s_max = _make_microarchitecture(s_max)
+                        _o_max = _make_microarchitecture(o_max)
+                        if _s_max.family != _o_max.family:
+                            continue
+                        if _s_max <= _o_max:
+                            n_max = s_max
+                        elif _o_max < _s_max:
+                            n_max = o_max
+                        else:
+                            continue
+                    elif s_max:
+                        n_max = s_max
+                    elif o_max:
+                        n_max = o_max
 
-                    n_min = s_min if _s_min >= _o_min else o_min
-                    n_max = s_max if _s_max <= _o_max else o_max
-                    _n_min = _make_microarchitecture(n_min)
-                    _n_max = _make_microarchitecture(n_max)
-                    if _n_min == _n_max:
-                        results.append(n_min)
-                    elif not n_min or not n_max or _n_min < _n_max:
-                        results.append("%s:%s" % (n_min, n_max))
+                    # Take the "max" of the two min.
+                    n_min = ""
+                    if s_min and o_min:
+                        _s_min = _make_microarchitecture(s_min)
+                        _o_min = _make_microarchitecture(o_min)
+                        if _s_min.family != _o_min.family:
+                            continue
+                        if _s_min >= _o_min:
+                            n_min = s_min
+                        elif _o_min > _s_min:
+                            n_min = o_min
+                        else:
+                            continue
+                    elif s_min:
+                        n_min = s_min
+                    elif o_min:
+                        n_min = o_min
+
+                    if n_min and n_max:
+                        _n_min = _make_microarchitecture(n_min)
+                        _n_max = _make_microarchitecture(n_max)
+                        if _n_min.family != _n_max.family or not _n_min <= _n_max:
+                            continue
+                        if n_min == n_max:
+                            results.append(n_min)
+                        else:
+                            results.append(f"{n_min}:{n_max}")
+                    elif n_min:
+                        results.append(f"{n_min}:")
+                    elif n_max:
+                        results.append(f":{n_max}")
+
         return results
 
     def constrain(self, other: "ArchSpec") -> bool:
@@ -3084,18 +3122,13 @@ class Spec:
             if not self.variants[v].compatible(other.variants[v]):
                 raise vt.UnsatisfiableVariantSpecError(self.variants[v], other.variants[v])
 
-        # TODO: Check out the logic here
         sarch, oarch = self.architecture, other.architecture
-        if sarch is not None and oarch is not None:
-            if sarch.platform is not None and oarch.platform is not None:
-                if sarch.platform != oarch.platform:
-                    raise UnsatisfiableArchitectureSpecError(sarch, oarch)
-            if sarch.os is not None and oarch.os is not None:
-                if sarch.os != oarch.os:
-                    raise UnsatisfiableArchitectureSpecError(sarch, oarch)
-            if sarch.target is not None and oarch.target is not None:
-                if sarch.target != oarch.target:
-                    raise UnsatisfiableArchitectureSpecError(sarch, oarch)
+        if (
+            sarch is not None
+            and oarch is not None
+            and not self.architecture.intersects(other.architecture)
+        ):
+            raise UnsatisfiableArchitectureSpecError(sarch, oarch)
 
         changed = False
 
@@ -3118,18 +3151,12 @@ class Spec:
 
         changed |= self.compiler_flags.constrain(other.compiler_flags)
 
-        old = str(self.architecture)
         sarch, oarch = self.architecture, other.architecture
-        if sarch is None or other.architecture is None:
-            self.architecture = sarch or oarch
-        else:
-            if sarch.platform is None or oarch.platform is None:
-                self.architecture.platform = sarch.platform or oarch.platform
-            if sarch.os is None or oarch.os is None:
-                sarch.os = sarch.os or oarch.os
-            if sarch.target is None or oarch.target is None:
-                sarch.target = sarch.target or oarch.target
-        changed |= str(self.architecture) != old
+        if sarch is not None and oarch is not None:
+            changed |= self.architecture.constrain(other.architecture)
+        elif oarch is not None:
+            self.architecture = oarch
+            changed = True
 
         if deps:
             changed |= self._constrain_dependencies(other)
