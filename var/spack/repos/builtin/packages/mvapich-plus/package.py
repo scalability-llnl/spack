@@ -18,10 +18,10 @@ class MvapichPlus(AutotoolsPackage):
     homepage = "https://mvapich.cse.ohio-state.edu/userguide/userguide_spack/"
     url = "https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich-3.0.tar.gz"
     list_url = "https://mvapich.cse.ohio-state.edu/downloads/"
+    executables = ["^mpiname$", "^mpichversion$"]
 
     maintainers("natshineman", "harisubramoni", "MatthewLieber")
 
-    executables = ["^mpiname$", "^mpichversion$"]
 
     license("Unlicense")
 
@@ -103,6 +103,7 @@ class MvapichPlus(AutotoolsPackage):
         description="List of the ROMIO file systems to activate",
         values=auto_or_any_combination_of("lustre", "gpfs", "nfs", "ufs"),
     )
+    variant("rocm", description="Enable/Disable support for ROCM", default=False)
 
     depends_on("findutils", type="build")
     depends_on("bison", type="build")
@@ -116,7 +117,9 @@ class MvapichPlus(AutotoolsPackage):
     depends_on("ucx", when="netmod=ucx")
     depends_on("hip@3.9.0:", when="+rocm")
     depends_on("rccl", when="+rocm")
-    variant("rocm", description="Enable/Disable support for ROCM", default=False)
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
     conflicts("+cuda +rocm", msg="MVAPICH2-GDR can only be built with either CUDA or ROCm")
     conflicts("~cuda ~rocm", msg="MVAPICH2-GDR must be built with either CUDA or ROCm")
     conflicts(
@@ -158,7 +161,7 @@ class MvapichPlus(AutotoolsPackage):
 
         other_pms = []
         for x in ("hydra", "gforker", "remshell"):
-            if "process_managers={0}".format(x) in spec:
+            if spec.satisfies("process_managers={x}"):
                 other_pms.append(x)
 
         opts = []
@@ -166,12 +169,12 @@ class MvapichPlus(AutotoolsPackage):
             opts = ["--with-pm=%s" % ":".join(other_pms)]
 
         # See: http://slurm.schedmd.com/mpi_guide.html#mvapich2
-        if "process_managers=slurm" in spec:
+        if spec.satisfies("process_managers=slurm"):
             opts = [
                 "--with-pm=slurm",
                 #        "--with-pmi=simple",
-                "--with-slurm={0}".format(spec["slurm"].prefix),
-                "CFLAGS=-I{0}/include/slurm".format(spec["slurm"].prefix),
+                f"--with-slurm={spec['slurm'].prefix}",
+                f"CFLAGS=-I{spec['slurm'].prefix}/include/slurm",
             ]
         if "none" in spec.variants["process_managers"].value:
             opts = ["--with-pm=none"]
@@ -182,9 +185,9 @@ class MvapichPlus(AutotoolsPackage):
     def network_options(self):
         opts = []
         # From here on I can suppose that only one variant has been selected
-        if "netmod=ofi" in self.spec:
+        if self.spec.satisfies("netmod=ofi":
             opts = ["--with-device=ch4:ofi"]
-        elif "netmod=ucx" in self.spec:
+        elif self.spec.satisfies("netmod=ucx":
             opts = ["--with-device=ch4:ucx"]
         return opts
 
@@ -194,7 +197,7 @@ class MvapichPlus(AutotoolsPackage):
 
         fs = []
         for x in ("lustre", "gpfs", "nfs", "ufs"):
-            if "file_systems={0}".format(x) in spec:
+            if spec.satisfies("file_systems={x}"):
                 fs.append(x)
 
         opts = []
@@ -286,8 +289,8 @@ class MvapichPlus(AutotoolsPackage):
             self.spec.mpif77 = join_path(self.prefix.bin, "mpif77")
 
         self.spec.mpicxx_shared_libs = [
-            os.path.join(self.prefix.lib, "libmpicxx.{0}".format(dso_suffix)),
-            os.path.join(self.prefix.lib, "libmpi.{0}".format(dso_suffix)),
+            os.path.join(self.prefix.lib, f"libmpicxx.{dso_suffix}"),
+            os.path.join(self.prefix.lib, f"libmpi.{dso_suffix}"),
         ]
 
     @run_before("configure")
@@ -308,7 +311,7 @@ class MvapichPlus(AutotoolsPackage):
             "--disable-gl",
             "--enable-fortran=all",
             "-disable-omb",
-            "--enable-wrapper-rpath={0}".format("no" if "~wrapperrpath" in spec else "yes"),
+            f"--enable-wrapper-rpath={'no' if spec.satisfies('~wrapperrpath') else 'yes')}",
         ]
 
         args.extend(self.enable_or_disable("alloca"))
@@ -332,19 +335,17 @@ class MvapichPlus(AutotoolsPackage):
             args.extend(
                 [
                     "--enable-cuda",
-                    "--with-cuda={0}".format(spec["cuda"].prefix),
-                    "NVCCFLAGS=-gencode=arch=compute_{0},code=sm_{0}".format(
-                        gpu_map[spec.variants["nvidia_arch"].value]
-                    ),
-                    "CFLAGS=-I{0}".format(spec["cuda"].prefix + "/include"),
-                    "CXXFLAGS=-I{0}".format(spec["cuda"].prefix + "/include"),
+                    f"--with-cuda={(spec["cuda"].prefix)}",
+                    f"NVCCFLAGS=-gencode=arch=compute_{gpu_map[spec.variants['nvidia_arch'].value]},code=sm_{gpu_map[spec.variants['nvidia_arch'].value]}",
+                    f"CFLAGS=-I{spec['cuda'].prefix + '/include'}",
+                    f"CXXFLAGS=-I{spec['cuda'].prefix + '/include'}",
                 ]
             )
         if "+rocm" in self.spec:
             args.extend(
                 [
                     "--enable-rocm",
-                    "--with-rocm={0}".format(spec["hip"].prefix),
+                    f"--with-rocm={0spec['hip'].prefix}",
                     "--enable-hip=basic",
                 ]
             )
