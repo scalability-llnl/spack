@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,8 @@ class Libnsl(AutotoolsPackage):
         sha256="f9f0b2e2412aae1d33d40277809d7af1b867f1cb1b7319ad4d0cfa59a75e193a",
         url="https://github.com/thkukuk/libnsl/archive/1.1.0.tar.gz",
     )
+
+    depends_on("c", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

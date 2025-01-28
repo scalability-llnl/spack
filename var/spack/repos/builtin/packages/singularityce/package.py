@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -8,6 +7,7 @@ import shutil
 
 import llnl.util.tty as tty
 
+import spack.tengine
 from spack.package import *
 
 
@@ -111,6 +111,11 @@ class SingularityBase(MakefilePackage):
         filter_file(
             r"^# mksquashfs path =",
             "mksquashfs path = {0}".format(squash_path),
+            join_path(prefix.etc, self.singularity_name, self.singularity_name + ".conf"),
+        )
+        filter_file(
+            r"^shared loop devices = no",
+            "shared loop devices = yes",
             join_path(prefix.etc, self.singularity_name, self.singularity_name + ".conf"),
         )
 
@@ -218,3 +223,5 @@ class Singularityce(SingularityBase):
     version("3.9.9", sha256="1381433d64138c08e93ffacdfb4844e82c2288f1e39a9d2c631a1c4021381f2a")
     version("3.9.1", sha256="1ba3bb1719a420f48e9b0a6afdb5011f6c786d0f107ef272528c632fff9fd153")
     version("3.8.0", sha256="5fa2c0e7ef2b814d8aa170826b833f91e5031a85d85cd1292a234e6c55da1be1")
+
+    depends_on("c", type="build")

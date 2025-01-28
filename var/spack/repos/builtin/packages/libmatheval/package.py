@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class Libmatheval(AutotoolsPackage, GNUMirrorPackage):
     license("GPL-3.0-or-later")
 
     version("1.1.11", sha256="474852d6715ddc3b6969e28de5e1a5fbaff9e8ece6aebb9dc1cc63e9e88e89ab")
+
+    depends_on("c", type="build")  # generated
 
     # Only needed for unit tests, but configure crashes without it
     depends_on("guile", type="build")

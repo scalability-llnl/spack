@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,7 +13,7 @@ class Fdb(CMakePackage):
     url = "https://github.com/ecmwf/fdb/archive/refs/tags/5.7.8.tar.gz"
     git = "https://github.com/ecmwf/fdb.git"
 
-    maintainers("skosukhin", "victoria-cherkas", "dominichofer")
+    maintainers("skosukhin", "victoria-cherkas")
 
     license("Apache-2.0")
 
@@ -23,6 +22,9 @@ class Fdb(CMakePackage):
     version("5.11.17", sha256="375c6893c7c60f6fdd666d2abaccb2558667bd450100817c0e1072708ad5591e")
     version("5.10.8", sha256="6a0db8f98e13c035098dd6ea2d7559f883664cbf9cba8143749539122ac46099")
     version("5.7.8", sha256="6adac23c0d1de54aafb3c663d077b85d0f804724596623b381ff15ea4a835f60")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("tools", default=True, description="Build the command line tools")
     variant(

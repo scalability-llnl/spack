@@ -1,8 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import glob
 import os
 import re
 
@@ -11,7 +11,7 @@ from macholib import MachO, mach_o
 from llnl.util import tty
 
 from spack.package import *
-from spack.util.elf import parse_elf
+from spack.util.elf import delete_needed_from_elf, parse_elf
 
 
 class GccRuntime(Package):
@@ -23,7 +23,7 @@ class GccRuntime(Package):
     tags = ["runtime"]
 
     # gcc-runtime versions are declared dynamically
-    skip_version_audit = ["platform=linux", "platform=darwin"]
+    skip_version_audit = ["platform=linux", "platform=darwin", "platform=windows"]
 
     maintainers("haampie")
 
@@ -53,8 +53,10 @@ class GccRuntime(Package):
     provides("libgfortran@4", when="%gcc@7")
     provides("libgfortran@5", when="%gcc@8:")
 
+    depends_on("libc", type="link", when="platform=linux")
+
     def install(self, spec, prefix):
-        if spec.platform in ["linux", "cray", "freebsd"]:
+        if spec.platform in ["linux", "freebsd"]:
             libraries = get_elf_libraries(compiler=self.compiler, libraries=self.LIBRARIES)
         elif spec.platform == "darwin":
             libraries = self._get_libraries_macho()
@@ -69,6 +71,9 @@ class GccRuntime(Package):
 
         for path, name in libraries:
             install(path, os.path.join(prefix.lib, name))
+
+        if spec.platform in ("linux", "freebsd"):
+            _drop_libgfortran_zlib(prefix.lib)
 
     def _get_libraries_macho(self):
         """Same as _get_libraries_elf but for Mach-O binaries"""
@@ -120,6 +125,22 @@ class GccRuntime(Package):
     @property
     def headers(self):
         return HeaderList([])
+
+
+def _drop_libgfortran_zlib(lib_dir: str) -> None:
+    """Due to a bug in GCC's autotools setup (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=87182),
+    libz sometimes appears as a redundant system dependency of libgfortran. Delete it."""
+    libraries = glob.glob(os.path.join(lib_dir, "libgfortran*.so*"))
+    if len(libraries) == 0:
+        return
+    with open(libraries[0], "rb+") as f:
+        elf = parse_elf(f, dynamic_section=True)
+        if not elf.has_needed:
+            return
+        libz = next((x for x in elf.dt_needed_strs if x.startswith(b"libz.so")), None)
+        if libz is None:
+            return
+        delete_needed_from_elf(f, elf, libz)
 
 
 def get_elf_libraries(compiler, libraries):

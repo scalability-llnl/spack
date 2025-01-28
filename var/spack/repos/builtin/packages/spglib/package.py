@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class Spglib(CMakePackage):
 
     license("BSD-3-Clause")
 
+    version("2.5.0", sha256="b6026f5e85106c0c9ee57e54b9399890d0f29982e20e96ede0428b3efbe6b914")
+    version("2.4.0", sha256="e33694b189c6864f719a59c31e2af55301a524fb68ba9fb65f08e95af471847d")
     version("2.3.1", sha256="c295dbea7d2fc9e50639aa14331fef277878c35f00ef0766e688bfbb7b17d44c")
     version("2.3.0", sha256="c05eb869018efe2efe5dcb2654cda19c5dd4c07434874205fa542f7766f7548e")
     version("2.2.0", sha256="ac929e20ec9d4621411e2cdec59b1442e02506c1e546005bbe2c7f781e9bd49a")
@@ -51,6 +52,10 @@ class Spglib(CMakePackage):
     version("1.10.2", sha256="5907d0d29563689146512ef24aa8960d9475c5de326501f277bb58b3de21b07d")
     version("1.10.1", sha256="8ed979cda82f6d440567197ec191bffcb82ee83c5bfe8a484c5a008dd00273f0")
     version("1.10.0", sha256="117fff308731784bea2ddaf3d076f0ecbf3981b31ea1c1bfd5ce4f057a5325b1")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("openmp", default=True, description="Build with OpenMP support", when="@1.16.2:")
     variant("fortran", default=True, description="Build Fortran interface", when="@1.16.4:")

@@ -14,14 +14,10 @@ spack:
       variants: +mpi
     binutils:
       variants: +ld +gold +headers +libiberty ~nls
-    elfutils:
-      variants: ~nls
     hdf5:
       variants: +fortran +hl +shared
     libfabric:
       variants: fabrics=sockets,tcp,udp,rxm
-    libunwind:
-      variants: +pic +xz
     openblas:
       variants: threads=openmp
     trilinos:
@@ -29,59 +25,51 @@ spack:
         +ifpack +ifpack2 +intrepid +intrepid2 +isorropia +kokkos +ml +minitensor +muelu
         +nox +piro +phalanx +rol +rythmos +sacado +stk +shards +shylu +stokhos +stratimikos
         +teko +tempus +tpetra +trilinoscouplings +zoltan +zoltan2 +superlu-dist gotype=long_long
-    xz:
-      variants: +pic
     mpi:
       require: mpich
     mpich:
-      require: '~wrapperrpath ~hwloc'
+      require: '~wrapperrpath ~hwloc %gcc target=neoverse_v2'
     tbb:
       require: intel-tbb
-    boost:
-      variants: +atomic +chrono +container +date_time +exception +filesystem +graph
-        +iostreams +locale +log +math +mpi +multithreaded +program_options +random
-        +regex +serialization +shared +signals +stacktrace +system +test +thread +timer
-        cxxstd=17 visibility=global
-    libffi:
-      require: "@3.4.4"
     vtk-m:
-      require: "+examples"
-    cuda:
-      version: [11.8.0]
+      require: "+examples %gcc target=neoverse_v2"
+    paraview:
+      require: "+examples %gcc target=neoverse_v2"
 
   specs:
   # CPU
-  - adios
-  - alquimia
-  - aml
+  # - adios
+  # - alquimia
+  # - aml
   - amrex
   - arborx
-  - argobots
+  # - argobots
   - ascent # ecp dav
   - axom
-  - bolt
-  - boost
+  # - bolt
+  # - boost
   - butterflypack
   - cabana
   - caliper
   - chai
-  - charliecloud
+  # - charliecloud
   - conduit
   - cp2k +mpi
   - datatransferkit
   - dyninst
-  - ecp-data-vis-sdk ~cuda ~rocm +adios2 +ascent +cinema +darshan +faodel +hdf5 +paraview +pnetcdf +sz +unifyfs +veloc ~visit +vtkm +zfp  # +visit: ?
+  - ecp-data-vis-sdk ~cuda ~rocm +adios2 +ascent +cinema +darshan +faodel +hdf5 ~paraview +pnetcdf +sz +unifyfs +veloc ~visit +vtkm +zfp  # +visit: ?
   - exaworks
+  - fftx
   - flecsi
-  - flit
-  - flux-core
+  # - flit
+  # - flux-core
   - fortrilinos
-  - gasnet
+  # - gasnet
   - ginkgo
-  - globalarrays
-  - gmp
-  - gotcha
-  - gptune ~mpispawn
+  # - globalarrays
+  # - gmp
+  # - gotcha
+  # - gptune ~mpispawn
   - gromacs +cp2k ^cp2k +mpi +dlaf build_system=cmake
   - h5bench
   - hdf5-vol-async
@@ -96,6 +84,7 @@ spack:
   - lammps
   - lbann
   - legion
+  - libceed
   - libnrm
   - libquo
   - libunwind
@@ -110,10 +99,11 @@ spack:
   - nco
   - netlib-scalapack
   - nrm
-  - nvhpc
+  # - nvhpc
+  - nwchem 
   - omega-h
   - openfoam
-  - openmpi
+  # - openmpi
   - openpmd-api
   - papi
   - papyrus
@@ -126,11 +116,11 @@ spack:
   - precice
   - pruners-ninja
   - pumi
+  - py-amrex
   - py-h5py
   - py-jupyterhub
   - py-libensemble
   - py-petsc4py
-  - py-warpx
   - qthreads scheduler=distrib
   - quantum-espresso
   - raja
@@ -143,62 +133,42 @@ spack:
   - sundials
   - superlu
   - superlu-dist
-  - swig@4.0.2-fortran
+  # - swig@4.0.2-fortran
   - sz3
   - tasmanian
   - tau +mpi +python +syscall
   - trilinos +amesos +amesos2 +anasazi +aztec +belos +boost +epetra +epetraext +ifpack +ifpack2 +intrepid +intrepid2 +isorropia +kokkos +ml +minitensor +muelu +nox +piro +phalanx +rol +rythmos +sacado +stk +shards +shylu +stokhos +stratimikos +teko +tempus +tpetra +trilinoscouplings +zoltan +zoltan2 +superlu-dist gotype=long_long
   - turbine
-  - umap
+  # - umap
   - umpire
   - upcxx
-  - veloc
+  # - veloc
   - wannier90
+  - warpx +python
   - xyce +mpi +shared +pymi +pymi_static_tpls
   # INCLUDED IN ECP DAV CPU
-  - adios2
-  - darshan-runtime
-  - darshan-util
-  - faodel
-  - hdf5
-  - libcatalyst
-  - parallel-netcdf
-  - paraview
-  - py-cinemasci
-  - sz
-  - unifyfs
-  - laghos
+  # - adios2
+  # - darshan-runtime
+  # - darshan-util
+  # - faodel
+  # - hdf5
+  # - libcatalyst
+  # - parallel-netcdf
+  # - paraview
+  # - py-cinemasci
+  # - sz
+  # - unifyfs
   # - visit                         # silo: https://github.com/spack/spack/issues/39538
-  - vtk-m
-  - zfp
+  # - vtk-m
+  # - zfp
   # --
+  - laghos
   # - bricks ~cuda                  # not respecting target=aarch64?
   # - dealii                        # slepc: make[1]: *** internal error: invalid --jobserver-auth string 'fifo:/tmp/GMfifo1313'.
   # - geopm                         # geopm: https://github.com/spack/spack/issues/38795
   # - glvis                         # glvis: https://github.com/spack/spack/issues/42839
   # - libpressio +bitgrooming +bzip2 ~cuda ~cusz +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp # py-numcodecs@0.7.3: gcc: error: unrecognized command-line option '-mno-sse2'
   # - variorum                      # variorum: https://github.com/spack/spack/issues/38786
-
-  # PYTHON PACKAGES
-  - opencv +python3
-  - py-horovod
-  - py-jax
-  - py-jupyterlab
-  - py-matplotlib
-  - py-mpi4py
-  - py-notebook
-  - py-numba
-  - py-numpy
-  - py-openai
-  - py-pandas
-  - py-plotly
-  - py-pooch
-  - py-pytest
-  - py-scikit-learn
-  - py-scipy
-  - py-seaborn
-  - py-tensorflow
-  - py-torch
 
   # CUDA NOARCH
   - flux-core +cuda
@@ -209,107 +179,13 @@ spack:
   # - bricks +cuda                  # not respecting target=aarch64?
   # - legion +cuda                  # legion: needs NVIDIA driver
 
-  # CUDA 75
-  - amrex +cuda cuda_arch=75
-  - arborx +cuda cuda_arch=75 ^kokkos +wrapper
-  - cabana +cuda cuda_arch=75 ^kokkos +wrapper +cuda_lambda +cuda cuda_arch=75
-  - caliper +cuda cuda_arch=75
-  - chai +cuda cuda_arch=75 ^umpire ~shared
-  # - cp2k +mpi +cuda cuda_arch=75 # cp2k: cp2k only supports cuda_arch ('35', '37', '60', '70', '80')
-  - flecsi +cuda cuda_arch=75
-  - ginkgo +cuda cuda_arch=75
-  - gromacs +cuda cuda_arch=75
-  - heffte +cuda cuda_arch=75
-  - hpx +cuda cuda_arch=75
-  - hypre +cuda cuda_arch=75
-  - kokkos +wrapper +cuda cuda_arch=75
-  - kokkos-kernels +cuda cuda_arch=75 ^kokkos +wrapper +cuda cuda_arch=75
-  - magma +cuda cuda_arch=75
-  - mfem +cuda cuda_arch=75
-  - mgard +serial +openmp +timing +unstructured +cuda cuda_arch=75
-  - omega-h +cuda cuda_arch=75
-  - parsec +cuda cuda_arch=75
-  - petsc +cuda cuda_arch=75
-  - raja +cuda cuda_arch=75
-  - slate +cuda cuda_arch=75
-  - strumpack ~slate +cuda cuda_arch=75
-  - sundials +cuda cuda_arch=75
-  - superlu-dist +cuda cuda_arch=75
-  - tasmanian +cuda cuda_arch=75
-  - trilinos +cuda cuda_arch=75
-  - umpire ~shared +cuda cuda_arch=75
-  # INCLUDED IN ECP DAV CUDA
-  - adios2 +cuda cuda_arch=75
-  - paraview +cuda cuda_arch=75
-  - vtk-m +cuda cuda_arch=75
-  - zfp +cuda cuda_arch=75
-  # --
-  # - ascent +cuda cuda_arch=75     # ascent: https://github.com/spack/spack/issues/38045
-  # - axom +cuda cuda_arch=75       # axom: https://github.com/spack/spack/issues/29520
-  # - cusz +cuda cuda_arch=75       # cusz: https://github.com/spack/spack/issues/38787
-  # - dealii +cuda cuda_arch=75     # slepc: make[1]: *** internal error: invalid --jobserver-auth string 'fifo:/tmp/GMfifo1313'.
-  # - ecp-data-vis-sdk +adios2 +hdf5 +vtkm +zfp +paraview +cuda cuda_arch=75  # embree: https://github.com/spack/spack/issues/39534
-  # - lammps +cuda cuda_arch=75     # lammps: needs NVIDIA driver
-  # - lbann +cuda cuda_arch=75      # lbann: https://github.com/spack/spack/issues/38788
-  # - libpressio +bitgrooming +bzip2 +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp +json +remote +netcdf ~cusz +mgard +cuda cuda_arch=75 # libpressio: CMake Error at CMakeLists.txt:498 (find_library): Could not find CUFile_LIBRARY using the following names: cufile ; +cusz: https://github.com/spack/spack/issues/38787
-  # - py-torch +cuda cuda_arch=75   # skipped, installed by other means
-  # - slepc +cuda cuda_arch=75      # slepc: make[1]: *** internal error: invalid --jobserver-auth string 'fifo:/tmp/GMfifo1313'.
-  # - upcxx +cuda cuda_arch=75      # upcxx: needs NVIDIA driver
-
-  # CUDA 80
-  - amrex +cuda cuda_arch=80
-  - arborx +cuda cuda_arch=80 ^kokkos +wrapper
-  - cabana +cuda cuda_arch=80 ^kokkos +wrapper +cuda_lambda +cuda cuda_arch=80
-  - caliper +cuda cuda_arch=80
-  - chai +cuda cuda_arch=80 ^umpire ~shared
-  # - cp2k +mpi +cuda cuda_arch=80  # cp2k: Error: KeyError: 'Point environment variable LIBSMM_PATH to the absolute path of the libsmm.a file'
-  - flecsi +cuda cuda_arch=80
-  - ginkgo +cuda cuda_arch=80
-  - gromacs +cuda cuda_arch=80
-  - heffte +cuda cuda_arch=80
-  - hpx +cuda cuda_arch=80
-  - hypre +cuda cuda_arch=80
-  - kokkos +wrapper +cuda cuda_arch=80
-  - kokkos-kernels +cuda cuda_arch=80 ^kokkos +wrapper +cuda cuda_arch=80
-  - magma +cuda cuda_arch=80
-  - mfem +cuda cuda_arch=80
-  - mgard +serial +openmp +timing +unstructured +cuda cuda_arch=80
-  - omega-h +cuda cuda_arch=80
-  - parsec +cuda cuda_arch=80
-  - petsc +cuda cuda_arch=80
-  - raja +cuda cuda_arch=80
-  - slate +cuda cuda_arch=80
-  - strumpack ~slate +cuda cuda_arch=80
-  - sundials +cuda cuda_arch=80
-  - superlu-dist +cuda cuda_arch=80
-  - tasmanian +cuda cuda_arch=80
-  - trilinos +cuda cuda_arch=80
-  - umpire ~shared +cuda cuda_arch=80
-  # INCLUDED IN ECP DAV CUDA
-  - adios2 +cuda cuda_arch=80
-  - paraview +cuda cuda_arch=80
-  - vtk-m +cuda cuda_arch=80
-  - zfp +cuda cuda_arch=80
-  # --
-  # - ascent +cuda cuda_arch=80     # ascent: https://github.com/spack/spack/issues/38045
-  # - axom +cuda cuda_arch=80       # axom: https://github.com/spack/spack/issues/29520
-  # - cusz +cuda cuda_arch=80       # cusz: https://github.com/spack/spack/issues/38787
-  # - dealii +cuda cuda_arch=80     # slepc: make[1]: *** internal error: invalid --jobserver-auth string 'fifo:/tmp/GMfifo1313'.
-  # - ecp-data-vis-sdk +adios2 +hdf5 +vtkm +zfp +paraview +cuda cuda_arch=80 # embree: https://github.com/spack/spack/issues/39534
-  # - lammps +cuda cuda_arch=80     # lammps: needs NVIDIA driver
-  # - lbann +cuda cuda_arch=80      # lbann: https://github.com/spack/spack/issues/38788
-  # - libpressio +bitgrooming +bzip2 +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp +json +remote +netcdf ~cusz +mgard +cuda cuda_arch=80 # libpressio: CMake Error at CMakeLists.txt:498 (find_library): Could not find CUFile_LIBRARY using the following names: cufile ; +cusz: https://github.com/spack/spack/issues/38787
-  # - py-torch +cuda cuda_arch=80   # skipped, installed by other means
-  # - slepc +cuda cuda_arch=80      # slepc: make[1]: *** internal error: invalid --jobserver-auth string 'fifo:/tmp/GMfifo1313'.
-  # - upcxx +cuda cuda_arch=80      # upcxx: needs NVIDIA driver
-
   # CUDA 90
   - amrex +cuda cuda_arch=90
   - arborx +cuda cuda_arch=90 ^kokkos +wrapper
   - cabana +cuda cuda_arch=90  ^kokkos +wrapper +cuda_lambda +cuda cuda_arch=90
   - caliper +cuda cuda_arch=90
   - chai +cuda cuda_arch=90 ^umpire ~shared
-  # - cp2k +mpi +cuda cuda_arch=90 # cp2k: cp2k only supports cuda_arch ('35', '37', '60', '70', '80')
+  - fftx +cuda cuda_arch=90
   - flecsi +cuda cuda_arch=90
   - ginkgo +cuda cuda_arch=90
   - gromacs +cuda cuda_arch=90
@@ -317,6 +193,7 @@ spack:
   - hpx +cuda cuda_arch=90
   - kokkos +wrapper +cuda cuda_arch=90
   - kokkos-kernels +cuda cuda_arch=90 ^kokkos +wrapper +cuda cuda_arch=90
+  - libceed +cuda cuda_arch=90
   - magma +cuda cuda_arch=90
   - mfem +cuda cuda_arch=90
   - mgard +serial +openmp +timing +unstructured +cuda cuda_arch=90
@@ -331,12 +208,13 @@ spack:
   - umpire ~shared +cuda cuda_arch=90
   # INCLUDED IN ECP DAV CUDA
   - adios2 +cuda cuda_arch=90
+  # - ascent +cuda cuda_arch=90     # ascent: https://github.com/spack/spack/issues/38045
   # - paraview +cuda cuda_arch=90   # paraview: InstallError: Incompatible cuda_arch=90
   - vtk-m +cuda cuda_arch=90
   - zfp +cuda cuda_arch=90
   # --
-  # - ascent +cuda cuda_arch=90     # ascent: https://github.com/spack/spack/issues/38045
   # - axom +cuda cuda_arch=90       # axom: https://github.com/spack/spack/issues/29520
+  # - cp2k +mpi +cuda cuda_arch=90  # cp2k: cp2k only supports cuda_arch ('35', '37', '60', '70', '80')
   # - cusz +cuda cuda_arch=90       # cusz: https://github.com/spack/spack/issues/38787
   # - dealii +cuda cuda_arch=90     # dealii: https://github.com/spack/spack/issues/39532
   # - ecp-data-vis-sdk +adios2 +hdf5 +vtkm +zfp +paraview +cuda cuda_arch=90 # embree: https://github.com/spack/spack/issues/39534
@@ -353,7 +231,7 @@ spack:
   ci:
     pipeline-gen:
     - build-job:
-        image: ecpe4s/ubuntu22.04-runner-arm64-gcc-11.4:2024.03.01
+        image: ghcr.io/spack/spack/ubuntu22.04-runner-arm64-gcc-11.4:2024.03.01
 
   cdash:
     build-group: E4S ARM Neoverse V2

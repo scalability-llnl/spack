@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,8 @@ class Cc65(MakefilePackage):
     version("2.16", sha256="fdbbf1efbf2324658a5774fdceef4a1b202322a04f895688d95694843df76792")
     version("2.15", sha256="adeac1a4b04183dd77fba1d69e56bbf4a6d358e0b253ee43ef4cac2391ba848a")
     version("2.14", sha256="128bda63490eb43ad25fd3615adee4c819c0b7da4b9b8f1801df36bd19e3bdf8")
+
+    depends_on("c", type="build")  # generated
 
     def install(self, spec, prefix):
         make("PREFIX={0}".format(prefix), "install")

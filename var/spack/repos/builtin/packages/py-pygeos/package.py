@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,8 @@ class PyPygeos(PythonPackage):
     version("0.10", sha256="8ad4703cf8f983a6878a885765be975709a2fe300e54bc6c8623ddbca4903b6c")
     version("0.9", sha256="c0584b20e95f80ee57277a6eb1e5d7f86600f8b1ef3c627d238e243afdcc0cc7")
     version("0.8", sha256="45b7e1aaa5fc9ff53565ef089fb75c53c419ace8cee18385ec1d7c1515c17cbc")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("python", type=("build", "link", "run"))
     depends_on("py-cython@0.29:0", when="@0.14:", type="build")

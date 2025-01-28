@@ -1,5 +1,4 @@
-.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-   Spack Project Developers. See the top-level COPYRIGHT file for details.
+.. Copyright Spack Project Developers. See COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -38,9 +37,11 @@ just have to configure and OCI registry and run ``spack buildcache push``.
    spack -e . install
 
    # Configure the registry
-   spack -e . mirror add --oci-username ... --oci-password ... container-registry oci://example.com/name/image
+   spack -e . mirror add --oci-username-variable REGISTRY_USER \
+                         --oci-password-variable REGISTRY_TOKEN \
+                        container-registry oci://example.com/name/image
 
-   # Push the image
+   # Push the image (do set REGISTRY_USER and REGISTRY_TOKEN)
    spack -e . buildcache push --update-index --base-image ubuntu:22.04 --tag my_env container-registry
 
 The resulting container image can then be run as follows:
@@ -194,21 +195,18 @@ The OS that are currently supported are summarized in the table below:
    * - Operating System
      - Base Image
      - Spack Image
-   * - Ubuntu 18.04
-     - ``ubuntu:18.04``
-     - ``spack/ubuntu-bionic``
    * - Ubuntu 20.04
      - ``ubuntu:20.04``
      - ``spack/ubuntu-focal``
    * - Ubuntu 22.04
      - ``ubuntu:22.04``
      - ``spack/ubuntu-jammy``
-   * - CentOS 7
-     - ``centos:7``
-     - ``spack/centos7``
-   * - CentOS Stream
-     - ``quay.io/centos/centos:stream``
-     - ``spack/centos-stream``
+   * - Ubuntu 24.04
+     - ``ubuntu:24.04``
+     - ``spack/ubuntu-noble``
+   * - CentOS Stream9
+     - ``quay.io/centos/centos:stream9``
+     - ``spack/centos-stream9``
    * - openSUSE Leap
      - ``opensuse/leap``
      - ``spack/leap15``
@@ -227,12 +225,12 @@ The OS that are currently supported are summarized in the table below:
    * - Rocky Linux 9
      - ``rockylinux:9``
      - ``spack/rockylinux9``
-   * - Fedora Linux 37
-     - ``fedora:37``
-     - ``spack/fedora37``
-   * - Fedora Linux 38
-     - ``fedora:38``
-     - ``spack/fedora38``
+   * - Fedora Linux 39
+     - ``fedora:39``
+     - ``spack/fedora39``
+   * - Fedora Linux 40
+     - ``fedora:40``
+     - ``spack/fedora40``
 
 
 

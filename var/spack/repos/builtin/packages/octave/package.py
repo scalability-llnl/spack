@@ -1,8 +1,7 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import os.path
+import os
 import re
 import shutil
 import sys
@@ -30,6 +29,7 @@ class Octave(AutotoolsPackage, GNUMirrorPackage):
 
     license("GPL-3.0-or-later")
 
+    version("9.3.0", sha256="809fa39a7acc84815bf4dc4d2d7e6b228ce75a07f3b2413f3313aa8e0aaa3287")
     version("9.1.0", sha256="3f8c6c6ecfa249a47c97e18e651be4db8499be2f5de1a095a3eea53efc01d6a1")
     version("8.4.0", sha256="6b38dd9751678424aeb3a9d666432b1f378eb3971a21290a90cd3d35119d56ad")
     version("8.2.0", sha256="57d17f918a940d38ca3348211e110b34d735a322a87db71c177c4692a49a9c84")
@@ -50,6 +50,10 @@ class Octave(AutotoolsPackage, GNUMirrorPackage):
     version("4.2.0", sha256="443ba73782f3531c94bcf016f2f0362a58e186ddb8269af7dcce973562795567")
     version("4.0.2", sha256="39cd8fd36c218fc00adace28d74a6c7c9c6faab7113a5ba3c4372324c755bdc1")
     version("4.0.0", sha256="4c7ee0957f5dd877e3feb9dfe07ad5f39b311f9373932f0d2a289dc97cca3280")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # patches
     # see https://savannah.gnu.org/bugs/?50234
@@ -72,6 +76,7 @@ class Octave(AutotoolsPackage, GNUMirrorPackage):
     variant("jdk", default=False, description="Use Java")
     variant("llvm", default=False, description="Use LLVM")
     variant("opengl", default=False, description="Use OpenGL")
+    variant("pcre2", default=True, when="@8:", description="Use PCRE2 instead of PCRE")
     variant("qhull", default=False, description="Use qhull")
     variant("qrupdate", default=False, description="Use qrupdate")
     variant("qscintilla", default=False, description="Use QScintill")
@@ -84,7 +89,9 @@ class Octave(AutotoolsPackage, GNUMirrorPackage):
     depends_on("lapack")
     # Octave does not configure with sed from darwin:
     depends_on("sed", when=sys.platform == "darwin", type="build")
-    depends_on("pcre")
+    depends_on("pcre", when="@:7")
+    depends_on("pcre", when="~pcre2")
+    depends_on("pcre2", when="+pcre2")
     depends_on("pkgconfig", type="build")
     depends_on("texinfo", type="build")
 
@@ -321,12 +328,12 @@ class Octave(AutotoolsPackage, GNUMirrorPackage):
         if "+qhull" in spec:
             config_args.extend(
                 [
-                    "--with-qhull-includedir=%s" % spec["qhull"].prefix.include,
-                    "--with-qhull-libdir=%s" % spec["qhull"].prefix.lib,
+                    "--with-qhull_r-includedir=%s" % spec["qhull"].prefix.include,
+                    "--with-qhull_r-libdir=%s" % spec["qhull"].prefix.lib,
                 ]
             )
         else:
-            config_args.append("--without-qhull")
+            config_args.append("--without-qhull_r")
 
         if "+qrupdate" in spec:
             config_args.extend(
@@ -350,6 +357,8 @@ class Octave(AutotoolsPackage, GNUMirrorPackage):
         else:
             config_args.append("--without-z")
 
+        if spec.satisfies("~pcre2"):
+            config_args.append("--without-pcre2")
         # If 64-bit BLAS is used:
         if (
             spec.satisfies("^openblas+ilp64")
@@ -362,7 +371,9 @@ class Octave(AutotoolsPackage, GNUMirrorPackage):
         config_args.append("--enable-fortran-calling-convention=gfortran")
 
         # Make sure we do not use qtchooser
-        config_args.append("ac_cv_prog_ac_ct_QTCHOOSER=")
+        if spec.satisfies("+qt"):
+            config_args.append("ac_cv_prog_ac_ct_QTCHOOSER=")
+            config_args.append("--with-qt={0}".format(str(spec["qt"].version.up_to(1))))
 
         return config_args
 

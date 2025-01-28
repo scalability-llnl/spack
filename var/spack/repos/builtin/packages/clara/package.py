@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import spack.build_systems.generic
@@ -32,6 +31,8 @@ class Clara(CMakePackage, Package):
     version("1.1.2", sha256="87c8e9440cc339c2a7b7efa0313070ff0081eca7780f098f6aff624ffa640c16")
     version("1.1.1", sha256="10915a49a94d371f05af360d40e9cc9615ab86f200d261edf196a8ddd7efa7f8")
     version("1.1.0", sha256="29ca29d843150aabad702356f79009f5b30dda05ac9674a064362b7edcba5477")
+
+    depends_on("cxx", type="build")  # generated
 
 
 class GenericBuilder(spack.build_systems.generic.GenericBuilder):

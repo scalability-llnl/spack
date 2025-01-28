@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -29,6 +28,9 @@ class Met(AutotoolsPackage):
     version("10.0.1", sha256="8e965bb0eb8353229a730af511c5fa62bad9744606ab6a218d741d29eb5f3acd")
     version("10.0.0", sha256="92f37c8bd83c951d86026cce294a16e4d3aa6dd41905629d0a729fa1bebe668a")
     version("9.1.3", sha256="7356a5ad79ca961fd965cadd93a7bf6c73b3aa5fb1a01a932580b94e66d0d0c8")
+
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("openmp", default=True, description="Use OpenMP multithreading")
     variant("grib2", default=False, description="Enable compilation of utilities using GRIB2")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,3 +15,5 @@ class Hsakmt(AutotoolsPackage, XorgPackage):
     license("MIT")
 
     version("1.0.0", sha256="3d46af85c27091937618f5e92f7446cff3e9e6378888645e6e238806461e5b77")
+
+    depends_on("c", type="build")  # generated

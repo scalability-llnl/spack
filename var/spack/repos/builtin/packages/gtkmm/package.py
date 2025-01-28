@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,8 @@ class Gtkmm(AutotoolsPackage):
     version("2.17.1", sha256="bd1369caeb28ffdc9e81b1c4dc846c265dd9533bed7958756b3ee4d14ffa1694")
     version("2.16.0", sha256="7b2cccda794531ecfa65c01e57614ecba526153ad2a29d580c6e8df028d56ec4")
     version("2.4.11", sha256="0754187a5bcf3795cd7c959de303e6a19a130b0c5927bff1504baa3524bee8c1")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("glibmm")
     depends_on("atk")

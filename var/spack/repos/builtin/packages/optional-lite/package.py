@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -29,6 +28,8 @@ class OptionalLite(CMakePackage):
     version("2.2.0", sha256="9ce1bb021de42f804f8d17ed30b79fc98296122bec8db60492104978cd282fa2")
     version("2.0.0", sha256="e8d803cbc7be241df41a9ab267b525b7941df09747cd5a7deb55f863bd8a4e8d")
     version("1.0.3", sha256="7a2fb0fe20d61d091f6730237add9bab58bc0df1288cb96f3e8a61b859539067")
+
+    depends_on("cxx", type="build")  # generated
 
     def cmake_args(self):
         return [

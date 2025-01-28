@@ -4,7 +4,7 @@
 {% endif %}
 {% if render_phase.build %}
 # Build stage with Spack pre-installed and ready to be used
-FROM {{ build.image }} as builder
+FROM {{ build.image }} AS builder
 
 {% block build_stage %}
 {% if os_packages_build %}

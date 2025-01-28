@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -43,6 +42,8 @@ class Kealib(CMakePackage):
     version("1.4.9", sha256="1c80489f17114a229097c2e8c61d5e4c82ea63ae631c81a817fef95cfd527174")
     version("1.4.8", sha256="0f24d8478865abcb17865c8f49c0370095726c529b8ac373ffae018ad3d40a02")
     version("1.4.7", sha256="ec38751b3b555d3a26f0c7445f2d2cd9d7c3a3502237519a206a50cb58df56ec")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3.5:", type="build")
     depends_on("hdf5+cxx+hl", when="@:1.5.1")

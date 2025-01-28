@@ -1,8 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 from spack.pkg.builtin.boost import Boost
 
@@ -39,6 +39,8 @@ class Fenics(CMakePackage):
         sha256="c6760996660a476f77889e11e4a0bc117cc774be0eec777b02a7f01d9ce7f43d",
         deprecated=True,
     )
+
+    depends_on("cxx", type="build")  # generated
 
     dolfin_versions = ["2019.1.0", "2018.1.0", "2017.2.0", "2016.2.0"]
 
@@ -156,7 +158,7 @@ class Fenics(CMakePackage):
     depends_on("py-sphinx@1.0.1:", when="+doc", type="build")
 
     def cmake_args(self):
-        args = [
+        return [
             self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
             self.define("DOLFIN_SKIP_BUILD_TESTS", True),
             self.define_from_variant("DOLFIN_ENABLE_OPENMP", "openmp"),
@@ -180,11 +182,6 @@ class Fenics(CMakePackage):
             self.define_from_variant("DOLFIN_ENABLE_ZLIB", "zlib"),
         ]
 
-        if "+python" in self.spec:
-            args.append(self.define("PYTHON_EXECUTABLE", self.spec["python"].command.path))
-
-        return args
-
     # set environment for bulding python interface
     def setup_build_environment(self, env):
         env.set("DOLFIN_DIR", self.prefix)
@@ -195,7 +192,6 @@ class Fenics(CMakePackage):
     # build python interface of dolfin
     @run_after("install")
     def install_python_interface(self):
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             with working_dir("python"):
-                args = std_pip_args + ["--prefix=" + self.prefix, "."]
-                pip(*args)
+                pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")

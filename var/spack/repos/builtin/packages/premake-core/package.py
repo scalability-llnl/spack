@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,6 +26,9 @@ class PremakeCore(MakefilePackage):
     version(
         "5.0.0-alpha13", sha256="bfe983e24686c50cada935f74adad2aefe6581649734b2ab8c1aaa2de4d473c6"
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     def build(self, spec, prefix):
         make("-f", "Bootstrap.mak", self.architecture.platform.name)

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,6 +24,8 @@ class Ants(CMakePackage):
     version("20220205", commit="6f07ac55569d0d085d2adf7888d1c7a2bd563bfe", deprecated=True)
     version("2.3.5", sha256="2fddfd5f274a47f1c383e734a7e763b627c4a8383d2d3b9971561f335016bb0a")
     version("2.2.0", sha256="62f8f9ae141cb45025f4bb59277c053acf658d4a3ba868c9e0f609af72e66b4a")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("zlib-api", type="link")
 

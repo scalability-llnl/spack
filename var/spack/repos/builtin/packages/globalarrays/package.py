@@ -1,8 +1,7 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import os.path
+import os
 
 from spack.package import *
 
@@ -35,6 +34,10 @@ class Globalarrays(AutotoolsPackage):
     version("5.6.1", sha256="b324deed49f930f55203e1d18294ce07dd02680b9ac0728ebc54f94a12557ebc")
     version("5.6", sha256="a228dfbae9a6cfaae34694d7e56f589ac758e959b58f4bc49e6ef44058096767")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("scalapack", default=False, description="Enable SCALAPACK")
     variant(
         "armci",
@@ -46,6 +49,9 @@ class Globalarrays(AutotoolsPackage):
     depends_on("mpi")
     depends_on("blas")
     depends_on("lapack")
+
+    depends_on("libfabric", when="armci=ofi")
+    depends_on("rdma-core", when="armci=openib")
 
     depends_on("scalapack", when="+scalapack")
 
@@ -68,7 +74,7 @@ class Globalarrays(AutotoolsPackage):
             "--with-lapack={0}".format(lapack_libs),
         ]
 
-        if "+scalapack" in self.spec:
+        if self.spec.satisfies("+scalapack"):
             scalapack_libs = self.spec["scalapack"].libs.ld_flags
             args.append("--with-scalapack={0}".format(scalapack_libs))
 

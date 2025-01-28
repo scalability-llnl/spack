@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class PyDistlib(PythonPackage):
     version("0.3.6", sha256="14bad2d9b04d3a36127ac97f30b12a19268f211063d8f8ee4f47108896e11b46")
     version("0.3.4", sha256="e4b58818180336dc9c529bfb9a0b58728ffc09ad92027a3f30b7cd91e3458579")
     version("0.3.3", sha256="d982d0751ff6eaaab5e2ec8e691d949ee80eddf01a62eaa96ddb11531fe16b05")
+
+    depends_on("c", type="build")  # generated
 
     # pip silently replaces distutils with setuptools
     depends_on("py-setuptools", type="build")

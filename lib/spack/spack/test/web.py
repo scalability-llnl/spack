@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections
@@ -14,10 +13,9 @@ import pytest
 import llnl.util.tty as tty
 
 import spack.config
-import spack.mirror
+import spack.mirrors.mirror
 import spack.paths
 import spack.url
-import spack.util.path
 import spack.util.s3
 import spack.util.url as url_util
 import spack.util.web
@@ -37,6 +35,7 @@ page_3 = _create_url("3.html")
 page_4 = _create_url("4.html")
 
 root_with_fragment = _create_url("index_with_fragment.html")
+root_with_javascript = _create_url("index_with_javascript.html")
 
 
 @pytest.mark.parametrize(
@@ -148,6 +147,11 @@ def test_find_versions_of_archive_with_fragment():
     assert Version("5.0.0") in versions
 
 
+def test_find_versions_of_archive_with_javascript():
+    versions = spack.url.find_versions_of_archive(root_tarball, root_with_javascript, list_depth=0)
+    assert Version("5.0.0") in versions
+
+
 def test_get_header():
     headers = {"Content-type": "text/plain"}
 
@@ -207,14 +211,14 @@ def test_list_url(tmpdir):
 
     os.mkdir(os.path.join(testpath, "dir"))
 
-    with open(os.path.join(testpath, "file-0.txt"), "w"):
+    with open(os.path.join(testpath, "file-0.txt"), "w", encoding="utf-8"):
         pass
-    with open(os.path.join(testpath, "file-1.txt"), "w"):
+    with open(os.path.join(testpath, "file-1.txt"), "w", encoding="utf-8"):
         pass
-    with open(os.path.join(testpath, "file-2.txt"), "w"):
+    with open(os.path.join(testpath, "file-2.txt"), "w", encoding="utf-8"):
         pass
 
-    with open(os.path.join(testpath, "dir", "another-file.txt"), "w"):
+    with open(os.path.join(testpath, "dir", "another-file.txt"), "w", encoding="utf-8"):
         pass
 
     list_url = lambda recursive: list(
@@ -271,7 +275,7 @@ class MockS3Client:
 
 
 def test_gather_s3_information(monkeypatch, capfd):
-    mirror = spack.mirror.Mirror(
+    mirror = spack.mirrors.mirror.Mirror(
         {
             "fetch": {
                 "access_token": "AAAAAAA",
@@ -380,7 +384,7 @@ def ssl_scrubbed_env(mutable_config, monkeypatch):
     [
         pytest.param(
             lambda base_path: os.path.join(base_path, "mock_cert.crt"),
-            lambda cert_path: open(cert_path, "w").close(),
+            lambda cert_path: open(cert_path, "w", encoding="utf-8").close(),
             id="cert_file",
         ),
         pytest.param(
@@ -415,7 +419,7 @@ def test_ssl_urllib(
 
         assert mock_cert == spack.config.get("config:ssl_certs", None)
 
-        ssl_context = spack.util.web.urllib_ssl_cert_handler()
+        ssl_context = spack.util.web.ssl_create_default_context()
         assert ssl_context.verify_mode == ssl.CERT_REQUIRED
 
 
@@ -430,9 +434,9 @@ def test_ssl_curl_cert_file(cert_exists, tmpdir, ssl_scrubbed_env, mutable_confi
         mock_cert = str(tmpdir.join("mock_cert.crt"))
         spack.config.set("config:ssl_certs", mock_cert)
         if cert_exists:
-            open(mock_cert, "w").close()
+            open(mock_cert, "w", encoding="utf-8").close()
             assert os.path.isfile(mock_cert)
-        curl = spack.util.web._curl()
+        curl = spack.util.web.require_curl()
 
         # arbitrary call to query the run env
         dump_env = {}

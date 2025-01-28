@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,6 +24,8 @@ class StringViewLite(CMakePackage):
     version("1.0.0", sha256="44e30dedd6f4777e646da26528f9d2d5cc96fd0fa79e2e5c0adc14817d048d63")
     version("0.2.0", sha256="c8ae699dfd2ccd15c5835e9b1d246834135bbb91b82f7fc4211b8ac366bffd34")
     version("0.1.0", sha256="7de87d6595230a6085655dab6145340bc423f2cf206263ef73c9b78f7b153340")
+
+    depends_on("cxx", type="build")  # generated
 
     def cmake_args(self):
         return [

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,8 @@ class Roms(MakefilePackage):
     version("4.0", sha256="d14b4920e791ad24684f439c4751c2f1c38dbf9b82aa0d4d57def93e50a5a747")
     version("3.9", sha256="8e93f6ed40040e3f1b88d456ea9411ed3c06f280dc50b2787d6e5f793f58f1bc")
     version("3.8", sha256="99fb69239e70edaef35771d82e203e43cd301dde4f2a5662da038499b7258ae7")
+
+    depends_on("fortran", type="build")  # generated
 
     variant("openmp", default=False, description="Turn on shared-memory parallelization in ROMS")
     variant("mpi", default=True, description="Turn on distributed-memory parallelization in ROMS")

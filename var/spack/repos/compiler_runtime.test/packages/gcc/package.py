@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -30,3 +29,6 @@ class Gcc(Package):
         )
         # The version of gcc-runtime is the same as the %gcc used to "compile" it
         pkg("gcc-runtime").requires(f"@={str(spec.version)}", when=f"%{str(spec)}")
+
+        # If a node used %gcc@X.Y its dependencies must use gcc-runtime@:X.Y
+        pkg("*").propagate(f"%gcc@:{str(spec.version)}", when=f"%{str(spec)}")

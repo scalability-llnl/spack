@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,8 +9,8 @@ class Librsb(AutotoolsPackage):
     """librsb : A shared memory parallel sparse matrix computations
     library for the Recursive Sparse Blocks format"""
 
-    homepage = "http://librsb.sourceforge.net/"
-    url = "http://download.sourceforge.net/librsb/librsb-1.3.0.1.tar.gz"
+    homepage = "https://librsb.sourceforge.net/"
+    url = "https://download.sourceforge.net/librsb/librsb-1.3.0.1.tar.gz"
     list_url = "https://sourceforge.net/projects/librsb/files/"
 
     license("LGPL-3.0-only")
@@ -23,6 +22,10 @@ class Librsb(AutotoolsPackage):
     version("1.2.0.10", sha256="ec49f3f78a7c43fc9e10976593d100aa49b1863309ed8fa3ccbb7aad52d2f7b8")
     version("1.2.0.9", sha256="f421f5d572461601120933e3c1cfee2ca69e6ecc92cbb11baa4e86bdedd3d9fa")
     version("1.2.0.8", sha256="8bebd19a1866d80ade13eabfdd0f07ae7e8a485c0b975b5d15f531ac204d80cb")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("zlib-api")
     depends_on("googletest", type="build", when="+googletest")
@@ -40,7 +43,7 @@ class Librsb(AutotoolsPackage):
     variant("verbose", default=False, description="Extra Library Verbosity. Good for learning.")
 
     def setup_build_environment(self, spack_env):
-        if "+asan" in self.spec:
+        if self.spec.satisfies("+asan"):
             spack_env.set("LSAN_OPTIONS", "verbosity=1:log_threads=1")
             spack_env.set("ASAN_OPTS", "detect_leaks=0")
 
@@ -52,25 +55,25 @@ class Librsb(AutotoolsPackage):
             f"CPPFLAGS={self.spec['zlib-api'].headers.include_flags}",
             f"LDFLAGS={self.spec['zlib-api'].libs.search_flags}",
         ]
-        if "+asan" in self.spec:
+        if self.spec.satisfies("+asan"):
             args.append("CFLAGS=-O0 -ggdb -fsanitize=address -fno-omit-frame-pointer")
             args.append("CXXFLAGS=-O0 -ggdb -fsanitize=address -fno-omit-frame-pointer")
             args.append("LIBS=-lasan")
             args.append("FCLIBS=-lasan")
             args.append("--disable-shared")
             args.append("--enable-fortran-linker")
-        if "+debug" in self.spec:
+        if self.spec.satisfies("+debug"):
             args.append("--enable-allocator-wrapper")
             args.append("--enable-debug")
-        if "+native" in self.spec:
+        if self.spec.satisfies("+native"):
             args.append("CFLAGS=-O3 -march=native")
             args.append("CXXFLAGS=-O3 -march=native")
             args.append("FCFLAGS=-O3 -march=native")
-        if "+nospblas" in self.spec:
+        if self.spec.satisfies("+nospblas"):
             args.append("--disable-sparse-blas-interface")
-        if "+serial" in self.spec:
+        if self.spec.satisfies("+serial"):
             args.append("--disable-openmp")
-        if "+verbose" in self.spec:
+        if self.spec.satisfies("+verbose"):
             args.append("--enable-internals-error-verbosity=1")
             args.append("--enable-interface-error-verbosity=1")
         return args

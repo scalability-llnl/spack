@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -106,6 +105,6 @@ class Opengl(BundlePackage):
             lib_name = "opengl32"
         elif "platform=darwin" in spec:
             lib_name = "libOpenGL"
-        else:  # linux and cray
+        else:
             lib_name = "libGL"
         return find_libraries(lib_name, root=self.prefix, recursive=True)

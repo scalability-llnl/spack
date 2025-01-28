@@ -18,6 +18,7 @@ ci:
           KUBERNETES_MEMORY_REQUEST: 48G
 
     - match:
+      - composable-kernel
       - rust
       build-job:
         tags: [ "spack", "huge" ]
@@ -71,8 +72,9 @@ ci:
 
     - match:
       - dealii
-      - mxnet
+      - geant4
       - rocblas
+      - root
       build-job:
         tags: [ "spack", "huge" ]
         variables:
@@ -82,6 +84,7 @@ ci:
           KUBERNETES_MEMORY_REQUEST: 19G
 
     - match:
+      - acts
       - ecp-data-vis-sdk
       - intel-tbb
       - llvm-amdgpu
@@ -102,6 +105,7 @@ ci:
       - cuda
       - dray
       - ecp-data-vis-sdk
+      - gaudi
       - gcc
       - ginkgo
       - hdf5
@@ -144,7 +148,11 @@ ci:
           KUBERNETES_MEMORY_REQUEST: "9G"
 
     - match:
+      - dd4hep
       - hipblas
+      - qt-base
+      - qt-declarative
+      - rivet
       - rocfft
       - umpire
       build-job:
@@ -193,6 +201,7 @@ ci:
 
     - match:
       - parallelio
+      - sherpa
       build-job:
         tags: [ "spack", "medium" ]
         variables:
@@ -242,7 +251,6 @@ ci:
       - mvapich2
       - netlib-scalapack
       - omega-h
-      - openblas
       - openjpeg
       - openmpi
       - openpmd-api
@@ -260,7 +268,6 @@ ci:
       - py-scipy
       - py-statsmodels
       - py-warlock
-      - py-warpx
       - raja
       - slepc
       - slurm
@@ -274,6 +281,7 @@ ci:
       - vtk
       - vtk-h
       - vtk-m
+      - warpx +python
       - zfp
       build-job:
         tags: [ "spack", "medium" ]
@@ -395,7 +403,6 @@ ci:
       - ncurses
       - ninja
       - numactl
-      - openblas
       - openjdk
       - openssh
       - openssl

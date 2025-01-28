@@ -1,0 +1,33 @@
+diff -ruN spack-src/cmake/SundialsSetupHIP.cmake spack-src-patched/cmake/SundialsSetupHIP.cmake
+--- spack-src/cmake/SundialsSetupHIP.cmake	2024-02-29 22:47:30.000000000 +0000
++++ spack-src-patched/cmake/SundialsSetupHIP.cmake	2024-06-07 15:22:57.920619263 +0000
+@@ -32,9 +32,9 @@
+ 
+ if(NOT DEFINED HIP_PLATFORM)
+   if(NOT DEFINED ENV{HIP_PLATFORM})
+-    set(HIP_PLATFORM "hcc" CACHE STRING "HIP platform (hcc, nvcc)")
++    set(HIP_PLATFORM "amd" CACHE STRING "HIP platform (amd, nvidia)")
+   else()
+-    set(HIP_PLATFORM "$ENV{HIP_PLATFORM}" CACHE STRING "HIP platform (hcc, nvcc)")
++    set(HIP_PLATFORM "$ENV{HIP_PLATFORM}" CACHE STRING "HIP platform (amd, nvidia)")
+   endif()
+ endif()
+ 
+diff -ruN spack-src/include/sundials/sundials_hip_policies.hpp spack-src-patched/include/sundials/sundials_hip_policies.hpp
+--- spack-src/include/sundials/sundials_hip_policies.hpp	2024-02-29 22:47:30.000000000 +0000
++++ spack-src-patched/include/sundials/sundials_hip_policies.hpp	2024-06-07 15:23:15.752724851 +0000
+@@ -27,10 +27,12 @@
+ namespace sundials {
+ namespace hip {
+ 
+-#if defined(__HIP_PLATFORM_HCC__)
++#if defined(__HIP_PLATFORM_HCC__) || defined(__HIP_PLATFORM_AMD__)
+ constexpr const sunindextype WARP_SIZE = 64;
+-#elif defined(__HIP_PLATFORM_NVCC__)
++#elif defined(__HIP_PLATFORM_NVCC__) || defined(__HIP_PLATFORM_NVDIA__)
+ constexpr const sunindextype WARP_SIZE = 32;
++#else
++#error "Unknown HIP_PLATFORM, report to github.com/LLNL/sundials/issues"
+ #endif
+ constexpr const sunindextype MAX_BLOCK_SIZE = 1024;
+ constexpr const sunindextype MAX_WARPS      = MAX_BLOCK_SIZE / WARP_SIZE;

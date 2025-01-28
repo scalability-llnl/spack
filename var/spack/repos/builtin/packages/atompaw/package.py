@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,6 +27,10 @@ class Atompaw(AutotoolsPackage):
     version("4.1.1.0", sha256="b1ee2b53720066655d98523ef337e54850cb1e68b3a2da04ff5a1576d3893891")
     version("4.0.0.13", sha256="cbd73f11f3e9cc3ff2e5f3ec87498aeaf439555903d0b95a72f3b0a021902020")
     version("3.1.0.3", sha256="15fe9a0369bdcc366370a0ecaa67e803ae54534b479ad63c4c7494a04fa3ea78")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("lapack")
     depends_on("blas")

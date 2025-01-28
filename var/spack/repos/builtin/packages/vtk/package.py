@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,10 +19,16 @@ class Vtk(CMakePackage):
     url = "https://www.vtk.org/files/release/9.0/VTK-9.0.0.tar.gz"
     list_url = "https://www.vtk.org/download/"
 
-    maintainers("chuckatkins", "danlipsa")
+    maintainers("chuckatkins", "danlipsa", "johnwparent")
 
     license("BSD-3-Clause")
 
+    version(
+        "9.4.1",
+        sha256="c253b0c8d002aaf98871c6d0cb76afc4936c301b72358a08d5f3f72ef8bc4529",
+        preferred=True,
+    )
+    version("9.3.1", sha256="8354ec084ea0d2dc3d23dbe4243823c4bfc270382d0ce8d658939fd50061cab8")
     version("9.2.6", sha256="06fc8d49c4e56f498c40fcb38a563ed8d4ec31358d0101e8988f0bb4d539dd12")
     version("9.2.2", sha256="1c5b0a2be71fac96ff4831af69e350f7a0ea3168981f790c000709dcf9121075")
     version("9.1.0", sha256="8fed42f4f8f1eb8083107b68eaa9ad71da07110161a3116ad807f43e5ca5ce96")
@@ -49,9 +54,12 @@ class Vtk(CMakePackage):
     version("6.3.0", sha256="92a493354c5fa66bea73b5fc014154af5d9f3f6cee8d20a826f4cd5d4b0e8a5e")
     version("6.1.0", sha256="bd7df10a479606d529a8b71f466c44a2bdd11fd534c62ce0aa44fad91883fa34")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("pkgconfig", type="build", when="platform=linux")
+
     # VTK7 defaults to OpenGL2 rendering backend
     variant("opengl2", default=True, description="Enable OpenGL2 backend")
-    variant("osmesa", default=False, description="Enable OSMesa support")
     variant("python", default=False, description="Enable Python support", when="@8:")
     variant("qt", default=False, description="Build with support for Qt")
     variant("xdmf", default=False, description="Build XDMF file support")
@@ -75,18 +83,23 @@ class Vtk(CMakePackage):
     patch("xdmf2-hdf51.13.2.patch", when="@9:9.2.2 +xdmf")
 
     # We cannot build with both osmesa and qt in spack
-    conflicts("+osmesa", when="+qt")
+    conflicts("^osmesa", when="+qt")
 
     conflicts("%gcc@13", when="@9.2")
 
-    with when("+python"):
-        # Depend on any Python, add bounds below.
-        extends("python@2.7:", type=("build", "run"))
-        depends_on("python@:3.7", when="@:8.2.0", type=("build", "run"))
-        # Python 3.8 support from vtk 9 and patched 8.2
-        depends_on("python@:3.8", when="@:8.2.1a", type=("build", "run"))
-        # Python 3.10 support from vtk 9.2
-        depends_on("python@:3.9", when="@:9.1", type=("build", "run"))
+    # VTK 8 vendors a heavily outdated version of CMake's GenerateExportHeader module, which
+    # has a bogus version check for GCC/Intel version to early exit. This drops the early exit.
+    patch("vtk-bogus-compiler-check.patch", when="@7.1:8")
+
+    # Based on PyPI wheel availability
+    with when("+python"), default_args(type=("build", "link", "run")):
+        depends_on("python@:3.13")
+        depends_on("python@:3.12", when="@:9.3")
+        depends_on("python@:3.11", when="@:9.2")
+        depends_on("python@:3.10", when="@:9.2.2")
+        depends_on("python@:3.9", when="@:9.1")
+        depends_on("python@:3.8", when="@:9.0.1")
+        depends_on("python@:3.7", when="@:8.2.0")
 
     # We need mpi4py if buidling python wrappers and using MPI
     depends_on("py-mpi4py", when="+python+mpi", type="run")
@@ -98,7 +111,7 @@ class Vtk(CMakePackage):
     # Broken downstream FindMPI
     patch("vtkm-findmpi-downstream.patch", when="@9.0.0")
 
-    for plat in ["linux", "darwin", "freebsd", "cray"]:
+    for plat in ["linux", "darwin", "freebsd"]:
         # use internal FindHDF5
         patch("internal_findHDF5.patch", when=f"@:8 platform={plat}")
 
@@ -124,15 +137,22 @@ class Vtk(CMakePackage):
     patch("vtk_movie_link_ogg.patch", when="@8.2")
     patch("vtk_use_sqlite_name_vtk_expects.patch", when="@8.2")
     patch("vtk_proj_include_no_strict.patch", when="@9: platform=windows")
-    patch("vtk_alias_hdf5.patch", when="@9: platform=windows")
-    patch("vtk_findproj_config.patch", when="platform=windows")
-    with when("~osmesa"):
-        depends_on("glx", when="platform=linux")
-        depends_on("glx", when="platform=cray")
-        depends_on("libxt", when="platform=linux")
-        depends_on("libxt", when="platform=cray")
-
-    depends_on("osmesa", when="+osmesa")
+    # allow proj to be detected via a CMake produced export config file
+    # failing that, falls back on standard library detection
+    # required for VTK to build against modern proj/more robustly
+    patch("vtk_findproj_config.patch", when="@9:")
+    # adds a fake target alias'ing the hdf5 target to prevent
+    # checks for that target from falling on VTK's empty stub target
+    # Required to consume netcdf and hdf5 both built
+    # with CMake from VTK
+    # a patch with the same name is also applied to paraview
+    # the two patches are the same but for the path to the files they patch
+    patch("vtk_alias_hdf5.patch", when="@9:")
+    # VTK 9.0 on Windows uses dll instead of lib for hdf5-hl target, which fails linking. Can't
+    # be fixed by bumping CMake lower bound, because VTK vendors FindHDF5.cmake. Various other
+    # patches to FindHDF5.cmake are missing, so add conflict instead of a series of patches.
+    conflicts("@9.0 platform=windows")
+    depends_on("libxt", when="^[virtuals=gl] glx platform=linux")
 
     # VTK will need Qt5OpenGL, and qt needs '-opengl' for that
     depends_on("qt+opengl", when="+qt")
@@ -176,14 +196,17 @@ class Vtk(CMakePackage):
     depends_on("utf8cpp", when="@9:")
     depends_on("gl2ps", when="@8.1:")
     depends_on("gl2ps@1.4.1:", when="@9:")
-    depends_on("proj@4", when="@8.2.0")
-    depends_on("proj@4:", when="@9:")
+    # "8.2.1a" uses an internal proj so this special cases 8.2.1a
+    depends_on("proj@4:7", when="@:8.2.0, 9:9.1")
+    depends_on("proj@8:", when="@9.2:")
     depends_on("cgns@4.1.1:+mpi", when="@9.1: +mpi")
     depends_on("cgns@4.1.1:~mpi", when="@9.1: ~mpi")
     with when("@9.1:"):
         depends_on("seacas+mpi", when="+mpi")
         depends_on("seacas~mpi", when="~mpi")
         depends_on("seacas@2021-05-12:")
+    with when("@9.4:"):
+        depends_on("seacas@2024-06-27:")
 
     # seacas@2023-05-30 does not provide needed SEACASIoss_INCLUDE_DIRS:
     # CMake Error at CMake/vtkModule.cmake:5552 (message):
@@ -211,6 +234,14 @@ class Vtk(CMakePackage):
         "https://gitlab.kitware.com/vtk/vtk/-/commit/5a1c96e12e9b4a660d326be3bed115a2ceadb573.diff",
         sha256="c446a90459b108082db5b28d9aeda99d030e636325e01929beba062cafb16b76",
         when="@9.1",
+    )
+
+    # vtk@9 does not compile with gcc 13 or 14
+    # https://gitlab.kitware.com/vtk/vtk/-/issues/18782
+    patch(
+        "https://gitlab.kitware.com/vtk/vtk/-/merge_requests/9996.diff",
+        sha256="dab51ffd0d62b00c089c1245e6b105f740106b53893305c87193d4ba03a948e0",
+        when="@9.1:9.2 %gcc@13:",
     )
 
     @when("@9.2:")
@@ -275,8 +306,10 @@ class Vtk(CMakePackage):
             cmake_args.extend(
                 [
                     "-DVTK_USE_EXTERNAL:BOOL=ON",
+                    "-DVTK_MODULE_USE_EXTERNAL_VTK_fast_float:BOOL=OFF",
                     "-DVTK_MODULE_USE_EXTERNAL_VTK_libharu:BOOL=OFF",
                     "-DVTK_MODULE_USE_EXTERNAL_VTK_pegtl:BOOL=OFF",
+                    "-DVTK_MODULE_USE_EXTERNAL_VTK_token:BOOL=OFF",
                     "-DHDF5_ROOT={0}".format(spec["hdf5"].prefix),
                 ]
             )
@@ -415,7 +448,7 @@ class Vtk(CMakePackage):
 
         cmake_args.append("-DVTK_RENDERING_BACKEND:STRING=" + opengl_ver)
 
-        if "+osmesa" in spec:
+        if spec.satisfies("^[virtuals=gl] osmesa"):
             cmake_args.extend(
                 [
                     "-DVTK_USE_X:BOOL=OFF",

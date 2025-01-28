@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,5 +18,7 @@ class PyGrapheme(PythonPackage):
     license("MIT")
 
     version("0.6.0", sha256="44c2b9f21bbe77cfb05835fec230bd435954275267fea1858013b102f8603cca")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("py-setuptools", type="build")

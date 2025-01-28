@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,20 +9,19 @@ import sys
 from typing import List
 
 import llnl.util.filesystem as fs
+from llnl.string import plural
 from llnl.util import lang, tty
 
-import spack.build_environment
 import spack.cmd
+import spack.concretize
 import spack.config
 import spack.environment as ev
-import spack.fetch_strategy
-import spack.package_base
 import spack.paths
 import spack.report
 import spack.spec
 import spack.store
 from spack.cmd.common import arguments
-from spack.error import SpackError
+from spack.error import InstallError, SpackError
 from spack.installer import PackageInstaller
 
 description = "build and install packages"
@@ -61,7 +59,6 @@ def install_kwargs_from_args(args):
         "dependencies_use_cache": cache_opt(args.use_cache, dep_use_bc),
         "dependencies_cache_only": cache_opt(args.cache_only, dep_use_bc),
         "include_build_deps": args.include_build_deps,
-        "explicit": True,  # Use true as a default for install command
         "stop_at": args.until,
         "unsigned": args.unsigned,
         "install_deps": ("dependencies" in args.things_to_install),
@@ -287,14 +284,14 @@ def require_user_confirmation_for_overwrite(concrete_specs, args):
         tty.die("Reinstallation aborted.")
 
 
-def _dump_log_on_error(e: spack.build_environment.InstallError):
+def _dump_log_on_error(e: InstallError):
     e.print_context()
     assert e.pkg, "Expected InstallError to include the associated package"
     if not os.path.exists(e.pkg.log_path):
         tty.error("'spack install' created no log.")
     else:
         sys.stderr.write("Full build log:\n")
-        with open(e.pkg.log_path, errors="replace") as log:
+        with open(e.pkg.log_path, errors="replace", encoding="utf-8") as log:
             shutil.copyfileobj(log, sys.stderr)
 
 
@@ -352,7 +349,7 @@ def install(parser, args):
             install_with_active_env(env, args, install_kwargs, reporter_factory)
         else:
             install_without_active_env(args, install_kwargs, reporter_factory)
-    except spack.build_environment.InstallError as e:
+    except InstallError as e:
         if args.show_log_on_error:
             _dump_log_on_error(e)
         raise
@@ -376,7 +373,9 @@ def _maybe_add_and_concretize(args, env, specs):
         # `spack concretize`
         tests = compute_tests_install_kwargs(env.user_specs, args.test)
         concretized_specs = env.concretize(tests=tests)
-        ev.display_specs(concretized_specs)
+        if concretized_specs:
+            tty.msg(f"Concretized {plural(len(concretized_specs), 'spec')}")
+            ev.display_specs([concrete for _, concrete in concretized_specs])
 
         # save view regeneration for later, so that we only do it
         # once, as it can be slow.
@@ -446,13 +445,13 @@ def concrete_specs_from_file(args):
     """Return the list of concrete specs read from files."""
     result = []
     for file in args.specfiles:
-        with open(file, "r") as f:
+        with open(file, "r", encoding="utf-8") as f:
             if file.endswith("yaml") or file.endswith("yml"):
                 s = spack.spec.Spec.from_yaml(f)
             else:
                 s = spack.spec.Spec.from_json(f)
 
-        concretized = s.concretized()
+        concretized = spack.concretize.concretize_one(s)
         if concretized.dag_hash() != s.dag_hash():
             msg = 'skipped invalid file "{0}". '
             msg += "The file does not contain a concrete spec."
@@ -473,6 +472,7 @@ def install_without_active_env(args, install_kwargs, reporter_factory):
             require_user_confirmation_for_overwrite(concrete_specs, args)
             install_kwargs["overwrite"] = [spec.dag_hash() for spec in concrete_specs]
 
-        installs = [(s.package, install_kwargs) for s in concrete_specs]
-        builder = PackageInstaller(installs)
+        installs = [s.package for s in concrete_specs]
+        install_kwargs["explicit"] = [s.dag_hash() for s in concrete_specs]
+        builder = PackageInstaller(installs, **install_kwargs)
         builder.install()

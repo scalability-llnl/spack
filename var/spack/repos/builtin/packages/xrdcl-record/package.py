@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,5 +15,7 @@ class XrdclRecord(CMakePackage):
     license("BSD-3-Clause")
 
     version("5.4.2", sha256="fb76284491ff4e723bce4c9e9d87347e98e278e70c597167bc39a162bc876734")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("xrootd")

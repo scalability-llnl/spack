@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class Highwayhash(MakefilePackage):
     license("Apache-2.0")
 
     version("dfcb97", commit="dfcb97ca4fe9277bf9dc1802dd979b071896453b")
+
+    depends_on("cxx", type="build")  # generated
 
     build_targets = ["all", "libhighwayhash.a"]
 

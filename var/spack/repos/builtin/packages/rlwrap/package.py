@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class Rlwrap(AutotoolsPackage):
     version("0.45.2", sha256="9f8870deb46e473d21b5db89d709b6497f4ef9fa06d44eebc5f821daa00c8eca")
     version("0.44", sha256="cd7ff50cde66e443cbea0049b4abf1cca64a74948371fa4f1b5d9a5bbce1e13c")
     version("0.43", sha256="8e86d0b7882d9b8a73d229897a90edc207b1ae7fa0899dca8ee01c31a93feb2f")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("readline@4.2:")
 

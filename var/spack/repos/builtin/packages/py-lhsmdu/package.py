@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,7 +12,7 @@ class PyLhsmdu(PythonPackage):
     from Deutsch and Deutsch, Latin hypercube sampling with multidimensional
     uniformity."""
 
-    homepage = "http://github.com/sahilm89/lhsmdu"
+    homepage = "https://github.com/sahilm89/lhsmdu"
     pypi = "lhsmdu/lhsmdu-1.1.tar.gz"
     maintainers("liuyangzhuan")
 

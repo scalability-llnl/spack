@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import filecmp
@@ -8,7 +7,10 @@ import gzip
 import io
 import json
 import os
+import pathlib
 import platform
+import re
+import shutil
 import sys
 import tarfile
 import urllib.error
@@ -16,28 +18,34 @@ import urllib.request
 import urllib.response
 from pathlib import Path, PurePath
 
-import py
 import pytest
 
 import archspec.cpu
 
-from llnl.util.filesystem import join_path, visit_directory_tree
+from llnl.util.filesystem import copy_tree, join_path
+from llnl.util.symlink import readlink
 
 import spack.binary_distribution as bindist
 import spack.caches
+import spack.compilers
+import spack.concretize
 import spack.config
 import spack.fetch_strategy
 import spack.hooks.sbang as sbang
 import spack.main
-import spack.mirror
+import spack.mirrors.mirror
+import spack.oci.image
+import spack.paths
 import spack.repo
+import spack.spec
 import spack.store
 import spack.util.gpg
 import spack.util.spack_yaml as syaml
 import spack.util.url as url_util
 import spack.util.web as web_util
-from spack.binary_distribution import CannotListKeys, GenerateIndexError, get_buildfile_manifest
-from spack.directory_layout import DirectoryLayout
+from spack.binary_distribution import INDEX_HASH_FILE, CannotListKeys, GenerateIndexError
+from spack.database import INDEX_JSON_FILE
+from spack.installer import PackageInstaller
 from spack.paths import test_path
 from spack.spec import Spec
 
@@ -64,122 +72,93 @@ def cache_directory(tmpdir):
 
 
 @pytest.fixture(scope="module")
-def mirror_dir(tmpdir_factory):
-    dir = tmpdir_factory.mktemp("mirror")
-    dir.ensure("build_cache", dir=True)
-    yield str(dir)
-    dir.join("build_cache").remove()
+def config_directory(tmp_path_factory):
+    # Copy defaults to a temporary "site" scope
+    defaults_dir = tmp_path_factory.mktemp("test_configs")
+    config_path = pathlib.Path(spack.paths.etc_path)
+    copy_tree(str(config_path / "defaults"), str(defaults_dir / "site"))
+
+    # Create a "user" scope
+    (defaults_dir / "user").mkdir()
+
+    # Detect compilers
+    cfg_scopes = [
+        spack.config.DirectoryConfigScope(name, str(defaults_dir / name))
+        for name in [f"site/{platform.system().lower()}", "site", "user"]
+    ]
+    with spack.config.use_configuration(*cfg_scopes):
+        _ = spack.compilers.find_compilers(scope="site")
+
+    yield defaults_dir
+
+    shutil.rmtree(str(defaults_dir))
 
 
 @pytest.fixture(scope="function")
-def test_mirror(mirror_dir):
-    mirror_url = url_util.path_to_file_url(mirror_dir)
-    mirror_cmd("add", "--scope", "site", "test-mirror-func", mirror_url)
-    yield mirror_dir
-    mirror_cmd("rm", "--scope=site", "test-mirror-func")
-
-
-@pytest.fixture(scope="module")
-def config_directory(tmpdir_factory):
-    tmpdir = tmpdir_factory.mktemp("test_configs")
-    # restore some sane defaults for packages and config
-    config_path = py.path.local(spack.paths.etc_path)
-    modules_yaml = config_path.join("defaults", "modules.yaml")
-    os_modules_yaml = config_path.join(
-        "defaults", "%s" % platform.system().lower(), "modules.yaml"
-    )
-    packages_yaml = config_path.join("defaults", "packages.yaml")
-    config_yaml = config_path.join("defaults", "config.yaml")
-    repos_yaml = config_path.join("defaults", "repos.yaml")
-    tmpdir.ensure("site", dir=True)
-    tmpdir.ensure("user", dir=True)
-    tmpdir.ensure("site/%s" % platform.system().lower(), dir=True)
-    modules_yaml.copy(tmpdir.join("site", "modules.yaml"))
-    os_modules_yaml.copy(tmpdir.join("site/%s" % platform.system().lower(), "modules.yaml"))
-    packages_yaml.copy(tmpdir.join("site", "packages.yaml"))
-    config_yaml.copy(tmpdir.join("site", "config.yaml"))
-    repos_yaml.copy(tmpdir.join("site", "repos.yaml"))
-    yield tmpdir
-    tmpdir.remove()
-
-
-@pytest.fixture(scope="function")
-def default_config(tmpdir, config_directory, monkeypatch, install_mockery_mutable_config):
-    # This fixture depends on install_mockery_mutable_config to ensure
+def default_config(tmp_path, config_directory, mock_repo_path, install_mockery):
+    # This fixture depends on install_mockery to ensure
     # there is a clear order of initialization. The substitution of the
     # config scopes here is done on top of the substitution that comes with
-    # install_mockery_mutable_config
-    mutable_dir = tmpdir.mkdir("mutable_config").join("tmp")
-    config_directory.copy(mutable_dir)
+    # install_mockery
+    mutable_dir = tmp_path / "mutable_config" / "tmp"
+    mutable_dir.mkdir(parents=True)
+    copy_tree(str(config_directory), str(mutable_dir))
 
-    cfg = spack.config.Configuration(
-        *[
-            spack.config.ConfigScope(name, str(mutable_dir))
-            for name in ["site/%s" % platform.system().lower(), "site", "user"]
-        ]
-    )
+    scopes = [
+        spack.config.DirectoryConfigScope(name, str(mutable_dir / name))
+        for name in [f"site/{platform.system().lower()}", "site", "user"]
+    ]
 
-    spack.config.CONFIG, old_config = cfg, spack.config.CONFIG
-    spack.config.CONFIG.set("repos", [spack.paths.mock_packages_path])
-    njobs = spack.config.get("config:build_jobs")
-    if not njobs:
-        spack.config.set("config:build_jobs", 4, scope="user")
-    extensions = spack.config.get("config:template_dirs")
-    if not extensions:
-        spack.config.set(
-            "config:template_dirs",
-            [os.path.join(spack.paths.share_path, "templates")],
-            scope="user",
-        )
+    with spack.config.use_configuration(*scopes):
+        njobs = spack.config.get("config:build_jobs")
+        if not njobs:
+            spack.config.set("config:build_jobs", 4, scope="user")
+        extensions = spack.config.get("config:template_dirs")
+        if not extensions:
+            spack.config.set(
+                "config:template_dirs",
+                [os.path.join(spack.paths.share_path, "templates")],
+                scope="user",
+            )
 
-    mutable_dir.ensure("build_stage", dir=True)
-    build_stage = spack.config.get("config:build_stage")
-    if not build_stage:
-        spack.config.set(
-            "config:build_stage", [str(mutable_dir.join("build_stage"))], scope="user"
-        )
-    timeout = spack.config.get("config:connect_timeout")
-    if not timeout:
-        spack.config.set("config:connect_timeout", 10, scope="user")
-
-    yield spack.config.CONFIG
-
-    spack.config.CONFIG = old_config
-    mutable_dir.remove()
+        (mutable_dir / "build_stage").mkdir()
+        build_stage = spack.config.get("config:build_stage")
+        if not build_stage:
+            spack.config.set(
+                "config:build_stage", [str(mutable_dir / "build_stage")], scope="user"
+            )
+        timeout = spack.config.get("config:connect_timeout")
+        if not timeout:
+            spack.config.set("config:connect_timeout", 10, scope="user")
+        with spack.repo.use_repositories(mock_repo_path):
+            yield spack.config.CONFIG
 
 
 @pytest.fixture(scope="function")
 def install_dir_default_layout(tmpdir):
     """Hooks a fake install directory with a default layout"""
-    scheme = os.path.join(
-        "${architecture}", "${compiler.name}-${compiler.version}", "${name}-${version}-${hash}"
-    )
-    real_store, real_layout = spack.store.STORE, spack.store.STORE.layout
     opt_dir = tmpdir.join("opt")
-    spack.store.STORE = spack.store.Store(str(opt_dir))
-    spack.store.STORE.layout = DirectoryLayout(str(opt_dir), path_scheme=scheme)
+    original_store, spack.store.STORE = spack.store.STORE, spack.store.Store(str(opt_dir))
     try:
         yield spack.store
     finally:
-        spack.store.STORE = real_store
-        spack.store.STORE.layout = real_layout
+        spack.store.STORE = original_store
 
 
 @pytest.fixture(scope="function")
 def install_dir_non_default_layout(tmpdir):
     """Hooks a fake install directory with a non-default layout"""
-    scheme = os.path.join(
-        "${name}", "${version}", "${architecture}-${compiler.name}-${compiler.version}-${hash}"
-    )
-    real_store, real_layout = spack.store.STORE, spack.store.STORE.layout
     opt_dir = tmpdir.join("opt")
-    spack.store.STORE = spack.store.Store(str(opt_dir))
-    spack.store.STORE.layout = DirectoryLayout(str(opt_dir), path_scheme=scheme)
+    original_store, spack.store.STORE = spack.store.STORE, spack.store.Store(
+        str(opt_dir),
+        projections={
+            "all": "{name}/{version}/{architecture}-{compiler.name}-{compiler.version}-{hash}"
+        },
+    )
     try:
         yield spack.store
     finally:
-        spack.store.STORE = real_store
-        spack.store.STORE.layout = real_layout
+        spack.store.STORE = original_store
 
 
 @pytest.fixture(scope="function")
@@ -197,13 +176,13 @@ def dummy_prefix(tmpdir):
     absolute_app_link = p.join("bin", "absolute_app_link")
     data = p.join("share", "file")
 
-    with open(app, "w") as f:
+    with open(app, "w", encoding="utf-8") as f:
         f.write("hello world")
 
-    with open(data, "w") as f:
+    with open(data, "w", encoding="utf-8") as f:
         f.write("hello world")
 
-    with open(p.join(".spack", "binary_distribution"), "w") as f:
+    with open(p.join(".spack", "binary_distribution"), "w", encoding="utf-8") as f:
         f.write("{}")
 
     os.symlink("app", relative_app_link)
@@ -212,38 +191,37 @@ def dummy_prefix(tmpdir):
     return str(p)
 
 
-args = ["file"]
 if sys.platform == "darwin":
-    args.extend(["/usr/bin/clang++", "install_name_tool"])
+    required_executables = ["/usr/bin/clang++", "install_name_tool"]
 else:
-    args.extend(["/usr/bin/g++", "patchelf"])
+    required_executables = ["/usr/bin/g++", "patchelf"]
 
 
-@pytest.mark.requires_executables(*args)
+@pytest.mark.requires_executables(*required_executables)
 @pytest.mark.maybeslow
 @pytest.mark.usefixtures(
-    "default_config", "cache_directory", "install_dir_default_layout", "test_mirror"
+    "default_config", "cache_directory", "install_dir_default_layout", "temporary_mirror"
 )
-def test_default_rpaths_create_install_default_layout(mirror_dir):
+def test_default_rpaths_create_install_default_layout(temporary_mirror_dir):
     """
     Test the creation and installation of buildcaches with default rpaths
     into the default directory layout scheme.
     """
-    gspec, cspec = Spec("garply").concretized(), Spec("corge").concretized()
-    sy_spec = Spec("symly").concretized()
+    gspec = spack.concretize.concretize_one("garply")
+    cspec = spack.concretize.concretize_one("corge")
+    sy_spec = spack.concretize.concretize_one("symly")
 
     # Install 'corge' without using a cache
     install_cmd("--no-cache", cspec.name)
     install_cmd("--no-cache", sy_spec.name)
 
     # Create a buildache
-    buildcache_cmd("push", "-u", mirror_dir, cspec.name, sy_spec.name)
-
+    buildcache_cmd("push", "-u", temporary_mirror_dir, cspec.name, sy_spec.name)
     # Test force overwrite create buildcache (-f option)
-    buildcache_cmd("push", "-uf", mirror_dir, cspec.name)
+    buildcache_cmd("push", "-uf", temporary_mirror_dir, cspec.name)
 
     # Create mirror index
-    buildcache_cmd("update-index", mirror_dir)
+    buildcache_cmd("update-index", temporary_mirror_dir)
 
     # List the buildcaches in the mirror
     buildcache_cmd("list", "-alv")
@@ -267,20 +245,20 @@ def test_default_rpaths_create_install_default_layout(mirror_dir):
     buildcache_cmd("list", "-l", "-v")
 
 
-@pytest.mark.requires_executables(*args)
+@pytest.mark.requires_executables(*required_executables)
 @pytest.mark.maybeslow
 @pytest.mark.nomockstage
 @pytest.mark.usefixtures(
-    "default_config", "cache_directory", "install_dir_non_default_layout", "test_mirror"
+    "default_config", "cache_directory", "install_dir_non_default_layout", "temporary_mirror"
 )
-def test_default_rpaths_install_nondefault_layout(mirror_dir):
+def test_default_rpaths_install_nondefault_layout(temporary_mirror_dir):
     """
     Test the creation and installation of buildcaches with default rpaths
     into the non-default directory layout scheme.
     """
-    cspec = Spec("corge").concretized()
+    cspec = spack.concretize.concretize_one("corge")
     # This guy tests for symlink relocation
-    sy_spec = Spec("symly").concretized()
+    sy_spec = spack.concretize.concretize_one("symly")
 
     # Install some packages with dependent packages
     # test install in non-default install path scheme
@@ -290,18 +268,19 @@ def test_default_rpaths_install_nondefault_layout(mirror_dir):
     buildcache_cmd("install", "-uf", cspec.name)
 
 
-@pytest.mark.requires_executables(*args)
+@pytest.mark.requires_executables(*required_executables)
 @pytest.mark.maybeslow
 @pytest.mark.nomockstage
 @pytest.mark.usefixtures(
-    "default_config", "cache_directory", "install_dir_default_layout", "test_mirror"
+    "default_config", "cache_directory", "install_dir_default_layout", "temporary_mirror"
 )
-def test_relative_rpaths_install_default_layout(mirror_dir):
+def test_relative_rpaths_install_default_layout(temporary_mirror_dir):
     """
     Test the creation and installation of buildcaches with relative
     rpaths into the default directory layout scheme.
     """
-    gspec, cspec = Spec("garply").concretized(), Spec("corge").concretized()
+    gspec = spack.concretize.concretize_one("garply")
+    cspec = spack.concretize.concretize_one("corge")
 
     # Install buildcache created with relativized rpaths
     buildcache_cmd("install", "-uf", cspec.name)
@@ -319,30 +298,30 @@ def test_relative_rpaths_install_default_layout(mirror_dir):
     buildcache_cmd("install", "-uf", cspec.name)
 
 
-@pytest.mark.requires_executables(*args)
+@pytest.mark.requires_executables(*required_executables)
 @pytest.mark.maybeslow
 @pytest.mark.nomockstage
 @pytest.mark.usefixtures(
-    "default_config", "cache_directory", "install_dir_non_default_layout", "test_mirror"
+    "default_config", "cache_directory", "install_dir_non_default_layout", "temporary_mirror"
 )
-def test_relative_rpaths_install_nondefault(mirror_dir):
+def test_relative_rpaths_install_nondefault(temporary_mirror_dir):
     """
     Test the installation of buildcaches with relativized rpaths
     into the non-default directory layout scheme.
     """
-    cspec = Spec("corge").concretized()
+    cspec = spack.concretize.concretize_one("corge")
 
     # Test install in non-default install path scheme and relative path
     buildcache_cmd("install", "-uf", cspec.name)
 
 
-def test_push_and_fetch_keys(mock_gnupghome):
+def test_push_and_fetch_keys(mock_gnupghome, tmp_path):
     testpath = str(mock_gnupghome)
 
     mirror = os.path.join(testpath, "mirror")
     mirrors = {"test-mirror": url_util.path_to_file_url(mirror)}
-    mirrors = spack.mirror.MirrorCollection(mirrors)
-    mirror = spack.mirror.Mirror(url_util.path_to_file_url(mirror))
+    mirrors = spack.mirrors.mirror.MirrorCollection(mirrors)
+    mirror = spack.mirrors.mirror.Mirror(url_util.path_to_file_url(mirror))
 
     gpg_dir1 = os.path.join(testpath, "gpg1")
     gpg_dir2 = os.path.join(testpath, "gpg2")
@@ -356,7 +335,7 @@ def test_push_and_fetch_keys(mock_gnupghome):
         assert len(keys) == 1
         fpr = keys[0]
 
-        bindist.push_keys(mirror, keys=[fpr], regenerate_index=True)
+        bindist._url_push_keys(mirror, keys=[fpr], tmpdir=str(tmp_path), update_index=True)
 
     # dir 2: import the key from the mirror, and confirm that its fingerprint
     #        matches the one created above
@@ -370,36 +349,35 @@ def test_push_and_fetch_keys(mock_gnupghome):
         assert new_keys[0] == fpr
 
 
-@pytest.mark.requires_executables(*args)
+@pytest.mark.requires_executables(*required_executables)
 @pytest.mark.maybeslow
 @pytest.mark.nomockstage
 @pytest.mark.usefixtures(
-    "default_config", "cache_directory", "install_dir_non_default_layout", "test_mirror"
+    "default_config", "cache_directory", "install_dir_non_default_layout", "temporary_mirror"
 )
-def test_built_spec_cache(mirror_dir):
+def test_built_spec_cache(temporary_mirror_dir):
     """Because the buildcache list command fetches the buildcache index
     and uses it to populate the binary_distribution built spec cache, when
     this test calls get_mirrors_for_spec, it is testing the popluation of
     that cache from a buildcache index."""
     buildcache_cmd("list", "-a", "-l")
 
-    gspec, cspec = Spec("garply").concretized(), Spec("corge").concretized()
+    gspec = spack.concretize.concretize_one("garply")
+    cspec = spack.concretize.concretize_one("corge")
 
     for s in [gspec, cspec]:
         results = bindist.get_mirrors_for_spec(s)
         assert any([r["spec"] == s for r in results])
 
 
-def fake_dag_hash(spec):
+def fake_dag_hash(spec, length=None):
     # Generate an arbitrary hash that is intended to be different than
     # whatever a Spec reported before (to test actions that trigger when
     # the hash changes)
-    return "tal4c7h4z0gqmixb1eqa92mjoybxn5l6"
+    return "tal4c7h4z0gqmixb1eqa92mjoybxn5l6"[:length]
 
 
-@pytest.mark.usefixtures(
-    "install_mockery_mutable_config", "mock_packages", "mock_fetch", "test_mirror"
-)
+@pytest.mark.usefixtures("install_mockery", "mock_packages", "mock_fetch", "temporary_mirror")
 def test_spec_needs_rebuild(monkeypatch, tmpdir):
     """Make sure needs_rebuild properly compares remote hash
     against locally computed one, avoiding unnecessary rebuilds"""
@@ -408,7 +386,7 @@ def test_spec_needs_rebuild(monkeypatch, tmpdir):
     mirror_dir = tmpdir.join("mirror_dir")
     mirror_url = url_util.path_to_file_url(mirror_dir.strpath)
 
-    s = Spec("libdwarf").concretized()
+    s = spack.concretize.concretize_one("libdwarf")
 
     # Install a package
     install_cmd(s.name)
@@ -428,7 +406,7 @@ def test_spec_needs_rebuild(monkeypatch, tmpdir):
     assert rebuild
 
 
-@pytest.mark.usefixtures("install_mockery_mutable_config", "mock_packages", "mock_fetch")
+@pytest.mark.usefixtures("install_mockery", "mock_packages", "mock_fetch")
 def test_generate_index_missing(monkeypatch, tmpdir, mutable_config):
     """Ensure spack buildcache index only reports available packages"""
 
@@ -437,7 +415,7 @@ def test_generate_index_missing(monkeypatch, tmpdir, mutable_config):
     mirror_url = url_util.path_to_file_url(mirror_dir.strpath)
     spack.config.set("mirrors", {"test": mirror_url})
 
-    s = Spec("libdwarf").concretized()
+    s = spack.concretize.concretize_one("libdwarf")
 
     # Install a package
     install_cmd("--no-cache", s.name)
@@ -465,7 +443,7 @@ def test_generate_index_missing(monkeypatch, tmpdir, mutable_config):
         assert "libelf" not in cache_list
 
 
-def test_generate_key_index_failure(monkeypatch):
+def test_generate_key_index_failure(monkeypatch, tmp_path):
     def list_url(url, recursive=False):
         if "fails-listing" in url:
             raise Exception("Couldn't list the directory")
@@ -478,13 +456,13 @@ def test_generate_key_index_failure(monkeypatch):
     monkeypatch.setattr(web_util, "push_to_url", push_to_url)
 
     with pytest.raises(CannotListKeys, match="Encountered problem listing keys"):
-        bindist.generate_key_index("s3://non-existent/fails-listing")
+        bindist.generate_key_index("s3://non-existent/fails-listing", str(tmp_path))
 
     with pytest.raises(GenerateIndexError, match="problem pushing .* Couldn't upload"):
-        bindist.generate_key_index("s3://non-existent/fails-uploading")
+        bindist.generate_key_index("s3://non-existent/fails-uploading", str(tmp_path))
 
 
-def test_generate_package_index_failure(monkeypatch, capfd):
+def test_generate_package_index_failure(monkeypatch, tmp_path, capfd):
     def mock_list_url(url, recursive=False):
         raise Exception("Some HTTP error")
 
@@ -493,15 +471,16 @@ def test_generate_package_index_failure(monkeypatch, capfd):
     test_url = "file:///fake/keys/dir"
 
     with pytest.raises(GenerateIndexError, match="Unable to generate package index"):
-        bindist.generate_package_index(test_url)
+        bindist._url_generate_package_index(test_url, str(tmp_path))
 
     assert (
-        f"Warning: Encountered problem listing packages at {test_url}: Some HTTP error"
+        "Warning: Encountered problem listing packages at "
+        f"{test_url}/{bindist.BUILD_CACHE_RELATIVE_PATH}: Some HTTP error"
         in capfd.readouterr().err
     )
 
 
-def test_generate_indices_exception(monkeypatch, capfd):
+def test_generate_indices_exception(monkeypatch, tmp_path, capfd):
     def mock_list_url(url, recursive=False):
         raise Exception("Test Exception handling")
 
@@ -510,85 +489,55 @@ def test_generate_indices_exception(monkeypatch, capfd):
     url = "file:///fake/keys/dir"
 
     with pytest.raises(GenerateIndexError, match=f"Encountered problem listing keys at {url}"):
-        bindist.generate_key_index(url)
+        bindist.generate_key_index(url, str(tmp_path))
 
     with pytest.raises(GenerateIndexError, match="Unable to generate package index"):
-        bindist.generate_package_index(url)
+        bindist._url_generate_package_index(url, str(tmp_path))
 
     assert f"Encountered problem listing packages at {url}" in capfd.readouterr().err
 
 
-@pytest.mark.usefixtures("mock_fetch", "install_mockery")
-def test_update_sbang(tmpdir, test_mirror):
-    """Test the creation and installation of buildcaches with default rpaths
-    into the non-default directory layout scheme, triggering an update of the
-    sbang.
-    """
-    spec_str = "old-sbang"
-    # Concretize a package with some old-fashioned sbang lines.
-    old_spec = Spec(spec_str).concretized()
-    old_spec_hash_str = "/{0}".format(old_spec.dag_hash())
+def test_update_sbang(tmp_path, temporary_mirror, mock_fetch, install_mockery):
+    """Test relocation of the sbang shebang line in a package script"""
+    s = spack.concretize.concretize_one("old-sbang")
+    PackageInstaller([s.package]).install()
+    old_prefix, old_sbang_shebang = s.prefix, sbang.sbang_shebang_line()
+    old_contents = f"""\
+{old_sbang_shebang}
+#!/usr/bin/env python3
 
-    # Need a fake mirror with *function* scope.
-    mirror_dir = test_mirror
-
-    # Assume all commands will concretize old_spec the same way.
-    install_cmd("--no-cache", old_spec.name)
+{s.prefix.bin}
+"""
+    with open(os.path.join(s.prefix.bin, "script.sh"), encoding="utf-8") as f:
+        assert f.read() == old_contents
 
     # Create a buildcache with the installed spec.
-    buildcache_cmd("push", "-u", mirror_dir, old_spec_hash_str)
-
-    # Need to force an update of the buildcache index
-    buildcache_cmd("update-index", mirror_dir)
-
-    # Uninstall the original package.
-    uninstall_cmd("-y", old_spec_hash_str)
+    buildcache_cmd("push", "--update-index", "--unsigned", temporary_mirror, f"/{s.dag_hash()}")
 
     # Switch the store to the new install tree locations
-    newtree_dir = tmpdir.join("newtree")
-    with spack.store.use_store(str(newtree_dir)):
-        new_spec = Spec("old-sbang").concretized()
-        assert new_spec.dag_hash() == old_spec.dag_hash()
+    with spack.store.use_store(str(tmp_path)):
+        s._prefix = None  # clear the cached old prefix
+        new_prefix, new_sbang_shebang = s.prefix, sbang.sbang_shebang_line()
+        assert old_prefix != new_prefix
+        assert old_sbang_shebang != new_sbang_shebang
+        PackageInstaller([s.package], cache_only=True, unsigned=True).install()
 
-        # Install package from buildcache
-        buildcache_cmd("install", "-u", "-f", new_spec.name)
+        # Check that the sbang line refers to the new install tree
+        new_contents = f"""\
+{sbang.sbang_shebang_line()}
+#!/usr/bin/env python3
 
-        # Continue blowing away caches
-        bindist.clear_spec_cache()
-        spack.stage.purge()
-
-        # test that the sbang was updated by the move
-        sbang_style_1_expected = """{0}
-#!/usr/bin/env python
-
-{1}
-""".format(
-            sbang.sbang_shebang_line(), new_spec.prefix.bin
-        )
-        sbang_style_2_expected = """{0}
-#!/usr/bin/env python
-
-{1}
-""".format(
-            sbang.sbang_shebang_line(), new_spec.prefix.bin
-        )
-
-        installed_script_style_1_path = new_spec.prefix.bin.join("sbang-style-1.sh")
-        assert sbang_style_1_expected == open(str(installed_script_style_1_path)).read()
-
-        installed_script_style_2_path = new_spec.prefix.bin.join("sbang-style-2.sh")
-        assert sbang_style_2_expected == open(str(installed_script_style_2_path)).read()
-
-        uninstall_cmd("-y", "/%s" % new_spec.dag_hash())
+{s.prefix.bin}
+"""
+        with open(os.path.join(s.prefix.bin, "script.sh"), encoding="utf-8") as f:
+            assert f.read() == new_contents
 
 
 @pytest.mark.skipif(
     str(archspec.cpu.host().family) != "x86_64",
     reason="test data uses gcc 4.5.0 which does not support aarch64",
 )
-def test_install_legacy_buildcache_layout(
-    mutable_config, compiler_factory, install_mockery_mutable_config
-):
+def test_install_legacy_buildcache_layout(mutable_config, compiler_factory, install_mockery):
     """Legacy buildcache layout involved a nested archive structure
     where the .spack file contained a repeated spec.json and another
     compressed archive file containing the install tree.  This test
@@ -635,58 +584,21 @@ def test_FetchCacheError_pretty_printing_single():
     assert str_e.rstrip() == str_e
 
 
-def test_build_manifest_visitor(tmpdir):
-    dir = "directory"
-    file = os.path.join("directory", "file")
+def test_text_relocate_if_needed(install_mockery, temporary_store, mock_fetch, tmp_path):
+    install_cmd("needs-text-relocation")
+    spec = temporary_store.db.query_one("needs-text-relocation")
+    tgz_path = tmp_path / "relocatable.tar.gz"
+    bindist.create_tarball(spec, str(tgz_path))
 
-    with tmpdir.as_cwd():
-        # Create a file inside a directory
-        os.mkdir(dir)
-        with open(file, "wb") as f:
-            f.write(b"example file")
+    # extract the .spack/binary_distribution file
+    with tarfile.open(tgz_path) as tar:
+        entry_name = next(x for x in tar.getnames() if x.endswith(".spack/binary_distribution"))
+        bd_file = tar.extractfile(entry_name)
+        manifest = syaml.load(bd_file)
 
-        # Symlink the dir
-        os.symlink(dir, "symlink_to_directory")
-
-        # Symlink the file
-        os.symlink(file, "symlink_to_file")
-
-        # Hardlink the file
-        os.link(file, "hardlink_of_file")
-
-        # Hardlinked symlinks: seems like this is only a thing on Linux,
-        # on Darwin the symlink *target* is hardlinked, on Linux the
-        # symlink *itself* is hardlinked.
-        if sys.platform.startswith("linux"):
-            os.link("symlink_to_file", "hardlink_of_symlink_to_file")
-            os.link("symlink_to_directory", "hardlink_of_symlink_to_directory")
-
-    visitor = bindist.BuildManifestVisitor()
-    visit_directory_tree(str(tmpdir), visitor)
-
-    # We de-dupe hardlinks of files, so there should really be just one file
-    assert len(visitor.files) == 1
-
-    # We do not de-dupe symlinks, cause it's unclear how to update symlinks
-    # in-place, preserving inodes.
-    if sys.platform.startswith("linux"):
-        assert len(visitor.symlinks) == 4  # includes hardlinks of symlinks.
-    else:
-        assert len(visitor.symlinks) == 2
-
-    with tmpdir.as_cwd():
-        assert not any(os.path.islink(f) or os.path.isdir(f) for f in visitor.files)
-        assert all(os.path.islink(f) for f in visitor.symlinks)
-
-
-def test_text_relocate_if_needed(install_mockery, mock_fetch, monkeypatch, capfd):
-    spec = Spec("needs-text-relocation").concretized()
-    install_cmd(str(spec))
-
-    manifest = get_buildfile_manifest(spec)
-    assert join_path("bin", "exe") in manifest["text_to_relocate"]
-    assert join_path("bin", "otherexe") not in manifest["text_to_relocate"]
-    assert join_path("bin", "secretexe") not in manifest["text_to_relocate"]
+    assert join_path("bin", "exe") in manifest["relocate_textfiles"]
+    assert join_path("bin", "otherexe") not in manifest["relocate_textfiles"]
+    assert join_path("bin", "secretexe") not in manifest["relocate_textfiles"]
 
 
 def test_etag_fetching_304():
@@ -695,7 +607,7 @@ def test_etag_fetching_304():
     # handled as success, since it means the local cache is up-to-date.
     def response_304(request: urllib.request.Request):
         url = request.get_full_url()
-        if url == "https://www.example.com/build_cache/index.json":
+        if url == f"https://www.example.com/build_cache/{INDEX_JSON_FILE}":
             assert request.get_header("If-none-match") == '"112a8bbc1b3f7f185621c1ee335f0502"'
             raise urllib.error.HTTPError(
                 url, 304, "Not Modified", hdrs={}, fp=None  # type: ignore[arg-type]
@@ -717,7 +629,7 @@ def test_etag_fetching_200():
     # Test conditional fetch with etags. The remote has modified the file.
     def response_200(request: urllib.request.Request):
         url = request.get_full_url()
-        if url == "https://www.example.com/build_cache/index.json":
+        if url == f"https://www.example.com/build_cache/{INDEX_JSON_FILE}":
             assert request.get_header("If-none-match") == '"112a8bbc1b3f7f185621c1ee335f0502"'
             return urllib.response.addinfourl(
                 io.BytesIO(b"Result"),
@@ -768,7 +680,7 @@ def test_default_index_fetch_200():
 
     def urlopen(request: urllib.request.Request):
         url = request.get_full_url()
-        if url.endswith("index.json.hash"):
+        if url.endswith(INDEX_HASH_FILE):
             return urllib.response.addinfourl(  # type: ignore[arg-type]
                 io.BytesIO(index_json_hash.encode()),
                 headers={},  # type: ignore[arg-type]
@@ -776,7 +688,7 @@ def test_default_index_fetch_200():
                 code=200,
             )
 
-        elif url.endswith("index.json"):
+        elif url.endswith(INDEX_JSON_FILE):
             return urllib.response.addinfourl(
                 io.BytesIO(index_json.encode()),
                 headers={"Etag": '"59bcc3ad6775562f845953cf01624225"'},  # type: ignore[arg-type]
@@ -807,7 +719,7 @@ def test_default_index_dont_fetch_index_json_hash_if_no_local_hash():
 
     def urlopen(request: urllib.request.Request):
         url = request.get_full_url()
-        if url.endswith("index.json"):
+        if url.endswith(INDEX_JSON_FILE):
             return urllib.response.addinfourl(
                 io.BytesIO(index_json.encode()),
                 headers={"Etag": '"59bcc3ad6775562f845953cf01624225"'},  # type: ignore[arg-type]
@@ -836,7 +748,7 @@ def test_default_index_not_modified():
 
     def urlopen(request: urllib.request.Request):
         url = request.get_full_url()
-        if url.endswith("index.json.hash"):
+        if url.endswith(INDEX_HASH_FILE):
             return urllib.response.addinfourl(
                 io.BytesIO(index_json_hash.encode()),
                 headers={},  # type: ignore[arg-type]
@@ -881,7 +793,7 @@ def test_default_index_json_404():
 
     def urlopen(request: urllib.request.Request):
         url = request.get_full_url()
-        if url.endswith("index.json.hash"):
+        if url.endswith(INDEX_HASH_FILE):
             return urllib.response.addinfourl(
                 io.BytesIO(index_json_hash.encode()),
                 headers={},  # type: ignore[arg-type]
@@ -889,7 +801,7 @@ def test_default_index_json_404():
                 code=200,
             )
 
-        elif url.endswith("index.json"):
+        elif url.endswith(INDEX_JSON_FILE):
             raise urllib.error.HTTPError(
                 url,
                 code=404,
@@ -920,14 +832,14 @@ def test_tarball_doesnt_include_buildinfo_twice(tmp_path: Path):
     p.joinpath(".spack").mkdir(parents=True)
 
     # Create a binary_distribution file in the .spack folder
-    with open(p / ".spack" / "binary_distribution", "w") as f:
+    with open(p / ".spack" / "binary_distribution", "w", encoding="utf-8") as f:
         f.write(syaml.dump({"metadata", "old"}))
 
     # Now create a tarball, which should include a new binary_distribution file
     tarball = str(tmp_path / "prefix.tar.gz")
 
     bindist._do_create_tarball(
-        tarfile_path=tarball, binaries_dir=str(p), buildinfo={"metadata": "new"}
+        tarfile_path=tarball, prefix=str(p), buildinfo={"metadata": "new"}, prefixes_to_relocate=[]
     )
 
     expected_prefix = str(p).lstrip("/")
@@ -936,7 +848,10 @@ def test_tarball_doesnt_include_buildinfo_twice(tmp_path: Path):
     # and that the tarball contains the new one, not the old one.
     with tarfile.open(tarball) as tar:
         assert syaml.load(tar.extractfile(f"{expected_prefix}/.spack/binary_distribution")) == {
-            "metadata": "new"
+            "metadata": "new",
+            "relocate_binaries": [],
+            "relocate_textfiles": [],
+            "relocate_links": [],
         }
         assert tar.getnames() == [
             *_all_parents(expected_prefix),
@@ -954,18 +869,22 @@ def test_reproducible_tarball_is_reproducible(tmp_path: Path):
     tarball_1 = str(tmp_path / "prefix-1.tar.gz")
     tarball_2 = str(tmp_path / "prefix-2.tar.gz")
 
-    with open(app, "w") as f:
+    with open(app, "w", encoding="utf-8") as f:
         f.write("hello world")
 
     buildinfo = {"metadata": "yes please"}
 
     # Create a tarball with a certain mtime of bin/app
     os.utime(app, times=(0, 0))
-    bindist._do_create_tarball(tarball_1, binaries_dir=str(p), buildinfo=buildinfo)
+    bindist._do_create_tarball(
+        tarball_1, prefix=str(p), buildinfo=buildinfo, prefixes_to_relocate=[]
+    )
 
     # Do it another time with different mtime of bin/app
     os.utime(app, times=(10, 10))
-    bindist._do_create_tarball(tarball_2, binaries_dir=str(p), buildinfo=buildinfo)
+    bindist._do_create_tarball(
+        tarball_2, prefix=str(p), buildinfo=buildinfo, prefixes_to_relocate=[]
+    )
 
     # They should be bitwise identical:
     assert filecmp.cmp(tarball_1, tarball_2, shallow=False)
@@ -999,15 +918,19 @@ def test_tarball_normalized_permissions(tmpdir):
 
     # Everyone can write & execute. This should turn into 0o755 when the tarball is
     # extracted (on a different system).
-    with open(app, "w", opener=lambda path, flags: os.open(path, flags, 0o777)) as f:
+    with open(
+        app, "w", opener=lambda path, flags: os.open(path, flags, 0o777), encoding="utf-8"
+    ) as f:
         f.write("hello world")
 
     # User doesn't have execute permissions, but group/world have; this should also
     # turn into 0o644 (user read/write, group&world only read).
-    with open(data, "w", opener=lambda path, flags: os.open(path, flags, 0o477)) as f:
+    with open(
+        data, "w", opener=lambda path, flags: os.open(path, flags, 0o477), encoding="utf-8"
+    ) as f:
         f.write("hello world")
 
-    bindist._do_create_tarball(tarball, binaries_dir=p.strpath, buildinfo={})
+    bindist._do_create_tarball(tarball, prefix=p.strpath, buildinfo={}, prefixes_to_relocate=[])
 
     expected_prefix = p.strpath.lstrip("/")
 
@@ -1062,10 +985,10 @@ def test_tarball_common_prefix(dummy_prefix, tmpdir):
         assert set(os.listdir(os.path.join("prefix2", "share"))) == {"file"}
 
         # Relative symlink should still be correct
-        assert os.readlink(os.path.join("prefix2", "bin", "relative_app_link")) == "app"
+        assert readlink(os.path.join("prefix2", "bin", "relative_app_link")) == "app"
 
         # Absolute symlink should remain absolute -- this is for relocation to fix up.
-        assert os.readlink(os.path.join("prefix2", "bin", "absolute_app_link")) == os.path.join(
+        assert readlink(os.path.join("prefix2", "bin", "absolute_app_link")) == os.path.join(
             dummy_prefix, "bin", "app"
         )
 
@@ -1126,7 +1049,7 @@ def test_tarfile_of_spec_prefix(tmpdir):
     file = tmpdir.join("example.tar")
 
     with tarfile.open(file, mode="w") as tar:
-        bindist.tarfile_of_spec_prefix(tar, prefix.strpath)
+        bindist.tarfile_of_spec_prefix(tar, prefix.strpath, prefixes_to_relocate=[])
 
     expected_prefix = prefix.strpath.lstrip("/")
 
@@ -1171,7 +1094,7 @@ def test_get_valid_spec_file(tmp_path, layout, expect_success):
         spec_dict["buildcache_layout_version"] = layout
 
     # Save to file
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(spec_dict, f)
 
     try:
@@ -1220,7 +1143,7 @@ def test_download_tarball_with_unsupported_layout_fails(tmp_path, mutable_config
         tmp_path / bindist.build_cache_relative_path() / bindist.tarball_name(spec, ".spec.json")
     )
     path.parent.mkdir(parents=True)
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(spec_dict, f)
 
     # Configure as a mirror.
@@ -1231,3 +1154,19 @@ def test_download_tarball_with_unsupported_layout_fails(tmp_path, mutable_config
 
     # And there should be a warning about an unsupported layout version.
     assert f"Layout version {layout_version} is too new" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize(
+    "spec",
+    [
+        # Standard case
+        "short-name@=1.2.3",
+        # Unsupported characters in git version
+        f"git-version@{1:040x}=develop",
+        # Too long of a name
+        f"{'too-long':x<256}@=1.2.3",
+    ],
+)
+def test_default_tag(spec: str):
+    """Make sure that computed image tags are valid."""
+    assert re.fullmatch(spack.oci.image.tag, bindist._oci_default_tag(spack.spec.Spec(spec)))

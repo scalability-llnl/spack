@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,7 +8,7 @@ from spack.package import *
 class PyAsdfTransformSchemas(PythonPackage):
     """ASDF schemas for transforms"""
 
-    homepage = "asdf-transform-schemas.readthedocs.io"
+    homepage = "https://asdf-transform-schemas.readthedocs.io"
     pypi = "asdf_transform_schemas/asdf_transform_schemas-0.3.0.tar.gz"
 
     maintainers("lgarrison")

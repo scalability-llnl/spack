@@ -1,14 +1,15 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import argparse
 import collections
 import io
-import os.path
+import os
 import re
 import sys
+
+import spack.extensions
 
 try:
     import pytest
@@ -214,8 +215,6 @@ def unit_test(parser, args, unknown_args):
 
     # Ensure clingo is available before switching to the
     # mock configuration used by unit tests
-    # Note: skip on windows here because for the moment,
-    # clingo is wholly unsupported from bootstrap
     with spack.bootstrap.ensure_bootstrap_configuration():
         spack.bootstrap.ensure_core_dependencies()
         if pytest is None:

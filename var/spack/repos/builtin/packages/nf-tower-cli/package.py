@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,8 @@ class NfTowerCli(Package):
 
     homepage = "https://github.com/seqeralabs/tower-cli"
     maintainers("marcodelapierre")
+
+    skip_version_audit = ["platform=windows"]
 
     if platform.machine() == "x86_64":
         if platform.system() == "Darwin":
@@ -104,7 +105,7 @@ class NfTowerCli(Package):
                 url="https://github.com/seqeralabs/tower-cli/releases/download/v0.6.2/tw-0.6.2-linux-x86_64",
                 expand=False,
             )
-    elif platform.machine() == "aarch64":
+    elif platform.machine() == "arm64":
         if platform.system() == "Darwin":
             version(
                 "0.9.2",

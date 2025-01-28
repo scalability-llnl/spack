@@ -19,7 +19,6 @@ packages:
     - apple-clang
     - clang
     - gcc
-    - intel
     providers:
       elf: [libelf]
       fuse: [macfuse]

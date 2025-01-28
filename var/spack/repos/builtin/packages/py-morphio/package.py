@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,8 @@ class PyMorphio(PythonPackage):
 
     version("3.3.7", sha256="7cb6676fcbaa2ac154742ca8aed3fcb03bb4643852e36e368858580133b61732")
     version("3.3.6", sha256="0f2e55470d92a3d89f2141ae905ee104fd16257b93dafb90682d90171de2f4e6")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("py-setuptools@24.2:", type="build")
     depends_on("py-setuptools-scm", type="build")

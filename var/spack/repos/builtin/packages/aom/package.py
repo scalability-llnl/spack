@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,9 @@ class Aom(CMakePackage):
     license("BSD-2-Clause AND AOM-Patent-License-1.0", checked_by="tgamblin")
 
     version("v1.0.0-errata1", commit="29d8ce4836630df5cc7ab58f1afc4836765fc212")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
     depends_on("yasm")
 
     def cmake_args(self):

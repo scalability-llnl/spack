@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,8 @@ class Lordec(MakefilePackage):
 
     version("0.9", sha256="8108b82a8404fbf44c7e300d3abb43358ccc28993f90546168a20ca82536923b")
     version("0.8", sha256="3894a7c57649a3545b598f92a48d55eda66d729ab51606b00470c50611b12823")
+
+    depends_on("cxx", type="build")  # generated
 
     def url_for_version(self, version):
         if version == Version("0.8"):

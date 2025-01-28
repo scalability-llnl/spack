@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -117,7 +116,7 @@ def post_install(spec, explicit=None):
         return
 
     # Only enable on platforms using ELF.
-    if not spec.satisfies("platform=linux") and not spec.satisfies("platform=cray"):
+    if not spec.satisfies("platform=linux"):
         return
 
     visit_directory_tree(spec.prefix, ElfFilesWithRPathVisitor())

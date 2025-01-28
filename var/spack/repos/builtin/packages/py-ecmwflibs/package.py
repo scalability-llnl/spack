@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,9 @@ class PyEcmwflibs(PythonPackage):
     license("Apache-2.0")
 
     version("0.6.1", sha256="9f2153d1b4a07038b975b7d6bb89bbf9e88d6bc4e2ef4d4e067e58a2fb5270d3")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("py-setuptools", type="build")
     depends_on("py-findlibs", type=("build", "run"))

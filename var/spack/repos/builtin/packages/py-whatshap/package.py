@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,8 @@ class PyWhatshap(PythonPackage):
     license("MIT")
 
     version("0.17", sha256="5f342cbd28f5d3e79490754f067aa67e8bb059da1c042d944b9f75663ef6b055")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("python@3.4:", type=("build", "run"))
     depends_on("py-setuptools", type="build")

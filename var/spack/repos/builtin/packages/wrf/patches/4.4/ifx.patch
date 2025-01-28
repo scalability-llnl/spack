@@ -26,7 +26,7 @@ index 6aa210d7..a3224d34 100644
 +PROMOTION       =       -real-size `expr 8 \* $(RWORDSIZE)` -i4
 +ARCH_LOCAL      =       -DNONSTANDARD_SYSTEM_FUNC -DRPC_TYPES=2 -DXEON_SIMD
 +CFLAGS_LOCAL    =       -w -flto -O3 -Wno-implicit-function-declaration -Wno-implicit-int
-+LDFLAGS_LOCAL   =       -flto -fuse-ld=lld
++LDFLAGS_LOCAL   =       -flto -fuse-ld=lld -i_use-path
 +CPLUSPLUSLIB    =       
 +ESMF_LDFLAG     =       $(CPLUSPLUSLIB)
 +FCOPTIM         =       -O3
@@ -38,7 +38,7 @@ index 6aa210d7..a3224d34 100644
 +FCSUFFIX        =
 +BYTESWAPIO      =       -convert big_endian
 +RECORDLENGTH    =       -assume byterecl
-+FCBASEOPTS_NO_G =       -O3 -flto -w -ftz -align array64byte -fno-alias $(FORMAT_FREE) $(BYTESWAPIO) -fp-model fast=2 -fimf-use-svml=true -vec-threshold0 -xCORE-AVX512
++FCBASEOPTS_NO_G =       -O3 -flto -w -ftz -align array64byte -fno-alias $(FORMAT_FREE) $(BYTESWAPIO) -fp-model fast=2 -fimf-use-svml=true -vec-threshold0
 +FCBASEOPTS      =       $(FCBASEOPTS_NO_G) $(FCDEBUG)
 +MODULE_SRCH_FLAG =     
 +TRADFLAG        =      -traditional-cpp

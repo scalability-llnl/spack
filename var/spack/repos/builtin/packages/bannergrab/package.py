@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class Bannergrab(MakefilePackage):
     license("GPL-3.0-or-later")
 
     version("master", branch="master")
+
+    depends_on("c", type="build")  # generated
 
     def install(self, spec, prefix):
         mkdirp(prefix.bin)

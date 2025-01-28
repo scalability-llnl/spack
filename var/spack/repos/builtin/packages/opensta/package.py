@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,6 +26,8 @@ class Opensta(CMakePackage):
     license("GPL-3.0-only")
 
     version("master", branch="master")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("zlib", default=True, description="build with zlib support")
     variant("cudd", default=True, description="build with cudd support")

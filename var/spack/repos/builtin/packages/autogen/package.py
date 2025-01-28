@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,8 @@ class Autogen(AutotoolsPackage, GNUMirrorPackage):
 
     version("5.18.12", sha256="805c20182f3cb0ebf1571d3b01972851c56fb34348dfdc38799fd0ec3b2badbe")
 
+    depends_on("c", type="build")  # generated
+
     variant("xml", default=True, description="Enable XML support")
 
     depends_on("pkgconfig", type="build")
@@ -37,7 +38,7 @@ class Autogen(AutotoolsPackage, GNUMirrorPackage):
             "--disable-nls"
         ]
 
-        if "+xml" in spec:
+        if spec.satisfies("+xml"):
             args.append(f"--with-libxml2={spec['libxml2'].prefix}")
         else:
             args.append("--without-libxml2")

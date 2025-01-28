@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,10 @@ class Flexi(CMakePackage):
 
     version("master", preferred=True)
     version("21.03.0", tag="v21.03.0", commit="d061978e5d96cfc96c06edc1bae9d92cbe540c18")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     patch("for_aarch64.patch", when="target=aarch64:")
 

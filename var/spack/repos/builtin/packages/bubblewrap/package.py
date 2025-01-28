@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,6 +26,8 @@ class Bubblewrap(AutotoolsPackage):
     version("0.4.0", sha256="e5fe7d2f74bd7029b5306b0b70587cec31f74357739295e5276b4a3718712023")
     version("0.3.3", sha256="c6a45f51794a908b76833b132471397a7413f07620af08e76c273d9f7b364dff")
     version("0.3.1", sha256="deca6b608c54df4be0669b8bb6d254858924588e9f86e116eb04656a3b6d4bf8")
+
+    depends_on("c", type="build")  # generated
 
     def configure_args(self):
         return ["--disable-sudo", "--disable-man", "--without-bash-completion-dir"]

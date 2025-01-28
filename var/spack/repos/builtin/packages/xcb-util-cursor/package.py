@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,7 +23,10 @@ class XcbUtilCursor(AutotoolsPackage, XorgPackage):
         "0.1.3",
         sha256="a322332716a384c94d3cbf98f2d8fe2ce63c2fe7e2b26664b6cea1d411723df8",
         url="https://xcb.freedesktop.org/dist/xcb-util-cursor-0.1.4.tar.gz",
+        deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
 
     depends_on("libxcb@1.4:")
     depends_on("xcb-util-renderutil")

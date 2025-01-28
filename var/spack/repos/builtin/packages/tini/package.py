@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,4 +16,6 @@ class Tini(CMakePackage):
     license("MIT")
 
     version("0.19.0", sha256="0fd35a7030052acd9f58948d1d900fe1e432ee37103c5561554408bdac6bbf0d")
+
+    depends_on("c", type="build")  # generated
     patch("tini_static_rpath_issue.patch", when="@0.19.0:")

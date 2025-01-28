@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,8 @@ class Tldd(MakefilePackage):
 
     version("2018-10-05", commit="61cb512cc992ea6cbb7239e99ec7ac92ea072507")
     version("master", branch="master")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("pstreams@0.8.0:")
 

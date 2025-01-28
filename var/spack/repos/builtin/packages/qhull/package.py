@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,6 +25,9 @@ class Qhull(CMakePackage):
     version("2019.1", sha256="cf7235b76244595a86b9407b906e3259502b744528318f2178155e5899d6cf9f")
     version("2015.2", sha256="8b6dd67ff77ce1ee814da84f4134ef4bdce1f1031e570b8d83019ccef58b1c00")
     version("2012.1", sha256="cb1296fbb9ec8b7d6e8f4c239ad165590616f242c7c46f790c27d8dcebe96c6a")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     patch("qhull-unused-intel-17.02.patch", when="@2015.2")
 

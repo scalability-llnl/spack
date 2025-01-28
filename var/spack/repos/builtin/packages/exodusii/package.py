@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -180,10 +179,11 @@ class Exodusii(CMakePackage):
                 [
                     define("CMAKE_C_COMPILER", spec["mpi"].mpicc),
                     define("CMAKE_CXX_COMPILER", spec["mpi"].mpicxx),
-                    define("CMAKE_Fortran_COMPILER", spec["mpi"].mpifc),
                     define("MPI_BASE_DIR", spec["mpi"].prefix),
                 ]
             )
+            if self.spec.satisfies("+fortran"):
+                options.append(define("CMAKE_Fortran_COMPILER", spec["mpi"].mpifc))
 
         # ##################### Dependencies ##########################
         # Always need NetCDF-C

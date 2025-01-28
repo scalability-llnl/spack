@@ -1,8 +1,6 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import inspect
 import os
 from typing import Iterable
 
@@ -11,11 +9,15 @@ from llnl.util.lang import memoized
 
 import spack.builder
 import spack.package_base
-from spack.directives import build_system, extends
+import spack.phase_callbacks
+import spack.spec
+import spack.util.prefix
+from spack.directives import build_system, depends_on, extends
 from spack.install_test import SkipTest, test_part
+from spack.multimethod import when
 from spack.util.executable import Executable
 
-from ._checks import BaseBuilder, execute_build_time_tests
+from ._checks import BuilderWithDefaults, execute_build_time_tests
 
 
 class PerlPackage(spack.package_base.PackageBase):
@@ -29,7 +31,9 @@ class PerlPackage(spack.package_base.PackageBase):
 
     build_system("perl")
 
-    extends("perl", when="build_system=perl")
+    with when("build_system=perl"):
+        extends("perl")
+        depends_on("gmake", type="build")
 
     @property
     @memoized
@@ -85,7 +89,7 @@ class PerlPackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("perl")
-class PerlBuilder(BaseBuilder):
+class PerlBuilder(BuilderWithDefaults):
     """The perl builder provides four phases that can be overridden, if required:
 
         1. :py:meth:`~.PerlBuilder.configure`
@@ -134,7 +138,7 @@ class PerlBuilder(BaseBuilder):
     def build_executable(self):
         """Returns the executable method to build the perl package"""
         if self.build_method == "Makefile.PL":
-            build_executable = inspect.getmodule(self.pkg).make
+            build_executable = self.pkg.module.make
         elif self.build_method == "Build.PL":
             build_executable = Executable(os.path.join(self.pkg.stage.source_path, "Build"))
         return build_executable
@@ -147,7 +151,9 @@ class PerlBuilder(BaseBuilder):
         """
         return []
 
-    def configure(self, pkg, spec, prefix):
+    def configure(
+        self, pkg: PerlPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Run Makefile.PL or Build.PL with arguments consisting of
         an appropriate installation base directory followed by the
         list returned by :py:meth:`~.PerlBuilder.configure_args`.
@@ -158,30 +164,34 @@ class PerlBuilder(BaseBuilder):
             options = ["Build.PL", "--install_base", prefix]
         options += self.configure_args()
 
-        inspect.getmodule(self.pkg).perl(*options)
+        pkg.module.perl(*options)
 
     # It is possible that the shebang in the Build script that is created from
     # Build.PL may be too long causing the build to fail. Patching the shebang
     # does not happen until after install so set '/usr/bin/env perl' here in
     # the Build script.
-    @spack.builder.run_after("configure")
+    @spack.phase_callbacks.run_after("configure")
     def fix_shebang(self):
         if self.build_method == "Build.PL":
             pattern = "#!{0}".format(self.spec["perl"].command.path)
             repl = "#!/usr/bin/env perl"
             filter_file(pattern, repl, "Build", backup=False)
 
-    def build(self, pkg, spec, prefix):
+    def build(
+        self, pkg: PerlPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Builds a Perl package."""
         self.build_executable()
 
     # Ensure that tests run after build (if requested):
-    spack.builder.run_after("build")(execute_build_time_tests)
+    spack.phase_callbacks.run_after("build")(execute_build_time_tests)
 
     def check(self):
         """Runs built-in tests of a Perl package."""
         self.build_executable("test")
 
-    def install(self, pkg, spec, prefix):
+    def install(
+        self, pkg: PerlPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Installs a Perl package."""
         self.build_executable("install")

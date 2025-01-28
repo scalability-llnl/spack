@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,5 +16,7 @@ class PyEdlib(PythonPackage):
     license("MIT")
 
     version("1.3.9", sha256="64c3dfab3ebe3e759565a0cc71eb4df23cf3ce1713fd558af3c473dddc2a3766")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("py-setuptools", type="build")

@@ -1,0 +1,42 @@
+--- a/ext/phar/phar/pharcommand.inc.org
++++ b/ext/phar/phar/pharcommand.inc
+@@ -68,6 +68,12 @@ class PharCommand extends CLICommand
+                 'inf' => '<bang>   Hash-bang line to start the archive (e.g. #!/usr/bin/php). The hash '
+                          .'         mark itself \'#!\' and the newline character are optional.'
+             ),
++            'z' => array(
++                'typ' => 'any',
++                'val' => NULL,
++                'inf' => '<bang>   Hash-bang line to start the archive for spack. The hash '
++                         .'         mark itself \'#!\' and the newline character are optional.'
++            ),
+             'c' => array(
+                 'typ' => 'compalg',
+                 'val' => NULL,
+@@ -467,7 +473,7 @@ class PharCommand extends CLICommand
+      */
+     static function cli_cmd_arg_pack()
+     {
+-        $args = self::phar_args('abcFhilpsxy', 'pharnew');
++        $args = self::phar_args('azbcFhilpsxy', 'pharnew');
+ 
+         $args[''] = array(
+             'typ'     => 'any',
+@@ -572,6 +578,7 @@ class PharCommand extends CLICommand
+         }
+ 
+         $alias    = $this->args['a']['val'];
++        $spack_hb = $this->args['z']['val'];
+         $hashbang = $this->args['b']['val'];
+         $archive  = $this->args['f']['val'];
+         $hash     = $this->args['h']['val'];
+@@ -583,6 +590,9 @@ class PharCommand extends CLICommand
+         $invregex = $this->args['x']['val'];
+         $input    = $this->args['']['val'];
+ 
++        if (isset($spack_hb)) {
++                $hashbang = "$spack_hb\n<?php #!$hashbang ?>";
++        }
+         $hash = self::phar_check_hash($hash, $privkey);
+ 
+         $phar  = new Phar($archive, 0, $alias);

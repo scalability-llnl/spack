@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -30,6 +29,9 @@ class Opencoarrays(CMakePackage):
     version("1.8.0", sha256="96f5a9c37f7bb587eacd44bc8789924d20c8e56dbbc51fad57e73d9f7a3768b5")
     version("1.7.4", sha256="1929dee793ce8f09e3b183e2b07c3e0008580cc76b460b1f7f7c066ad6672e14")
     version("1.6.2", sha256="7855d42a01babc233a070cc87282b5f8ffd538a7c87ec5119605d4d7c6d7f67e")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant(
         "build_type",

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -29,6 +28,9 @@ class Teckit(AutotoolsPackage):
     version("2.5.7", commit="50c7346dc3c887b16b26c3ff269fd4cfc9f8a892")
     version("2.5.6", commit="41c20be2793e1afcbb8de6339af89d1eeab84fe8")
     version("2.5.5", commit="2733fd9895819e3697257550cc39b8e419c1ee7e")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("zlib-api")
     depends_on("autoconf", type="build")

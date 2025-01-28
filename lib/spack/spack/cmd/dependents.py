@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -47,16 +46,6 @@ def inverted_dependencies():
     dependents of, e.g., `mpi`, but virtuals are not included as
     actual dependents.
     """
-    dag = {}
-    for pkg_cls in spack.repo.PATH.all_package_classes():
-        dag.setdefault(pkg_cls.name, set())
-        for dep in pkg_cls.dependencies_by_name():
-            deps = [dep]
-
-            # expand virtuals if necessary
-            if spack.repo.PATH.is_virtual(dep):
-                deps += [s.name for s in spack.repo.PATH.providers_for(dep)]
-
     dag = collections.defaultdict(set)
     for pkg_cls in spack.repo.PATH.all_package_classes():
         for _, deps_by_name in pkg_cls.dependencies.items():

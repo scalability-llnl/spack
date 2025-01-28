@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,6 +24,8 @@ class PyReproject(PythonPackage):
     license("BSD-3-Clause")
 
     version("0.7.1", sha256="95c0fa49e6b4e36455b91fa09ad1b71b230c990ad91d948af67ea3509a1a4ccb")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("python@3.6:", type=("build", "run"))
     depends_on("py-setuptools", type="build")

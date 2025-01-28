@@ -5,9 +5,10 @@
 """The "cpu" package permits to query and compare different
 CPU microarchitectures.
 """
-from .detect import host
+from .detect import brand_string, host
 from .microarchitecture import (
     TARGETS,
+    InvalidCompilerVersion,
     Microarchitecture,
     UnsupportedMicroarchitecture,
     generic_microarchitecture,
@@ -15,10 +16,12 @@ from .microarchitecture import (
 )
 
 __all__ = [
+    "brand_string",
+    "host",
+    "TARGETS",
+    "InvalidCompilerVersion",
     "Microarchitecture",
     "UnsupportedMicroarchitecture",
-    "TARGETS",
     "generic_microarchitecture",
-    "host",
     "version_components",
 ]

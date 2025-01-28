@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,6 +25,9 @@ class Faodel(CMakePackage):
     version("1.1811.2", sha256="22feb502dad0f56fb8af492f6e2cdc53a97fd6c31f6fa3c655be0a6266c46996")
     version("1.1811.1", sha256="8e95ee99b8c136ff687eb07a2481ee04560cb1526408eb22ab56cd9c60206916")
     version("1.1803.1", sha256="70ce7125c02601e14abe5985243d67adf677ed9e7a4dd6d3eaef8a97cf281a16")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("shared", default=True, description="Build Faodel as shared libs")
     variant("mpi", default=True, description="Enable MPI")
@@ -62,6 +64,7 @@ class Faodel(CMakePackage):
         "+program_options+exception+locale+system+chrono+log+serialization"
         "+atomic+container+regex+thread+date_time"
     )
+    depends_on("boost@:1.86", when="@:1.2108.1")
     depends_on("cmake@3.8.0:", type="build")
     depends_on("hdf5+mpi", when="+hdf5+mpi")
     depends_on("hdf5~mpi", when="+hdf5~mpi")

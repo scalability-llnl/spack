@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,30 @@ class IntelOneapiDpl(IntelOneApiLibraryPackage):
 
     homepage = "https://github.com/oneapi-src/oneDPL"
 
+    version(
+        "2022.7.1",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/de3c613f-829c-4bdc-aa2b-6129eece3bd9/intel-onedpl-2022.7.1.15_offline.sh",
+        sha256="737f8d29f50fcb26abf7a39373305c177d8b91a70dbc5fed9d41aabfcc8bad5a",
+        expand=False,
+    )
+    version(
+        "2022.7.0",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/85ad74ff-f4fa-45e2-b50d-67d637d42baa/intel-onedpl-2022.7.0.647_offline.sh",
+        sha256="8eecb6bd35ad414248fc03f9fd8ef4ec504d0ce44724b2c23d42f5f08e046a3f",
+        expand=False,
+    )
+    version(
+        "2022.6.1",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/fe007d71-c49f-4cdd-8a95-5c8e29c5b19c/l_oneDPL_p_2022.6.1.15_offline.sh",
+        sha256="44eb3d12321e4fbf0bf8f78f47831ce4d5825cc041037ff919dca79db3354c7d",
+        expand=False,
+    )
+    version(
+        "2022.6.0",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/65565430-3eb6-49ad-ae51-e35314cc6f08/l_oneDPL_p_2022.6.0.560_offline.sh",
+        sha256="540c79d2cea77c009fd7d49d65323418aded1235afd30d91192257a2f14a366f",
+        expand=False,
+    )
     version(
         "2022.5.0",
         url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/d0be9e37-532e-4fde-9ac2-32c3ec5a2029/l_oneDPL_p_2022.5.0.219_offline.sh",

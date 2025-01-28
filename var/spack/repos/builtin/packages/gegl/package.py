@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,6 +26,9 @@ class Gegl(MesonPackage):
     version("0.4.36", sha256="6fd58a0cdcc7702258adaeffb573a389228ae8f0eff47578efda2309b61b2ca6")
     version("0.4.34", sha256="ef63f0bca5b431c6119addd834ca7fbb507c900c4861c57b3667b6f4ccfcaaaa")
     version("0.4.32", sha256="668e3c6b9faf75fb00512701c36274ab6f22a8ba05ec62dbf187d34b8d298fa1")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("pkgconfig", type="build")
     depends_on("cmake@3.4:", type="build")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,9 @@ class Advancecomp(AutotoolsPackage):
     version("2.0", sha256="caa63332cd141db17988eb89c662cf76bdde72f60d4de7cb0fe8c7e51eb40eb7")
     version("1.23", sha256="fe89d6ab382efc6b6be536b8d58113f36b83d82783d5215c261c14374cba800a")
     version("1.22", sha256="b8c482027a5f78d9a7f871cbba19cc896ed61653d1d93034c9dbe55484952605")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,10 @@ class Specfem3dGlobe(AutotoolsPackage, CudaPackage):
 
     version("8.0.0", sha256="3e234e66fce4cc5484c651584187b255f951ee6cd1ec057e6aa6d42aced9052d")
     version("7.0.2", sha256="78b4cfbe4e5121927ab82a8c2e821b65cdfff3e94d017303bf21af7805186d9b")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("opencl", default=False, description="Build with OpenCL code generator")
     variant("openmp", default=True, description="Build with OpenMP code generator")

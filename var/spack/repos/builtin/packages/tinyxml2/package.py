@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,6 +24,8 @@ class Tinyxml2(CMakePackage):
     version("2.2.0", sha256="f891224f32e7a06bf279290619cec80cc8ddc335c13696872195ffb87f5bce67")
     version("2.1.0", sha256="4bdd6569fdce00460bf9cda0ff5dcff46d342b4595900d849cc46a277a74cce6")
     version("2.0.2", sha256="3cc3aa09cd1ce77736f23488c7cb24e65e11daed4e870ddc8d352aa4070c7c74")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("shared", default=False, description="Build shared library")
 

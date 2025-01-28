@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -55,11 +54,15 @@ class Ascent(CMakePackage, CudaPackage):
     version("develop", branch="develop", submodules=True)
 
     version(
-        "0.9.2",
-        tag="v0.9.2",
-        commit="b842516d12640e4a0d9433a18c7249440ef6fc3d",
+        "0.9.3",
+        tag="v0.9.3",
+        commit="e69d6ec77938846caae8fea7ed988b1151ac9b81",
         submodules=True,
         preferred=True,
+    )
+
+    version(
+        "0.9.2", tag="v0.9.2", commit="b842516d12640e4a0d9433a18c7249440ef6fc3d", submodules=True
     )
 
     version(
@@ -85,6 +88,10 @@ class Ascent(CMakePackage, CudaPackage):
     version(
         "0.6.0", tag="v0.6.0", commit="9ade37b0a9ea495e45adb25cda7498c0bf9465c5", submodules=True
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     ###########################################################################
     # package variants
@@ -155,6 +162,7 @@ class Ascent(CMakePackage, CudaPackage):
     depends_on("conduit@:0.7.2", when="@:0.7.1")
     depends_on("conduit@0.8.2:", when="@0.8:")
     depends_on("conduit@0.8.6:", when="@0.9:")
+    depends_on("conduit@0.9.1:", when="@0.9.3:")
     depends_on("conduit+python", when="+python")
     depends_on("conduit~python", when="~python")
     depends_on("conduit+mpi", when="+mpi")
@@ -183,12 +191,18 @@ class Ascent(CMakePackage, CudaPackage):
 
     #######################
     # RAJA and Umpire
+    # Note: Let RAJA/Umpire handle the Camp version constraints
     #######################
-    depends_on("raja", when="+raja")
-    depends_on("raja+openmp", when="+raja +openmp")
-    depends_on("raja~openmp", when="+raja ~openmp")
-    depends_on("umpire", when="+umpire")
-    depends_on("umpire@:2023.06.0", when="@:0.9.2 +umpire")
+    with when("+raja"):
+        depends_on("raja")
+        depends_on("raja@2024.02.1:2024.02.99", when="@0.9.3:")
+        depends_on("raja+openmp", when="+openmp")
+        depends_on("raja~openmp", when="~openmp")
+
+    with when("+umpire"):
+        depends_on("umpire")
+        depends_on("umpire@:2023.06.0", when="@:0.9.2")
+        depends_on("umpire@2024.02.1:2024.02.99", when="@0.9.3:")
 
     #######################
     # BabelFlow
@@ -201,6 +215,7 @@ class Ascent(CMakePackage, CudaPackage):
     #######################
     with when("+vtkh"):
         depends_on("vtk-m +doubleprecision ~64bitids")
+        depends_on("vtk-m@2.1:", when="@0.9.3:")
         depends_on("vtk-m@2.0:", when="@0.9.2:")
         # 2.1 support needs commit e52b7bb8c9fd131f2fd49edf58037cc5ef77a166
         depends_on("vtk-m@:2.0", when="@:0.9.2")
@@ -215,6 +230,7 @@ class Ascent(CMakePackage, CudaPackage):
         depends_on("vtk-m~shared+fpic", when="@0.8.0: ~shared")
         # Ascent defaults to C++11
         depends_on("kokkos cxxstd=11", when="+vtkh ^vtk-m +kokkos")
+        depends_on("kokkos@3.7.02", when="@0.9.3: +vtkh ^vtk-m +kokkos")
 
         #######################
         # VTK-h
@@ -380,7 +396,7 @@ class Ascent(CMakePackage, CudaPackage):
         #######################
         c_compiler = env["SPACK_CC"]
         cpp_compiler = env["SPACK_CXX"]
-        if "+fortran" in spec:
+        if spec.satisfies("+fortran"):
             f_compiler = env["SPACK_FC"]
         else:
             f_compiler = None
@@ -398,7 +414,7 @@ class Ascent(CMakePackage, CudaPackage):
         # Find and record what CMake is used
         ##############################################
 
-        if "+cmake" in spec:
+        if spec.satisfies("+cmake"):
             cmake_exe = spec["cmake"].command.path
         else:
             cmake_exe = which("cmake")
@@ -433,14 +449,14 @@ class Ascent(CMakePackage, CudaPackage):
         cfg.write(cmake_cache_entry("CMAKE_CXX_COMPILER", cpp_compiler))
 
         cfg.write("# fortran compiler used by spack\n")
-        if "+fortran" in spec:
+        if spec.satisfies("+fortran"):
             cfg.write(cmake_cache_entry("ENABLE_FORTRAN", "ON"))
             cfg.write(cmake_cache_entry("CMAKE_Fortran_COMPILER", f_compiler))
         else:
             cfg.write(cmake_cache_entry("ENABLE_FORTRAN", "OFF"))
 
         # shared vs static libs
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             cfg.write(cmake_cache_entry("BUILD_SHARED_LIBS", "ON"))
         else:
             cfg.write(cmake_cache_entry("BUILD_SHARED_LIBS", "OFF"))
@@ -465,7 +481,7 @@ class Ascent(CMakePackage, CudaPackage):
         #######################
         # Unit Tests
         #######################
-        if "+test" in spec:
+        if spec.satisfies("+test"):
             cfg.write(cmake_cache_entry("ENABLE_TESTS", "ON"))
         else:
             cfg.write(cmake_cache_entry("ENABLE_TESTS", "OFF"))
@@ -495,7 +511,7 @@ class Ascent(CMakePackage, CudaPackage):
             cfg.write("# Enable python module builds\n")
             cfg.write(cmake_cache_entry("ENABLE_PYTHON", "ON"))
             cfg.write("# python from spack \n")
-            cfg.write(cmake_cache_entry("PYTHON_EXECUTABLE", spec["python"].command.path))
+            cfg.write(cmake_cache_entry("PYTHON_EXECUTABLE", python.path))
             try:
                 cfg.write("# python module install dir\n")
                 cfg.write(cmake_cache_entry("PYTHON_MODULE_INSTALL_PREFIX", python_platlib))
@@ -518,7 +534,7 @@ class Ascent(CMakePackage, CudaPackage):
         # Serial
         #######################
 
-        if "+serial" in spec:
+        if spec.satisfies("+serial"):
             cfg.write(cmake_cache_entry("ENABLE_SERIAL", "ON"))
         else:
             cfg.write(cmake_cache_entry("ENABLE_SERIAL", "OFF"))
@@ -529,7 +545,7 @@ class Ascent(CMakePackage, CudaPackage):
 
         cfg.write("# MPI Support\n")
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             mpicc_path = spec["mpi"].mpicc
             mpicxx_path = spec["mpi"].mpicxx
             mpifc_path = spec["mpi"].mpifc if "+fortran" in spec else None
@@ -544,7 +560,7 @@ class Ascent(CMakePackage, CudaPackage):
             cfg.write(cmake_cache_entry("ENABLE_MPI", "ON"))
             cfg.write(cmake_cache_entry("MPI_C_COMPILER", mpicc_path))
             cfg.write(cmake_cache_entry("MPI_CXX_COMPILER", mpicxx_path))
-            if "+fortran" in spec:
+            if spec.satisfies("+fortran"):
                 cfg.write(cmake_cache_entry("MPI_Fortran_COMPILER", mpifc_path))
             mpiexe_bin = join_path(spec["mpi"].prefix.bin, "mpiexec")
             if os.path.isfile(mpiexe_bin):
@@ -555,14 +571,14 @@ class Ascent(CMakePackage, CudaPackage):
                 else:
                     cfg.write(cmake_cache_entry("MPIEXEC", mpiexe_bin))
 
-            if "+blt_find_mpi" in spec:
+            if spec.satisfies("+blt_find_mpi"):
                 cfg.write(cmake_cache_entry("ENABLE_FIND_MPI", "ON"))
             else:
                 cfg.write(cmake_cache_entry("ENABLE_FIND_MPI", "OFF"))
             ###################################
             # BABELFLOW (also depends on mpi)
             ###################################
-            if "+babelflow" in spec:
+            if spec.satisfies("+babelflow"):
                 cfg.write(cmake_cache_entry("ENABLE_BABELFLOW", "ON"))
                 cfg.write(cmake_cache_entry("BabelFlow_DIR", spec["babelflow"].prefix))
                 cfg.write(cmake_cache_entry("PMT_DIR", spec["parallelmergetree"].prefix))
@@ -575,12 +591,12 @@ class Ascent(CMakePackage, CudaPackage):
 
         cfg.write("# CUDA Support\n")
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             cfg.write(cmake_cache_entry("ENABLE_CUDA", "ON"))
         else:
             cfg.write(cmake_cache_entry("ENABLE_CUDA", "OFF"))
 
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             cfg.write(cmake_cache_entry("ENABLE_OPENMP", "ON"))
         else:
             cfg.write(cmake_cache_entry("ENABLE_OPENMP", "OFF"))
@@ -590,7 +606,7 @@ class Ascent(CMakePackage, CudaPackage):
         #######################
         cfg.write("# vtk-h support \n")
 
-        if "+vtkh" in spec:
+        if spec.satisfies("+vtkh"):
             cfg.write("# vtk-h\n")
             if self.spec.satisfies("@0.8.1:"):
                 cfg.write(cmake_cache_entry("ENABLE_VTKH", "ON"))
@@ -600,7 +616,7 @@ class Ascent(CMakePackage, CudaPackage):
             cfg.write("# vtk-m from spack\n")
             cfg.write(cmake_cache_entry("VTKM_DIR", spec["vtk-m"].prefix))
 
-            if "+cuda" in spec:
+            if spec.satisfies("+cuda"):
                 cfg.write(cmake_cache_entry("VTKm_ENABLE_CUDA", "ON"))
                 cfg.write(cmake_cache_entry("CMAKE_CUDA_HOST_COMPILER", env["SPACK_CXX"]))
             else:
@@ -616,7 +632,7 @@ class Ascent(CMakePackage, CudaPackage):
         #######################
         # RAJA
         #######################
-        if "+raja" in spec:
+        if spec.satisfies("+raja"):
             cfg.write("# RAJA from spack \n")
             cfg.write(cmake_cache_entry("RAJA_DIR", spec["raja"].prefix))
         else:
@@ -625,7 +641,7 @@ class Ascent(CMakePackage, CudaPackage):
         #######################
         # Umpire
         #######################
-        if "+umpire" in spec:
+        if spec.satisfies("+umpire"):
             cfg.write("# umpire from spack \n")
             cfg.write(cmake_cache_entry("UMPIRE_DIR", spec["umpire"].prefix))
         else:
@@ -643,7 +659,7 @@ class Ascent(CMakePackage, CudaPackage):
         #######################
         # MFEM
         #######################
-        if "+mfem" in spec:
+        if spec.satisfies("+mfem"):
             cfg.write("# mfem from spack \n")
             cfg.write(cmake_cache_entry("MFEM_DIR", spec["mfem"].prefix))
         else:
@@ -652,7 +668,7 @@ class Ascent(CMakePackage, CudaPackage):
         #######################
         # OCCA
         #######################
-        if "+occa" in spec:
+        if spec.satisfies("+occa"):
             cfg.write("# occa from spack \n")
             cfg.write(cmake_cache_entry("OCCA_DIR", spec["occa"].prefix))
         else:
@@ -661,7 +677,7 @@ class Ascent(CMakePackage, CudaPackage):
         #######################
         # Devil Ray
         #######################
-        if "+dray" in spec:
+        if spec.satisfies("+dray"):
             cfg.write("# devil ray\n")
             if self.spec.satisfies("@0.8.1:"):
                 cfg.write(cmake_cache_entry("ENABLE_DRAY", "ON"))
@@ -682,7 +698,7 @@ class Ascent(CMakePackage, CudaPackage):
         #######################
         cfg.write("# adios2 support\n")
 
-        if "+adios2" in spec:
+        if spec.satisfies("+adios2"):
             cfg.write(cmake_cache_entry("ADIOS2_DIR", spec["adios2"].prefix))
         else:
             cfg.write("# adios2 not built by spack \n")
@@ -692,7 +708,7 @@ class Ascent(CMakePackage, CudaPackage):
         #######################
         cfg.write("# Fides support\n")
 
-        if "+fides" in spec:
+        if spec.satisfies("+fides"):
             cfg.write(cmake_cache_entry("FIDES_DIR", spec["fides"].prefix))
         else:
             cfg.write("# fides not built by spack \n")
@@ -701,7 +717,7 @@ class Ascent(CMakePackage, CudaPackage):
         # Caliper
         #######################
         cfg.write("# caliper from spack \n")
-        if "+caliper" in spec:
+        if spec.satisfies("+caliper"):
             cfg.write(cmake_cache_entry("CALIPER_DIR", spec["caliper"].prefix))
             cfg.write(cmake_cache_entry("ADIAK_DIR", spec["adiak"].prefix))
         else:

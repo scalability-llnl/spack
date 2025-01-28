@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyShiboken2(PythonPackage):
     """Python / C++ bindings helper module."""
 
     homepage = "https://www.pyside.org/"
+
+    skip_version_audit = ["platform=windows"]
 
     if sys.platform.startswith("linux"):
         version(

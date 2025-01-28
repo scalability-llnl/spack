@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,8 @@ class Ior(AutotoolsPackage):
     version("3.2.1", sha256="ebcf2495aecb357370a91a2d5852cfd83bba72765e586bcfaf15fb79ca46d00e")
     version("3.2.0", sha256="91a766fb9c34b5780705d0997b71b236a1120da46652763ba11d9a8c44251852")
     version("3.0.1", sha256="0cbefbcdb02fb13ba364e102f9e7cc2dcf761698533dac25de446a3a3e81390d")
+
+    depends_on("c", type="build")  # generated
 
     variant("hdf5", default=False, description="support IO with HDF5 backend")
     variant("ncmpi", default=False, description="support IO with NCMPI backend")
@@ -64,18 +65,18 @@ class Ior(AutotoolsPackage):
 
         env["CC"] = spec["mpi"].mpicc
 
-        if "+hdf5" in spec:
+        if spec.satisfies("+hdf5"):
             config_args.append("--with-hdf5")
             config_args.append("CFLAGS=-D H5_USE_16_API")
         else:
             config_args.append("--without-hdf5")
 
-        if "+ncmpi" in spec:
+        if spec.satisfies("+ncmpi"):
             config_args.append("--with-ncmpi")
         else:
             config_args.append("--without-ncmpi")
 
-        if "+lustre" in spec:
+        if spec.satisfies("+lustre"):
             config_args.append("--with-lustre")
         else:
             config_args.append("--without-lustre")

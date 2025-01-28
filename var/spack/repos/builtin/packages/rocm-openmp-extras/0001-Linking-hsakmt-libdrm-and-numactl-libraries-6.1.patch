@@ -1,0 +1,29 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index e8b5696..939a30b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -122,7 +122,9 @@ find_path (
+     ${CMAKE_BINARY_DIR}/runtime/src
+   )
+ 
+-include_directories(${LIBOMPTARGET_INCLUDE_DIR} ${LIBOMP_OMP_TOOLS_INCLUDE_DIR})
++include_directories(${LIBOMPTARGET_INCLUDE_DIR} ${LIBOMP_OMP_TOOLS_INCLUDE_DIR} ${HSAKMT_INC_PATH})
++link_directories(${HSAKMT_LIB64} ${HSAKMT_LIB} ${LIBDRM_LIB} ${NUMACTL_DIR}/lib)
++
+ 
+ # Various LLVM_TOOLS are needed to build libomptarget
+ find_package(LLVM QUIET CONFIG PATHS
+diff --git a/DeviceRTL/CMakeLists.txt b/DeviceRTL/CMakeLists.txt
+index 66ccb43..6094d65 100644
+--- a/DeviceRTL/CMakeLists.txt
++++ b/DeviceRTL/CMakeLists.txt
+@@ -13,6 +13,9 @@
+ set(LIBOMPTARGET_BUILD_DEVICERTL_BCLIB TRUE CACHE BOOL
+   "Can be set to false to disable building this library.")
+ 
++include_directories(${LIBOMPTARGET_INCLUDE_DIR} ${LIBOMP_OMP_TOOLS_INCLUDE_DIR} ${HSAKMT_INC_PATH})
++link_directories(${HSAKMT_LIB64} ${HSAKMT_LIB} ${LIBDRM_LIB} ${NUMACTL_DIR}/lib)
++
+ if (NOT LIBOMPTARGET_BUILD_DEVICERTL_BCLIB)
+   libomptarget_say("Not building DeviceRTL: Disabled by LIBOMPTARGET_BUILD_DEVICERTL_BCLIB")
+   return()

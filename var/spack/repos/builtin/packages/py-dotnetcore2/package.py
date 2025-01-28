@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyDotnetcore2(PythonPackage):
     """.Net Core 2.1 runtime."""
 
     homepage = "https://github.com/dotnet/core"
+
+    skip_version_audit = ["platform=windows"]
 
     if sys.platform == "darwin":
         version(

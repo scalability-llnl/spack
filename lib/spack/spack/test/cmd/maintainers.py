@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -121,7 +120,7 @@ def test_maintainers_list_packages(mock_packages, capfd):
 
 
 def test_maintainers_list_fails(mock_packages, capfd):
-    out = maintainers("a", fail_on_error=False)
+    out = maintainers("pkg-a", fail_on_error=False)
     assert not out
     assert maintainers.returncode == 1
 

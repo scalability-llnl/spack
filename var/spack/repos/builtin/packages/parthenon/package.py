@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class Parthenon(CMakePackage):
     version("24.03", sha256="ec9109c6bf442237641e627f301567527eb5e756b6959b6747d35315d041727c")
     version("23.11", sha256="76f79fb7d6556d94052829a8ac71f53cbda76f37fabd9233c5c0cd47ef561aee")
     version("0.8.0", sha256="9ed7c9ebdc84927a43b86c1e061f925b57cef9b567c7275f22779ed4d98e858d")
+
+    depends_on("cxx", type="build")  # generated
 
     # ------------------------------------------------------------#
     # Variants

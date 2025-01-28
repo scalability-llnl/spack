@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,13 +9,18 @@ from spack.package import *
 class PyDamask(PythonPackage):
     """Pre- and post-processing tools for DAMASK"""
 
-    homepage = "https://damask.mpie.de"
-    url = "https://damask.mpie.de/download/damask-3.0.0.tar.xz"
+    homepage = "https://damask-multiphysics.org"
+    url = "https://damask-multiphysics.org/download/damask-3.0.0.tar.xz"
 
     maintainers("MarDiehl")
 
     license("AGPL-3.0-or-later")
 
+    version("3.0.1", sha256="3db1231f6763356e71b3bb91f66f1abb4fdae2721ce85754fc468446f3d74882")
+    version("3.0.0", sha256="aaebc65b3b10e6c313132ee97cfed427c115079b7e438cc0727c5207e159019f")
+    version(
+        "3.0.0-beta2", sha256="513567b4643f39e27ae32b9f75463fc6f388c1548d42f0393cc87ba02d075f6a"
+    )
     version(
         "3.0.0-beta", sha256="1e25e409ac559fc437d1887c6ca930677a732db89a3a32499d545dd75e93925c"
     )
@@ -35,6 +39,9 @@ class PyDamask(PythonPackage):
     version(
         "3.0.0-alpha4", sha256="0bb8bde43b27d852b1fb6e359a7157354544557ad83d87987b03f5d629ce5493"
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("py-pandas@0.24:", type=("build", "run"), when="@3.0.0-alpha8:")
     depends_on("py-numpy@1.17:", type=("build", "run"), when="@3.0.0-alpha8:")

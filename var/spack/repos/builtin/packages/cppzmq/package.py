@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -29,6 +28,8 @@ class Cppzmq(CMakePackage):
     version("4.3.0", sha256="27d1f56406ba94ee779e639203218820975cf68174f92fbeae0f645df0fcada4")
     version("4.2.3", sha256="3e6b57bf49115f4ae893b1ff7848ead7267013087dc7be1ab27636a97144d373")
     version("4.2.2", sha256="3ef50070ac5877c06c6bb25091028465020e181bbfd08f110294ed6bc419737d")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("drafts", default=False, description="Build and install draft classes and methods")
 

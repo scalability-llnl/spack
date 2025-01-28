@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -29,6 +28,9 @@ class Openscenegraph(CMakePackage):
     version("3.2.3", sha256="a1ecc6524197024834e1277916922b32f30246cb583e27ed19bf3bf889534362")
     version("3.1.5", sha256="dddecf2b33302076712100af59b880e7647bc595a9a7cc99186e98d6e0eaeb5c")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Builds a shared version of the library")
     variant("apps", default=False, description="Build OpenSceneGraph tools")
     variant("dcmtk", default=False, description="Build support for DICOM files using DCMTK")
@@ -55,8 +57,8 @@ class Openscenegraph(CMakePackage):
     )  # Qt windowing system was moved into separate osgQt project
     depends_on("qt@4:", when="@3.2:3.5.4")
     depends_on("qt@:4", when="@:3.1")
-    depends_on("libxinerama")
-    depends_on("libxrandr")
+    depends_on("libxinerama", when="platform=linux")
+    depends_on("libxrandr", when="platform=linux")
     depends_on("libpng")
     depends_on("jasper")
     depends_on("libtiff")
@@ -83,8 +85,8 @@ class Openscenegraph(CMakePackage):
     # patch submitted for inclusion in OpenSceneGraph for extending compatibility
     # with ffmpeg from versions up to 4 to versions 5 & 6
     patch(
-        "https://github.com/openscenegraph/OpenSceneGraph/pull/1281/commits/759620a3b7b787c960a7e414ba26ab5497817d40.patch?full_index=1",
-        sha256="b8f588d1fba9361127a7d5127e0720a4d64f44ef021515d1d67d77dcacdef8fd",
+        "https://github.com/openscenegraph/OpenSceneGraph/commit/759620a3b7b787c960a7e414ba26ab5497817d40.patch?full_index=1",
+        sha256="1e6daf0d15e916b69d62519a0ca4f8a722fe2144cbdab7dd182eaffb141e3c1a",
         when="@3.6:",
     )
     patch("glibc-jasper.patch", when="@3.4%gcc")

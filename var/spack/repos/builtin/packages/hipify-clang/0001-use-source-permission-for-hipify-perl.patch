@@ -1,0 +1,12 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 0d105e2..0c1bbb5 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -177,6 +177,7 @@ if (NOT HIPIFY_CLANG_TESTS_ONLY)
+   install(
+     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin
+     DESTINATION .
++    USE_SOURCE_PERMISSIONS
+     PATTERN "hipify-perl"
+     PATTERN "*.sh"
+     PATTERN "findcode.sh" EXCLUDE

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,8 @@ class Falco(AutotoolsPackage):
     license("GPL-3.0-only")
 
     version("1.2.1", sha256="33de8aafac45c7aea055ed7ab837d0a39d12dcf782816cea8a6c648acb911057")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("htslib", default=False, description="Add support for BAM files")
 

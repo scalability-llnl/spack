@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,7 +9,7 @@ class Xbitmaps(AutotoolsPackage, XorgPackage):
     """The xbitmaps package contains bitmap images used by multiple
     applications built in Xorg."""
 
-    homepage = "https://cgit.freedesktop.org/xorg/data/bitmaps/"
+    homepage = "https://gitlab.freedesktop.org/xorg/data/bitmaps/"
     xorg_mirror_path = "data/xbitmaps-1.1.1.tar.gz"
 
     license("MIT")

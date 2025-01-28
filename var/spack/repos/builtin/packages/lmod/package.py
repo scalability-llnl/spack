@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from glob import glob
@@ -23,6 +22,8 @@ class Lmod(AutotoolsPackage):
 
     license("MIT")
 
+    version("8.7.55", sha256="f85ed9b55c23afb563fa99c7201037628be016e8d88a1aa8dba4632c0ab450bd")
+    version("8.7.37", sha256="171529152fedfbb3c45d27937b0eaa1ee62b5e5cdac3086f44a6d56e5d1d7da4")
     version("8.7.24", sha256="8451267652059b6507b652e1b563929ecf9b689ffb20830642085eb6a55bd539")
     version("8.7.20", sha256="c04deff7d2ca354610a362459a7aa9a1c642a095e45a4b0bb2471bb3254e85f4")
     version("8.7.18", sha256="b9912caca1557dd0c17113bceb1a4952e0ae75331d38df6361601db3f80366af")
@@ -54,12 +55,17 @@ class Lmod(AutotoolsPackage):
     version("6.4.1", sha256="a260b4e42269a80b517c066ba8484658362ea095e80767a2376bbe33d9b070a5")
     version("6.3.7", sha256="55ddb52cbdc0e2e389b3405229336df9aabfa582c874f5df2559ea264e2ee4ae")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("lua+shared@5.1:")
     depends_on("lua-luaposix", type=("build", "run"))
     depends_on("lua-luafilesystem", type=("build", "run"))
     depends_on("tcl", type=("build", "link", "run"))
 
     depends_on("bc", type="build", when="@8.7.10:")
+
+    # GNU sed is required instead of bsd sed on macOS
+    depends_on("sed", type="build", when="platform=darwin")
 
     variant("auto_swap", default=True, description="Auto swapping of compilers, etc.")
     variant(
@@ -76,23 +82,31 @@ class Lmod(AutotoolsPackage):
         env.append_path("LUA_PATH", stage_lua_path.format(version=self.version), separator=";")
 
     def patch(self):
-        """The tcl scripts should use the tclsh that was discovered
-        by the configure script.  Touch up their #! lines so that the
-        sed in the Makefile's install step has something to work on.
-        Requires the change in the associated patch file.fg"""
+        # The tcl scripts should use the tclsh that was discovered by the configure script.
+        # Touch up their #! lines so that the sed in the Makefile's install step has something to
+        # work on. Requires the change in the associated patch file.fg
         if self.spec.version <= Version("6.4.3"):
             for tclscript in glob("src/*.tcl"):
                 filter_file(r"^#!.*tclsh", "#!@path_to_tclsh@", tclscript)
 
+        # The build system hard-codes gsed on macOS, but that's a homebrew thing. We just have
+        # plain sed from the sed dependency. See https://github.com/TACC/Lmod/issues/742.
+        if self.spec.satisfies("platform=darwin"):
+            if self.spec.satisfies("@8.5.21:"):
+                filter_file("SED=gsed", "SED=sed", "rt/common_funcs.sh", string=True)
+            if self.spec.satisfies("@8.2:"):
+                filter_file(r"SED\s*:?=\s*gsed", "SED := sed", "Makefile.in")
+
     def configure_args(self):
+        spec = self.spec
         args = []
 
-        if "+auto_swap" in self.spec:
+        if spec.satisfies("+auto_swap"):
             args.append("--with-autoSwap=yes")
         else:
             args.append("--with-autoSwap=no")
 
-        if "+redirect" in self.spec:
+        if spec.satisfies("+redirect"):
             args.append("--with-redirect=yes")
         else:
             args.append("--with-redirect=no")

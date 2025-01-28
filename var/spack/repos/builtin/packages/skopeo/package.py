@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,8 @@ class Skopeo(MakefilePackage):
     version("0.1.38", sha256="104ceb9c582dc5c3a49dd1752c4c326bba03f2f801596f089372e831f48ed705")
     version("0.1.37", sha256="49c0c1b2c2f32422d3230f827ae405fc554fb34af41a54e59b2121ac1500505d")
     version("0.1.36", sha256="42f9b0bf53ae44bc294be400e2c5259f977ffa4d5dbac3576b0b5e23d59791fd")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("go")
     depends_on("go-md2man", type="build")

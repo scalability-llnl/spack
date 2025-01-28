@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,9 +25,11 @@ class PyNetket(PythonPackage):
     version("1.0.3", sha256="b8e54d7ad8b379b740def640d748c6560943aed473755389fc5cf1020b9007de")
     version("1.0.2", sha256="229c906e92a432bbbd0ff0527874f41318f8fc480d12a33c8184f30960ae628b")
 
+    depends_on("cxx", type="build")  # generated
+
     # build only deps
     depends_on("py-setuptools", type="build")
-    depends_on("py-cmake@3.12:", type="build")
+    depends_on("cmake@3.12:", type="build")
 
     depends_on("blas")
     depends_on("mpi")

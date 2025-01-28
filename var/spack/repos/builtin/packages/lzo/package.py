@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class Lzo(AutotoolsPackage):
     version("2.07", sha256="9298ccf43f856ef00643d110042b2fefe694b569c161aef0c6f8e4ada590e6d4")
     version("2.06", sha256="ff79e6f836d62d3f86ef6ce893ed65d07e638ef4d3cb952963471b4234d43e73")
     version("2.05", sha256="449f98186d76ba252cd17ff1241ca2a96b7f62e0d3e4766f88730dab0ea5f333")
+
+    depends_on("c", type="build")  # generated
 
     variant(
         "libs",

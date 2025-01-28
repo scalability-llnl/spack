@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,14 @@ class Heyoka(CMakePackage):
     # SPDX identifier of the project's license.
     license("MPL-2.0")
 
+    version("6.1.0", sha256="a0f01afb1fb4f93fdc41b2a8dfebf9f9ddd45b28b7b373c4ef9355aeda7107b4")
+    version("6.0.0", sha256="9cf56a6a29db5c72c5203af70d568aede78cb549baf1505b8abd04b888492895")
+    version("5.1.0", sha256="dd405328ace718865ae2690384fbf5f7ee4d03ab6821b908e7d0ca0a02c35e14")
+    version("5.0.0", sha256="e9a4b5683a08706addc1b448e232f1e269d78586859fe3f4d93d4c5eee3bc8ae")
+    version("4.0.3", sha256="47608e785607782d896ae2347a29a143cdb7e5c602f48f5ea795cf682051dbee")
+    version("4.0.2", sha256="8eba8fe0626c3d48affad3055e490e5d21430a420af867d7d52c18ed6b602ae0")
+    version("4.0.1", sha256="25ad39a716c5d548260d505225a13b7fa86534761b6e3d3de991d9d097ec615f")
+    version("4.0.0", sha256="bc375271773993bd89d604a269c4931e54fb8508c8235397d47f0b60b78f3cdf")
     version("3.2.0", sha256="37db24fbaf0e65d740ffb20f76ac1c8ab9fbd6893dc87dfd483c965b71dbf465")
     version("3.1.0", sha256="7eecab47f44a9fff022cf24f226763dab8b075a9fdaa543a42f64bb2634b3ad8")
     version("3.0.0", sha256="03ccb6fb015ad43877781763c0f2f49bd6db64c8b9493174e589c970ef00d7f2")
@@ -28,6 +35,8 @@ class Heyoka(CMakePackage):
     version("0.20.0", sha256="d6b4601ee28fc2dbb84c317bbe2619c776ce448f782c045a801dfa46b0d5e52c")
     version("0.19.0", sha256="7a7634379233be778fd6b15090df287787cc429314ec521d0336cdc1ae26642a")
     version("0.18.0", sha256="2a14a988d973d9a76424df05d38f89ae64f7a1e1c12131022e338fe2de2dcb94")
+
+    depends_on("cxx", type="build")  # generated
 
     # Define variants of the package
     variant("mppp", default=False, description="enable features relying on the mp++ library")
@@ -47,9 +56,12 @@ class Heyoka(CMakePackage):
     depends_on("cmake@3.18:", type="build")
 
     # Required dependencies
-    depends_on("llvm@13:17")
+    depends_on("llvm@13:17", when="@:4")
+    depends_on("llvm@13:18", when="@5")
+    depends_on("llvm@15:19", when="@6")
     depends_on("boost@1.69: +serialization")
-    depends_on("fmt@9:10")
+    depends_on("fmt@9:10", when="@:5")
+    depends_on("fmt@9:11", when="@6")
     depends_on("spdlog")
     depends_on("intel-tbb@2021.4.0:")
 

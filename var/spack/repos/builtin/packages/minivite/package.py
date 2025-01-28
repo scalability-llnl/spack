@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,8 @@ class Minivite(MakefilePackage):
     version("develop", branch="master")
     version("1.0", tag="v1.0", commit="65ccaa8a4ec0b4bea516e2abdafbeb2f8a5f0c94")
     version("1.1", tag="v1.1", commit="23476d9d41eb8a17bf4108ac56852dacda89b253")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("openmp", default=True, description="Build with OpenMP support")
     variant("opt", default=True, description="Optimization flags")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class PyPyrevolve(PythonPackage):
     license("MIT")
 
     version("2.2", sha256="b49aea5cd6c520ac5fcd1d25fa23fe2c5502741d2965f3eee10be067e7b0efb4")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("py-setuptools", type="build")
     depends_on("py-contexttimer", type=("build", "run"))

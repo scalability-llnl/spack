@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class OmmBundle(MakefilePackage):
 
     version("master", branch="master")
     version("1.0.0", tag="v1.0.0", commit="8b644267284695ff1a40b78d098bda6464a7b821")
+
+    depends_on("fortran", type="build")  # generated
 
     depends_on("mpi")
     depends_on("blas")

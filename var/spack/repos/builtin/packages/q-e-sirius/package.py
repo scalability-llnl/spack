@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 # adapted from official quantum espresso package
@@ -27,7 +26,10 @@ class QESirius(CMakePackage):
         submodules=True,
     )
 
-    variant("mpi", default=True, description="Builds with MPI support")
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("openmp", default=True, description="Enables OpenMP support")
     variant("libxc", default=False, description="Support functionals through libxc")
     variant("sirius_apps", default=False, description="Build SIRIUS standalone binaries")
@@ -47,7 +49,7 @@ class QESirius(CMakePackage):
     depends_on("sirius +openmp", when="+openmp")
     depends_on("sirius@develop", when="@develop-ristretto")
 
-    depends_on("mpi", when="+mpi")
+    depends_on("mpi")
     depends_on("elpa", when="+elpa")
     depends_on("libxc", when="+libxc")
     depends_on("fftw-api@3")
@@ -56,12 +58,7 @@ class QESirius(CMakePackage):
     depends_on("git", type="build")
     depends_on("pkgconfig", type="build")
 
-    conflicts("~mpi", when="+scalapack", msg="SCALAPACK requires MPI support")
-    conflicts("~scalapack", when="+elpa", msg="ELPA requires SCALAPACK support")
-
-    with when("+mpi"):
-        depends_on("mpi")
-        variant("scalapack", default=True, description="Enables scalapack support")
+    variant("scalapack", default=True, description="Enables scalapack support")
 
     with when("+scalapack"):
         depends_on("scalapack")
@@ -82,7 +79,7 @@ class QESirius(CMakePackage):
             "-DQE_ENABLE_CUDA=OFF",
             "-DQE_LAPACK_INTERNAL=OFF",
             "-DQE_ENABLE_DOC=OFF",
-            self.define_from_variant("QE_ENABLE_MPI", "mpi"),
+            "-DQE_ENABLE_MPI=ON",
             self.define_from_variant("QE_ENABLE_OPENMP", "openmp"),
             self.define_from_variant("QE_ENABLE_ELPA", "elpa"),
             self.define_from_variant("QE_ENABLE_LIBXC", "libxc"),
