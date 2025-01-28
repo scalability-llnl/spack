@@ -63,14 +63,12 @@ import spack.schema.packages
 import spack.schema.repos
 import spack.schema.upstreams
 import spack.schema.view
+import spack.util.remote_file_cache as rfc_util
 
 # Hacked yaml for configuration files preserves line numbers.
 import spack.util.spack_yaml as syaml
 import spack.util.web_config as web_config
 from spack.util.cpus import cpus_available
-from spack.util.path import substitute_path_variables
-from spack.util.remote_file_cache import fetch_remote_files
-from spack.util.url import validate_scheme
 
 #: Dict from section names -> schema for that section
 SECTION_SCHEMAS: Dict[str, Any] = {
@@ -740,6 +738,18 @@ class Configuration:
 
         self.update_config(section, section_data, scope=scope)
 
+        # TODO: Is this also needed when removing a scope?
+        #
+        # Ensure web configuration is up-to-date
+        #
+        # spack.util.web_config() needs to be able to update configuration
+        # options without the module having to import this module. The
+        # following leverages fact get) interface is similar enough to the
+        # normal dict get() that we can ignore the type to avoid circular
+        # import issue here.
+        if path.startswith("config:"):
+            web_config.update(CONFIG)  # type: ignore
+
     def __iter__(self):
         """Iterate over scopes in this configuration."""
         yield from self.scopes.values()
@@ -902,49 +912,12 @@ def include_path_scope(
             stage directory argument is missing
         ConfigFileError: unable to access remote configuration file(s)
     """
-    import urllib.parse
-    import urllib.request
-
     import spack.spec
 
     if (not include.when) or spack.spec.eval_conditional(include.when):
-        # Allow paths (and URLs) to contain spack config/environment variables,
-        # etc.
-        config_path = substitute_path_variables(include.path)
-        include_url = urllib.parse.urlparse(config_path)
-
-        # If scheme is not valid, config_path is not a url
-        # of a type Spack is generally aware
-        if validate_scheme(include_url.scheme):
-            # Transform file:// URLs to direct includes.
-            if include_url.scheme == "file":
-                config_path = urllib.request.url2pathname(include_url.path)
-
-            # Any other URL should be fetched.
-            elif include_url.scheme in ("http", "https", "ftp"):
-                if config_stage_dir is None:
-                    raise ValueError("Local stage directory is required to cache remote files")
-
-                # Stage any remote configuration file(s)
-                staged_configs = (
-                    os.listdir(config_stage_dir) if os.path.exists(config_stage_dir) else []
-                )
-                tty.debug(f"Remote staged files in {config_stage_dir} are: {staged_configs}")
-                try:
-                    staged_path = fetch_remote_files(
-                        config_path, ".yaml", str(config_stage_dir), skip_existing=True
-                    )
-                except (spack.error.RemoteFileError, ValueError):
-                    staged_path = None
-
-                if not staged_path:
-                    raise ConfigFileError(f"Unable to fetch remote configuration {config_path}")
-                config_path = staged_path
-
-            elif include_url.scheme:
-                raise ValueError(
-                    f"Unsupported URL scheme ({include_url.scheme}) for include: {config_path}"
-                )
+        config_path = rfc_util.local_path(include.path, config_stage_dir)
+        if not config_path:
+            raise ConfigFileError(f"Unable to fetch remote configuration {config_path}")
 
         # Treat relative paths as relative to relative_root. If not provided,
         # try to get the root from the included file.
@@ -1150,16 +1123,6 @@ def set(path: str, value: Any, scope: Optional[str] = None) -> None:
     Accepts the path syntax described in ``get()``.
     """
     result = CONFIG.set(path, value, scope)
-
-    # Ensure web configuration is up-to-date
-    #
-    # spack.util.web_config() needs to be able to update configuration options
-    # without the module having to import this module. The following leverages
-    # fact get) interface is similar enough to the normal dict get() that we
-    # can ignore the type to avoid circular import issue here.
-    if path.startswith("config:"):
-        web_config.update(CONFIG)  # type: ignore
-
     return result
 
 
