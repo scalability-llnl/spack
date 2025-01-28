@@ -73,7 +73,7 @@ class ParallelNetcdf(AutotoolsPackage):
 
     depends_on("perl", type="build")
 
-    # Link to issue here
+    # https://github.com/JCSDA/spack-stack/issues/1436
     patch("parallel-netcdf-1.12.3-intel-irc-intlc.patch", when="@1.12.3 %intel")
     patch("parallel-netcdf-1.12.3-intel-irc-intlc.patch", when="@1.12.3 %oneapi")
 
