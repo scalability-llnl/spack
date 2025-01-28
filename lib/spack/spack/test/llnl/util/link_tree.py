@@ -441,12 +441,28 @@ def test_source_visitor_no_path_normalization(tmp_path: pathlib.Path):
 
 
 def test_source_visitor_path_normalization(tmp_path: pathlib.Path, monkeypatch):
-    src = str(tmp_path / "a")
+    src_a = str(tmp_path / "a")
+    src_b = str(tmp_path / "b")
+
+    os.mkdir(src_a)
+    os.mkdir(src_b)
+
+    file = os.path.join(src_a, "file")
+    FILE = os.path.join(src_b, "FILE")
+
+    with open(file, "w") as f:
+        pass
+
+    with open(FILE, "w") as f:
+        pass
+
+    assert os.path.exists(file)
+    assert os.path.exists(FILE)
 
     # file conflict with os.path.samefile reporting it's NOT the same file
     a = SourceMergeVisitor(normalize_paths=True)
-    a.visit_file(src, "file", 0)
-    a.visit_file(src, "FILE", 0)
+    a.visit_file(src_a, "file", 0)
+    a.visit_file(src_b, "FILE", 0)
     assert a.files
     assert len(a.files) == 1
     # first file wins
@@ -455,16 +471,17 @@ def test_source_visitor_path_normalization(tmp_path: pathlib.Path, monkeypatch):
     assert len(a.file_conflicts) == 1
     assert "FILE" in [c.dst for c in a.file_conflicts]
 
+    os.remove(FILE)
+    os.link(file, FILE)
+
+    assert os.path.exists(file)
+    assert os.path.exists(FILE)
+    assert os.path.samefile(file, FILE)
+
     # file conflict with os.path.samefile reporting it's the same file
     a = SourceMergeVisitor(normalize_paths=True)
-    a.visit_file(src, "file", 0)
-    with monkeypatch.context() as m:
-
-        def true(*_):
-            return True
-
-        m.setattr(os.path, "samefile", true)
-        a.visit_file(src, "FILE", 0)
+    a.visit_file(src_a, "file", 0)
+    a.visit_file(src_b, "FILE", 0)
     assert a.files
     assert len(a.files) == 1
     # second file wins
@@ -473,8 +490,8 @@ def test_source_visitor_path_normalization(tmp_path: pathlib.Path, monkeypatch):
     assert len(a.file_conflicts) == 0
 
     a = SourceMergeVisitor(normalize_paths=True)
-    a.visit_file(src, "file", 0)
-    a.before_visit_dir(src, "FILE", 0)
+    a.visit_file(src_a, "file", 0)
+    a.before_visit_dir(src_a, "FILE", 0)
     assert a.files
     assert len(a.files) == 1
     assert "file" in a.files
@@ -484,8 +501,8 @@ def test_source_visitor_path_normalization(tmp_path: pathlib.Path, monkeypatch):
     assert "FILE" in conflicts
 
     a = SourceMergeVisitor(normalize_paths=True)
-    a.before_visit_dir(src, "FILE", 0)
-    a.visit_file(src, "file", 0)
+    a.before_visit_dir(src_a, "FILE", 0)
+    a.visit_file(src_a, "file", 0)
     assert len(a.directories) == 1
     assert "FILE" in a.directories
     assert len(a.files) == 0
@@ -494,8 +511,8 @@ def test_source_visitor_path_normalization(tmp_path: pathlib.Path, monkeypatch):
     assert "file" in conflicts
 
     a = SourceMergeVisitor(normalize_paths=True)
-    a.before_visit_dir(src, "FILE", 0)
-    a.before_visit_dir(src, "file", 0)
+    a.before_visit_dir(src_a, "FILE", 0)
+    a.before_visit_dir(src_a, "file", 0)
     assert len(a.directories) == 1
     # first dir wins
     assert "FILE" in a.directories
