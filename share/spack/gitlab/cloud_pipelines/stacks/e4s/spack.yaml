@@ -4,16 +4,24 @@ spack:
   concretizer:
     reuse: false
     unify: false
+    preferred_providers_only: true
 
   packages:
     all:
-      require: '%gcc target=x86_64_v3'
+      require:
+      - '%gcc target=x86_64_v3'
       providers:
-        blas: [openblas]
-        mpi: [mpich]
+        blas:: [openblas]
+        mpi:: [mpich]
       variants: +mpi
     binutils:
       variants: +ld +gold +headers +libiberty ~nls
+    cmake:
+      require:
+      - "~qtgui"
+    gmake:
+      require:
+      - "~guile"
     hdf5:
       variants: +fortran +hl +shared
     libfabric:
@@ -30,16 +38,19 @@ spack:
     mpi:
       require: mpich
     mpich:
-      require: '~wrapperrpath ~hwloc target=x86_64_v3'
+      require:
+      - '~wrapperrpath ~hwloc target=x86_64_v3'
     tbb:
-      require: intel-tbb
+      require:
+      - intel-tbb
     vtk-m:
       require: "+examples target=x86_64_v3"
     visit:
       require: "~gui target=x86_64_v3"
     paraview:
       # Don't build GUI support or GLX rendering for HPC/container deployments
-      require: "+examples ~qt ^[virtuals=gl] osmesa target=x86_64_v3"
+      require:
+      - "+examples ~qt ^[virtuals=gl] osmesa target=x86_64_v3"
 
   specs:
   # CPU
