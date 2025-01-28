@@ -6,6 +6,7 @@ import glob
 import os
 import shutil
 import sys
+from pathlib import Path
 from typing import List, Optional, Union
 
 import py
@@ -30,7 +31,6 @@ import spack.store
 import spack.util.lock as lk
 from spack.installer import PackageInstaller
 from spack.main import SpackCommand
-from spack.util.path import concrete_path, fs_path
 
 
 def _mock_repo(root, namespace):
@@ -428,7 +428,7 @@ def test_fake_install(install_mockery):
 
     pkg = spec.package
     inst._do_fake_install(pkg)
-    lib = concrete_path(pkg.prefix.lib)
+    lib = Path(pkg.prefix.lib)
     assert lib.is_dir()
 
 
@@ -440,7 +440,7 @@ def test_dump_packages_deps_ok(install_mockery, tmpdir, mock_packages):
     inst.dump_packages(spec, str(tmpdir))
 
     repo = mock_packages.repos[0]
-    dest_pkg = concrete_path(repo.filename_for_package_name(spec_name))
+    dest_pkg = Path(repo.filename_for_package_name(spec_name))
     assert dest_pkg.is_file()
 
 
@@ -454,7 +454,7 @@ def test_dump_packages_deps_errs(install_mockery, tmp_path, monkeypatch, capsys)
         # Perform the original function
         source = orig_bpp(spec)
         # Mock the required directory structure for the repository
-        _mock_repo(fs_path(source / spec.namespace), spec.namespace)
+        _mock_repo(os.fspath(source / spec.namespace), spec.namespace)
         return source
 
     def _repoerr(repo, name):
@@ -504,11 +504,11 @@ def test_clear_failures_success(tmpdir):
     assert len(os.listdir(failures.dir)) == 0
 
     # Ensure the core directory and failure lock file still exist
-    assert concrete_path(failures.dir).is_dir()
+    assert Path(failures.dir).is_dir()
 
     # Locks on windows are a no-op
     if sys.platform != "win32":
-        assert concrete_path(failures.locker.lock_path).is_file()
+        assert Path(failures.locker.lock_path).is_file()
 
 
 @pytest.mark.not_on_windows("chmod does not prevent removal on Win")
@@ -1185,7 +1185,7 @@ def test_overwrite_install_backup_success(temporary_store, config, mock_packages
     task = installer._pop_task()
 
     # Make sure the install prefix exists with some trivial file
-    installed_file = concrete_path(task.pkg.prefix, "some_file")
+    installed_file = Path(task.pkg.prefix, "some_file")
     fs.touchp(installed_file)
 
     class InstallerThatWipesThePrefixDir:
@@ -1245,7 +1245,7 @@ def test_overwrite_install_backup_failure(temporary_store, config, mock_packages
     task = installer._pop_task()
 
     # Make sure the install prefix exists
-    installed_file = concrete_path(task.pkg.prefix, "some_file")
+    installed_file = Path(task.pkg.prefix, "some_file")
     fs.touchp(installed_file)
 
     fake_installer = InstallerThatAccidentallyDeletesTheBackupDir()
