@@ -95,14 +95,14 @@ class Amdfftw(FftwBase):
     )
     variant(
         "amd-dynamic-dispatcher",
-        default=True,
+        default=False,
         when="@4.1: %aocc@4.1.0:",
         description="Single portable optimized library"
         " to execute on different x86 CPU architectures",
     )
     variant(
         "amd-dynamic-dispatcher",
-        default=True,
+        default=False,
         when="@3.2: %gcc",
         description="Single portable optimized library"
         " to execute on different x86 CPU architectures",
@@ -207,7 +207,12 @@ class Amdfftw(FftwBase):
         # variable to set AMD_ARCH configure option.
         # Spack user can not directly use AMD_ARCH for this purpose but should
         # use target variable to set appropriate -march option in AMD_ARCH.
-        options.append(f"AMD_ARCH={optimization_flags(self.compiler, spec.target)}")
+        options.append(f"AMD_ARCH={optimization_flags(self.compiler, spec.target).split('=')[-1]}")
+
+        if "avx512" in spec.target:
+            options.append("CFLAGS=-mprefer-vector-width=512")
+        else:
+            options.append("CFLAGS=-mprefer-vector-width=256")
 
         # Specific SIMD support.
         # float and double precisions are supported
