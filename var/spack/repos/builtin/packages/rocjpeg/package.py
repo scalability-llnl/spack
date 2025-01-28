@@ -17,11 +17,15 @@ class Rocjpeg(CMakePackage):
 
     license("MIT")
 
+    version("6.3.1", sha256="f4913cbc63e11b9b418d33b0f9ba0fec0aa00b23285090acfd435e1ba1c21e42")
     version("6.3.0", sha256="2623b8f8bb61cb418d00c695e8ff0bc5979e1bb2d61d6c327a27d676c89e89cb")
 
     depends_on("cxx", type="build")
 
-    depends_on("hip@6.3.0", when="@6.3.0")
+    for ver in ["6.3.0","6.3.1"]:
+        depends_on(f"llvm-amdgpu@{ver}", when=f"@{ver}")
+        depends_on(f"hip@{ver}", when=f"@{ver}")
+
     depends_on("libva", type="build", when="@6.2:")
 
     def patch(self):
