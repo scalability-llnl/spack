@@ -53,6 +53,7 @@ class CrtmFix(Package):
         fix_files = []
         for d in endian_dirs:
             fix_files = fix_files + find(".", "*/{}/*".format(d))
+        fix_files = [f for f in fix_files if "/fix/test_data/" not in f]
 
         # Big_Endian amsua_metop-c.SpcCoeff.bin is incorrect
         # Little_Endian amsua_metop-c_v2.SpcCoeff.bin is what it's supposed to be.
