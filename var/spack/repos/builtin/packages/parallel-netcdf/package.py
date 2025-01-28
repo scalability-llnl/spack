@@ -68,22 +68,9 @@ class ParallelNetcdf(AutotoolsPackage):
 
     depends_on("perl", type="build")
 
-    # Suport for shared libraries was introduced in version 1.9.0
-    conflicts("+shared", when="@:1.8")
-    conflicts("+burstbuffer", when="@:1.10")
-
-    # Before 1.10.0, C utility programs (e.g. ncmpigen) were linked without
-    # explicit specification of the Fortran runtime libraries, which is
-    # required when libpnetcdf.so contains Fortran symbols. Libtool sets the
-    # required linking flags implicitly but only if the Fortran compiler
-    # produces verbose output with the '-v' flag (and, due to a bug in Libtool,
-    # when CXX is not set to 'no'; see macro _LT_LANG_FC_CONFIG in libtool.m4
-    # for more details). The latter is not the case for NAG. Starting 1.10.0,
-    # the required linking flags are explicitly set in the makefiles and
-    # detected using macro AC_FC_LIBRARY_LDFLAGS, which means that we can
-    # override the verbose output flag for Fortran compiler on the command line
-    # (see below).
-    conflicts("+shared", when="@:1.9%nag+fortran")
+    # https://github.com/JCSDA/spack-stack/issues/1436
+    patch("parallel-netcdf-1.12.3-intel-irc-intlc.patch", when="@1.12.3 %intel")
+    patch("parallel-netcdf-1.12.3-intel-irc-intlc.patch", when="@1.12.3 %oneapi")
 
     @property
     def libs(self):
