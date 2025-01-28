@@ -4,7 +4,7 @@
 """Manage configuration swapping for bootstrapping purposes"""
 
 import contextlib
-import os.path
+import os
 import sys
 from typing import Any, Dict, Generator, MutableSequence, Sequence
 

@@ -258,7 +258,7 @@ class Dealii(CMakePackage, CudaPackage):
         arch_str = f"+cuda cuda_arch={_arch}"
         trilinos_spec = f"trilinos +wrapper {arch_str}"
         depends_on(trilinos_spec, when=f"@9.5:+trilinos {arch_str}")
-    depends_on("vtk", when="@9.6:+vtk")
+    depends_on("vtk@9:", when="@9.6:+vtk")
 
     # Explicitly provide a destructor in BlockVector,
     # otherwise deal.II may fail to build with Intel compilers.

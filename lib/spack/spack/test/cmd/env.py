@@ -3023,6 +3023,35 @@ def test_stack_view_activate_from_default(
         assert "FOOBAR=mpileaks" in shell
 
 
+def test_envvar_set_in_activate(tmpdir, mock_fetch, mock_packages, mock_archive, install_mockery):
+    filename = str(tmpdir.join("spack.yaml"))
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(
+            """\
+spack:
+  specs:
+    - cmake%gcc
+  env_vars:
+    set:
+      ENVAR_SET_IN_ENV_LOAD: "True"
+"""
+        )
+    with tmpdir.as_cwd():
+        env("create", "test", "./spack.yaml")
+        with ev.read("test"):
+            install()
+
+        test_env = ev.read("test")
+        output = env("activate", "--sh", "test")
+
+        assert "ENVAR_SET_IN_ENV_LOAD=True" in output
+
+        with test_env:
+            with spack.util.environment.set_env(ENVAR_SET_IN_ENV_LOAD="True"):
+                output = env("deactivate", "--sh")
+                assert "unset ENVAR_SET_IN_ENV_LOAD" in output
+
+
 def test_stack_view_no_activate_without_default(
     installed_environment, template_combinatorial_env, tmp_path
 ):

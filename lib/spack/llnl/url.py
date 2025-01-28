@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """URL primitives that just require Python standard library."""
 import itertools
-import os.path
+import os
 import re
 from typing import Optional, Set, Tuple
 from urllib.parse import urlsplit, urlunsplit

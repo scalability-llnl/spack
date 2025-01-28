@@ -7,7 +7,6 @@ import email.message
 import errno
 import json
 import os
-import os.path
 import re
 import shutil
 import ssl
