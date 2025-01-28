@@ -5,10 +5,10 @@
 from spack.package import *
 
 
-class Self(CMakePackage):
+class FluidnumericsSelf(CMakePackage):
     """Spectral Element Library in Fortran."""
 
-    homepage = "https://self.fluidsnumerics.com"
+    homepage = "https://self.fluidnumerics.com"
     url = "https://github.com/FluidNumerics/SELF/archive/refs/tags/v0.0.1.tar.gz"
 
     maintainers("fluidnumerics_joe", "garrettbyrd")
