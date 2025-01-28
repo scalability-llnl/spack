@@ -32,7 +32,6 @@ rocm_dependencies = [
     "rocm-core",
     "roctracer-dev",
     "miopen-hip",
-    "hiprand",
 ]
 
 
@@ -877,12 +876,18 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
 
         if spec.satisfies("@2.16.1-rocm-enhanced: +rocm"):
             if os.path.exists(spec["llvm-amdgpu"].prefix.bin.clang):
-                filter_file(
-                    "/usr/lib/llvm-17/bin/clang", spec["llvm-amdgpu"].prefix.bin.clang, ".bazelrc"
-                )
-                filter_file(
-                    "/usr/lib/llvm-18/bin/clang", spec["llvm-amdgpu"].prefix.bin.clang, ".bazelrc"
-                )
+                if spec.satisfies("@2.16.1-rocm-enhanced +rocm"):
+                    filter_file(
+                        "/usr/lib/llvm-17/bin/clang",
+                        spec["llvm-amdgpu"].prefix.bin.clang,
+                        ".bazelrc",
+                    )
+                else:
+                    filter_file(
+                        "/usr/lib/llvm-18/bin/clang",
+                        spec["llvm-amdgpu"].prefix.bin.clang,
+                        ".bazelrc",
+                    )
 
         filter_file("build:opt --copt=-march=native", "", ".tf_configure.bazelrc")
         filter_file("build:opt --host_copt=-march=native", "", ".tf_configure.bazelrc")
@@ -960,7 +965,7 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
 
         args.append("--config=v2")
 
-        if self.spec.satisfies("@2.18.0-rocm-enhanced:"):
+        if self.spec.satisfies("@2.18.0-rocm-enhanced: +rocm"):
             buildpath = join_path(
                 self.stage.source_path, "bazel-bin/tensorflow/tools/pip_package/wheel_house/"
             )
