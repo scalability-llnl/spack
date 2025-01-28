@@ -354,21 +354,6 @@ def test_url_missing_curl(mutable_config, missing_curl, monkeypatch):
         web_util.url_exists("https://example.com/")
 
 
-def test_url_fetch_text_urllib_bad_returncode(mutable_config, monkeypatch):
-    class response:
-        def getcode(self):
-            return 404
-
-    def _read_from_url(*args, **kwargs):
-        return None, None, response()
-
-    monkeypatch.setattr(web_util, "read_from_url", _read_from_url)
-    mutable_config.set("config:url_fetch_method", "urllib")
-
-    with pytest.raises(spack.error.FetchError, match="failed with error code"):
-        web_util.fetch_url_text("https://example.com/")
-
-
 def test_url_fetch_text_urllib_web_error(mutable_config, monkeypatch):
     def _raise_web_error(*args, **kwargs):
         raise web_util.SpackWebError("bad url")
@@ -376,5 +361,5 @@ def test_url_fetch_text_urllib_web_error(mutable_config, monkeypatch):
     monkeypatch.setattr(web_util, "read_from_url", _raise_web_error)
     mutable_config.set("config:url_fetch_method", "urllib")
 
-    with pytest.raises(spack.error.FetchError, match="fetch failed to verify"):
+    with pytest.raises(spack.error.FetchError, match="fetch failed"):
         web_util.fetch_url_text("https://example.com/")

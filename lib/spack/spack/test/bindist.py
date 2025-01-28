@@ -36,6 +36,7 @@ import spack.main
 import spack.mirrors.mirror
 import spack.oci.image
 import spack.paths
+import spack.repo
 import spack.spec
 import spack.store
 import spack.util.gpg
@@ -94,7 +95,7 @@ def config_directory(tmp_path_factory):
 
 
 @pytest.fixture(scope="function")
-def default_config(tmp_path, config_directory, monkeypatch, install_mockery):
+def default_config(tmp_path, config_directory, mock_repo_path, install_mockery):
     # This fixture depends on install_mockery to ensure
     # there is a clear order of initialization. The substitution of the
     # config scopes here is done on top of the substitution that comes with
@@ -109,7 +110,6 @@ def default_config(tmp_path, config_directory, monkeypatch, install_mockery):
     ]
 
     with spack.config.use_configuration(*scopes):
-        spack.config.CONFIG.set("repos", [spack.paths.mock_packages_path])
         njobs = spack.config.get("config:build_jobs")
         if not njobs:
             spack.config.set("config:build_jobs", 4, scope="user")
@@ -130,8 +130,8 @@ def default_config(tmp_path, config_directory, monkeypatch, install_mockery):
         timeout = spack.config.get("config:connect_timeout")
         if not timeout:
             spack.config.set("config:connect_timeout", 10, scope="user")
-
-        yield spack.config.CONFIG
+        with spack.repo.use_repositories(mock_repo_path):
+            yield spack.config.CONFIG
 
 
 @pytest.fixture(scope="function")
