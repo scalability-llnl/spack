@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,5 +15,7 @@ class PyPdmPep517(PythonPackage):
     license("MIT")
 
     version("1.0.4", sha256="392f8c2b47c6ec20550cb8e19e24b9dbd27373413f067b56ecd75f9767f93015")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("python@3.7:", type=("build", "run"))

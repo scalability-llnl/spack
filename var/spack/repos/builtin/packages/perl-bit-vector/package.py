@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,5 +14,7 @@ class PerlBitVector(PerlPackage):
     license("GPL-1.0-or-later OR Artistic-1.0-Perl")
 
     version("7.4", sha256="3c6daa671fecfbc35f92a9385b563d65f50dfc6bdc8b4805f9ef46c0d035a926")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("perl-carp-clan", type=("build", "run"))

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import contextlib
@@ -7,6 +6,7 @@ import errno
 import functools
 import os
 import re
+from typing import List
 
 import llnl.util.filesystem
 
@@ -124,8 +124,8 @@ def gnupghome_override(dir):
     SOCKET_DIR, GNUPGHOME = _SOCKET_DIR, _GNUPGHOME
 
 
-def _parse_secret_keys_output(output):
-    keys = []
+def _parse_secret_keys_output(output: str) -> List[str]:
+    keys: List[str] = []
     found_sec = False
     for line in output.split("\n"):
         if found_sec:
@@ -195,9 +195,10 @@ Expire-Date: %(expires)s
 
 
 @_autoinit
-def signing_keys(*args):
+def signing_keys(*args) -> List[str]:
     """Return the keys that can be used to sign binaries."""
-    output = GPG("--list-secret-keys", "--with-colons", "--fingerprint", *args, output=str)
+    assert GPG
+    output: str = GPG("--list-secret-keys", "--with-colons", "--fingerprint", *args, output=str)
     return _parse_secret_keys_output(output)
 
 

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,6 +26,8 @@ class Isaac(CMakePackage):
     version("1.3.2", sha256="e6eedc641de5b0a7c5ea5cda6b11e9b6d4a78dfac8be90302147b26d09859a68")
     version("1.3.1", sha256="7dead8f3d5467cbd2cde8187e7b860a4ab7796348895d18291f97a76e28757cf")
     version("1.3.0", sha256="fcf10f4738e7790ef6604e1e2cdd052a129ba4e53a439deaafa9fb2a70585574")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("cuda", default=True, description="Generate CUDA kernels for Nvidia GPUs")
     # variant('alpaka', default=False,

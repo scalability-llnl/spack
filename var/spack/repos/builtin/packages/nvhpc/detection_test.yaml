@@ -24,7 +24,7 @@ paths:
     extra_attributes:
       compilers:
         c: ".*/bin/nvc"
-        cxx: ".*/bin/nvc++"
+        cxx: ".*/bin/nvc\\+\\+"
         fortran: ".*/bin/nvfortran"
 - layout:
   - executables:
@@ -51,7 +51,7 @@ paths:
     extra_attributes:
       compilers:
         c: ".*/bin/nvc"
-        cxx: ".*/bin/nvc++"
+        cxx: ".*/bin/nvc\\+\\+"
         fortran: ".*/bin/nvfortran"
 - layout:
   - executables:
@@ -78,5 +78,5 @@ paths:
     extra_attributes:
       compilers:
         c: ".*/bin/nvc"
-        cxx: ".*/bin/nvc++"
+        cxx: ".*/bin/nvc\\+\\+"
         fortran: ".*/bin/nvfortran"

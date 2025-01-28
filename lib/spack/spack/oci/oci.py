@@ -1,12 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import hashlib
 import json
 import os
-import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -16,17 +14,11 @@ from urllib.request import Request
 
 import llnl.util.tty as tty
 
-import spack.binary_distribution
-import spack.config
-import spack.error
 import spack.fetch_strategy
-import spack.mirror
+import spack.mirrors.layout
+import spack.mirrors.mirror
 import spack.oci.opener
-import spack.repo
-import spack.spec
 import spack.stage
-import spack.traverse
-import spack.util.crypto
 import spack.util.url
 
 from .image import Digest, ImageReference
@@ -36,16 +28,6 @@ class Blob(NamedTuple):
     compressed_digest: Digest
     uncompressed_digest: Digest
     size: int
-
-
-def create_tarball(spec: spack.spec.Spec, tarfile_path):
-    buildinfo = spack.binary_distribution.get_buildinfo_dict(spec)
-    return spack.binary_distribution._do_create_tarball(tarfile_path, spec.prefix, buildinfo)
-
-
-def _log_upload_progress(digest: Digest, size: int, elapsed: float):
-    elapsed = max(elapsed, 0.001)  # guard against division by zero
-    tty.info(f"Uploaded {digest} ({elapsed:.2f}s, {size / elapsed / 1024 / 1024:.2f} MB/s)")
 
 
 def with_query_param(url: str, param: str, value: str) -> str:
@@ -141,8 +123,6 @@ def upload_blob(
     if not force and blob_exists(ref, digest, _urlopen):
         return False
 
-    start = time.time()
-
     with open(file, "rb") as f:
         file_size = os.fstat(f.fileno()).st_size
 
@@ -167,7 +147,6 @@ def upload_blob(
 
         # Created the blob in one go.
         if response.status == 201:
-            _log_upload_progress(digest, file_size, time.time() - start)
             return True
 
         # Otherwise, do another PUT request.
@@ -191,8 +170,6 @@ def upload_blob(
 
         spack.oci.opener.ensure_status(request, response, 201)
 
-    # print elapsed time and # MB/s
-    _log_upload_progress(digest, file_size, time.time() - start)
     return True
 
 
@@ -236,7 +213,7 @@ def upload_manifest(
     return digest, size
 
 
-def image_from_mirror(mirror: spack.mirror.Mirror) -> ImageReference:
+def image_from_mirror(mirror: spack.mirrors.mirror.Mirror) -> ImageReference:
     """Given an OCI based mirror, extract the URL and image name from it"""
     url = mirror.push_url
     if not url.startswith("oci://"):
@@ -401,7 +378,7 @@ def make_stage(
 ) -> spack.stage.Stage:
     _urlopen = _urlopen or spack.oci.opener.urlopen
     fetch_strategy = spack.fetch_strategy.OCIRegistryFetchStrategy(
-        url, checksum=digest.digest, _urlopen=_urlopen
+        url=url, checksum=digest.digest, _urlopen=_urlopen
     )
     # Use blobs/<alg>/<encoded> as the cache path, which follows
     # the OCI Image Layout Specification. What's missing though,
@@ -409,7 +386,7 @@ def make_stage(
     # required by the spec.
     return spack.stage.Stage(
         fetch_strategy,
-        mirror_paths=spack.mirror.OCIImageLayout(digest),
+        mirror_paths=spack.mirrors.layout.OCILayout(digest),
         name=digest.digest,
         keep=keep,
     )

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,7 @@ class Mumps(Package):
 
     maintainers("jcortial-safran")
 
+    version("5.7.3", sha256="84a47f7c4231b9efdf4d4f631a2cae2bdd9adeaabc088261d15af040143ed112")
     version("5.7.2", sha256="1362d377ce7422fc886c55212b4a4d2c381918b5ca4478f682a22d0627a8fbf8")
     version("5.6.2", sha256="13a2c1aff2bd1aa92fe84b7b35d88f43434019963ca09ef7e8c90821a8f1d59a")
     version("5.6.1", sha256="1920426d543e34d377604070fde93b8d102aa38ebdf53300cbce9e15f92e2896")
@@ -36,6 +36,9 @@ class Mumps(Package):
     # version('5.0.1', sha256='50355b2e67873e2239b4998a46f2bbf83f70cdad6517730ab287ae3aae9340a0',
     #         url='http://pkgs.fedoraproject.org/repo/pkgs/MUMPS/MUMPS_5.0.1.tar.gz/md5/b477573fdcc87babe861f62316833db0/MUMPS_5.0.1.tar.gz')
     version("5.0.1", sha256="50355b2e67873e2239b4998a46f2bbf83f70cdad6517730ab287ae3aae9340a0")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("mpi", default=True, description="Compile MUMPS with MPI support")
     variant("scotch", default=False, description="Activate Scotch as a possible ordering library")
@@ -70,6 +73,7 @@ class Mumps(Package):
     depends_on("lapack")
     depends_on("scalapack", when="+mpi")
     depends_on("mpi", when="+mpi")
+    depends_on("gmake", type="build")
 
     patch("examples.patch", when="@5.1.1%clang^spectrum-mpi")
     patch("gfortran8.patch", when="@5.1.2")
@@ -170,7 +174,6 @@ class Mumps(Package):
 
         # Determine which compiler suite we are using
         using_gcc = self.compiler.name == "gcc"
-        using_pgi = self.compiler.name == "pgi"
         using_nvhpc = self.compiler.name == "nvhpc"
         using_intel = self.compiler.name == "intel"
         using_oneapi = self.compiler.name == "oneapi"
@@ -283,7 +286,7 @@ class Mumps(Package):
 
         # TODO: change the value to the correct one according to the
         # compiler possible values are -DAdd_, -DAdd__ and/or -DUPPER
-        if using_intel or using_oneapi or using_pgi or using_nvhpc or using_fj:
+        if using_intel or using_oneapi or using_nvhpc or using_fj:
             # Intel, PGI, and Fujitsu Fortran compiler provides
             # the main() function so C examples linked with the Fortran
             # compiler require a hack defined by _DMAIN_COMP

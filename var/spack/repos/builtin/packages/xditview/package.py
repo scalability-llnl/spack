@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,8 @@ class Xditview(AutotoolsPackage, XorgPackage):
     version("1.0.6", sha256="2b158cdc3b3eb63a9ba2cc2c31908ab9bd3bc834b2f01f1792a30690229237dd")
     version("1.0.5", sha256="67c4522a24dd7e8762ae458fe216c5bddc12101af295e78c19ff7313fa8cbfad")
     version("1.0.4", sha256="73ad88cfc879edcc6ede65999c11d670da27575388126795d71f3ad60286d379")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("libxaw")
     depends_on("libxmu")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -23,6 +22,10 @@ class Dlib(CMakePackage, CudaPackage):
     version("19.21", sha256="116f52e58be04b47dab52057eaad4b5c4d5c3032d927fe23d55b0741fc4107a0")
     version("19.20", sha256="fc3f0986350e8e53aceadf95a71d2f413f1eedc469abda99a462cb528741d411")
     version("19.19", sha256="7af455bb422d3ae5ef369c51ee64e98fa68c39435b0fa23be2e5d593a3d45b87")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("ffmpeg", default=False, description="build ffmpeg image support")
     variant("gif", default=False, description="build gif image support")

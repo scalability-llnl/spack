@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -50,6 +49,9 @@ class Bison(AutotoolsPackage, GNUMirrorPackage):
     version("3.0.4", sha256="b67fd2daae7a64b5ba862c66c07c1addb9e6b1b05c5f2049392cfd8a2172952e")
     version("2.7", sha256="19bbe7374fd602f7a6654c131c21a15aebdc06cc89493e8ff250cb7f9ed0a831")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("color", default=False, description="Enable experimental colored output", when="@3.4:")
 
     # https://lists.gnu.org/archive/html/bug-bison/2019-08/msg00008.html
@@ -61,7 +63,6 @@ class Bison(AutotoolsPackage, GNUMirrorPackage):
     depends_on("m4@1.4.6:", type=("build", "run"))
     depends_on("diffutils", type="build")
 
-    patch("pgi.patch", when="@3.0.4")
     # The NVIDIA compilers do not currently support some GNU builtins.
     # Detect this case and use the fallback path.
     patch("nvhpc-3.6.patch", when="@3.6.0:3.6 %nvhpc")

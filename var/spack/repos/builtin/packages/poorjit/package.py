@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class Poorjit(CMakePackage):
     license("BSD-4-Clause", checked_by="robertu94")
 
     version("0.0.2", sha256="d7d43ba3b343ac8a6b0fb4928d5882f64a8c13c6fccfc37e1a3f3cd581c2739a")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("boost+filesystem")
     depends_on("zlib")

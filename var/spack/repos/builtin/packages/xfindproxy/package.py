@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,10 +18,12 @@ class Xfindproxy(AutotoolsPackage, XorgPackage):
 
     version("1.0.4", sha256="fa6152fcf9c16fbb2ef52259731df5df899a39a86894b0508456613f26ff924a")
 
+    depends_on("c", type="build")
+
     depends_on("libice")
     depends_on("libxt")
 
-    depends_on("xproto")
-    depends_on("xproxymanagementprotocol")
+    depends_on("xproto", type="build")
+    depends_on("xproxymanagementprotocol", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")

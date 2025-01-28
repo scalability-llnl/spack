@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -71,6 +70,16 @@ class Wrf(Package):
     tags = ["windows"]
 
     version(
+        "4.6.1",
+        sha256="b8ec11b240a3cf1274b2bd609700191c6ec84628e4c991d3ab562ce9dc50b5f2",
+        url="https://github.com/wrf-model/WRF/releases/download/v4.6.1/v4.6.1.tar.gz",
+    )
+    version(
+        "4.6.0",
+        sha256="1bb010f9e20b40d33d9df55a602ea9eb54c5444a7316c00a95e1cc44b209021e",
+        url="https://github.com/wrf-model/WRF/releases/download/v4.6.0/v4.6.0.tar.gz",
+    )
+    version(
         "4.5.2",
         sha256="408ba6aa60d9cd51d6bad2fa075a3d37000eb581b5d124162885b049c892bbdc",
         url="https://github.com/wrf-model/WRF/releases/download/v4.5.2/v4.5.2.tar.gz",
@@ -106,6 +115,9 @@ class Wrf(Package):
         sha256="a04f5c425bedd262413ec88192a0f0896572cc38549de85ca120863c43df047a",
         url="https://github.com/wrf-model/WRF/archive/V3.9.1.1.tar.gz",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant(
         "build_type",
@@ -207,7 +219,7 @@ class Wrf(Package):
 
     patch("patches/4.3/Makefile.patch", when="@4.3:4.5.1")
     patch("patches/4.3/arch.postamble.patch", when="@4.3:4.3.3")
-    patch("patches/4.3/fujitsu.patch", when="@4.3: %fj")
+    patch("patches/4.3/fujitsu.patch", when="@4.3:4.4 %fj")
     # Syntax errors in physics routines
     patch(
         "https://github.com/wrf-model/WRF/commit/7c6fd575b7a8fe5715b07b38db160e606c302956.patch?full_index=1",
@@ -256,6 +268,20 @@ class Wrf(Package):
     depends_on("m4", type="build")
     depends_on("libtool", type="build")
     depends_on("adios2", when="@4.5: +adios2")
+
+    requires(
+        "%gcc",
+        "%intel",
+        "%arm",
+        "%aocc",
+        "%fj",
+        "%oneapi",
+        policy="one_of",
+        msg="WRF supports only the GCC, Intel, AMD of Fujitsu compilers",
+    )
+    conflicts(
+        "%oneapi", when="@:4.3", msg="Intel oneapi compiler patch only added for version 4.4"
+    )
     phases = ["configure", "build", "install"]
 
     def setup_run_environment(self, env):
@@ -395,6 +421,12 @@ class Wrf(Package):
         if self.spec.satisfies("@:4.0.3 %intel@2018:"):
             config.filter(r"-openmp", "-qopenmp")
 
+        if self.spec.satisfies("%gcc@14:"):
+            config.filter(
+                "^CFLAGS_LOCAL(.*?)=([^#\n\r]*)(.*)$", r"CFLAGS_LOCAL\1= \2 -fpermissive \3"
+            )
+            config.filter("^CC_TOOLS(.*?)=([^#\n\r]*)(.*)$", r"CC_TOOLS\1=\2 -fpermissive \3")
+
     @run_before("configure")
     def fortran_check(self):
         if not self.compiler.fc:
@@ -404,11 +436,6 @@ class Wrf(Package):
     def configure(self, spec, prefix):
         # Remove broken default options...
         self.do_configure_fixup()
-
-        if self.spec.compiler.name not in ["intel", "gcc", "arm", "aocc", "fj", "oneapi"]:
-            raise InstallError(
-                "Compiler %s not currently supported for WRF build." % self.spec.compiler.name
-            )
 
         p = Popen("./configure", stdin=PIPE, stdout=PIPE, stderr=PIPE)
         if sys.platform != "win32":

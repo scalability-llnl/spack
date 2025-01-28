@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,9 +18,11 @@ class Xstdcmap(AutotoolsPackage, XorgPackage):
     version("1.0.4", sha256="7b1a23ba7ac623803101b6f9df37889fb1ef2f1bb53da25a415c8a88eebc8073")
     version("1.0.3", sha256="b97aaa883a9eedf9c3056ea1a7e818e3d93b63aa1f54193ef481d392bdef5711")
 
+    depends_on("c", type="build")
+
     depends_on("libxmu")
     depends_on("libx11")
 
-    depends_on("xproto@7.0.17:")
+    depends_on("xproto@7.0.17:", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")

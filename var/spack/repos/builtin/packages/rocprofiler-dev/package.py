@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,12 +12,17 @@ class RocprofilerDev(CMakePackage):
 
     homepage = "https://github.com/ROCm/rocprofiler"
     git = "https://github.com/ROCm/rocprofiler.git"
-    url = "https://github.com/ROCm/rocprofiler/archive/refs/tags/rocm-6.1.2.tar.gz"
+    url = "https://github.com/ROCm/rocprofiler/archive/refs/tags/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
-    maintainers("srekolam", "renjithravindrankannath")
+    maintainers("srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["librocprofiler64"]
     license("MIT")
+    version("6.3.1", sha256="c4666c1167e551cfafc343b092506834477556ba6f7b0739552d660fd69c30fb")
+    version("6.3.0", sha256="45ddc1d87a33bb27e9445e642a3495fef21cec1e545793b2ca5f551743961b1f")
+    version("6.2.4", sha256="898eae91938c2d08207b615db03a784c7f3090989bcf09260635d18aa5930a2c")
+    version("6.2.1", sha256="6eb36dad67e3b294f210e21987c52aec666652cffa87b8af1f8077d5b7812245")
+    version("6.2.0", sha256="79b4f29d051e62639b4bf2ca288035514d32e055fc759ff4a82d377bf7ca97ea")
     version("6.1.2", sha256="e6e8771b8c933c16a99192cc215fe964a95e1718ad286520c8272150e184bc06")
     version("6.1.1", sha256="b4b01a02de5328c7383c2318a998da86a6a9372e1728fc88a21b52bc1cbe9d9d")
     version("6.1.0", sha256="14ac0a451428465133583e83d9177ed34b3d4679515018a12ee74f5e0288c956")
@@ -35,6 +39,9 @@ class RocprofilerDev(CMakePackage):
         version("5.4.0", sha256="0322cbe5d1d3182e616f472da31f0707ad6040833c38c28f2b39381a85210f43")
         version("5.3.3", sha256="07ee28f3420a07fc9d45910e78ad7961b388109cfc0e74cfdf2666789e6af171")
         version("5.3.0", sha256="b0905a329dc1c97a362b951f3f8ef5da9d171cabb001ed4253bd59a2742e7d39")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3:", type="build")
 
@@ -54,13 +61,52 @@ class RocprofilerDev(CMakePackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
     ]:
         depends_on(f"hsakmt-roct@{ver}", when=f"@{ver}")
+
+    for ver in [
+        "5.3.0",
+        "5.3.3",
+        "5.4.0",
+        "5.4.3",
+        "5.5.0",
+        "5.5.1",
+        "5.6.0",
+        "5.6.1",
+        "5.7.0",
+        "5.7.1",
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
+    ]:
         depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")
         depends_on(f"rocminfo@{ver}", when=f"@{ver}")
         depends_on(f"roctracer-dev-api@{ver}", when=f"@{ver}")
 
-    for ver in ["5.7.0", "5.7.1", "6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2"]:
+    for ver in [
+        "5.7.0",
+        "5.7.1",
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
+    ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"rocm-smi-lib@{ver}", when=f"@{ver}")
 
@@ -76,6 +122,11 @@ class RocprofilerDev(CMakePackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
     ]:
         depends_on(f"aqlprofile@{ver}", when=f"@{ver}")
         depends_on(f"comgr@{ver}", when=f"@{ver}")
@@ -103,8 +154,7 @@ class RocprofilerDev(CMakePackage):
     def patch(self):
         filter_file(
             "${HSA_RUNTIME_LIB_PATH}/../include",
-            "${HSA_RUNTIME_LIB_PATH}/../include ${HSA_KMT_LIB_PATH}/..\
-                     /include",
+            "${HSA_RUNTIME_LIB_PATH}/../include ${HSA_KMT_LIB_PATH}/../include",
             "test/CMakeLists.txt",
             string=True,
         )
@@ -119,13 +169,17 @@ class RocprofilerDev(CMakePackage):
         return None
 
     def cmake_args(self):
-        return [
+        args = [
             self.define(
                 "PROF_API_HEADER_PATH", self.spec["roctracer-dev-api"].prefix.roctracer.include.ext
             ),
-            self.define("ROCM_ROOT_DIR", self.spec["hsakmt-roct"].prefix.include),
             self.define("CMAKE_INSTALL_LIBDIR", "lib"),
         ]
+        if self.spec.satisfies("@:6.2"):
+            args.append(self.define("ROCM_ROOT_DIR", self.spec["hsakmt-roct"].prefix.include))
+        if self.spec.satisfies("@6.2:"):
+            args.append(self.define("ROCPROFILER_BUILD_PLUGIN_PERFETTO", "OFF"))
+        return args
 
     @run_after("install")
     def post_install(self):

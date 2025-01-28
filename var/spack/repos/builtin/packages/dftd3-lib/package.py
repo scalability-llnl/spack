@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,8 @@ class Dftd3Lib(MakefilePackage):
 
     version("0.10", sha256="db61bc6c7c699628e8c5bf2018ea38de03a53eac38014e06845829d765caf6bb")
     version("0.9.2", sha256="4178f3cf2f3e7e982a7084ec66bac92b4fdf164537d9fc0ada840a11b784f0e0")
+
+    depends_on("fortran", type="build")  # generated
 
     # This fixes a concurrency bug, where make would try to start compiling
     # the dftd3 target before the lib target ended.

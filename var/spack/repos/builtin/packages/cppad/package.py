@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -32,6 +31,9 @@ class Cppad(CMakePackage):
         sha256="fa3980a882be2a668a7522146273a1b4f1d8dabe66ad4aafa8964c8c1fd6f957",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     def cmake_args(self):
         # NOTE: This package does not obey CMAKE_INSTALL_PREFIX

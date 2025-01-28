@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -15,6 +14,8 @@ class LibpressioAdios1(CMakePackage):
     maintainers("robertu94")
 
     version("0.0.2", sha256="cb3c4ef3c9c3bd5f4c08d1145a07d2ce0c84605a2213b744992c6c8cef998d39")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("adios")
     depends_on("libpressio")

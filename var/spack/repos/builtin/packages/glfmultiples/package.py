@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class Glfmultiples(MakefilePackage):
     version(
         "2010-06-16", sha256="f7abef6f6b043e9052fb408bb2aae6d0d97d907aedc1b3e02dd0db08eb81b979"
     )
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("zlib-api")
 

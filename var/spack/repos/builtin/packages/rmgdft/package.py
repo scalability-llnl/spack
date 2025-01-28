@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,10 @@ class Rmgdft(CMakePackage, CudaPackage):
     version("5.0.5", tag="v5.0.5", commit="f67a5d80e4bb418d31f35586a19b21c9b52e7832")
     version("5.0.4", tag="v5.0.4", commit="30faadeff7dc896169d011910831263fb19eb965")
     version("5.0.1", tag="v5.0.1", commit="60b3ad64b09a4fccdd2b84052350e7947e3e8ad0")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant(
         "build_type",
@@ -51,7 +54,6 @@ class Rmgdft(CMakePackage, CudaPackage):
     compiler_warning14 = "RMGDFT 4.0.0 or later requires a compiler with support for C++14"
     conflicts("%gcc@:4", when="@3.6.0:", msg=compiler_warning14)
     conflicts("%intel@:17", when="@3.6.0:", msg=compiler_warning14)
-    conflicts("%pgi@:17", when="@3.6.0:", msg=compiler_warning14)
     conflicts("%llvm@:3.4", when="@3.6.0:", msg=compiler_warning14)
 
     # RMGDFT 5.0.0 requires C++17 and increase the minimum gcc to 8

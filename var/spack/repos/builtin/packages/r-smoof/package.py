@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,9 @@ class RSmoof(RPackage):
     version("1.6.0.2", sha256="d82dba9702eade00afb84c2c12167de6cec790be7d23ac227f8fe705bdcefc93")
     version("1.5.1", sha256="cfb6f6460e9593351428656b225b5ba3867a216d35a05f2babdb20db6ba35306")
     version("1.5", sha256="9b73ad5bfc8e1120c9651539ea52b1468f316cc7fc5fef8afd6d357adf01504c")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r+X", type=("build", "run"))
     depends_on("r-paramhelpers@1.8:", type=("build", "run"))

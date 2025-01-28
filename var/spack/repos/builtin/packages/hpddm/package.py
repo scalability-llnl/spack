@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,6 +25,10 @@ class Hpddm(Package):
     version("2.1.3", commit="32025e4ee75a16fa67399d26dd86910c03910dba")
     version("2.1.2", commit="e58205623814f59bf2aec2e2bab8eafcfbd22466")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("mpi")
     depends_on("blas")
     depends_on("lapack")
@@ -34,6 +37,7 @@ class Hpddm(Package):
     depends_on("scalapack")
     depends_on("arpack-ng")
     depends_on("python")
+    depends_on("gmake", type="build")
 
     def configure(self):
         makefile_inc = []

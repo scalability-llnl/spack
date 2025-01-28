@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,9 @@ class Dimemas(AutotoolsPackage):
     license("LGPL-2.1-or-later")
 
     version("5.4.1", sha256="10ddca3745a56ebab5c1ba180f6f4bce5832c4deac50c1b1dc08271db5c7cafa")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

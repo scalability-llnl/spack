@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,7 +8,7 @@ from spack.package import *
 class OctaveSplines(OctavePackage, SourceforgePackage):
     """Additional spline functions."""
 
-    homepage = "http://octave.sourceforge.net/splines/index.html"
+    homepage = "https://octave.sourceforge.net/splines/index.html"
     sourceforge_mirror_path = "octave/splines-1.3.1.tar.gz"
 
     license("GPL-3.0-or-later")

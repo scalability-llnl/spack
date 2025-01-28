@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -29,6 +28,8 @@ class Binder(CMakePackage):
     version("1.2.0", tag="v1.2.0", commit="90cf5b31b6f4ecad3fe87518ca2b949dc9e8ed1a")
     version("1.1.0", tag="v1.0.0", commit="3de7949343197295250f988716d511a264b21324")
     version("1.0.0", tag="v1.0.0", commit="3de7949343197295250f988716d511a264b21324")
+
+    depends_on("cxx", type="build")  # generated
 
     # Add dependencies
     depends_on("llvm+clang+llvm_dylib@7.0:9", when="@:1.3.0")

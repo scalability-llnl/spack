@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -42,12 +41,12 @@ class CrtmFix(Package):
         mkdir(self.prefix.fix)
 
         endian_dirs = []
-        if "+big_endian" in spec:
+        if spec.satisfies("+big_endian"):
             endian_dirs.append("Big_Endian")
-        elif "+little_endian" in spec:
+        elif spec.satisfies("+little_endian"):
             endian_dirs.append("Little_Endian")
 
-        if "+netcdf" in spec:
+        if spec.satisfies("+netcdf"):
             endian_dirs.extend(["netcdf", "netCDF"])
 
         fix_files = []

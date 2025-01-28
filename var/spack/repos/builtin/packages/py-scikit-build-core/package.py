@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,12 +18,17 @@ class PyScikitBuildCore(PythonPackage):
 
     license("Apache-2.0")
 
+    version("0.10.7", sha256="04cbb59fe795202a7eeede1849112ee9dcbf3469feebd9b8b36aa541336ac4f8")
     version("0.9.5", sha256="2a4cb119cc968fe87ae05582979657cc0e7be45655798446eabbe490e61ce072")
     version("0.8.2", sha256="50ec24b9568c9aa6e27233deeb2978932bc79856212b30575cbfa4049655c436")
     version("0.7.1", sha256="565f33e15f5aa4514248c508ce3ce40fb6f406f8c3983e891561757b1c9f78ab")
     version("0.6.1", sha256="392254a4ca7235c27a4be98cc24cd708f563171961ce37cff66120ebfda20b7a")
     version("0.6.0", sha256="1bea5ed83610b367f3446badd996f2356690548188d6d38e5b93152df311a7ae")
     version("0.2.0", sha256="d2a76d9447a412038dc5e25dd259b03c25278661a0c7c3da766bb971c1a9acd2")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("pyproject", default=False, description="Enable pyproject.toml support")
 

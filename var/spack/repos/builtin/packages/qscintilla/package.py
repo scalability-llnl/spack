@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,8 @@ class Qscintilla(QMakePackage):
     version("2.13.4", sha256="890c261f31e116f426b0ea03a136d44fc89551ebfd126d7b0bdf8a7197879986")
     version("2.13.3", sha256="711d28e37c8fccaa8229e8e39a5b3b2d97f3fffc63da10b71c71b84fa3649398")
     version("2.12.0", sha256="2116181cce3076aa4897e36182532d0e6768081fb0cf6dcdd5be720519ab1434")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("designer", default=False, description="Enable pluging for Qt-Designer")
     variant("python", default=False, description="Build python bindings")
@@ -100,9 +101,7 @@ class Qscintilla(QMakePackage):
 
         with working_dir(join_path(self.stage.source_path, "Python")):
             copy(ftoml, "pyproject.toml")
-            sip_inc_dir = join_path(
-                self.spec[py_pyqtx].package.module.python_platlib, pyqtx, "bindings"
-            )
+            sip_inc_dir = join_path(self[py_pyqtx].module.python_platlib, pyqtx, "bindings")
 
             with open("pyproject.toml", "a") as tomlfile:
                 # https://pyqt-builder.readthedocs.io/en/latest/pyproject_toml.html
@@ -111,8 +110,10 @@ class Qscintilla(QMakePackage):
                 # also add link statement to fix "undefined symbol _Z...Qsciprinter...
                 link_qscilibs = "LIBS += -L" + self.prefix.lib + " -lqscintilla2_" + qtx
                 tomlfile.write(
-                    f'\n[tool.sip.builder]\nqmake-settings = \
-                    ["QT += widgets", "QT += printsupport", "{link_qscilibs}"]\n'
+                    f"""
+[tool.sip.builder]
+qmake-settings = ["QT += widgets", "QT += printsupport", "{link_qscilibs}"]
+"""
                 )
 
             mkdirp(os.path.join(self.prefix.share.sip, pyqtx))
@@ -135,11 +136,12 @@ class Qscintilla(QMakePackage):
             make("install", "-C", "build/")
 
     def test_python_import(self):
-        if "+python" in self.spec:
-            python = self.spec["python"].command
-            if "^py-pyqt5" in self.spec:
-                python("-c", "import PyQt5.Qsci")
-            if "^py-pyqt6" in self.spec:
-                python("-c", "import PyQt6.Qsci")
-        else:
-            print("qscintilla ins't built with python, skipping import test")
+        """check Qsci import"""
+        if self.spec.satisfies("~python"):
+            raise SkipTest("Package must be installed with +python")
+
+        python = self.spec["python"].command
+        if "^py-pyqt5" in self.spec:
+            python("-c", "import PyQt5.Qsci")
+        if "^py-pyqt6" in self.spec:
+            python("-c", "import PyQt6.Qsci")

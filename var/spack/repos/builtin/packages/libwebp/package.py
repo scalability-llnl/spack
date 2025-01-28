@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,6 +24,9 @@ class Libwebp(AutotoolsPackage):
     version("1.2.2", sha256="7656532f837af5f4cec3ff6bafe552c044dc39bf453587bd5b77450802f4aee6")
     version("1.2.0", sha256="2fc8bbde9f97f2ab403c0224fb9ca62b2e6852cbc519e91ceaa7c153ffd88a0c")
     version("1.0.3", sha256="e20a07865c8697bba00aebccc6f54912d6bc333bb4d604e6b07491c1a226b34f")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("libwebpmux", default=False, description="Build libwebpmux")
     variant("libwebpdemux", default=False, description="Build libwebpdemux")

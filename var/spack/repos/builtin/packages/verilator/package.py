@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -42,6 +41,9 @@ class Verilator(AutotoolsPackage):
 
     version("master", branch="master")
 
+    version("5.032", sha256="5a262564b10be8bdb31ff4fb67d77bcf5f52fc1b4e6c88d5ca3264fb481f1e41")
+    version("5.030", sha256="b9e7e97257ca3825fcc75acbed792b03c3ec411d6808ad209d20917705407eac")
+    version("5.028", sha256="02d4b6f34754b46a97cfd70f5fcbc9b730bd1f0a24c3fc37223397778fcb142c")
     version("5.026", sha256="87fdecf3967007d9ee8c30191ff2476f2a33635d0e0c6e3dbf345cc2f0c50b78")
     version("5.024", sha256="88b04c953e7165c670d6a700f202cef99c746a0867b4e2efe1d7ea789dee35f3")
     version("5.022", sha256="3c2f5338f4b6ce7e2f47a142401acdd18cbf4c5da06092618d6d036c0afef12d")
@@ -71,6 +73,10 @@ class Verilator(AutotoolsPackage):
     version("4.110", sha256="603c23944577a5d53a2e09191d04d5c61740a77b58f3a590a70e56f4526a5a0b")
     version("4.108", sha256="ce521dc57754e5a325ff7000c434ce23674c8e1de30e1f2a6506dc3a33bd7c55")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")
@@ -81,6 +87,8 @@ class Verilator(AutotoolsPackage):
     depends_on("ccache", type=("build", "run"), when="@5.018:")
 
     conflicts("%gcc@:6", msg="C++14 support required")
+
+    patch("fix_compile_gch.patch", level=1, when="@5.018:5.028")
 
     # we need to fix the CXX and LINK paths, as they point to the spack
     # wrapper scripts which aren't usable without spack

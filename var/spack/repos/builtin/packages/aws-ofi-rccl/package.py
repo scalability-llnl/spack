@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,8 @@ class AwsOfiRccl(AutotoolsPackage):
 
     version("cxi", branch="cxi", preferred=True)
     version("master", branch="master")
+
+    depends_on("c", type="build")  # generated
 
     variant("trace", default=False, description="Enable printing trace messages")
     variant("tests", default=False, description="Build tests")

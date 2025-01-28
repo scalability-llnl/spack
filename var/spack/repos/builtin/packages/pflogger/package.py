@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -37,6 +36,8 @@ class Pflogger(CMakePackage):
     version("1.9.0", sha256="aacd9b7e188bee3a54a4e681adde32e3bd95bb556cbbbd2c725c81aca5008003")
     version("1.8.0", sha256="28ce9ac8af374253b6dfd8f53f8fd271c787d432645ec9bc6a5a01601dc56e19")
     version("1.6.1", sha256="114a15daa7994ab7d4eea463c3a9b8fe7df3da7d07a0004b5c40cf155e374916")
+
+    depends_on("fortran", type="build")
 
     variant(
         "build_type",

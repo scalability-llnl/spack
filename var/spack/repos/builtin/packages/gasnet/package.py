@@ -1,10 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 
+import spack.main
 from spack.package import *
 
 
@@ -75,6 +75,10 @@ class Gasnet(Package, CudaPackage, ROCmPackage):
     # Do NOT add older versions here.
     # GASNet-EX releases over 2 years old are not supported.
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("gmake", type="build")
+
     # The optional network backends:
     variant(
         "conduits",
@@ -142,7 +146,7 @@ class Gasnet(Package, CudaPackage, ROCmPackage):
             try:
                 git = which("git")
                 git("describe", "--long", "--always", output="version.git")
-            except spack.util.executable.ProcessError:
+            except ProcessError:
                 spack.main.send_warning_to_tty("Omitting version stamp due to git error")
 
         # The GASNet-EX library has a highly multi-dimensional configure space,
@@ -160,22 +164,22 @@ class Gasnet(Package, CudaPackage, ROCmPackage):
         if "conduits=none" not in spec:
             options = ["--prefix=%s" % prefix]
 
-            if "+debug" in spec:
+            if spec.satisfies("+debug"):
                 options.append("--enable-debug")
 
-            if "+cuda" in spec:
+            if spec.satisfies("+cuda"):
                 options.append("--enable-kind-cuda-uva")
                 options.append("--with-cuda-home=" + spec["cuda"].prefix)
 
-            if "+rocm" in spec:
+            if spec.satisfies("+rocm"):
                 options.append("--enable-kind-hip")
                 options.append("--with-hip-home=" + spec["hip"].prefix)
 
-            if "+level_zero" in spec:
+            if spec.satisfies("+level_zero"):
                 options.append("--enable-kind-ze")
                 options.append("--with-ze-home=" + spec["oneapi-level-zero"].prefix)
 
-            if "conduits=mpi" in spec:
+            if spec.satisfies("conduits=mpi"):
                 options.append("--enable-mpi-compat")
             else:
                 options.append("--disable-mpi-compat")
@@ -201,7 +205,7 @@ class Gasnet(Package, CudaPackage, ROCmPackage):
     @run_after("install")
     @on_package_attributes(run_tests=True)
     def check_install(self):
-        if "conduits=smp" in self.spec:
+        if self.spec.satisfies("conduits=smp"):
             make("-C", "smp-conduit", "run-tests")
         self.test_testtools()
 
@@ -216,7 +220,7 @@ class Gasnet(Package, CudaPackage, ROCmPackage):
 
     def test_testtools(self):
         """run testtools and check output"""
-        if "conduits=none" in self.spec:
+        if self.spec.satisfies("conduits=none"):
             raise SkipTest("Test requires conduit libraries")
 
         testtools_path = join_path(self.prefix.tests, "testtools")
@@ -229,7 +233,7 @@ class Gasnet(Package, CudaPackage, ROCmPackage):
 
     def test_testgasnet(self):
         """run testgasnet and check output"""
-        if "conduits=none" in self.spec:
+        if self.spec.satisfies("conduits=none"):
             raise SkipTest("Test requires conduit libraries")
 
         self._setup_test_env()

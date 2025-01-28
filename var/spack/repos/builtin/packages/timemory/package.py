@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #
@@ -27,6 +26,10 @@ class Timemory(CMakePackage, PythonExtension):
     version("3.1.0", commit="b12de7eeed699d820693fecd6136daff744f21b6", submodules=True)
     version("3.0.1", commit="ef638e1cde90275ce7c0e12fc4902c27bcbdeefd", submodules=True)
     version("3.0.0", commit="b36b1673b2c6b7ff3126d8261bef0f8f176c7beb", submodules=True)
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("shared", default=True, description="Build shared libraries")
     variant("static", default=False, description="Build static libraries")

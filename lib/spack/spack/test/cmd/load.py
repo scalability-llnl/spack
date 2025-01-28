@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -8,9 +7,8 @@ import sys
 
 import pytest
 
-import spack.spec
+import spack.concretize
 import spack.user_environment as uenv
-import spack.util.environment
 from spack.main import SpackCommand
 
 load = SpackCommand("load")
@@ -51,7 +49,7 @@ def test_load_recursive(install_mockery, mock_fetch, mock_archive, mock_packages
         """Test that `spack load` applies prefix inspections of its required runtime deps in
         topo-order"""
         install("mpileaks")
-        mpileaks_spec = spack.spec.Spec("mpileaks").concretized()
+        mpileaks_spec = spack.concretize.concretize_one("mpileaks")
 
         # Ensure our reference variable is clean.
         os.environ["CMAKE_PREFIX_PATH"] = "/hello" + os.pathsep + "/world"
@@ -168,7 +166,7 @@ def test_unload(
     """Tests that any variables set in the user environment are undone by the
     unload command"""
     install("mpileaks")
-    mpileaks_spec = spack.spec.Spec("mpileaks").concretized()
+    mpileaks_spec = spack.concretize.concretize_one("mpileaks")
 
     # Set so unload has something to do
     os.environ["FOOBAR"] = "mpileaks"
@@ -189,7 +187,7 @@ def test_unload_fails_no_shell(
 ):
     """Test that spack unload prints an error message without a shell."""
     install("mpileaks")
-    mpileaks_spec = spack.spec.Spec("mpileaks").concretized()
+    mpileaks_spec = spack.concretize.concretize_one("mpileaks")
     os.environ[uenv.spack_loaded_hashes_var] = mpileaks_spec.dag_hash()
 
     out = unload("mpileaks", fail_on_error=False)

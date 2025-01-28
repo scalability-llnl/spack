@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,9 @@ class PyIpython(PythonPackage):
 
     license("BSD-3-Clause")
 
+    version("8.28.0", sha256="0d0d15ca1e01faeb868ef56bc7ee5a0de5bd66885735682e8a322ae289a13d1a")
+    version("8.27.0", sha256="0b99a2dc9f15fd68692e898e5568725c6d49c527d36a9fb5960ffbdeaa82ff7e")
+    version("8.26.0", sha256="1cec0fbba8404af13facebe83d04436a7434c7400e59f47acf467c64abd0956c")
     version("8.25.0", sha256="c6ed726a140b6e725b911528f80439c534fac915246af3efc39440a6b0f9d716")
     version("8.24.0", sha256="010db3f8a728a578bb641fdd06c063b9fb8e96a9464c63aec6310fbcb5e80501")
     version("8.23.0", sha256="7468edaf4f6de3e1b912e57f66c241e6fd3c7099f2ec2136e239e142e800274d")
@@ -48,8 +50,9 @@ class PyIpython(PythonPackage):
     version("5.8.0", sha256="4bac649857611baaaf76bc82c173aa542f7486446c335fe1a6c05d0d491c8906")
     version("5.1.0", sha256="7ef4694e1345913182126b219aaa4a0047e191af414256da6772cf249571b961")
 
+    depends_on("python@3.10:", when="@8.19:", type=("build", "run"))
     depends_on("python@3.9:", when="@8.13.1:", type=("build", "run"))
-    depends_on("python@3.8:", when="@8:", type=("build", "run"))
+    depends_on("python@3.8: +sqlite3", when="@8:", type=("build", "run"))
     depends_on("py-setuptools@61.2:", when="@8.22:", type="build")
     depends_on("py-setuptools@51:", when="@8:", type="build")
     depends_on("py-setuptools@18.5:", when="@:7", type="run")

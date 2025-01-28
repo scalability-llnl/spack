@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class PyQiskitNature(PythonPackage):
     license("Apache-2.0")
 
     version("0.2.2", sha256="ce3558d4acf2511111cc398361146af36391d67e5a9fe9c4bd0f727cb56022bf")
+
+    depends_on("fortran", type="build")  # generated
 
     depends_on("python@3.6:", type=("build", "run"))
     depends_on("py-setuptools@40.1.0:", type="build")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -35,6 +34,9 @@ class Openjpeg(CMakePackage):
     version("2.0.0", sha256="5480f801a9f88af1a456145e41f3adede1dfae425bbac66a19c7eeeba94a1249")
     version("1.5.2", sha256="3734e95edd0bef6e056815591755efd822228dc3cd866894e00a2c929026b16d")
     version("1.5.1", sha256="6a42fcc23cb179f69a1e94429089e5a5926aee1ffe582a0a6bd91299d297e61a")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("codec", default=False, description="Build the CODEC executables")
 

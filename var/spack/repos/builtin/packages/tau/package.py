@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,6 +27,7 @@ class Tau(Package):
     license("MIT")
 
     version("master", branch="master")
+    version("2.34", sha256="229ab425e0532e635a0be76d60b8aa613adf7596d15a9ced0b87e7f243bb2132")
     version("2.33.2", sha256="8ee81fe75507612379f70033183bed2a90e1245554b2a78196b6c5145da44f27")
     version("2.33.1", sha256="13cc5138e110932f34f02ddf548db91d8219ccb7ff9a84187f0790e40a502403")
     version("2.33", sha256="04d9d67adb495bc1ea56561f33c5ce5ba44f51cc7f64996f65bd446fac5483d9")
@@ -56,6 +56,10 @@ class Tau(Package):
     version("2.24", sha256="5d28e8b26561c7cd7d0029b56ec0f95fc26803ac0b100c98e00af0b02e7f55e2")
     version("2.23.1", sha256="31a4d0019cec6ef57459a9cd18a220f0130838a5f1a0b5ea7879853f5a38cf88")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # Disable some default dependencies on Darwin/OSX
     darwin_default = False
     if sys.platform != "darwin":
@@ -75,23 +79,39 @@ class Tau(Package):
     variant("pdt", default=True, description="Use PDT for source code instrumentation")
     variant("comm", default=False, description=" Generate profiles with MPI communicator info")
     variant("python", default=False, description="Activates Python support")
-    variant("likwid", default=False, description="Activates LIKWID support")
+    variant("likwid", default=False, description="Activates LIKWID support", when="@2.27")
     variant("ompt", default=False, description="Activates OMPT instrumentation")
     variant("opari", default=False, description="Activates Opari2 instrumentation")
     variant("shmem", default=False, description="Activates SHMEM support")
     variant("gasnet", default=False, description="Activates GASNET support")
     variant("cuda", default=False, description="Activates CUDA support")
-    variant("rocm", default=False, description="Activates ROCm support")
-    variant("level_zero", default=False, description="Activates Intel OneAPI Level Zero support")
-    variant("rocprofiler", default=False, description="Activates ROCm rocprofiler support")
-    variant("roctracer", default=False, description="Activates ROCm roctracer support")
-    variant("rocprofv2", default=False, description="Activates ROCm rocprofiler support")
+    variant("rocm", default=False, description="Activates ROCm support", when="@2.28:")
+    variant(
+        "level_zero",
+        default=False,
+        description="Activates Intel OneAPI Level Zero support",
+        when="@2.30:",
+    )
+    variant(
+        "rocprofiler",
+        default=False,
+        description="Activates ROCm rocprofiler support",
+        when="@2.29.1:",
+    )
+    variant(
+        "roctracer", default=False, description="Activates ROCm roctracer support", when="@2.28.1:"
+    )
+    variant(
+        "rocprofv2", default=False, description="Activates ROCm rocprofiler support", when="@2.34:"
+    )
     variant("opencl", default=False, description="Activates OpenCL support")
     variant("fortran", default=darwin_default, description="Activates Fortran support")
     variant("io", default=True, description="Activates POSIX I/O support")
-    variant("adios2", default=False, description="Activates ADIOS2 output support")
+    variant(
+        "adios2", default=False, description="Activates ADIOS2 output support", when="@2.26.3:"
+    )
     variant("sqlite", default=False, description="Activates SQLite3 output support")
-    variant("syscall", default=False, description="Activates syscall wrapper")
+    variant("syscall", default=False, description="Activates syscall wrapper", when="@2.33:")
     variant(
         "profileparam",
         default=False,
@@ -200,25 +220,21 @@ class Tau(Package):
         #     ('CC', 'CXX' and 'FC')
         # 4 - if no -cc=<compiler> -cxx=<compiler> is passed tau is built with
         #     system compiler silently
-        # (regardless of what %<compiler> is used in the spec)
-        # 5 - On cray gnu compilers are not provied by self.compilers
-        #     Checking GCC_PATH will work if spack loads the gcc module
-        #
-        # In the following we give TAU what he expects and put compilers into
-        # PATH
-        compiler_path = os.path.dirname(self.compiler.cc)
-        if not compiler_path and self.compiler.cc_names[0] == "gcc":
-            compiler_path = os.environ.get("GCC_PATH", "")
-            if compiler_path:
-                compiler_path = compiler_path + "/bin/"
-        os.environ["PATH"] = ":".join([compiler_path, os.environ["PATH"]])
-        compiler_options = [
-            "-c++=%s" % os.path.basename(self.compiler.cxx),
-            "-cc=%s" % os.path.basename(self.compiler.cc),
-        ]
+        compiler_flags: Dict[str, str] = {
+            flag: os.path.basename(getattr(self.compiler, compiler))
+            for flag, compiler in (("-cc", "cc"), ("-c++", "cxx"), ("-fortran", "fc"))
+            if getattr(self.compiler, compiler)
+        }
 
-        if "+fortran" in spec and self.compiler.fc:
-            compiler_options.append("-fortran=%s" % os.path.basename(self.compiler.fc))
+        if "~fortran" in spec:
+            compiler_flags.pop("-fortran", None)
+
+        # tau does not understand `craycc`, `crayCC`, `crayftn`, strip off the `cray` prefix
+        for flag, value in compiler_flags.items():
+            if value.startswith("cray"):
+                compiler_flags[flag] = value[4:]
+
+        compiler_options = [f"{flag}={value}" for flag, value in compiler_flags.items()]
 
         ##########
 
@@ -307,8 +323,8 @@ class Tau(Package):
                 env["F77"] = spec["mpi"].mpif77
                 env["FC"] = spec["mpi"].mpifc
             if spec["mpi"].name == "intel-oneapi-mpi":
-                options.append("-mpiinc=%s/include" % spec["mpi"].package.component_prefix)
-                options.append("-mpilib=%s/lib" % spec["mpi"].package.component_prefix)
+                options.append("-mpiinc=%s/include" % self["mpi"].component_prefix)
+                options.append("-mpilib=%s/lib" % self["mpi"].component_prefix)
             else:
                 options.append("-mpiinc=%s" % spec["mpi"].prefix.include)
                 options.append("-mpilib=%s" % spec["mpi"].prefix.lib)
@@ -411,8 +427,14 @@ class Tau(Package):
         # Link arch-specific directories into prefix since there is
         # only one arch per prefix the way spack installs.
         self.link_tau_arch_dirs()
-        # TAU may capture Spack's internal compiler wrapper. Replace
-        # it with the correct compiler.
+        # TAU may capture Spack's internal compiler wrapper. Fixed
+        # by filter_compiler_wrappers. Switch back the environment
+        # variables the filter uses.
+        if "+mpi" in spec:
+            env["CC"] = spack_cc
+            env["CXX"] = spack_cxx
+            env["FC"] = spack_fc
+            env["F77"] = spack_f77
 
     def link_tau_arch_dirs(self):
         for subdir in os.listdir(self.prefix):
@@ -458,23 +480,23 @@ class Tau(Package):
     def setup_build_tests(self):
         """Copy the build test files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources(self.matmult_test)
-        self.cache_extra_test_sources(self.makefile_test)
-        self.cache_extra_test_sources(self.makefile_inc_test)
+        cache_extra_test_sources(self, self.matmult_test)
+        cache_extra_test_sources(self, self.makefile_test)
+        cache_extra_test_sources(self, self.makefile_inc_test)
         if "+dyninst" in self.spec:
-            self.cache_extra_test_sources(self.dyninst_test)
+            cache_extra_test_sources(self, self.dyninst_test)
         if "+cuda" in self.spec:
-            self.cache_extra_test_sources(self.cuda_test)
+            cache_extra_test_sources(self, self.cuda_test)
         if "+level_zero" in self.spec:
-            self.cache_extra_test_sources(self.level_zero_test)
+            cache_extra_test_sources(self, self.level_zero_test)
         if "+rocm" in self.spec:
-            self.cache_extra_test_sources(self.rocm_test)
+            cache_extra_test_sources(self, self.rocm_test)
         if "+syscall" in self.spec:
-            self.cache_extra_test_sources(self.syscall_test)
+            cache_extra_test_sources(self, self.syscall_test)
         if "+ompt" in self.spec:
-            self.cache_extra_test_sources(self.ompt_test)
+            cache_extra_test_sources(self, self.ompt_test)
         if "+python" in self.spec:
-            self.cache_extra_test_sources(self.python_test)
+            cache_extra_test_sources(self, self.python_test)
 
     def _run_python_test(self, test_name, purpose, work_dir):
         tau_python = which(self.prefix.bin.tau_python)
@@ -579,3 +601,6 @@ class Tau(Package):
         ):
             rocm_test_dir = join_path(self.test_suite.current_test_cache_dir, self.rocm_test)
             self._run_rocm_test("test_rocm", "Testing rocm", rocm_test_dir)
+
+    # tau contains various prebuilt binaries with missing system dependencies
+    unresolved_libraries = ["*"]

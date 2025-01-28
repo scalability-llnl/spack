@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -30,6 +29,8 @@ class Gzip(AutotoolsPackage):
         sha256="c91f74430bf7bc20402e1f657d0b252cb80aa66ba333a25704512af346633c68",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
 
     # Gzip makes a recursive symlink if built in-source
     build_directory = "spack-build"

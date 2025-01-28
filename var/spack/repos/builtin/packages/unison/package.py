@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -31,6 +30,8 @@ class Unison(MakefilePackage):
         sha256="f8c7e982634bbe1ed6510fe5b36b6c5c55c06caefddafdd9edc08812305fdeec",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
 
     depends_on("ocaml@4.10.0:~force-safe-string", type=("build", "link"))
 

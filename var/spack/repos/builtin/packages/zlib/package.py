@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -51,6 +50,9 @@ class Zlib(MakefilePackage, Package):
         sha256="1795c7d067a43174113fdf03447532f373e1c6c57c08d61d9e4e9be5e244b05e",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     build_system("makefile", conditional("generic", when="platform=windows"), default="makefile")
 
@@ -112,7 +114,7 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder, SetupEnviron
             # script but patch the makefile for all the aforementioned compilers, given the
             # importance of the package, we try to be conservative for now and do the patching only
             # for compilers that will not produce a correct shared library otherwise.
-            if self.spec.compiler.name in ["nvhpc"]:
+            if self.spec.satisfies("%nvhpc"):
                 if "~pic" in self.spec:
                     # In this case, we should build the static library without PIC, therefore we
                     # don't append the respective compiler flag to CFLAGS in the build environment.

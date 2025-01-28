@@ -1,0 +1,25 @@
+--- a/src/hepmc/HepMC3Wrap.cpp	2024-08-21 20:16:15.770305323 +0200
++++ b/src/hepmc/HepMC3Wrap.cpp	2024-08-21 20:16:28.463638884 +0200
+@@ -161,7 +162,7 @@
+ }
+ 
+ extern "C" void gen_event_add_vertex( GenEvent* evt, GenVertex* v ) {
+-  evt->add_vertex( v );
++  evt->add_vertex( GenVertexPtr(v) );
+ }
+ 
+ extern "C" void gen_event_set_signal_process_vertex
+@@ -237,11 +238,11 @@
+ }
+ 
+ extern "C" void gen_vertex_add_particle_in( GenVertex* v, GenParticle* p ) {
+-  v->add_particle_in( p );
++  v->add_particle_in( GenParticlePtr(p) );
+ }
+ 
+ extern "C" void gen_vertex_add_particle_out( GenVertex* v, GenParticle* p ) {
+-  v->add_particle_out( p );
++  v->add_particle_out( GenParticlePtr(p) );
+ }
+ 
+ extern "C" bool gen_vertex_is_valid( GenVertex* v ) {

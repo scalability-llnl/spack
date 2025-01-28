@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -43,6 +42,9 @@ class Valgrind(AutotoolsPackage, SourcewarePackage):
     version("3.11.0", sha256="6c396271a8c1ddd5a6fb9abe714ea1e8a86fce85b30ab26b4266aeb4c2413b42")
     version("3.10.1", sha256="fa253dc26ddb661b6269df58144eff607ea3f76a9bcfe574b0c7726e1dfcb997")
     version("3.10.0", sha256="03047f82dfc6985a4c7d9d2700e17bc05f5e1a0ca6ad902e5d6c81aeb720edc9")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("mpi", default=True, description="Activates MPI support for valgrind")
     variant("boost", default=True, description="Activates boost support for valgrind")

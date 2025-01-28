@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,5 +23,8 @@ class Photospline(CMakePackage):
     version("2.0.4", sha256="0a675ffe27e1d99fe482cdd7692320d6852c11c9a63de7e710ba075989e0bfb5")
     version("2.0.3", sha256="7045a631c41489085037b05fac98fd9cad73dc4262b7eead143d09e5f8265dec")
     version("2.0.2", sha256="0a3368205a7971a6919483ad5b5f0fbebb74614ec1891c95bb6a4fc9d3b950d4")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cfitsio")

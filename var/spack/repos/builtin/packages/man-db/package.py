@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,8 @@ class ManDb(AutotoolsPackage):
     version("2.10.2", sha256="ee97954d492a13731903c9d0727b9b01e5089edbd695f0cdb58d405a5af5514d")
     version("2.10.1", sha256="2ffd8f2e80122fe72e60c740c851e6a3e15c9a7921185eb4752c1c672824bed6")
     version("2.7.6.1", sha256="08edbc52f24aca3eebac429b5444efd48b9b90b9b84ca0ed5507e5c13ed10f3f")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("pkgconfig", type="build")
     depends_on("gettext")

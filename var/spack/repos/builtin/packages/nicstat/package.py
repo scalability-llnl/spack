@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,8 @@ class Nicstat(MakefilePackage, SourceforgePackage):
     license("Artistic-2.0")
 
     version("1.95", sha256="c4cc33f8838f4523f27c3d7584eedbe59f4c587f0821612f5ac2201adc18b367")
+
+    depends_on("c", type="build")  # generated
 
     def edit(self, spec, prefix):
         copy("Makefile.Linux", "makefile")

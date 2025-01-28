@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,9 @@ class Tophat(AutotoolsPackage):
 
     version("2.1.2", sha256="15016b82255dad085d4ee7d970e50f0e53a280d466335553d47790d8344ff4b1")
     version("2.1.1", sha256="991b1b7c840a5f5c4e9a15b2815983257d2b0748246af0b9094c7d07552b023e")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("autoconf", type="build")
     # 2.1.1 only builds with automake@1.15.1.  There's a patch here:

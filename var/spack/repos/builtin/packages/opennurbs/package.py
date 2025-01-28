@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,6 +25,9 @@ class Opennurbs(CMakePackage, MakefilePackage):
         sha256="d12a8f14f0b27d286fb7a75ab3c4e300f77d1fbb028326d1c8d28e4641605538",
         url="https://github.com/PerceptTools/percept/raw/master/build-cmake/opennurbs-percept.tar.gz",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     build_system(
         conditional("cmake", when="@1:"), conditional("makefile", when="@:0"), default="cmake"

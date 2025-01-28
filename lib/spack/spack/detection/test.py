@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Create and run mock e2e tests for package detection."""
@@ -68,7 +67,7 @@ class Runner:
         with self._mock_layout() as path_hints:
             entries = by_path([self.test.pkg_name], path_hints=path_hints)
             _, unqualified_name = spack.repo.partition_package_name(self.test.pkg_name)
-            specs = set(x.spec for x in entries[unqualified_name])
+            specs = set(entries[unqualified_name])
         return list(specs)
 
     @contextlib.contextmanager
@@ -104,7 +103,9 @@ class Runner:
     @property
     def expected_specs(self) -> List[spack.spec.Spec]:
         return [
-            spack.spec.Spec.from_detection(item.spec, extra_attributes=item.extra_attributes)
+            spack.spec.Spec.from_detection(
+                item.spec, external_path=self.tmpdir.name, extra_attributes=item.extra_attributes
+            )
             for item in self.test.results
         ]
 
@@ -196,6 +197,6 @@ def _detection_tests_yaml(
 ) -> Tuple[pathlib.Path, Dict[str, Any]]:
     pkg_dir = pathlib.Path(repository.filename_for_package_name(pkg_name)).parent
     detection_tests_yaml = pkg_dir / "detection_test.yaml"
-    with open(str(detection_tests_yaml)) as f:
+    with open(str(detection_tests_yaml), encoding="utf-8") as f:
         content = spack_yaml.load(f)
     return detection_tests_yaml, content

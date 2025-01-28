@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,9 @@ class NeicFinitefault(PythonPackage):
 
     version("20240410", commit="ef6a1a92d60549100885112e24a18e38d8d4ce0b")
     version("0.1.0", sha256="36b400dfc418bf78a3099f6fc308681c87ae320e6d71c7d0e98a2738e72fb570")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     resource(
         name="fd_bank",
@@ -71,6 +73,7 @@ class NeicFinitefault(PythonPackage):
     depends_on("proj@=9.2.0", type=("build", "run"))
     # not a direct dep, but we do need gdal to have these variants
     depends_on("gdal+jpeg+jxl+openjpeg", type=("build", "run"))
+    depends_on("gmake", type="build")
 
     parallel = False
 

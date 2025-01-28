@@ -1,17 +1,16 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import itertools
-import os.path
 import re
 import sys
 
 from spack.package import *
+from spack.pkg.builtin.mpich import MpichEnvironmentModifications
 
 
-class Mvapich(AutotoolsPackage):
+class Mvapich(MpichEnvironmentModifications, AutotoolsPackage):
     """Mvapich is a High-Performance MPI Library for clusters with diverse
     networks (InfiniBand, Omni-Path, Ethernet/iWARP, and RoCE) and computing
     platforms (x86 (Intel and AMD), ARM and OpenPOWER)"""
@@ -28,6 +27,10 @@ class Mvapich(AutotoolsPackage):
 
     # Prefer the latest stable release
     version("3.0", sha256="ee076c4e672d18d6bf8dd2250e4a91fa96aac1db2c788e4572b5513d86936efb")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
 
     provides("mpi")
     provides("mpi@:3.1")
@@ -65,7 +68,7 @@ class Mvapich(AutotoolsPackage):
         "pmi_version",
         description="Which pmi version to be used. If using pmi2 add it to your CFLAGS",
         default="simple",
-        values=("simple", "pmi2"),
+        values=("simple", "pmi2", "pmix"),
         multi=False,
     )
 
@@ -109,12 +112,17 @@ class Mvapich(AutotoolsPackage):
     depends_on("libfabric", when="netmod=ofi")
     depends_on("slurm", when="process_managers=slurm")
     depends_on("ucx", when="netmod=ucx")
+    depends_on("pmix", when="pmi_version=pmix")
 
     with when("process_managers=slurm"):
         conflicts("pmi_version=pmi2")
 
     with when("process_managers=auto"):
         conflicts("pmi_version=pmi2")
+
+    with when("process_managers=hydra"):
+        conflicts("pmi_version=pmi2")
+        conflicts("pmi_version=pmix")
 
     filter_compiler_wrappers("mpicc", "mpicxx", "mpif77", "mpif90", "mpifort", relative_root="bin")
 
@@ -199,52 +207,15 @@ class Mvapich(AutotoolsPackage):
 
         return (flags, None, None)
 
-    def setup_build_environment(self, env):
-        # mvapich2 configure fails when F90 and F90FLAGS are set
-        env.unset("F90")
-        env.unset("F90FLAGS")
-
     def setup_run_environment(self, env):
         env.set("MPI_ROOT", self.prefix)
-
         # Because MPI functions as a compiler, we need to treat it as one and
         # add its compiler paths to the run environment.
-        self.setup_compiler_environment(env)
+        self.setup_mpi_wrapper_variables(env)
 
     def setup_dependent_build_environment(self, env, dependent_spec):
-        self.setup_compiler_environment(env)
-
-        # use the Spack compiler wrappers under MPI
-        dependent_module = dependent_spec.package.module
-        env.set("MPICH_CC", dependent_module.spack_cc)
-        env.set("MPICH_CXX", dependent_module.spack_cxx)
-        env.set("MPICH_F77", dependent_module.spack_f77)
-        env.set("MPICH_F90", dependent_module.spack_fc)
-        env.set("MPICH_FC", dependent_module.spack_fc)
-
-    def setup_compiler_environment(self, env):
-        env.set("MPICC", join_path(self.prefix.bin, "mpicc"))
-        env.set("MPICXX", join_path(self.prefix.bin, "mpicxx"))
-        env.set("MPIF77", join_path(self.prefix.bin, "mpif77"))
-        env.set("MPIF90", join_path(self.prefix.bin, "mpif90"))
-
-    def setup_dependent_package(self, module, dependent_spec):
-        self.spec.mpicc = join_path(self.prefix.bin, "mpicc")
-        self.spec.mpicxx = join_path(self.prefix.bin, "mpicxx")
-        self.spec.mpifc = join_path(self.prefix.bin, "mpif90")
-        self.spec.mpif77 = join_path(self.prefix.bin, "mpif77")
-        self.spec.mpicxx_shared_libs = [
-            os.path.join(self.prefix.lib, "libmpicxx.{0}".format(dso_suffix)),
-            os.path.join(self.prefix.lib, "libmpi.{0}".format(dso_suffix)),
-        ]
-
-    @run_before("configure")
-    def die_without_fortran(self):
-        # Until we can pass variants such as +fortran through virtual
-        # dependencies depends_on('mpi'), require Fortran compiler to
-        # avoid delayed build errors in dependents.
-        if (self.compiler.f77 is None) or (self.compiler.fc is None):
-            raise InstallError("Mvapich2 requires both C and Fortran compilers!")
+        self.setup_mpi_wrapper_variables(env)
+        MpichEnvironmentModifications.setup_dependent_build_environment(self, env, dependent_spec)
 
     def configure_args(self):
         spec = self.spec
@@ -261,6 +232,8 @@ class Mvapich(AutotoolsPackage):
 
         args.extend(self.enable_or_disable("alloca"))
         args.append("--with-pmi=" + spec.variants["pmi_version"].value)
+        if "pmi_version=pmix" in spec:
+            args.append("--with-pmix={0}".format(spec["pmix"].prefix))
 
         if "+debug" in self.spec:
             args.extend(

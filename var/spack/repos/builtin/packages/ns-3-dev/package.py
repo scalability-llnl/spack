@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -17,6 +16,9 @@ class Ns3Dev(CMakePackage):
 
     version("3.40", sha256="96526e7ae6cb746d02af0cad04f63daff926dad5d30a6fe0d3c7943989ba4e59")
     version("3.37", sha256="d72defeeddbba14397cd4403565992d98cd7b7d9c680c22fee56022706878720")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("boost", default=True, description="Compile with Boost libraries")
 

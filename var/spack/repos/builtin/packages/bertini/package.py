@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,8 @@ class Bertini(AutotoolsPackage):
     license("GPL-3.0-or-later")
 
     version("1.5", sha256="a9a68a96e180fe6a93ba1bc1d61f522784c9a053b049b2cbd98008b5b6deec3c")
+
+    depends_on("c", type="build")  # generated
 
     variant("mpi", default=True, description="Compile in parallel")
 

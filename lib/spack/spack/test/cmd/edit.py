@@ -1,11 +1,9 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 
-import spack.paths
 import spack.repo
 import spack.util.editor
 from spack.build_systems import autotools, cmake
@@ -15,9 +13,9 @@ edit = SpackCommand("edit")
 
 
 def test_edit_packages(monkeypatch, mock_packages: spack.repo.RepoPath):
-    """Test spack edit a b"""
-    path_a = mock_packages.filename_for_package_name("a")
-    path_b = mock_packages.filename_for_package_name("b")
+    """Test spack edit pkg-a pkg-b"""
+    path_a = mock_packages.filename_for_package_name("pkg-a")
+    path_b = mock_packages.filename_for_package_name("pkg-b")
     called = False
 
     def editor(*args: str, **kwargs):
@@ -27,7 +25,7 @@ def test_edit_packages(monkeypatch, mock_packages: spack.repo.RepoPath):
         assert args[1] == path_b
 
     monkeypatch.setattr(spack.util.editor, "editor", editor)
-    edit("a", "b")
+    edit("pkg-a", "pkg-b")
     assert called
 
 

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,6 +25,8 @@ class Xkbcomp(AutotoolsPackage, XorgPackage):
     version("1.4.5", sha256="e88a4d86b9925ea1e8685dd5ea29c815abafb8ddf19bf5f1a1e0650839252c23")
     version("1.4.4", sha256="159fba6b62ef4a3fb16ef7fc4eb4fc26f3888652471ceb604c495783dda020bc")
     version("1.3.1", sha256="018e83a922430652d4bc3f3db610d2296e618c76c9b3fbcdccde975aeb655749")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("libx11")
     depends_on("libxkbfile")

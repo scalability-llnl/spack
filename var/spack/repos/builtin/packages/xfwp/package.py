@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,10 +13,12 @@ class Xfwp(AutotoolsPackage, XorgPackage):
 
     version("1.0.3", sha256="6fe243bde0374637e271a3f038b5d6d79a04621fc18162727782392069c5c04d")
 
+    depends_on("c", type="build")
+
     depends_on("libice")
 
-    depends_on("xproto")
-    depends_on("xproxymanagementprotocol")
+    depends_on("xproto", type="build")
+    depends_on("xproxymanagementprotocol", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")
 

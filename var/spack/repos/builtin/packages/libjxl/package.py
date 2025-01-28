@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,7 +25,11 @@ class Libjxl(CMakePackage):
         "0.6.1", tag="v0.6.1", commit="a205468bc5d3a353fb15dae2398a101dff52f2d3", submodules=True
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.10:", type="build")
+    depends_on("pkgconfig", type="build")
     depends_on("brotli")
     depends_on("highway")
 

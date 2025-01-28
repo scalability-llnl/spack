@@ -14,10 +14,10 @@ jobs:
   build-paraview-deps:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       with:
         fetch-depth: 0
-    - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+    - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
       with:
         python-version: 3.9
     - name: Install Python packages

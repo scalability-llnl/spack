@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -17,6 +16,8 @@ class Libgtop(AutotoolsPackage):
 
     version("2.41.2", sha256="d9026cd8a48d27cdffd332f8d60a92764b56424e522c420cd13a01f40daf92c3")
     version("2.41.1", sha256="43ea9ad13f7caf98303e64172b191be9b96bab340b019deeec72251ee140fe3b")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("pkgconfig", type="build")
     with default_args(type=("build", "link", "run")):

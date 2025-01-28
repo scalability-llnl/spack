@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,6 +24,9 @@ class Ace(MakefilePackage):
     version("6.5.6", sha256="7717cad84d4a9c3d6b2c47963eb555d96de0be657870bcab6fcef4c0423af0de")
     version("6.5.1", sha256="1f318adadb19da23c9be570a9c600a330056b18950fe0bf0eb1cf5cac8b72a32")
     version("6.5.0", sha256="b6f9ec922fbdcecb4348e16d851d0d1f135df1836dfe77d2e0b64295ddb83066")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     def edit(self, spec, prefix):
         # Dictionary mapping: compiler-name : ACE config-label

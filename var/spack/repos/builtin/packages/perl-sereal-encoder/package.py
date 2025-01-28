@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,8 @@ class PerlSerealEncoder(PerlPackage):
     license("Artistic-1.0-Perl OR GPL-1.0-or-later")
 
     version("5.004", sha256="5e5a86ccd32dae34ed80932ecbe5c68e29752b5de0e9b0a793ab7eb2ca55cb1b")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("perl@5.8.0:", type=("build", "link", "run", "test"))
     depends_on("perl-devel-checklib@1.16:", type=("build"))

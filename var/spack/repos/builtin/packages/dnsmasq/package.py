@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,6 +27,8 @@ class Dnsmasq(MakefilePackage):
     version("2.72", sha256="635f1b47417d17cf32e45cfcfd0213ac39fd09918479a25373ba9b2ce4adc05d")
     version("2.71", sha256="7d8c64f66a396442e01b639df3ea6b4e02ba88cbe206c80be8de68b6841634c4")
     version("2.70", sha256="8eb7bf53688d6aaede5c90cfd2afcce04803a4efbddfbeecc6297180749e98af")
+
+    depends_on("c", type="build")  # generated
 
     def install(self, spec, prefix):
         mkdirp(prefix.bin)

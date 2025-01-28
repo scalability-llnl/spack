@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,7 +10,7 @@ from spack.package import *
 class PyPyopengl(PythonPackage):
     """PyOpenGL is the most common cross platform Python binding to OpenGL and related APIs."""
 
-    homepage = "http://pyopengl.sourceforge.net"
+    homepage = "https://pyopengl.sourceforge.net"
     pypi = "pyopengl/PyOpenGL-3.1.6.tar.gz"
 
     version("3.1.6", sha256="8ea6c8773927eda7405bffc6f5bb93be81569a7b05c8cac50cd94e969dce5e27")

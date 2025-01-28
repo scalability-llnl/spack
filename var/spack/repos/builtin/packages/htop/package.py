@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -32,6 +31,8 @@ class Htop(AutotoolsPackage):
         sha256="179be9dccb80cee0c5e1a1f58c8f72ce7b2328ede30fb71dcdf336539be2f487",
         url="https://hisham.hm/htop/releases/2.0.2/htop-2.0.2.tar.gz",
     )
+
+    depends_on("c", type="build")  # generated
 
     variant("unicode", default=True, description="Enable Unicode support dependency")
     variant("hwloc", default=False, description="Enable hwloc support for CPU affinity")

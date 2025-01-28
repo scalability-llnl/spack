@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,6 +27,9 @@ class Graphicsmagick(AutotoolsPackage):
     version("1.3.30", sha256="d965e5c6559f55eec76c20231c095d4ae682ea0cbdd8453249ae8771405659f1")
     version("1.3.29", sha256="e18df46a6934c8c12bfe274d09f28b822f291877f9c81bd9a506f879a7610cd4")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("bzip2")
     depends_on("ghostscript")
     depends_on("ghostscript-fonts")
@@ -39,7 +41,6 @@ class Graphicsmagick(AutotoolsPackage):
     depends_on("libpng")
     depends_on("libsm")
     depends_on("libtiff")
-    depends_on("libtool")
     depends_on("libxml2")
     depends_on("xz")
     depends_on("zlib-api")

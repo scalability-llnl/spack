@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import shutil
@@ -11,7 +10,7 @@ class Ucx(AutotoolsPackage, CudaPackage):
     """a communication library implementing high-performance messaging for
     MPI/PGAS frameworks"""
 
-    homepage = "http://www.openucx.org"
+    homepage = "https://www.openucx.org"
     url = "https://github.com/openucx/ucx/releases/download/v1.3.1/ucx-1.3.1.tar.gz"
     git = "https://github.com/openucx/ucx.git"
 
@@ -20,9 +19,10 @@ class Ucx(AutotoolsPackage, CudaPackage):
     license("BSD-3-Clause")
 
     # Current
-    version("1.17.0", sha256="34658e282f99f89ce7a991c542e9727552734ac6ad408c52f22b4c2653b04276")
+    version("1.18.0", sha256="fa75070f5fa7442731b4ef5fc9549391e147ed3d859afeb1dad2d4513b39dc33")
 
     # Still supported
+    version("1.17.0", sha256="34658e282f99f89ce7a991c542e9727552734ac6ad408c52f22b4c2653b04276")
     version("1.16.0", sha256="f73770d3b583c91aba5fb07557e655ead0786e057018bfe42f0ebe8716e9d28c")
     version("1.15.0", sha256="4b202087076bc1c98f9249144f0c277a8ea88ad4ca6f404f94baa9cb3aebda6d")
     version("1.14.1", sha256="baa0634cafb269a3112f626eb226bcd2ca8c9fcf0fec3b8e2a3553baad5f77aa")
@@ -54,6 +54,9 @@ class Ucx(AutotoolsPackage, CudaPackage):
     version("1.2.2", sha256="914d10fee8f970d4fb286079dd656cf8a260ec7d724d5f751b3109ed32a6da63")
     version("1.2.1", sha256="fc63760601c03ff60a2531ec3c6637e98f5b743576eb410f245839c84a0ad617")
     version("1.2.0", sha256="1e1a62d6d0f89ce59e384b0b5b30b416b8fd8d7cedec4182a5319d0dfddf649c")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     simd_values = ("avx", "sse41", "sse42")
 

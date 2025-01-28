@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,8 @@ class Xwidgets(CMakePackage):
 
     version("master", branch="master")
     version("0.25.0", sha256="7b6d36999e3b926c40389167c48b33f234a075365f089f89571b33a160421d8e")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("xtl@0.7.0:0.7", when="@0.25.0:")
     depends_on("xproperty@0.11.0:0.11", when="@0.25.0:")

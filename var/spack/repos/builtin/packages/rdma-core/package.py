@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -69,6 +68,8 @@ class RdmaCore(CMakePackage):
     version("17.11", sha256="47db6d611c39e6655bfd808222caab925ac6ff9a245e24da9156254dd5813032")
     version("17.1", sha256="b47444b7c05d3906deb8771eec3e634984dd83f5e620d5e37d3a83f74f0cc1ba")
     version("13", sha256="e5230fd7cda610753ad1252b40a28b1e9cf836423a10d8c2525b081527760d97")
+
+    depends_on("c", type="build")  # generated
 
     patch("libdrm.patch", when="@34:")
 

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,10 +25,3 @@ class PyGlobusCli(PythonPackage):
     depends_on("py-click@8", type=("build", "run"))
     depends_on("py-jmespath@1.0.1", type=("build", "run"))
     depends_on("py-packaging@17:", type=("build", "run"))
-    # According to the developers, these requirements are implicit
-    # for py-globus-sdk, but they are listed explicitly "in case
-    # the underlying lib ever changes"
-    depends_on("py-requests@2.19.1:2", type=("build", "run"))
-    depends_on("py-pyjwt@2.0.0:2+crypto", type=("build", "run"))
-    depends_on("py-cryptography@3.3.1:3.3", type=("build", "run"))
-    depends_on("py-typing-extensions@4:", type=("build", "run"), when="^python@:3.10")

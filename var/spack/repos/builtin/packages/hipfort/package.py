@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,7 +15,12 @@ class Hipfort(CMakePackage):
 
     license("MIT")
 
-    maintainers("cgmb", "srekolam", "renjithravindrankannath")
+    maintainers("cgmb", "srekolam", "renjithravindrankannath", "afzpatel")
+    version("6.3.1", sha256="8141bf3d05ab4f91c561815134707123e3d06486bf775224b9a3a4cc8ee8f56f")
+    version("6.3.0", sha256="9e7f4420c75430cdb9046c0c4dbe656f22128b0672b2e261d50a6e92e47cc6d3")
+    version("6.2.4", sha256="32daa4ee52c2d44790bff7a7ddde9d572e4785b2f54766a5e45d10228da0534b")
+    version("6.2.1", sha256="5258f2dd63aeebe29ce566e654c47b8e2e1f5eb8ca3da92af09c54517b259f32")
+    version("6.2.0", sha256="7f6db61a0ac7771e5c4604a6113b36736f6c7f05cabd7e1df8e832c98b87311d")
     version("6.1.2", sha256="f60d07fa3e5b09246c8908b2876addf175a91e91c8b0fac85b000f88b6743c7c")
     version("6.1.1", sha256="646f7077399db7a70d7102fda8307d0a11039f616399a4a06a64fd824336419f")
     version("6.1.0", sha256="70d3ccc9f3536f62686e73934f5972ed011c4df7654ed1f8e6d2d42c4289f47e")
@@ -33,6 +37,9 @@ class Hipfort(CMakePackage):
         version("5.4.0", sha256="a781bc6d1dbb508a4bd6cc3df931696fac6c6361d4fd35efb12c9a04a72e112c")
         version("5.3.3", sha256="593be86502578b68215ffe767c26849fd27d4dbd92c8e76762275805f99e64f5")
         version("5.3.0", sha256="9e2aa142de45b2d2c29449d6f82293fb62844d511fbf51fa597845ba05c700fa")
+
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("cmake@3.0.2:", type="build")
 
@@ -56,6 +63,11 @@ class Hipfort(CMakePackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
     ]:
         depends_on(f"hip@{ver}", type="build", when=f"@{ver}")
 

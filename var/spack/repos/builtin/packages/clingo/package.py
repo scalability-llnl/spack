@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -39,6 +38,9 @@ class Clingo(CMakePackage):
     version("5.3.0", sha256="b0d406d2809352caef7fccf69e8864d55e81ee84f4888b0744894977f703f976")
     version("5.2.2", sha256="da1ef8142e75c5a6f23c9403b90d4f40b9f862969ba71e2aaee9a257d058bfcf")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("docs", default=False, description="build documentation with Doxygen")
     variant("python", default=True, description="build with python bindings")
 
@@ -73,9 +75,18 @@ class Clingo(CMakePackage):
     patch("clingo_msc_1938_native_handle.patch", when="@:5.7.0 %msvc@19.38:")
 
     def patch(self):
+        # In bootstrap/prototypes/*.json we don't want to have specs that work for any python
+        # version, so this conditional patch lives here instead of being its own directive.
+        if self.spec.satisfies("@spack,5.3:5.4 ^python@3.9:"):
+            filter_file(
+                "if (!PyEval_ThreadsInitialized()) { PyEval_InitThreads(); }",
+                "",
+                "libpyclingo/pyclingo.cc",
+                string=True,
+            )
         # Doxygen is optional but can't be disabled with a -D, so patch
         # it out if it's really supposed to be disabled
-        if "+docs" not in self.spec:
+        if self.spec.satisfies("~docs"):
             filter_file(
                 r"find_package\(Doxygen\)",
                 'message("Doxygen disabled for Spack build.")',
@@ -95,7 +106,7 @@ class Clingo(CMakePackage):
 
         args = [self.define("CLINGO_BUILD_WITH_LUA", False)]
 
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             suffix = python(
                 "-c", "import sysconfig; print(sysconfig.get_config_var('EXT_SUFFIX'))", output=str
             ).strip()
@@ -113,7 +124,7 @@ class Clingo(CMakePackage):
 
         # Use LTO also for non-Intel compilers please. This can be removed when they
         # bump cmake_minimum_required to VERSION 3.9.
-        if "+ipo" in self.spec:
+        if self.spec.satisfies("+ipo"):
             args.append(self.define("CMAKE_POLICY_DEFAULT_CMP0069", "NEW"))
 
         return args

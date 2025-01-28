@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -31,6 +30,8 @@ class ProcessInProcess(Package):
     # PiP version 3 is experimental and unstable yet
     version("3", branch="pip-3", deprecated=True)
 
+    depends_on("c", type="build")  # generated
+
     conflicts("%gcc@:3", when="os=centos7")
     conflicts("%gcc@5:", when="os=centos7")
     conflicts("%gcc@:3", when="os=rhel7")
@@ -47,6 +48,7 @@ class ProcessInProcess(Package):
         depends_on("systemtap")
         depends_on("libxml2")
         depends_on("pigz")
+    depends_on("gmake", type="build")
 
     # resources for PiP version 2
     #  PiP-glibc resource

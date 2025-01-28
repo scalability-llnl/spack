@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,7 @@ class LibgpgError(AutotoolsPackage):
 
     license("GPL-2.0-or-later AND LGPL-2.1-or-later")
 
+    version("1.51", sha256="be0f1b2db6b93eed55369cdf79f19f72750c8c7c39fc20b577e724545427e6b2")
     version("1.50", sha256="69405349e0a633e444a28c5b35ce8f14484684518a508dc48a089992fe93e20a")
     version("1.49", sha256="8b79d54639dbf4abc08b5406fb2f37e669a2dec091dd024fb87dd367131c63a9")
     version("1.48", sha256="89ce1ae893e122924b858de84dc4f67aae29ffa610ebf668d5aa539045663d6f")
@@ -32,6 +32,8 @@ class LibgpgError(AutotoolsPackage):
     version("1.27", sha256="4f93aac6fecb7da2b92871bb9ee33032be6a87b174f54abf8ddf0911a22d29d2")
     version("1.21", sha256="b7dbdb3cad63a740e9f0c632a1da32d4afdb694ec86c8625c98ea0691713b84d")
     version("1.18", sha256="9ff1d6e61d4cef7c1d0607ceef6d40dc33f3da7a3094170c3718c00153d80810")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("awk", type="build")
     # Patch for using gawk@5, c.f. https://dev.gnupg.org/T4459

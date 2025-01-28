@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,6 +26,8 @@ class GslLite(CMakePackage):
     version("0.37.0", sha256="a31d51b73742bb234acab8d2411223cf299e760ed713f0840ffed0dabe57ca38")
     version("0.36.0", sha256="c052cc4547b33cedee6f000393a7005915c45c6c06b35518d203db117f75c71c")
     version("0.34.0", sha256="a7d5b2672b78704ca03df9ef65bc274d8f8cacad3ca950365eef9e25b50324c5")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("tests", default=False, description="Build and perform gsl-lite tests")
     variant("cuda_tests", default=False, description="Build and perform gsl-lite CUDA tests")

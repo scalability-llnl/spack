@@ -1,7 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+import os
+
+import llnl.util.tty as tty
 
 from spack.package import *
 from spack.util.environment import set_env
@@ -31,6 +34,7 @@ class Strumpack(CMakePackage, CudaPackage, ROCmPackage):
     license("BSD-3-Clause-LBNL")
 
     version("master", branch="master")
+    version("8.0.0", sha256="11cc8645d622a16510b39a20efc64f34862b41976152d17f9fbf3e91f899766c")
     version("7.2.0", sha256="6988c00c3213f13e53d75fb474102358f4fecf07a4b4304b7123d86fdc784639")
     version("7.1.3", sha256="c951f38ee7af20da3ff46429e38fcebd57fb6f12619b2c56040d6da5096abcb0")
     version("7.1.2", sha256="262a0193fa1682d0eaa90363f739e0be7a778d5deeb80e4d4ae12446082a39cc")
@@ -50,6 +54,10 @@ class Strumpack(CMakePackage, CudaPackage, ROCmPackage):
     version("3.3.0", sha256="499fd3b58656b4b6495496920e5372895861ebf15328be8a7a9354e06c734bc7")
     version("3.2.0", sha256="34d93e1b2a3b8908ef89804b7e08c5a884cbbc0b2c9f139061627c0d2de282c1")
     version("3.1.1", sha256="c1c3446ee023f7b24baa97b24907735e89ce4ae9f5ef516645dfe390165d1778")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("shared", default=True, description="Build shared libraries")
     variant("mpi", default=True, description="Use MPI")
@@ -77,9 +85,11 @@ class Strumpack(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("parmetis", when="+parmetis")
     depends_on("scotch~metis", when="+scotch")
     depends_on("scotch~metis+mpi", when="+scotch+mpi")
+    depends_on("scotch@7.0.4:", when="@8.0.0: +scotch")
     depends_on("butterflypack@1.1.0", when="@3.3.0:3.9 +butterflypack+mpi")
     depends_on("butterflypack@1.2.0:", when="@4.0.0: +butterflypack+mpi")
     depends_on("butterflypack@2.1.0:", when="@6.3.0: +butterflypack+mpi")
+    depends_on("butterflypack@3.2.0:", when="@8.0.0: +butterflypack+mpi")
     depends_on("cuda", when="@4.0.0: +cuda")
     depends_on("zfp@0.5.5", when="@:7.0.1 +zfp")
     depends_on("zfp", when="@7.0.2: +zfp")
@@ -199,9 +209,9 @@ class Strumpack(CMakePackage, CudaPackage, ROCmPackage):
     def cache_test_sources(self):
         """Copy the example source files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources([self.test_data_dir, self.test_src_dir])
+        cache_extra_test_sources(self, [self.test_data_dir, self.test_src_dir])
 
-    def _test_example(self, test_prog, test_cmd, test_args):
+    def _test_example(self, test_prog, test_cmd, pre_args=[]):
         test_dir = join_path(self.test_suite.current_test_cache_dir, self.test_src_dir)
         cmake_filename = join_path(test_dir, "CMakeLists.txt")
         with open(cmake_filename, "w") as mkfile:
@@ -214,9 +224,7 @@ class Strumpack(CMakePackage, CudaPackage, ROCmPackage):
             )
 
         with working_dir(test_dir):
-            opts = self.builder.std_cmake_args
-            opts += self.cmake_args()
-            opts += ["."]
+            opts = self.std_cmake_args + self.cmake_args() + ["."]
             cmake = self.spec["cmake"].command
             cmake(*opts)
 
@@ -225,29 +233,32 @@ class Strumpack(CMakePackage, CudaPackage, ROCmPackage):
 
             with set_env(OMP_NUM_THREADS="1"):
                 exe = which(test_cmd)
+                test_args = pre_args + [join_path("..", self.test_data_dir, "pde900.mtx")]
                 exe(*test_args)
 
     def test_sparse_seq(self):
         """Run sequential test_sparse"""
-        if "+mpi" in self.spec:
-            raise SkipTest("Package must be installed with '~mpi'")
         test_exe = "test_sparse_seq"
-        exe_arg = [join_path("..", self.test_data_dir, "pde900.mtx")]
-        self._test_example(test_exe, test_exe, exe_arg)
+        self._test_example(test_exe, test_exe)
 
     def test_sparse_mpi(self):
         """Run parallel test_sparse"""
         if "+mpi" not in self.spec:
             raise SkipTest("Package must be installed with '+mpi'")
         test_exe_mpi = "test_sparse_mpi"
-        test_args = ["-n", "1", test_exe_mpi, join_path("..", self.test_data_dir, "pde900.mtx")]
-        mpiexe_list = ["srun", "mpirun", "mpiexec"]
+        mpi_args = ["-n", "1", test_exe_mpi]
+
+        mpi_bin = self.spec["mpi"].prefix.bin
+        mpiexe_list = ["srun", mpi_bin.mpirun, mpi_bin.mpiexec]
         for exe in mpiexe_list:
+            tty.info(f"Attempting to build and launch with {os.path.basename(exe)}")
             try:
-                self._test_example(test_exe_mpi, exe, test_args)
+                args = ["--immediate=30"] + mpi_args if exe == "srun" else mpi_args
+                self._test_example(test_exe_mpi, exe, args)
                 return
-            except Exception:
-                pass
+            except (Exception, ProcessError) as err:
+                tty.info(f"Skipping {exe}: {str(err)}")
+
         assert False, "No MPI executable was found"
 
     def check(self):

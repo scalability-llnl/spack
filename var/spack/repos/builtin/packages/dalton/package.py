@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,6 +25,10 @@ class Dalton(CMakePackage):
     version(
         "2018.2", tag="2018.2", commit="4aa945ecd235fbf67ed0c1609617c553ef40be89", submodules=True
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant(
         "build_type",
@@ -75,7 +78,7 @@ class Dalton(CMakePackage):
 
     def cmake_args(self):
         math_libs = self.spec["lapack"].libs + self.spec["blas"].libs
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             env["CC"] = self.spec["mpi"].mpicc
             env["CXX"] = self.spec["mpi"].mpicxx
             env["F77"] = self.spec["mpi"].mpif77

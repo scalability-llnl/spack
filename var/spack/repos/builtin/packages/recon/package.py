@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class Recon(MakefilePackage):
     license("GPL-2.0-only")
 
     version("1.05", sha256="4d4f76f439bcffd50380cffc41a80dc15fa4a80f38a04234e24da893ed7c025a")
+
+    depends_on("c", type="build")  # generated
 
     variant("repeatmasker", default=False, description="Use RepeatMasker developer patches (1.08)")
 

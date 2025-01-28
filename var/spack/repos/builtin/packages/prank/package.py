@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,9 +13,12 @@ class Prank(Package):
 
     version("170427", sha256="623eb5e9b5cb0be1f49c3bf715e5fabceb1059b21168437264bdcd5c587a8859")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("mafft")
     depends_on("exonerate")
     depends_on("bpp-suite")  # for bppancestor
+    depends_on("gmake", type="build")
     conflicts("%gcc@7.2.0", when="@:150803")
 
     def install(self, spec, prefix):

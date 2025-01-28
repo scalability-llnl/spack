@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -30,6 +29,9 @@ class Lci(CMakePackage):
     version("1.7.5", sha256="13e4084c9e7aaf55966ba5aa0423164b8fd21ee7526fc62017b3c9b3db99cb83")
     version("1.7.4", sha256="00c6ef06bf90a02b55c72076dedf912580dcb1fb59fdc0e771d9e1a71283b72f")
     version("1.7.3", sha256="3c47d51d4925e6700294ac060c88a73c26ca6e9df5b4010d0e90b0bf5e505040")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "fabric",

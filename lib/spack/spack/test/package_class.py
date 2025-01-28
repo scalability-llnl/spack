@@ -1,11 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 """Test class methods on Package objects.
 
-This doesn't include methods on package *instances* (like do_install(),
+This doesn't include methods on package *instances* (like do_patch(),
 etc.).  Only methods like ``possible_dependencies()`` that deal with the
 static DSL metadata for packages.
 """
@@ -17,12 +16,17 @@ import pytest
 
 import llnl.util.filesystem as fs
 
+import spack.compilers
+import spack.concretize
 import spack.deptypes as dt
+import spack.error
 import spack.install_test
+import spack.package
 import spack.package_base
 import spack.repo
+import spack.spec
 from spack.build_systems.generic import Package
-from spack.installer import InstallError
+from spack.error import InstallError
 
 
 @pytest.fixture(scope="module")
@@ -142,19 +146,19 @@ def setup_install_test(source_paths, test_root):
     "spec,sources,extras,expect",
     [
         (
-            "a",
+            "pkg-a",
             ["example/a.c"],  # Source(s)
             ["example/a.c"],  # Extra test source
             ["example/a.c"],
         ),  # Test install dir source(s)
         (
-            "b",
+            "pkg-b",
             ["test/b.cpp", "test/b.hpp", "example/b.txt"],  # Source(s)
             ["test"],  # Extra test source
             ["test/b.cpp", "test/b.hpp"],
         ),  # Test install dir source
         (
-            "c",
+            "pkg-c",
             ["examples/a.py", "examples/b.py", "examples/c.py", "tests/d.py"],
             ["examples/b.py", "tests"],
             ["examples/b.py", "tests/d.py"],
@@ -163,8 +167,7 @@ def setup_install_test(source_paths, test_root):
 )
 def test_cache_extra_sources(install_mockery, spec, sources, extras, expect):
     """Test the package's cache extra test sources helper function."""
-    s = spack.spec.Spec(spec).concretized()
-    s.package.spec.concretize()
+    s = spack.concretize.concretize_one(spec)
 
     source_path = s.package.stage.source_path
     srcs = [fs.join_path(source_path, src) for src in sources]
@@ -202,8 +205,7 @@ def test_cache_extra_sources(install_mockery, spec, sources, extras, expect):
 
 
 def test_cache_extra_sources_fails(install_mockery):
-    s = spack.spec.Spec("a").concretized()
-    s.package.spec.concretize()
+    s = spack.concretize.concretize_one("pkg-a")
 
     with pytest.raises(InstallError) as exc_info:
         spack.install_test.cache_extra_test_sources(s.package, ["/a/b", "no-such-file"])
@@ -226,7 +228,7 @@ def test_package_url_and_urls():
         url = "https://www.example.com/url-package-1.0.tgz"
         urls = ["https://www.example.com/archive"]
 
-    s = spack.spec.Spec("a")
+    s = spack.spec.Spec("pkg-a")
     with pytest.raises(ValueError, match="defines both"):
         URLsPackage(s)
 
@@ -236,7 +238,7 @@ def test_package_license():
         extendees = None  # currently a required attribute for is_extension()
         license_files = None
 
-    s = spack.spec.Spec("a")
+    s = spack.spec.Spec("pkg-a")
     pkg = LicensedPackage(s)
     assert pkg.global_license_file is None
 
@@ -249,21 +251,21 @@ class BaseTestPackage(Package):
 
 
 def test_package_version_fails():
-    s = spack.spec.Spec("a")
+    s = spack.spec.Spec("pkg-a")
     pkg = BaseTestPackage(s)
     with pytest.raises(ValueError, match="does not have a concrete version"):
         pkg.version()
 
 
 def test_package_tester_fails():
-    s = spack.spec.Spec("a")
+    s = spack.spec.Spec("pkg-a")
     pkg = BaseTestPackage(s)
     with pytest.raises(ValueError, match="without concrete version"):
         pkg.tester()
 
 
 def test_package_fetcher_fails():
-    s = spack.spec.Spec("a")
+    s = spack.spec.Spec("pkg-a")
     pkg = BaseTestPackage(s)
     with pytest.raises(ValueError, match="without concrete version"):
         pkg.fetcher
@@ -275,7 +277,7 @@ def test_package_test_no_compilers(mock_packages, monkeypatch, capfd):
 
     monkeypatch.setattr(spack.compilers, "compilers_for_spec", compilers)
 
-    s = spack.spec.Spec("a")
+    s = spack.spec.Spec("pkg-a")
     pkg = BaseTestPackage(s)
     pkg.test_requires_compiler = True
     pkg.do_test()
@@ -284,55 +286,14 @@ def test_package_test_no_compilers(mock_packages, monkeypatch, capfd):
     assert "test requires missing compiler" in error
 
 
-# TODO (post-34236): Remove when remove deprecated run_test(), etc.
-@pytest.mark.parametrize(
-    "msg,installed,purpose,expected",
-    [
-        ("do-nothing", False, "test: echo", "do-nothing"),
-        ("not installed", True, "test: echo not installed", "expected in prefix"),
-    ],
-)
-def test_package_run_test_install(
-    install_mockery_mutable_config, mock_fetch, capfd, msg, installed, purpose, expected
-):
-    """Confirm expected outputs from run_test for installed/not installed exe."""
-    s = spack.spec.Spec("trivial-smoke-test").concretized()
-    pkg = s.package
+def test_package_subscript(default_mock_concretization):
+    """Tests that we can use the subscript notation on packages, and that it returns a package"""
+    root = default_mock_concretization("mpileaks")
+    root_pkg = root.package
 
-    pkg.run_test(
-        "echo", msg, expected=[expected], installed=installed, purpose=purpose, work_dir="."
-    )
-    output = capfd.readouterr()[0]
-    assert expected in output
+    # Subscript of a virtual
+    assert isinstance(root_pkg["mpi"], spack.package_base.PackageBase)
 
-
-# TODO (post-34236): Remove when remove deprecated run_test(), etc.
-@pytest.mark.parametrize(
-    "skip,failures,status",
-    [
-        (True, 0, str(spack.install_test.TestStatus.SKIPPED)),
-        (False, 1, str(spack.install_test.TestStatus.FAILED)),
-    ],
-)
-def test_package_run_test_missing(
-    install_mockery_mutable_config, mock_fetch, capfd, skip, failures, status
-):
-    """Confirm expected results from run_test for missing exe when skip or not."""
-    s = spack.spec.Spec("trivial-smoke-test").concretized()
-    pkg = s.package
-
-    pkg.run_test("no-possible-program", skip_missing=skip)
-    output = capfd.readouterr()[0]
-    assert len(pkg.tester.test_failures) == failures
-    assert status in output
-
-
-# TODO (post-34236): Remove when remove deprecated run_test(), etc.
-def test_package_run_test_fail_fast(install_mockery_mutable_config, mock_fetch):
-    """Confirm expected exception when run_test with fail_fast enabled."""
-    s = spack.spec.Spec("trivial-smoke-test").concretized()
-    pkg = s.package
-
-    with spack.config.override("config:fail_fast", True):
-        with pytest.raises(spack.install_test.TestFailure, match="Failed to find executable"):
-            pkg.run_test("no-possible-program")
+    # Subscript on concrete
+    for d in root.traverse():
+        assert isinstance(root_pkg[d.name], spack.package_base.PackageBase)

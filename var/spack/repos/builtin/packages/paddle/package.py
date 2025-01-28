@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,9 @@ class Paddle(CMakePackage):
 
     version("master", branch="master", submodules=True)
     version("0.3.7", tag="0.3.7", submodules=True)
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("parmetis", default=False, description="Enable ParMETIS ordering")
     variant("tests", default=False, description="Enable tests")

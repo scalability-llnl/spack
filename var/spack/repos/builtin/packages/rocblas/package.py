@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,16 +12,21 @@ class Rocblas(CMakePackage):
 
     homepage = "https://github.com/ROCm/rocBLAS/"
     git = "https://github.com/ROCm/rocBLAS.git"
-    url = "https://github.com/ROCm/rocBLAS/archive/rocm-6.1.1.tar.gz"
+    url = "https://github.com/ROCm/rocBLAS/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
-    maintainers("cgmb", "srekolam", "renjithravindrankannath", "haampie")
+    maintainers("cgmb", "srekolam", "renjithravindrankannath", "haampie", "afzpatel")
     libraries = ["librocblas"]
 
     license("MIT")
 
     version("develop", branch="develop")
     version("master", branch="master")
+    version("6.3.1", sha256="88d2de6ce6b23a157eea8be63408350848935e4dfc3e27e5f2add78834c6d6ba")
+    version("6.3.0", sha256="051f53bb69a9aba55a0c66c32688bf6af80e29e4a6b56b380b3c427e7a6aff9d")
+    version("6.2.4", sha256="8bacf74e3499c445f1bb0a8048df1ef3ce6f72388739b1823b5784fd1e8aa22a")
+    version("6.2.1", sha256="cf3bd7b47694f95f387803191615e2ff5c1106175473be7a5b2e8eb6fb99179f")
+    version("6.2.0", sha256="184e9b39dcbed57c25f351b047d44c613f8a2bbab3314a20c335f024a12ad4e5")
     version("6.1.2", sha256="1e83918bd7b28ec9ee292c6fb7eb0fc5f4db2d5d831a9a3db541f14a90c20a1a")
     version("6.1.1", sha256="c920742fb8f45512c360cdb40e37d0ac767f042e52f1981264853dab5ec2c876")
     version("6.1.0", sha256="af00357909da60d82618038aa9a3cc1f9d4ce1bdfb54db20ec746b592d478edf")
@@ -40,6 +44,10 @@ class Rocblas(CMakePackage):
         version("5.3.3", sha256="62a3b5f415bd8e0dcd0d68233d379f1a928ec0349977c32b4eea72ae5004e805")
         version("5.3.0", sha256="8ea7269604cba949a6ea84b78dc92a44fa890427db88334da6358813f6512e34")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     amdgpu_targets = ROCmPackage.amdgpu_targets
 
     variant(
@@ -49,6 +57,11 @@ class Rocblas(CMakePackage):
         sticky=True,
     )
     variant("tensile", default=True, description="Use Tensile as a backend")
+    variant("asan", default=False, description="Build with address-sanitizer enabled or disabled")
+
+    conflicts("+asan", when="os=rhel9")
+    conflicts("+asan", when="os=centos7")
+    conflicts("+asan", when="os=centos8")
 
     # https://reviews.llvm.org/D124866
     # https://github.com/ROCm/HIP/issues/2678
@@ -60,8 +73,26 @@ class Rocblas(CMakePackage):
     depends_on("googletest@1.10.0:", type="test")
     depends_on("amdblis", type="test")
 
-    for ver in ["5.6.0", "5.6.1", "5.7.0", "5.7.1", "6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2"]:
+    for ver in [
+        "5.6.0",
+        "5.6.1",
+        "5.7.0",
+        "5.7.1",
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
+    ]:
         depends_on(f"rocm-openmp-extras@{ver}", type="test", when=f"@{ver}")
+
+    for ver in ["6.2.0", "6.2.1", "6.2.4", "6.3.0", "6.3.1"]:
+        depends_on(f"rocm-smi-lib@{ver}", type="test", when=f"@{ver}")
 
     depends_on("rocm-cmake@master", type="build", when="@master:")
 
@@ -81,12 +112,19 @@ class Rocblas(CMakePackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
     ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"llvm-amdgpu@{ver}", type="build", when=f"@{ver}")
         depends_on(f"rocminfo@{ver}", type="build", when=f"@{ver}")
         depends_on(f"rocm-cmake@{ver}", type="build", when=f"@{ver}")
 
+    for ver in ["6.3.0", "6.3.1"]:
+        depends_on(f"hipblaslt@{ver}", when=f"@{ver}")
     depends_on("python@3.6:", type="build")
 
     with when("+tensile"):
@@ -117,6 +155,11 @@ class Rocblas(CMakePackage):
         ("@6.1.0", "2b55ccf58712f67b3df0ca53b0445f094fcb96b2"),
         ("@6.1.1", "2b55ccf58712f67b3df0ca53b0445f094fcb96b2"),
         ("@6.1.2", "2b55ccf58712f67b3df0ca53b0445f094fcb96b2"),
+        ("@6.2.0", "dbc2062dced66e4cbee8e0591d76e0a1588a4c70"),
+        ("@6.2.1", "dbc2062dced66e4cbee8e0591d76e0a1588a4c70"),
+        ("@6.2.4", "81ae9537671627fe541332c0a5d953bfd6af71d6"),
+        ("@6.3.0", "aca95d1743c243dd0dd0c8b924608bc915ce1ae7"),
+        ("@6.3.1", "aca95d1743c243dd0dd0c8b924608bc915ce1ae7"),
     ]:
         resource(
             name="Tensile",
@@ -140,6 +183,13 @@ class Rocblas(CMakePackage):
 
     def setup_build_environment(self, env):
         env.set("CXX", self.spec["hip"].hipcc)
+        if self.spec.satisfies("+asan"):
+            env.set("CC", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang")
+            env.set("CXX", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang++")
+            env.set("ASAN_OPTIONS", "detect_leaks=0")
+            env.set("CFLAGS", "-fsanitize=address -shared-libasan")
+            env.set("CXXFLAGS", "-fsanitize=address -shared-libasan")
+            env.set("LDFLAGS", "-fuse-ld=lld")
 
     @classmethod
     def determine_version(cls, lib):
@@ -175,9 +225,13 @@ class Rocblas(CMakePackage):
 
         if "+tensile" in self.spec:
             tensile_path = join_path(self.stage.source_path, "Tensile")
+            if self.spec.satisfies("@:6.2"):
+                tensile_compiler = "hipcc"
+            else:
+                tensile_compiler = "amdclang++"
             args += [
                 self.define("Tensile_TEST_LOCAL_PATH", tensile_path),
-                self.define("Tensile_COMPILER", "hipcc"),
+                self.define("Tensile_COMPILER", tensile_compiler),
                 self.define("Tensile_LOGIC", "asm_full"),
                 self.define("BUILD_WITH_TENSILE_HOST", "@3.7.0:" in self.spec),
                 self.define("Tensile_LIBRARY_FORMAT", "msgpack"),
@@ -204,7 +258,6 @@ class Rocblas(CMakePackage):
             args.append(self.define("Tensile_CODE_OBJECT_VERSION", "V3"))
         else:
             args.append(self.define("Tensile_CODE_OBJECT_VERSION", "default"))
-
         return args
 
     @run_after("build")

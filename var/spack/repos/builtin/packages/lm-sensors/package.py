@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,6 +27,8 @@ class LmSensors(MakefilePackage):
     version("3-2-0", sha256="ff54bee654f9f317224489fa64aeb659425d58ac3d031fe019c2c072ba19ee9a")
     version("3-1-2", sha256="a587f4f37c0f32ac48575338013ee443a0152d87543e8e702db6161ec0ca1161")
     version("3-1-1", sha256="22b5ab0bab853c34298ff617efb292c5dde7b254596b31ce4c6e90b1d1cf8ad8")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("bison", type="build")
     depends_on("flex", type="build")

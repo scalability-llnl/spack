@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,6 +25,8 @@ class Openblas(CMakePackage, MakefilePackage):
     license("BSD-3-Clause")
 
     version("develop", branch="develop")
+    version("0.3.29", sha256="38240eee1b29e2bde47ebb5d61160207dc68668a54cac62c076bb5032013b1eb")
+    version("0.3.28", sha256="f1003466ad074e9b0c8d421a204121100b0751c96fc6fcf3d1456bd12f8a00a1")
     version("0.3.27", sha256="aa2d68b1564fe2b13bc292672608e9cdeeeb6dc34995512e65c3b10f4599e897")
     version("0.3.26", sha256="4e6e4f5cb14c209262e33e6816d70221a2fe49eb69eaf0a06f065598ac602c68")
     version("0.3.25", sha256="4c25cb30c4bb23eddca05d7d0a85997b8db6144f5464ba7f8c09ce91e2f35543")
@@ -101,6 +102,14 @@ class Openblas(CMakePackage, MakefilePackage):
     provides("blas", "lapack")
     provides("lapack@3.9.1:", when="@0.3.15:")
     provides("lapack@3.7.0", when="@0.2.20")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
+    depends_on("perl", when="@:0.3.20", type="build")
+
+    # https://github.com/OpenMathLib/OpenBLAS/pull/4879
+    patch("openblas-0.3.28-thread-buffer.patch", when="@0.3.28")
 
     # https://github.com/OpenMathLib/OpenBLAS/pull/4328
     patch("xcode15-fortran.patch", when="@0.3.25 %apple-clang@15:")
@@ -260,17 +269,16 @@ class Openblas(CMakePackage, MakefilePackage):
         msg="Visual Studio does not support OpenBLAS dynamic dispatch features",
     )
 
-    depends_on("perl", type="build")
+    conflicts("target=x86_64_v4:", when="%intel@2021")
 
     build_system("makefile", "cmake", default="makefile")
 
     def flag_handler(self, name, flags):
         spec = self.spec
-        iflags = []
         if name == "cflags":
             if spec.satisfies("@0.3.20: %oneapi") or spec.satisfies("@0.3.20: %arm"):
-                iflags.append("-Wno-error=implicit-function-declaration")
-        return (iflags, None, None)
+                flags.append("-Wno-error=implicit-function-declaration")
+        return (flags, None, None)
 
     @classmethod
     def determine_version(cls, lib):
@@ -539,6 +547,9 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
         if self.spec.satisfies("+bignuma"):
             make_defs.append("BIGNUMA=1")
 
+        if not self.spec.satisfies("target=x86_64_v4:"):
+            make_defs.append("NO_AVX512=1")
+
         # Avoid that NUM_THREADS gets initialized with the host's number of CPUs.
         if self.spec.satisfies("threads=openmp") or self.spec.satisfies("threads=pthreads"):
             make_defs.append("NUM_THREADS=512")
@@ -566,17 +577,19 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
         # Openblas may pass its own test but still fail to compile Lapack
         # symbols. To make sure we get working Blas and Lapack, do a small
         # test.
-        source_file = join_path(os.path.dirname(self.module.__file__), "test_cblas_dgemm.c")
-        blessed_file = join_path(os.path.dirname(self.module.__file__), "test_cblas_dgemm.output")
+        source_file = join_path(os.path.dirname(self.pkg.module.__file__), "test_cblas_dgemm.c")
+        blessed_file = join_path(
+            os.path.dirname(self.pkg.module.__file__), "test_cblas_dgemm.output"
+        )
 
         include_flags = spec["openblas"].headers.cpp_flags
         link_flags = spec["openblas"].libs.ld_flags
-        if self.compiler.name == "intel":
+        if self.pkg.compiler.name == "intel":
             link_flags += " -lifcore"
         if self.spec.satisfies("threads=pthreads"):
             link_flags += " -lpthread"
         if spec.satisfies("threads=openmp"):
-            link_flags += " -lpthread " + self.compiler.openmp_flag
+            link_flags += " -lpthread " + self.pkg.compiler.openmp_flag
 
         output = compile_c_and_execute(source_file, [include_flags], link_flags.split())
         compare_output_file(output, blessed_file)
@@ -584,7 +597,12 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
 
 class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
     def cmake_args(self):
-        cmake_defs = [self.define("TARGET", "GENERIC")]
+        cmake_defs = [
+            self.define("TARGET", "GENERIC"),
+            # ensure MACOSX_RPATH is set
+            self.define("CMAKE_POLICY_DEFAULT_CMP0042", "NEW"),
+        ]
+
         if self.spec.satisfies("+dynamic_dispatch"):
             cmake_defs += [self.define("DYNAMIC_ARCH", "ON")]
         if self.spec.satisfies("platform=windows"):

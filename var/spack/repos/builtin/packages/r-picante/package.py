@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,6 +26,8 @@ class RPicante(RPackage):
     version("1.7", sha256="75e4d73080db67e776562a1d58685438461cbde39af46900c7838da56aef0a62")
     version("1.6-2", sha256="4db3a5a0fe5e4e9197c96245195843294fbb8d0a324edcde70c6ab01276ab7ff")
     version("1.6-1", sha256="2708315b26737857a6729fd67bde06bc939930035c5b09a8bba472a593f24000")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r-ape", type=("build", "run"))
     depends_on("r-vegan", type=("build", "run"))

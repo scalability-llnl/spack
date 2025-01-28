@@ -1,0 +1,46 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 74b7bd8..d787a7d 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -32,7 +32,7 @@ endif()
+ # set the project name and version
+ set(LIBMEM_VERSION_STRING 5.0)
+ 
+-project(aocl-libmem VERSION ${LIBMEM_VERSION_STRING} LANGUAGES C DESCRIPTION
++project(aocl-libmem VERSION ${LIBMEM_VERSION_STRING} LANGUAGES C CXX DESCRIPTION
+                         "Library of AMD optimized string/memory functions")
+ 
+ string(TIMESTAMP BUILD_DATE "%Y%m%d")
+@@ -45,7 +45,7 @@ add_definitions(-DLIBMEM_BUILD_VERSION="${LIBMEM_BUILD_VERSION_STR}")
+ set(DEFAULT_BUILD_TYPE "Release")
+ 
+ set(CMAKE_C_STANDARD 99)
+-
++set(CMAKE_CXX_STANDARD 17)
+ option(ENABLE_LOGGING "Enable Logger" OFF)
+ 
+ option(ENABLE_TUNABLES "Enable user input" OFF)
+@@ -100,6 +100,22 @@ endif ()
+ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
+ 
+ # let the build system know the tools directory
+-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tools)
++include(CheckCXXSourceRuns)
++check_cxx_source_runs("
++#include <cpuid.h>
++int main() {
++  unsigned int eax, ebx, ecx, edx;
++  if (__get_cpuid(0, &eax, &ebx, &ecx, &edx)) {
++    // The 'AuthenticAMD' string is EBX, EDX, ECX after calling cpuid with eax=0
++    if (ebx == 0x68747541 && edx == 0x69746E65 && ecx == 0x444D4163) {
++      return 0; // AMD CPU detected
++    }
++  }
++  return 1; // Non-AMD CPU
++}
++" AMD_Tools)
++if(AMD_Tools)
++    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tools)
++endif()
+ 
+ file(WRITE ${CMAKE_BINARY_DIR}/version.h ${LIBMEM_BUILD_VERSION_STR})

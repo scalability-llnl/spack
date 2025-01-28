@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -332,6 +331,9 @@ class Openfoam(Package):
     version("1712", sha256="4d22caa25d638d4c59bb93ee4dec51e8f71724f9f507eeb4162f771ebe885d21")
     version("1706", sha256="7779048bb53798d9a5bd2b2be0bf302c5fd3dff98e29249d6e0ef7eeb83db79a")
     version("1612", sha256="2909c43506a68e1f23efd0ca6186a6948ae0fc8fe1e39c78cc23ef0d69f3569d")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("int64", default=False, description="With 64-bit labels")
     variant("knl", default=False, description="Use KNL compiler settings")
@@ -890,6 +892,18 @@ class Openfoam(Package):
                 f for f in glob.glob(join_path("..", self.archbin, "*")) if os.path.isfile(f)
             ]:
                 os.symlink(f, os.path.basename(f))
+
+    # Executables like decomposePar require interface libraries for optional dependencies, but if
+    # the dependency is missing, an dummy library is used and put in lib/dummy. Allow this until
+    # the https://develop.openfoam.com/Development/openfoam/-/issues/3283 is resolved.
+    unresolved_libraries = [
+        "libkahipDecomp.so",
+        "libmetisDecomp.so",
+        "libMGridGen.so",
+        "libPstream.so",
+        "libptscotchDecomp.so",
+        "libscotchDecomp.so",
+    ]
 
 
 # -----------------------------------------------------------------------------

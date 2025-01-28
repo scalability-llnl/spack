@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,8 @@ class Swiftsim(AutotoolsPackage):
     version("0.9.0", sha256="5b4477289c165838c3823ef47a2a94eff7129927babbf5eb8785f8e4bf686117")
     version("0.7.0", sha256="d570e83e1038eb31bc7ae95d1903a2371fffbca90d08f60b6b32bb0fd8a6f516")
     version("0.3.0", sha256="dd26075315cb2754dc1292e8d838bbb83739cff7f068a98319b80b9c2b0f84bc")
+
+    depends_on("c", type="build")  # generated
 
     variant("mpi", default=True, description="Enable distributed memory parallelism")
 

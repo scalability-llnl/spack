@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -39,6 +38,9 @@ class MongoCDriver(AutotoolsPackage, CMakePackage):
         sha256="1bdfb27944c6da8e56da209a5d56efac70df1f8c4ca4498b46f75bf3f9360898",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("ssl", default=True, description="Enable SSL support.")
     variant("snappy", default=True, description="Enable Snappy support.")

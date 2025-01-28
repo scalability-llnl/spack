@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -19,7 +18,7 @@ class Swig(AutotoolsPackage, SourceforgePackage):
     features that let you tailor the wrapping process to suit your
     application."""
 
-    homepage = "http://www.swig.org"
+    homepage = "https://www.swig.org"
     sourceforge_mirror_path = "swig/swig-3.0.12.tar.gz"
     maintainers("sethrj")
 
@@ -68,6 +67,9 @@ class Swig(AutotoolsPackage, SourceforgePackage):
         sha256="2d65ebe82274da294709254703f9ac2333fd39286b9375b0d89182385aac548e",
         url="https://github.com/swig-fortran/swig/archive/v4.0.2+fortran.tar.gz",
     )
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     depends_on("pcre", when="@:4.0")
     depends_on("pcre2", when="@4.1:")

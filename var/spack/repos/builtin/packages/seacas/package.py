@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -35,6 +34,12 @@ class Seacas(CMakePackage):
 
     # ###################### Versions ##########################
     version("master", branch="master")
+    version(
+        "2024-08-15", sha256="c85130b0dac5ab9a08dcb53c8ccff478122d72b08bd41d99c0adfddc5eb18a52"
+    )
+    version(
+        "2024-07-10", sha256="b2ba6ca80359fed8ed2a8a210052582c7a3b7b837253bd1e9be941047dcab3ff"
+    )
     version(
         "2024-06-27", sha256="a28db6aa3d03ff0a54a091210cf867661427f0b22ac08f89a4cc3bd8e0c704b2"
     )
@@ -141,6 +146,10 @@ class Seacas(CMakePackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build", when="+fortran")
+
     # ###################### Variants ##########################
     # Package options
     # The I/O libraries (exodus, IOSS) are always built
@@ -187,6 +196,11 @@ class Seacas(CMakePackage):
         description="Enable Faodel. See https://github.com/sandialabs/faodel",
     )
     variant(
+        "libcatalyst",
+        default=False,
+        description="Enable libcatalyst tpl (catalyst api 2); Kitware insitu library",
+    )
+    variant(
         "matio",
         default=True,
         description="Compile with matio (MatLab) support."
@@ -221,6 +235,9 @@ class Seacas(CMakePackage):
     depends_on("cmake@3.17:", when="@:2023-05-30", type="build")
     depends_on("mpi", when="+mpi")
     depends_on("zlib-api", when="+zlib")
+    depends_on("parallel", when="platform=linux", type="run")
+    depends_on("parallel", when="platform=darwin", type="run")
+    depends_on("parallel", when="platform=freebsd", type="run")
     depends_on("trilinos~exodus+mpi+pamgen", when="+mpi+pamgen")
     depends_on("trilinos~exodus~mpi+pamgen", when="~mpi+pamgen")
     # Always depends on netcdf-c
@@ -229,8 +246,9 @@ class Seacas(CMakePackage):
     depends_on("hdf5+hl~mpi", when="~mpi")
     depends_on("hdf5+hl+mpi", when="+mpi")
 
-    depends_on("fmt@10.2.1:", when="@2024-03-11:")
-    depends_on("fmt@10.1.0:", when="@2023-10-24:2023-11-27")
+    depends_on("fmt@10:", when="@2024-08-15:")
+    depends_on("fmt@10.2.1:10", when="@2024-03-11:2024-07-10")
+    depends_on("fmt@10.1.0:10", when="@2023-10-24:2023-11-27")
     depends_on("fmt@9.1.0", when="@2022-10-14:2023-05-30")
     depends_on("fmt@8.1.0:9", when="@2022-03-04:2022-05-16")
 
@@ -248,6 +266,10 @@ class Seacas(CMakePackage):
     depends_on("catch2@3:", when="@2024-03-11:+tests")
 
     depends_on("matio", when="+matio")
+
+    depends_on("libcatalyst+mpi~python", when="+libcatalyst+mpi")
+    depends_on("libcatalyst~mpi~python", when="+libcatalyst~mpi")
+
     depends_on("libx11", when="+x11")
 
     with when("+cgns"):
@@ -255,7 +277,7 @@ class Seacas(CMakePackage):
         depends_on("cgns@4.2.0:~mpi+scoping", when="~mpi")
 
     with when("+adios2"):
-        depends_on("adios2@master")
+        depends_on("adios2@2.10.1")
         depends_on("adios2~mpi", when="~mpi")
         depends_on("adios2+mpi", when="+mpi")
 
@@ -280,6 +302,9 @@ class Seacas(CMakePackage):
         sha256="d088208511fb0a087e2bf70ae70676e59bfefe8d8f5b24bd53b829566f5147d2",
         when="@:2023-10-24",
     )
+
+    # Based on install-tpl.sh script, cereal seems to only be used when faodel enabled
+    depends_on("cereal", when="@2021-04-02: +faodel")
 
     def setup_run_environment(self, env):
         env.prepend_path("PYTHONPATH", self.prefix.lib)
@@ -413,7 +438,7 @@ class Seacas(CMakePackage):
             [define("TPL_ENABLE_Netcdf", True), define("NetCDF_ROOT", spec["netcdf-c"].prefix)]
         )
 
-        if "+parmetis" in spec:
+        if spec.satisfies("+metis+mpi"):
             options.extend(
                 [
                     define("TPL_ENABLE_METIS", True),
@@ -463,9 +488,21 @@ class Seacas(CMakePackage):
             if pkg.lower() in spec:
                 options.append(define(pkg + "_ROOT", spec[pkg.lower()].prefix))
 
+        if "+faodel" in spec:
+            # faodel headers are under $faodel_prefix/include/faodel but seacas
+            # leaves off the faodel part
+            faodel_incdir = spec["faodel"].prefix.include
+            faodel_incdir2 = spec["faodel"].prefix.include.faodel
+            faodel_incdirs = [faodel_incdir, faodel_incdir2]
+            options.append(define("Faodel_INCLUDE_DIRS", ";".join(faodel_incdirs)))
+            options.append(define("Faodel_LIBRARY_DIRS", spec["faodel"].prefix.lib))
+
         options.append(from_variant("TPL_ENABLE_ADIOS2", "adios2"))
         if "+adios2" in spec:
             options.append(define("ADIOS2_ROOT", spec["adios2"].prefix))
+
+        if "+libcatalyst" in spec:
+            options.append(define("TPL_ENABLE_Catalyst2", "ON"))
 
         # ################# RPath Handling ######################
         if sys.platform == "darwin" and macos_version() >= Version("10.12"):
@@ -475,3 +512,9 @@ class Seacas(CMakePackage):
             options.append(define("CMAKE_INSTALL_NAME_DIR", self.prefix.lib))
 
         return options
+
+    @run_after("install")
+    def symlink_parallel(self):
+        if not self.spec.dependencies("parallel"):
+            return
+        symlink(self.spec["parallel"].prefix.bin.parallel, self.prefix.bin.parallel)

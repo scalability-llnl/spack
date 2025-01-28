@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #
@@ -21,6 +20,46 @@ from spack.util.prefix import Prefix
 #  - package key must be in the form '{os}-{arch}' where 'os' is in the
 #    format returned by platform.system() and 'arch' by platform.machine()
 _versions = {
+    "25.1": {
+        "Linux-aarch64": (
+            "0e1d694d54d44559155024d5bab4ca6764eba52d3f27b89f5c252416976e0360",
+            "https://developer.download.nvidia.com/hpc-sdk/25.1/nvhpc_2025_251_Linux_aarch64_cuda_multi.tar.gz",
+        ),
+        "Linux-x86_64": (
+            "0813791f8363f4c493db7891b00396ce522cb73910279b8f18a440aedda6727c",
+            "https://developer.download.nvidia.com/hpc-sdk/25.1/nvhpc_2025_251_Linux_x86_64_cuda_multi.tar.gz",
+        ),
+    },
+    "24.11": {
+        "Linux-aarch64": (
+            "f2f64e5dec5e90dad5e12a31a992172b0aa19abf872ef1c54a1a437c7008eefb",
+            "https://developer.download.nvidia.com/hpc-sdk/24.11/nvhpc_2024_2411_Linux_aarch64_cuda_multi.tar.gz",
+        ),
+        "Linux-x86_64": (
+            "0c27d66ed0e2d3007d30ac904922a9abf96475197dc0f4dcc6316d235a1dc0c3",
+            "https://developer.download.nvidia.com/hpc-sdk/24.11/nvhpc_2024_2411_Linux_x86_64_cuda_multi.tar.gz",
+        ),
+    },
+    "24.9": {
+        "Linux-aarch64": (
+            "8d900f798ef806c64993fd4fedf2c2c812dd1ccdbac2a0d33fabcd0cd36f19cf",
+            "https://developer.download.nvidia.com/hpc-sdk/24.9/nvhpc_2024_249_Linux_aarch64_cuda_multi.tar.gz",
+        ),
+        "Linux-x86_64": (
+            "30c493350cf67481e84cea60a3a869e01fa0bcb71df8e898266273fbdf0a7f26",
+            "https://developer.download.nvidia.com/hpc-sdk/24.9/nvhpc_2024_249_Linux_x86_64_cuda_multi.tar.gz",
+        ),
+    },
+    "24.7": {
+        "Linux-aarch64": (
+            "256ae392ed961162f3f6dc633498db2b68441103a6192f5d4a1c18fa96e992e7",
+            "https://developer.download.nvidia.com/hpc-sdk/24.7/nvhpc_2024_247_Linux_aarch64_cuda_multi.tar.gz",
+        ),
+        "Linux-x86_64": (
+            "bf2094aa2fc5bdbcbf9bfa0fddc1cbed1bfa6e9342980649db2350d9f675f853",
+            "https://developer.download.nvidia.com/hpc-sdk/24.7/nvhpc_2024_247_Linux_x86_64_cuda_multi.tar.gz",
+        ),
+    },
     "24.5": {
         "Linux-aarch64": (
             "c52b5ba370e053472cbffb825ba1da5b6abaee93d4e15479ec12c32d6ebc47d5",
@@ -396,7 +435,7 @@ class Nvhpc(Package, CompilerPackage):
     homepage = "https://developer.nvidia.com/hpc-sdk"
 
     maintainers("samcmill")
-    tags = ["e4s"]
+    tags = ["e4s", "compiler"]
 
     skip_version_audit = ["platform=darwin", "platform=windows"]
 
@@ -407,6 +446,10 @@ class Nvhpc(Package, CompilerPackage):
         pkg = packages.get(key)
         if pkg:
             version(ver, sha256=pkg[0], url=pkg[1])
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("blas", default=True, description="Enable BLAS")
     variant(

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,12 +15,18 @@ class Icon(AutotoolsPackage):
     homepage = "https://www.icon-model.org"
     url = "https://gitlab.dkrz.de/icon/icon-model/-/archive/icon-2024.01-public/icon-model-icon-2024.01-public.tar.gz"
 
-    maintainers("skosukhin")
+    maintainers("skosukhin", "Try2Code")
 
     license("BSD-3-Clause", checked_by="skosukhin")
 
+    version("2024.10", sha256="5c461c783eb577c97accd632b18140c3da91c1853d836ca2385f376532e9bad1")
+    version("2024.07", sha256="f53043ba1b36b8c19d0d2617ab601c3b9138b90f8ff8ca6db0fd079665eb5efa")
     version("2024.01-1", sha256="3e57608b7e1e3cf2f4cb318cfe2fdb39678bd53ca093955d99570bd6d7544184")
     version("2024.01", sha256="d9408fdd6a9ebf5990298e9a09c826e8c15b1e79b45be228f7a5670a3091a613")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # Model Features:
     variant("atmo", default=True, description="Enable the atmosphere component")
@@ -124,6 +129,7 @@ class Icon(AutotoolsPackage):
             "atmo",
             "les",
             "upatmo",
+            "ocean",
             "jsbach",
             "waves",
             "aes",
@@ -140,13 +146,13 @@ class Icon(AutotoolsPackage):
         ]:
             args += self.enable_or_disable(x)
 
-        if "+art" in self.spec:
+        if self.spec.satisfies("+art"):
             args.append("--enable-art")
             libs += self.spec["libxml2"].libs
         else:
             args.append("--disable-art")
 
-        if "+coupling" in self.spec:
+        if self.spec.satisfies("+coupling"):
             args.append("--enable-coupling")
             libs += self.spec["libfyaml"].libs
         else:
@@ -164,7 +170,7 @@ class Icon(AutotoolsPackage):
             )
             libs += self.spec["serialbox:fortran"].libs
 
-        if "+grib2" in self.spec:
+        if self.spec.satisfies("+grib2"):
             args.append("--enable-grib2")
             libs += self.spec["eccodes:c"].libs
         else:
@@ -175,7 +181,7 @@ class Icon(AutotoolsPackage):
         libs += self.spec["netcdf-fortran"].libs
         libs += self.spec["netcdf-c"].libs
 
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             args.extend(
                 [
                     "--enable-mpi",
@@ -210,7 +216,7 @@ class Icon(AutotoolsPackage):
             flags["ICON_BUNDLED_CFLAGS"].append("-O2")
             flags["FCFLAGS"].append("-g")
             flags["ICON_FCFLAGS"].append("-O2")
-            if "+ocean" in self.spec:
+            if self.spec.satisfies("+ocean"):
                 flags["ICON_OCEAN_FCFLAGS"].extend(["-O3", "-fno-tree-loop-vectorize"])
                 args.extend(
                     ["--enable-fcgroup-OCEAN", "ICON_OCEAN_PATH=src/hamocc:src/ocean:src/sea_ice"]
@@ -235,10 +241,10 @@ class Icon(AutotoolsPackage):
                 ]
             )
 
-            if "%oneapi+coupling" in self.spec:
+            if self.spec.satisfies("%oneapi+coupling"):
                 flags["ICON_YAC_CFLAGS"].extend(["-O2", "-fp-model precise"])
 
-            if "+ocean" in self.spec:
+            if self.spec.satisfies("+ocean"):
                 flags["ICON_OCEAN_FCFLAGS"].extend(
                     ["-O3", "-assume norealloc_lhs", "-reentrancy threaded"]
                 )
@@ -246,10 +252,10 @@ class Icon(AutotoolsPackage):
                     ["--enable-fcgroup-OCEAN", "ICON_OCEAN_PATH=src/hamocc:src/ocean:src/sea_ice"]
                 )
 
-                if "+openmp" in self.spec:
+                if self.spec.satisfies("+openmp"):
                     flags["ICON_OCEAN_FCFLAGS"].extend(["-DOCE_SOLVE_OMP"])
 
-            if "+ecrad" in self.spec:
+            if self.spec.satisfies("+ecrad"):
                 flags["ICON_ECRAD_FCFLAGS"].extend(["-qno-opt-dynamic-align", "-no-fma", "-fpe0"])
 
         elif self.compiler.name == "nvhpc":
@@ -263,7 +269,7 @@ class Icon(AutotoolsPackage):
                     ["-acc=gpu", "-gpu=cc{0}".format(self.nvidia_targets[gpu])]
                 )
 
-            if "%nvhpc@:23.9+coupling" in self.spec:
+            if self.spec.satisfies("%nvhpc@:23.9+coupling"):
                 args.append("yac_cv_fc_is_contiguous_works=yes")
 
         else:

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,14 +17,20 @@ class Mlpack(CMakePackage):
 
     maintainers("wdconinc")
 
-    license("BSD-3-Clause")
+    license("BSD-3-Clause", checked_by="wdconinc")
 
+    version("4.5.1", sha256="58059b911a78b8bda91eef4cfc6278383b24e71865263c2e0569cf5faa59dda3")
+    version("4.5.0", sha256="aab70aee10c134ef3fe568843fe4b3bb5e8901af30ea666f57462ad950682317")
+    version("4.4.0", sha256="61c604026d05af26c244b0e47024698bbf150dfcc9d77b64057941d7d64d6cf6")
+    version("4.3.0", sha256="08cd54f711fde66fc3b6c9db89dc26776f9abf1a6256c77cfa3556e2a56f1a3d")
+    version("4.2.1", sha256="2d2b8d61dc2e3179e0b6fefd5c217c57aa168c4d0b9c6868ddb94f6395a80dd5")
     version("4.2.0", sha256="f780df984a71029e62eeecdd145fb95deb71b133cefc7840de0ec706d116dd60")
     version("4.1.0", sha256="e0c760baf15fd0af5601010b7cbc536e469115e9dd45f96712caa3b651b1852a")
     version("4.0.1", sha256="4c746936ed9da9f16744240ed7b9f2815d3abb90c904071a1d1a628a9bbfb3a5")
 
-    # TODO: Go bindings are not supported due to the absence of gonum in spack
-    # variant("go", default=False, description="Build Go bindings")
+    depends_on("cxx", type="build")  # generated
+
+    variant("go", default=False, description="Build Go bindings", when="@4.5.1:")
     variant("julia", default=False, description="Build Julia bindings")
     variant("python", default=False, description="Build Ppython bindings")
     variant("r", default=False, description="Build R bindings")
@@ -34,14 +39,17 @@ class Mlpack(CMakePackage):
     # CMakeLists.txt
     depends_on("cmake@3.6:", type="build")
     depends_on("armadillo@9.800:")
+    depends_on("armadillo@10.8:", when="@4.5:")
     depends_on("ensmallen@2.10.0:")
     depends_on("cereal@1.1.2:")
 
-    # TODO: Go bindings are not supported due to the absence of gonum in spack
-    # with when("+go"):
-    #    # ref: src/mlpack/bindings/go/CMakeLists.txt
-    #    depends_on("go@1.11.0:")
-    #    depends_on("gonum")
+    # Compiler conflicts
+    conflicts("%gcc@:4", when="@4.0:", msg="mlpack 4.0+ requires at least gcc-5 with C++14")
+    conflicts("%gcc@:7", when="@4.4:", msg="mlpack 4.4+ requires at least gcc-8 with C++17")
+
+    with when("+go"):
+        # ref: src/mlpack/bindings/go/CMakeLists.txt
+        depends_on("go@1.11.0:")
     with when("+julia"):
         # ref: src/mlpack/bindings/julia/CMakeLists.txt
         depends_on("julia@0.7.0:")
@@ -49,10 +57,13 @@ class Mlpack(CMakePackage):
         # ref: src/mlpack/bindings/python/CMakeLists.txt
         depends_on("py-cython@0.24:")
         depends_on("py-numpy")
+        depends_on("py-numpy@:1", when="@:4.4.0")
         depends_on("py-pandas@0.15.0:")
         # ref: src/mlpack/bindings/python/PythonInstall.cmake
         depends_on("py-pip")
         depends_on("py-wheel")
+        # ref: src/mlpack/bindings/python/setup.py.in
+        depends_on("py-setuptools", type="build")
     with when("+r"):
         # ref: src/mlpack/bindings/R/CMakeLists.txt
         depends_on("r@4.0:")
@@ -72,7 +83,7 @@ class Mlpack(CMakePackage):
     def cmake_args(self):
         args = [
             self.define("BUILD_CLI_EXECUTABLES", True),
-            # self.define_from_variant("BUILD_GO_BINDINGS", "go"),
+            self.define_from_variant("BUILD_GO_BINDINGS", "go"),
             self.define_from_variant("BUILD_JULIA_BINDINGS", "julia"),
             self.define_from_variant("BUILD_PYTHON_BINDINGS", "python"),
             self.define_from_variant("BUILD_R_BINDINGS", "r"),

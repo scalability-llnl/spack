@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,8 @@ class Kea(AutotoolsPackage):
     license("MPL-2.0")
 
     version("1.6.2", sha256="2af7336027143c3e98d8d1d44165b2c2cbb0252a92bd88f6dd4d2c6adb69d7b5")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("m4", type="build")
     depends_on("autoconf", type="build")

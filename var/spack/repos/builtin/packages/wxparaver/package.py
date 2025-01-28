@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,6 +25,9 @@ class Wxparaver(AutotoolsPackage):
     version("4.7.2", sha256="90107797d6af6fc3ebd9505445bb518d673edecbe5d08d1b7af01695d53241ae")
     version("4.7.1", sha256="8cbec0c5e0f8a849820f6682cbb0920ea234bb7f20d1483e38ea5d0b0ee045cd")
     version("4.7.0", sha256="81e02bcc1853455b13435172a4336ba85ba05020887d322c9678c97def03d76f")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("boost@1.36: +serialization")
     depends_on("wxwidgets@2.8:")  # NOTE: using external for this one is usually simpler

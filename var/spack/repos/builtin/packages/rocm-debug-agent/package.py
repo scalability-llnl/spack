@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,11 +12,16 @@ class RocmDebugAgent(CMakePackage):
 
     homepage = "https://github.com/ROCm/rocr_debug_agent"
     git = "https://github.com/ROCm/rocr_debug_agent.git"
-    url = "https://github.com/ROCm/rocr_debug_agent/archive/rocm-6.1.2.tar.gz"
+    url = "https://github.com/ROCm/rocr_debug_agent/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
-    maintainers("srekolam", "renjithravindrankannath")
+    maintainers("srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["librocm-debug-agent"]
+    version("6.3.1", sha256="0e28a9febf3b95cc6bbf8eae91091bf22a8f49fe9558171251f8f9afe666f9d7")
+    version("6.3.0", sha256="c8c3461395b2fc1e136d61eb5a36ba9f3f751eb00cb9d830f498de2e5d4299d5")
+    version("6.2.4", sha256="a4f213a9e28a1e82543135c0b6d16c5a252186f83fc842f980631943f7e11398")
+    version("6.2.1", sha256="933223ff6e0aefb54917f4102ac6679dcd67e25ade4bce5e49f5212f45e3bae5")
+    version("6.2.0", sha256="a4b839c47b8a1cd8d00c3577eeeea04d3661210eb8124e221d88bcbedc742363")
     version("6.1.2", sha256="c7cb779915a3d61e39d92cef172997bcf5eae720308f6d9c363a2cbc71b5621c")
     version("6.1.1", sha256="c631281b346bab9ec3607c59404f548f7cba084a05e9c9ceb3c3579c48361ad1")
     version("6.1.0", sha256="f52700563e490d662b505693d485272d73521aabff306107586dd1149fb4a70e")
@@ -34,6 +38,14 @@ class RocmDebugAgent(CMakePackage):
         version("5.4.0", sha256="94bef73ea0a6d385dab2292ee591ca1dc268a5585cf9f1b5092a1530949f575e")
         version("5.3.3", sha256="7170312d08e91334ee03586aa1f23d67f33d9ec0df25a5556cbfa3f210b15b06")
         version("5.3.0", sha256="8dfb6aa442ce136207c0c089321c8099042395977b4a488e4ca219661df0cd78")
+
+    variant("asan", default=False, description="Build with address-sanitizer enabled or disabled")
+
+    conflicts("+asan", when="os=rhel9")
+    conflicts("+asan", when="os=centos7")
+    conflicts("+asan", when="os=centos8")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3:", type="build")
     depends_on("elfutils@:0.168", type="link")
@@ -54,9 +66,35 @@ class RocmDebugAgent(CMakePackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+    ]:
+        depends_on(f"hsakmt-roct@{ver}", when=f"@{ver}")
+
+    for ver in [
+        "5.3.0",
+        "5.3.3",
+        "5.4.0",
+        "5.4.3",
+        "5.5.0",
+        "5.5.1",
+        "5.6.0",
+        "5.6.1",
+        "5.7.0",
+        "5.7.1",
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
     ]:
         depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")
-        depends_on(f"hsakmt-roct@{ver}", when=f"@{ver}")
         depends_on(f"rocm-dbgapi@{ver}", when=f"@{ver}")
         depends_on(f"hip@{ver}", when=f"@{ver}")
 
@@ -71,6 +109,11 @@ class RocmDebugAgent(CMakePackage):
         "6.0.2",
         "6.1.0",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 
@@ -86,6 +129,15 @@ class RocmDebugAgent(CMakePackage):
                 int(match.group(1)), int(match.group(2)), int(match.group(3))
             )
         return None
+
+    def setup_build_environment(self, env):
+        if self.spec.satisfies("+asan"):
+            env.set("CC", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang")
+            env.set("CXX", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang++")
+            env.set("ASAN_OPTIONS", "detect_leaks=0")
+            env.set("CFLAGS", "-fsanitize=address -shared-libasan")
+            env.set("CXXFLAGS", "-fsanitize=address -shared-libasan")
+            env.set("LDFLAGS", "-fuse-ld=lld")
 
     def cmake_args(self):
         spec = self.spec

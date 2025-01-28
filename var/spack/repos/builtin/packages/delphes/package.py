@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -42,6 +41,9 @@ class Delphes(CMakePackage):
     version("3.0.7", sha256="7f43c84bca38fb8a41d7840dd2d7fab52456182babaa1e528791d0f4e517aba8")
     version("3.0.6", sha256="9e225731d57d2a76d35886841f8eff121bb3a45560b16077bd8c351151581d88")
     version("3.0.5", sha256="ab64ec6d2476fbfa40562e7edb510a8ab4c4fe5be77a4353ebf315c2af181a80")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("pythia8", default=True, description="build with pythia8")
 

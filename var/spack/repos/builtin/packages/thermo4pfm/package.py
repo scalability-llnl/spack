@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,5 +16,7 @@ class Thermo4pfm(CMakePackage):
     license("BSD-3-Clause")
 
     version("1.1.1", sha256="cff3c83405224a39bb34c57e444e208e94c6782d84303acd0588d1dfa61513a1")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("boost")

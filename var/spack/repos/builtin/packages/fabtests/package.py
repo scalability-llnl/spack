@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -40,6 +39,8 @@ class Fabtests(AutotoolsPackage):
     version("1.5.3", sha256="3835b3bf86cd00d23df0ddba8bf317e4a195e8d5c3c2baa918b373d548f77f29")
     version("1.5.0", sha256="1dddd446c3f1df346899f9a8636f1b4265de5b863103ae24876e9f0c1e40a69d")
     version("1.4.2", sha256="3b78d0ca1b223ff21b7f5b3627e67e358e3c18b700f86b017e2233fee7e88c2e")
+
+    depends_on("c", type="build")  # generated
 
     versions = [
         "1.21.0",

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,9 @@ class PyMemray(PythonPackage):
     license("Apache-2.0")
 
     version("1.1.0", sha256="876e46e0cd42394be48b33f81314bc946f4eb023b04bf1def084c25ccf1d2bb6")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("python@3.7:", type=("build", "link", "run"))
     depends_on("py-setuptools", type="build")

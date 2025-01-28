@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,7 +8,6 @@ import sys
 
 from llnl.util.lang import dedupe
 
-import spack.builder
 from spack.build_systems import autotools, cmake
 from spack.package import *
 from spack.util.environment import filter_system_paths
@@ -53,6 +51,9 @@ class NetcdfC(CMakePackage, AutotoolsPackage):
     version("4.3.3.1", sha256="f2ee78eb310637c007f001e7c18e2d773d23f3455242bde89647137b7344c2e2")
     version("4.3.3", sha256="3f16e21bc3dfeb3973252b9addf5defb48994f84fc9c9356081f871526a680e7")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     with when("build_system=cmake"):
         # TODO: document why we need to revert https://github.com/Unidata/netcdf-c/pull/1731
         #  with the following patch:
@@ -63,7 +64,7 @@ class NetcdfC(CMakePackage, AutotoolsPackage):
         # no upstream PR (or set of PRs) covering all changes in this path.
         # When #2595 lands, this patch should be updated to include only
         # the changes not incorporated into that PR
-        patch("netcdfc_correct_and_export_link_interface.patch", when="platform=windows")
+        patch("netcdfc_correct_and_export_link_interface.patch")
 
     # Some of the patches touch configure.ac and, therefore, require forcing the autoreconf stage:
     _force_autoreconf_when = []
@@ -288,7 +289,7 @@ class NetcdfC(CMakePackage, AutotoolsPackage):
             env.append_path("HDF5_PLUGIN_PATH", self.prefix.plugins)
 
     def flag_handler(self, name, flags):
-        if self.builder.build_system == "autotools":
+        if self.spec.satisfies("build_system=autotools"):
             if name == "cflags":
                 if "+pic" in self.spec:
                     flags.append(self.compiler.cc_pic_flag)
@@ -302,7 +303,7 @@ class NetcdfC(CMakePackage, AutotoolsPackage):
         return find_libraries("libnetcdf", root=self.prefix, shared=shared, recursive=True)
 
 
-class BaseBuilder(metaclass=spack.builder.PhaseCallbacksMeta):
+class AnyBuilder(BaseBuilder):
     def setup_dependent_build_environment(self, env, dependent_spec):
         # Some packages, e.g. ncview, refuse to build if the compiler path returned by nc-config
         # differs from the path to the compiler that the package should be built with. Therefore,
@@ -326,7 +327,7 @@ class BaseBuilder(metaclass=spack.builder.PhaseCallbacksMeta):
     filter_compiler_wrappers("nc-config", relative_root="bin")
 
 
-class CMakeBuilder(BaseBuilder, cmake.CMakeBuilder):
+class CMakeBuilder(AnyBuilder, cmake.CMakeBuilder):
     def cmake_args(self):
         base_cmake_args = [
             self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
@@ -356,7 +357,7 @@ class CMakeBuilder(BaseBuilder, cmake.CMakeBuilder):
     @run_after("install")
     def patch_hdf5_pkgconfigcmake(self):
         """
-        Incorrect hdf5 library names are put in the package config and config.cmake files
+        Incorrect hdf5 library names are put in the package config files
         due to incorrectly using hdf5 target names
         https://github.com/spack/spack/pull/42878
         """
@@ -364,17 +365,16 @@ class CMakeBuilder(BaseBuilder, cmake.CMakeBuilder):
             return
 
         pkgconfig_file = find(self.prefix, "netcdf.pc", recursive=True)
-        cmakeconfig_file = find(self.prefix, "netCDFTargets.cmake", recursive=True)
         ncconfig_file = find(self.prefix, "nc-config", recursive=True)
         settingsconfig_file = find(self.prefix, "libnetcdf.settings", recursive=True)
 
-        files = pkgconfig_file + cmakeconfig_file + ncconfig_file + settingsconfig_file
+        files = pkgconfig_file + ncconfig_file + settingsconfig_file
         config = "shared" if self.spec.satisfies("+shared") else "static"
         filter_file(f"hdf5-{config}", "hdf5", *files, ignore_absent=True)
         filter_file(f"hdf5_hl-{config}", "hdf5_hl", *files, ignore_absent=True)
 
 
-class AutotoolsBuilder(BaseBuilder, autotools.AutotoolsBuilder):
+class AutotoolsBuilder(AnyBuilder, autotools.AutotoolsBuilder):
     @property
     def force_autoreconf(self):
         return any(self.spec.satisfies(s) for s in self.pkg._force_autoreconf_when)

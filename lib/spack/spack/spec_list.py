@@ -1,10 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import itertools
 from typing import List
 
+import spack.spec
 import spack.variant
 from spack.error import SpackError
 from spack.spec import Spec
@@ -225,7 +225,7 @@ def _expand_matrix_constraints(matrix_config):
         # Catch exceptions because we want to be able to operate on
         # abstract specs without needing package information
         try:
-            spack.variant.substitute_abstract_variants(test_spec)
+            spack.spec.substitute_abstract_variants(test_spec)
         except spack.variant.UnknownVariantError:
             pass
 

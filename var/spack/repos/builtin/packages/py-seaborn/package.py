@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -39,6 +38,8 @@ class PySeaborn(PythonPackage):
     depends_on("py-numpy@1.15:", when="@0.11:", type=("build", "run"))
     depends_on("py-numpy@1.9.3:", when="@0.9:", type=("build", "run"))
     depends_on("py-numpy", type=("build", "run"))
+    # https://github.com/mwaskom/seaborn/pull/3683
+    depends_on("py-numpy@:1", when="@:0.13.1", type=("build", "run"))
     depends_on("py-pandas@0.25:", when="@0.12:", type=("build", "run"))
     depends_on("py-pandas@0.23:", when="@0.11:", type=("build", "run"))
     depends_on("py-pandas@0.22:", when="@0.10:", type=("build", "run"))

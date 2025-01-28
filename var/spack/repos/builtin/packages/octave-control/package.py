@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,5 +15,7 @@ class OctaveControl(OctavePackage, SourceforgePackage):
     license("GPL-3.0-or-later")
 
     version("3.2.0", sha256="faf1d510d16ab46e4fa91a1288f4a7839ee05469c33e4698b7a007a0bb965e3e")
+
+    depends_on("cxx", type="build")  # generated
 
     extends("octave@4.0.0:")

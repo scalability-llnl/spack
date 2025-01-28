@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class Oniguruma(AutotoolsPackage):
     version("6.9.8", sha256="28cd62c1464623c7910565fb1ccaaa0104b2fe8b12bcd646e81f73b47535213e")
     version("6.9.4", sha256="4669d22ff7e0992a7e93e116161cac9c0949cd8960d1c562982026726f0e6d53")
     version("6.1.3", sha256="480c850cd7c7f2fcaad0942b4a488e2af01fbb8e65375d34908f558b432725cf")
+
+    depends_on("c", type="build")  # generated
 
     @property
     def libs(self):

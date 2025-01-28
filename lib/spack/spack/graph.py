@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 r"""Functions for graphing DAGs of dependencies.
@@ -46,6 +45,7 @@ import spack.deptypes as dt
 import spack.repo
 import spack.spec
 import spack.tengine
+import spack.traverse
 
 
 def find(seq, predicate):
@@ -324,12 +324,7 @@ class AsciiGraph:
         self._out = llnl.util.tty.color.ColorStream(out, color=color)
 
         # We'll traverse the spec in topological order as we graph it.
-        nodes_in_topological_order = [
-            edge.spec
-            for edge in spack.traverse.traverse_edges_topo(
-                [spec], direction="children", deptype=self.depflag
-            )
-        ]
+        nodes_in_topological_order = list(spec.traverse(order="topo", deptype=self.depflag))
         nodes_in_topological_order.reverse()
 
         # Work on a copy to be nondestructive

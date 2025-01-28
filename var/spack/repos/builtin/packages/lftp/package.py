@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,9 @@ class Lftp(AutotoolsPackage):
     version("4.8.1", sha256="6117866215cd889dab30ff73292cd1d35fe0e12a9af5cd76d093500d07ab65a3")
     version("4.7.7", sha256="7bce216050094a1146ed05bed8fe5b3518224764ffe98884a848d44dc76fff8f")
     version("4.6.4", sha256="791e783779d3d6b519d0c23155430b9785f2854023eb834c716f5ba78873b15a")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("expat")
     depends_on("gettext")

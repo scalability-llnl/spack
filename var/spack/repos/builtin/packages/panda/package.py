@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class Panda(CMakePackage):
     version(
         "2016-03-07", sha256="9fae1544626db417ade7318d26bc43c8af04151b9f7679b6d742dba598762037"
     )
+
+    depends_on("cxx", type="build")  # generated
 
     # Note: Panda can also be built without MPI support
 

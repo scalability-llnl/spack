@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,7 +12,7 @@ class Zsh(AutotoolsPackage):
     """
 
     homepage = "https://www.zsh.org"
-    url = "http://downloads.sourceforge.net/project/zsh/zsh/5.4.2/zsh-5.4.2.tar.xz"
+    url = "https://downloads.sourceforge.net/project/zsh/zsh/5.4.2/zsh-5.4.2.tar.xz"
 
     license("custom")
 
@@ -25,6 +24,8 @@ class Zsh(AutotoolsPackage):
     version("5.4.2", sha256="a80b187b6b770f092ea1f53e89021d06c03d8bbe6a5e996bcca3267de14c5e52")
     version("5.3.1", sha256="fc886cb2ade032d006da8322c09a7e92b2309177811428b121192d44832920da")
     version("5.1.1", sha256="74e9453b5470b3c0970f9f93cfd603d241c3d7b1968adc0e4b3951073e8d3dec")
+
+    depends_on("c", type="build")  # generated
 
     # Testing for terminal related things causes failures in e.g. Jenkins.
     # See e.g. https://www.zsh.org/mla/users/2003/msg00845.html,

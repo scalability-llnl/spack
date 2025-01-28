@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,8 @@ class Lighttpd(CMakePackage):
     version("1.4.51", sha256="4301fe64136c7030d63cccc96996c6603dcbe82cca9a72e0aca29ce88284c978")
     version("1.4.50", sha256="c9a9f175aca6db22ebebbc47de52c54a99bbd1dce8d61bb75103609a3d798235")
     version("1.4.49", sha256="8b744baf9f29c386fff1a6d2e435491e726cb8d29cfdb1fe20ab782ee2fc2ac7")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("pcre")
 

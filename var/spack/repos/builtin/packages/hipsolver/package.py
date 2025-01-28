@@ -1,11 +1,11 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 import re
 
+import spack.variant
 from spack.package import *
 
 
@@ -22,13 +22,18 @@ class Hipsolver(CMakePackage, CudaPackage, ROCmPackage):
     url = "https://github.com/ROCm/hipSOLVER/archive/rocm-6.1.2.tar.gz"
     tags = ["rocm"]
 
-    maintainers("cgmb", "srekolam", "renjithravindrankannath")
+    maintainers("cgmb", "srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["libhipsolver"]
 
     license("MIT")
 
     version("develop", branch="develop")
     version("master", branch="master")
+    version("6.3.1", sha256="793074ebaa4a3b16dc6e4d2a54ecbb259f1e0ec7fdcd7f885da622a1d1478b76")
+    version("6.3.0", sha256="a0443f0b894cedd5af59af4fadcb3c38daa728ca32c13b9741fb19e2d828a089")
+    version("6.2.4", sha256="4dc564498361cb1bac17dcfeaf0f2b9c85320797c75b05ee33160a133f5f4a15")
+    version("6.2.1", sha256="614e3c0bc11bfa84acd81d46db63f3852a750adaaec094b7701ab7b996cc8e93")
+    version("6.2.0", sha256="637577a9cc38e4865894dbcd7eb35050e3de5d45e6db03472e836b318602a84d")
     version("6.1.2", sha256="406a8e5b82daae2fc03e0a738b5a054ade01bb41785cee4afb9e21c7ec91d492")
     version("6.1.1", sha256="01d4553458f417824807c069cacfc65d23f6cac79536158473b4356986c8fafd")
     version("6.1.0", sha256="3cb89ca486cdbdfcb1a07c35ee65f60219ef7bc62a5b0f94ca1a3206a0106495")
@@ -45,6 +50,10 @@ class Hipsolver(CMakePackage, CudaPackage, ROCmPackage):
         version("5.4.0", sha256="d53d81c55b458ba5e6ea0ec6bd24bcc79ab06789730391da82d8c33b936339d9")
         version("5.3.3", sha256="f5a487a1c7225ab748996ac4d837ac7ab26b43618c4ed97a124f8fac1d67786e")
         version("5.3.0", sha256="6e920a59ddeefd52c9a6d164c33bc097726529e1ede3c417c711697956655b15")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # default to an 'auto' variant until amdgpu_targets can be given a better default than 'none'
     amdgpu_targets = ROCmPackage.amdgpu_targets
@@ -95,6 +104,11 @@ class Hipsolver(CMakePackage, CudaPackage, ROCmPackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
         "master",
         "develop",
     ]:
@@ -108,11 +122,12 @@ class Hipsolver(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("googletest@1.10.0:", type="test")
     depends_on("netlib-lapack@3.7.1:", type="test")
     patch("001-suite-sparse-include-path.patch", when="@6.1.0")
-    patch("0001-suite-sparse-include-path-6.1.1.patch", when="@6.1.1:")
+    patch("0001-suite-sparse-include-path-6.1.1.patch", when="@6.1.1:6.2")
 
     def check(self):
         exe = join_path(self.build_directory, "clients", "staging", "hipsolver-test")
-        self.run_test(exe, options=["--gtest_filter=-*known_bug*"])
+        exe = which(exe)
+        exe(["--gtest_filter=-*known_bug*"])
 
     @classmethod
     def determine_version(cls, lib):
@@ -132,6 +147,7 @@ class Hipsolver(CMakePackage, CudaPackage, ROCmPackage):
     def cmake_args(self):
         args = [
             self.define("BUILD_CLIENTS_SAMPLES", "OFF"),
+            self.define("BUILD_FORTRAN_BINDINGS", "OFF"),
             self.define("BUILD_CLIENTS_TESTS", self.run_tests),
             self.define("SUITE_SPARSE_PATH", self.spec["suite-sparse"].prefix),
             self.define("ROCBLAS_PATH", self.spec["rocblas"].prefix),

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,9 +11,6 @@
   default unorderd dict.
 
 """
-import collections
-import collections.abc
-import copy
 import ctypes
 import enum
 import functools
@@ -34,23 +30,20 @@ __all__ = ["load", "dump", "SpackYAMLError"]
 
 
 # Make new classes so we can add custom attributes.
-# Also, use OrderedDict instead of just dict.
-class syaml_dict(collections.OrderedDict):
-    def __repr__(self):
-        mappings = (f"{k!r}: {v!r}" for k, v in self.items())
-        return "{%s}" % ", ".join(mappings)
+class syaml_dict(dict):
+    pass
 
 
 class syaml_list(list):
-    __repr__ = list.__repr__
+    pass
 
 
 class syaml_str(str):
-    __repr__ = str.__repr__
+    pass
 
 
 class syaml_int(int):
-    __repr__ = int.__repr__
+    pass
 
 
 #: mapping from syaml type -> primitive type
@@ -400,20 +393,6 @@ class ConfigYAML:
         return result.getvalue()
 
 
-def deepcopy(data):
-    """Returns a deepcopy of the input YAML data."""
-    result = copy.deepcopy(data)
-
-    if isinstance(result, comments.CommentedMap):
-        # HACK to fully copy ruamel CommentedMap that doesn't provide copy
-        # method. Especially necessary for environments
-        extracted_comments = extract_comments(data)
-        if extracted_comments:
-            set_comments(result, data_comments=extracted_comments)
-
-    return result
-
-
 def load_config(str_or_file):
     """Load but modify the loader instance so that it will add __line__
     attributes to the returned object."""
@@ -431,10 +410,12 @@ def dump_config(data, stream, *, default_flow_style=False, blame=False):
     if blame:
         handler = ConfigYAML(yaml_type=YAMLType.ANNOTATED_SPACK_CONFIG_FILE)
         handler.yaml.default_flow_style = default_flow_style
+        handler.yaml.width = maxint
         return _dump_annotated(handler, data, stream)
 
     handler = ConfigYAML(yaml_type=YAMLType.SPACK_CONFIG_FILE)
     handler.yaml.default_flow_style = default_flow_style
+    handler.yaml.width = maxint
     return handler.dump(data, stream)
 
 
@@ -462,20 +443,13 @@ def _dump_annotated(handler, data, stream=None):
         return getvalue()
 
 
-def sorted_dict(dict_like):
-    """Return an ordered dict with all the fields sorted recursively.
-
-    Args:
-        dict_like (dict): dictionary to be sorted
-
-    Returns:
-        dictionary sorted recursively
-    """
-    result = syaml_dict(sorted(dict_like.items()))
-    for key, value in result.items():
-        if isinstance(value, collections.abc.Mapping):
-            result[key] = sorted_dict(value)
-    return result
+def sorted_dict(data):
+    """Descend into data and sort all dictionary keys."""
+    if isinstance(data, dict):
+        return type(data)((k, sorted_dict(v)) for k, v in sorted(data.items()))
+    elif isinstance(data, (list, tuple)):
+        return type(data)(sorted_dict(v) for v in data)
+    return data
 
 
 def extract_comments(data):

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class Steps(CMakePackage):
     version("develop", branch="master")
     version("5.0.1", tag="5.0.1", commit="1f2eb8193edc1c75e0877fe37e39452b399242c9")
     version("4.1.1", tag="4.1.1", commit="fdb6d9e02a69dae698f66013117fc3f08f808f45")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("blender", default=False, description="Build stepsblender package")
     variant(

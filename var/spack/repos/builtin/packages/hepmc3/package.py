@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,10 +15,11 @@ class Hepmc3(CMakePackage):
 
     tags = ["hep"]
 
-    maintainers("vvolkl")
+    maintainers("vvolkl", "luketpickering")
 
     license("LGPL-3.0-or-later")
 
+    version("3.3.0", sha256="6f876091edcf7ee6d0c0db04e080056e89efc1a61abe62355d97ce8e735769d6")
     version("3.2.7", sha256="587faa6556cc54ccd89ad35421461b4761d7809bc17a2e72f5034daea142232b")
     version("3.2.6", sha256="248f3b5b36dd773844cbe73d51f60891458334b986b259754c59dbf4bbf1d525")
     version("3.2.5", sha256="cd0f75c80f75549c59cc2a829ece7601c77de97cb2a5ab75790cac8e1d585032")
@@ -31,6 +31,10 @@ class Hepmc3(CMakePackage):
     version("3.1.2", sha256="4133074b3928252877982f3d4b4c6c750bb7a324eb6c7bb2afc6fa256da3ecc7")
     version("3.1.1", sha256="2fcbc9964d6f9f7776289d65f9c73033f85c15bf5f0df00c429a6a1d8b8248bb")
     version("3.1.0", sha256="cd37eed619d58369041018b8627274ad790020a4714b54ac05ad1ebc1a6e7f8a")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
     # note that version 3.0.0 is not supported
     # conflicts with cmake configuration
 
@@ -53,11 +57,17 @@ class Hepmc3(CMakePackage):
     conflicts("%gcc@9.3.0", when="@:3.1.1")
     patch("ba38f14d8f56c16cc4105d98f6d4540c928c6150.patch", when="@3.1.2:3.2.1 %gcc@9.3.0")
 
+    extends("python", when="+python")
+
+    @property
+    def libs(self):
+        return find_libraries(["libHepMC3", "libHepMC3Search"], root=self.prefix, recursive=True)
+
     def cmake_args(self):
         spec = self.spec
         from_variant = self.define_from_variant
         args = [
-            from_variant("HEPMC3_ENABLE_PROTOBUF", "protobuf"),
+            from_variant("HEPMC3_ENABLE_PROTOBUFIO", "protobuf"),
             from_variant("HEPMC3_ENABLE_PYTHON", "python"),
             from_variant("HEPMC3_ENABLE_ROOTIO", "rootio"),
             from_variant("HEPMC3_INSTALL_INTERFACES", "interfaces"),
@@ -75,9 +85,11 @@ class Hepmc3(CMakePackage):
 
         if spec.satisfies("+rootio"):
             args.append(self.define("ROOT_DIR", spec["root"].prefix))
-            if spec.satisfies("@3.2.4:"):
+            if spec.satisfies("@3.2.4:3.2"):
                 args.append(
                     self.define("HEPMC3_CXX_STANDARD", spec["root"].variants["cxxstd"].value)
                 )
+        elif spec.satisfies("+protobuf"):
+            args.append(self.define("HEPMC3_CXX_STANDARD", "14"))
 
         return args

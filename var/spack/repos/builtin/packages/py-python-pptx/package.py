@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,7 +8,7 @@ from spack.package import *
 class PyPythonPptx(PythonPackage):
     """Generate and manipulate Open XML PowerPoint (.pptx) files."""
 
-    homepage = "http://github.com/scanny/python-pptx"
+    homepage = "https://github.com/scanny/python-pptx"
     pypi = "python-pptx/python-pptx-0.6.21.tar.gz"
 
     maintainers("LydDeb")

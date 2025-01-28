@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,9 @@ class Xinit(AutotoolsPackage, XorgPackage):
     version("1.4.1", sha256="ca33ec3de6c39589c753620e5b3bcbc8277218b949bfa2df727779b03a8d2357")
     version("1.4.0", sha256="17548a5df41621b87d395f1074dfb88b0dc6917f9127540b89c6de4a80f33776")
     version("1.3.4", sha256="754c284875defa588951c1d3d2b20897d3b84918d0a97cb5a4724b00c0da0746")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("libx11")
 

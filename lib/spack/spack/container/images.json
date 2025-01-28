@@ -89,13 +89,6 @@
         "image": "quay.io/centos/centos:stream9"
       }
     },
-    "centos:7": {
-      "bootstrap": {
-        "template": "container/centos_7.dockerfile"
-      },
-      "os_package_manager": "yum",
-      "build": "spack/centos7"
-    },
     "opensuse/leap:15": {
       "bootstrap": {
         "template": "container/leap-15.dockerfile"

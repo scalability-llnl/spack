@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -32,6 +31,8 @@ class Mcutils(MakefilePackage):
     version("1.0.2", tag="mcutils-1.0.2", commit="15e2daad2bfe7543e43b35421fffd177519c516f")
     version("1.0.1", tag="mcutils-1.0.1", commit="85bb1c9e2761a7c70bdd18955d6cccc120d9c523")
     version("1.0.0", tag="mcutils-1.0.0", commit="7ae9d007493ce65f5eac432d0ea6f730512a0a8a")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("heputils", when="@1.1.0:")
 

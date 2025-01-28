@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,5 +19,7 @@ class RSom(RPackage):
     version("0.3-4", sha256="679e3d3f0af6e56da3b0a4d8577334e03ad45fe76916bbc2592548f85b6b1c84")
     version("0.3-3", sha256="434e2210df3e6a459a8588606676c02494f58c5b52e25291d142121b7b9be5c7")
     version("0.3-2", sha256="b46ecb79c08f3d4cf9527d5c7f85a235808dda45dae7f50909b2df90e7b9e543")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r@2.10:", type=("build", "run"))

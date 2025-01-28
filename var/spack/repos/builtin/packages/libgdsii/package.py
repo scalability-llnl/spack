@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class Libgdsii(AutotoolsPackage):
     license("GPL-2.0-or-later")
 
     version("0.21", sha256="1adc571c6b53df4c08d108f9ac4f4a7fd6fbefd4bc56f74e0b7b2801353671b8")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

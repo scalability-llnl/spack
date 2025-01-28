@@ -1,12 +1,14 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import os
+
 import llnl.util.filesystem as fs
 
 import spack.directives
-import spack.package_base
+import spack.spec
 import spack.util.executable
+import spack.util.prefix
 
 from .autotools import AutotoolsBuilder, AutotoolsPackage
 
@@ -17,19 +19,18 @@ class AspellBuilder(AutotoolsBuilder):
     to the Aspell extensions.
     """
 
-    def configure(self, pkg, spec, prefix):
+    def configure(
+        self,
+        pkg: "AspellDictPackage",  # type: ignore[override]
+        spec: spack.spec.Spec,
+        prefix: spack.util.prefix.Prefix,
+    ):
         aspell = spec["aspell"].prefix.bin.aspell
         prezip = spec["aspell"].prefix.bin.prezip
         destdir = prefix
 
-        sh = spack.util.executable.which("sh")
-        sh(
-            "./configure",
-            "--vars",
-            "ASPELL={0}".format(aspell),
-            "PREZIP={0}".format(prezip),
-            "DESTDIR={0}".format(destdir),
-        )
+        sh = spack.util.executable.Executable("/bin/sh")
+        sh("./configure", "--vars", f"ASPELL={aspell}", f"PREZIP={prezip}", f"DESTDIR={destdir}")
 
 
 # Aspell dictionaries install their bits into their prefix.lib
@@ -46,18 +47,12 @@ class AspellDictPackage(AutotoolsPackage):
     #: Override the default autotools builder
     AutotoolsBuilder = AspellBuilder
 
-    def view_destination(self, view):
-        aspell_spec = self.spec["aspell"]
-        if view.get_projection_for_spec(aspell_spec) != aspell_spec.prefix:
-            raise spack.package_base.ExtensionError(
-                "aspell does not support non-global extensions"
-            )
-        aspell = aspell_spec.command
-        return aspell("dump", "config", "dict-dir", output=str).strip()
-
-    def view_source(self):
-        return self.prefix.lib
-
     def patch(self):
-        fs.filter_file(r"^dictdir=.*$", "dictdir=/lib", "configure")
-        fs.filter_file(r"^datadir=.*$", "datadir=/lib", "configure")
+        aspell_spec = self.spec["aspell"]
+        aspell = aspell_spec.command
+        dictdir = aspell("dump", "config", "dict-dir", output=str).strip()
+        datadir = aspell("dump", "config", "data-dir", output=str).strip()
+        dictdir = os.path.relpath(dictdir, aspell_spec.prefix)
+        datadir = os.path.relpath(datadir, aspell_spec.prefix)
+        fs.filter_file(r"^dictdir=.*$", f"dictdir=/{dictdir}", "configure")
+        fs.filter_file(r"^datadir=.*$", f"datadir=/{datadir}", "configure")

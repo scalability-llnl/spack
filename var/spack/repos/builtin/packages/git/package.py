@@ -1,11 +1,11 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 import re
 
+import spack.fetch_strategy
 from spack.package import *
 from spack.util.environment import is_system_path
 
@@ -16,7 +16,7 @@ class Git(AutotoolsPackage):
     projects with speed and efficiency.
     """
 
-    homepage = "http://git-scm.com"
+    homepage = "https://git-scm.com"
     url = "https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.12.0.tar.gz"
     maintainers("jennfshr")
 
@@ -29,13 +29,52 @@ class Git(AutotoolsPackage):
     # Every new git release comes with a corresponding manpage resource:
     # https://www.kernel.org/pub/software/scm/git/git-manpages-{version}.tar.gz
     # https://mirrors.edge.kernel.org/pub/software/scm/git/sha256sums.asc
-    version("2.45.1", sha256="10acb581993061e616be9c5674469335922025a666318e0748cb8306079fef24")
-    version("2.44.1", sha256="118214bb8d7ba971a62741416e757562b8f5451cefc087a407e91857897c92cc")
-    version("2.43.4", sha256="bfd717dc31922f718232a25a929d199e26146df5e876fdf0ff90a7cc95fa06e2")
-    version("2.42.2", sha256="3b24b712fa6e9a3da5b7d3e68b1854466905aadb93a43088a38816bcc3b9d043")
-    version("2.41.1", sha256="06d2a681aa7f1bdb6e7f7101631407e7412faa534e1fa0eb6fdcb9975d867d31")
-    version("2.40.2", sha256="1dcdfbb4eeb3ef2c2d9154f888d4a6f0cf19f19acad76f0d32e725e7bc147753")
-    version("2.39.4", sha256="b895ed2b5d98fd3dcfde5807f16d5fb17c4f83044e7d08e597ae13de222f0d26")
+    version("2.47.0", sha256="a84a7917e0ab608312834413f01fc01edc7844f9f9002ba69f3b4f4bcb8d937a")
+    version("2.46.2", sha256="65c5689fd44f1d09de7fd8c44de7fef074ddd69dda8b8503d44afb91495ecbce")
+    version("2.45.2", sha256="98b26090ed667099a3691b93698d1e213e1ded73d36a2fde7e9125fce28ba234")
+    version("2.44.2", sha256="f0655e81c5ecfeef7440aa4fcffa1c1a77eaccf764d6fe29579e9a06eac2cd04")
+    version("2.43.5", sha256="324c3b85d668e6afe571b3502035848e4b349dead35188e2b8ab1b96c0cd45ff")
+    version("2.42.3", sha256="f42a8e8f6c0add4516f9e4607554c8ad698161b7d721b82073fe315a59621961")
+    version("2.41.2", sha256="481aa0a15aa37802880a6245b96c1570d7337c44700d5d888344cd6d43d85306")
+    version("2.40.3", sha256="b3dc96b20edcdbe6bea7736ea55bb80babf683d126cc7f353ed4e3bc304cd7da")
+    version("2.39.5", sha256="ca0ec03fb2696f552f37135a56a0242fa062bd350cb243dc4a15c86f1cafbc99")
+
+    # Deprecated versions (https://groups.google.com/g/git-packagers/c/x6-nKLV20aE)
+    version(
+        "2.45.1",
+        sha256="10acb581993061e616be9c5674469335922025a666318e0748cb8306079fef24",
+        deprecated=True,
+    )
+    version(
+        "2.44.1",
+        sha256="118214bb8d7ba971a62741416e757562b8f5451cefc087a407e91857897c92cc",
+        deprecated=True,
+    )
+    version(
+        "2.43.4",
+        sha256="bfd717dc31922f718232a25a929d199e26146df5e876fdf0ff90a7cc95fa06e2",
+        deprecated=True,
+    )
+    version(
+        "2.42.2",
+        sha256="3b24b712fa6e9a3da5b7d3e68b1854466905aadb93a43088a38816bcc3b9d043",
+        deprecated=True,
+    )
+    version(
+        "2.41.1",
+        sha256="06d2a681aa7f1bdb6e7f7101631407e7412faa534e1fa0eb6fdcb9975d867d31",
+        deprecated=True,
+    )
+    version(
+        "2.40.2",
+        sha256="1dcdfbb4eeb3ef2c2d9154f888d4a6f0cf19f19acad76f0d32e725e7bc147753",
+        deprecated=True,
+    )
+    version(
+        "2.39.4",
+        sha256="b895ed2b5d98fd3dcfde5807f16d5fb17c4f83044e7d08e597ae13de222f0d26",
+        deprecated=True,
+    )
 
     # Deprecated versions (see https://github.blog/2024-05-14-securing-git-addressing-5-new-vulnerabilities/).
     version(
@@ -59,16 +98,27 @@ class Git(AutotoolsPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+
     for _version, _sha256_manpage in {
+        "2.47.0": "1a6f1e775dfe324a9b521793cbd2b3bba546442cc2ac2106d4df33dea9005038",
+        "2.46.2": "4bc3774ee4597098977befa4ec30b0f2cbed3b59b756e7cbb59ce1738682d43a",
+        "2.45.2": "48c1e2e3ecbb2ce9faa020a19fcdbc6ce64ea25692111b5930686bc0bb4f0e7f",
         "2.45.1": "d9098fd93a3c0ef242814fc856a99886ce31dae2ba457afc416ba4e92af8f8f5",
+        "2.44.2": "ee6a7238d5ede18fe21c0cc2131c7fbff1f871c25e2848892ee864d40baf7218",
         "2.44.1": "8d80359e44cbcce256c1eb1389cb8e15ccfcd267fbb8df567d5ce19ce006eb42",
+        "2.43.5": "df3c3d0f0834959aa33005e6f8134c1e56ab01f34d1497ceb34b2dd8ec7d4de4",
         "2.43.4": "99d3a0394a6093237123237fd6c0d3de1041d5ceaedc3bfc016807914275d3e2",
+        "2.42.3": "3c8c55dcbc3f59560c63e6ced400f7251e9a00d876d365cb4fe9be6b3c3e3713",
         "2.42.2": "2ddfa2187fdaf9ab2b27c0ab043e46793127c26c82a824ffe980f006be049286",
         "2.42.0": "51643c53d70ce15dde83b6da2bad76ba0c7bbcd4f944d7c378f03a15b9f2e1de",
+        "2.41.2": "a758988c81478a942e1593ecf11568b962506bff1119061bad04bd4149b40c2c",
         "2.41.1": "7093ef7dacfa8cdb3c4689d8bc1f06186d9b2420bec49087a3a6a4dee26ddcec",
         "2.41.0": "7b77c646b36d33c5c0f62677a147142011093270d6fd628ca38c42d5301f3888",
+        "2.40.3": "fa9b837e1e161ebdbbbfde27a883a90fe5f603ce1618086a384bccda59c47de5",
         "2.40.2": "2c71f3f3e4801176f97708f2093756bce672ef260c6d95c255046e6727b3a031",
         "2.40.1": "6bbde434121bd0bf8aa574c60fd9a162388383679bd5ddd99921505149ffd4c2",
+        "2.39.5": "16aac22749bd55d845c422068702781a9c89e6cdde7de1c3aa1dd0fb41aeae39",
         "2.39.4": "fedd01dd22a15b84bcbcad68c1b37113ba2c64381c19b6c9f3aa9b2818e126dc",
         "2.39.3": "c8377b5a3ff497d7e6377363c270931496e982509ff27a1e46956d6637671642",
     }.items():
@@ -139,7 +189,7 @@ class Git(AutotoolsPackage):
         # In that case the node in the DAG gets truncated and git DOES NOT
         # have a gettext dependency.
         spec = self.spec
-        if "+nls" in spec:
+        if spec.satisfies("+nls"):
             if "intl" in spec["gettext"].libs.names:
                 extlib_bits = []
                 if not is_system_path(spec["gettext"].prefix):
@@ -154,7 +204,7 @@ class Git(AutotoolsPackage):
             # For build step:
             env.append_flags("EXTLIBS", curlconfig("--static-libs", output=str).strip())
 
-        if "~perl" in self.spec:
+        if self.spec.satisfies("~perl"):
             env.append_flags("NO_PERL", "1")
 
     def configure_args(self):
@@ -170,14 +220,14 @@ class Git(AutotoolsPackage):
         if self.spec["iconv"].name == "libiconv":
             configure_args.append(f"--with-iconv={self.spec['iconv'].prefix}")
 
-        if "+perl" in self.spec:
+        if self.spec.satisfies("+perl"):
             configure_args.append("--with-perl={0}".format(spec["perl"].command.path))
 
-        if "^pcre" in self.spec:
+        if self.spec.satisfies("^pcre"):
             configure_args.append("--with-libpcre={0}".format(spec["pcre"].prefix))
-        if "^pcre2" in self.spec:
+        if self.spec.satisfies("^pcre2"):
             configure_args.append("--with-libpcre2={0}".format(spec["pcre2"].prefix))
-        if "+tcltk" in self.spec:
+        if self.spec.satisfies("+tcltk"):
             configure_args.append("--with-tcltk={0}".format(self.spec["tk"].prefix.bin.wish))
         else:
             configure_args.append("--without-tcltk")
@@ -195,7 +245,7 @@ class Git(AutotoolsPackage):
 
     def build(self, spec, prefix):
         args = []
-        if "~nls" in self.spec:
+        if self.spec.satisfies("~nls"):
             args.append("NO_GETTEXT=1")
         make(*args)
 
@@ -205,7 +255,7 @@ class Git(AutotoolsPackage):
 
     def install(self, spec, prefix):
         args = ["install"]
-        if "~nls" in self.spec:
+        if self.spec.satisfies("~nls"):
             args.append("NO_GETTEXT=1")
         make(*args)
 
@@ -217,11 +267,26 @@ class Git(AutotoolsPackage):
 
     @run_after("install")
     def install_completions(self):
-        install_tree("contrib/completion", self.prefix.share)
+        mkdirp(bash_completion_path(self.prefix))
+        install(
+            "contrib/completion/git-completion.bash",
+            join_path(bash_completion_path(self.prefix), "git"),
+        )
+
+        mkdirp(zsh_completion_path(self.prefix))
+        filter_file(
+            r"\$bash_completion\/git",
+            join_path(bash_completion_path(self.prefix), "git"),
+            "contrib/completion/git-completion.zsh",
+        )
+        install(
+            "contrib/completion/git-completion.zsh",
+            join_path(zsh_completion_path(self.prefix), "_git"),
+        )
 
     @run_after("install")
     def install_manpages(self):
-        if "~man" in self.spec:
+        if self.spec.satisfies("~man"):
             return
 
         prefix = self.prefix
@@ -233,7 +298,7 @@ class Git(AutotoolsPackage):
 
     @run_after("install")
     def install_subtree(self):
-        if "+subtree" in self.spec:
+        if self.spec.satisfies("+subtree"):
             with working_dir("contrib/subtree"):
                 make_args = ["V=1", "prefix={}".format(self.prefix.bin)]
                 make(" ".join(make_args))
@@ -246,7 +311,7 @@ class Git(AutotoolsPackage):
         # Libs from perl-alien-svn and apr-util are required in
         # LD_LIBRARY_PATH
         # TODO: extend to other platforms
-        if "+svn platform=linux" in self.spec:
+        if self.spec.satisfies("+svn platform=linux"):
             perl_svn = self.spec["perl-alien-svn"]
             env.prepend_path(
                 "LD_LIBRARY_PATH",

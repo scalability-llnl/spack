@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -32,6 +31,8 @@ class Ccls(CMakePackage):
     version(
         "0.20201025", sha256="1470797b2c1a466e2d8a069efd807aac6fefdef8a556e1edf2d44f370c949221"
     )
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3.8:", type="build")
     depends_on("llvm@7:")

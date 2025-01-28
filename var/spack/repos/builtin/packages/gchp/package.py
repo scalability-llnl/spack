@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,6 +27,10 @@ class Gchp(CMakePackage):
     version("13.0.1", commit="f40a2476fda901eacf78c0972fdb6c20e5a06700", submodules=True)
     version("13.0.0", commit="1f5a5c5630c5d066ff8306cbb8b83e267ca7c265", submodules=True)
     version("dev", branch="dev", submodules=True)
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     patch("for_aarch64.patch", when="target=aarch64:")
 

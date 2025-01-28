@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import base64
@@ -11,7 +10,6 @@ from typing import Any, Dict
 import llnl.util.tty as tty
 from llnl.util.symlink import readlink
 
-import spack.filesystem_view
 import spack.store
 import spack.util.file_permissions as fp
 import spack.util.spack_json as sjson
@@ -66,7 +64,7 @@ def write_manifest(spec):
                 manifest[path] = create_manifest_entry(path)
         manifest[spec.prefix] = create_manifest_entry(spec.prefix)
 
-        with open(manifest_file, "w") as f:
+        with open(manifest_file, "w", encoding="utf-8") as f:
             sjson.dump(manifest, f)
 
         fp.set_permissions_by_spec(manifest_file, spec)
@@ -125,7 +123,7 @@ def check_file_manifest(filename):
         return results
 
     try:
-        with open(manifest_file, "r") as f:
+        with open(manifest_file, "r", encoding="utf-8") as f:
             manifest = sjson.load(f)
     except Exception:
         results.add_error(filename, "manifest corrupted")
@@ -151,7 +149,7 @@ def check_spec_manifest(spec):
         return results
 
     try:
-        with open(manifest_file, "r") as f:
+        with open(manifest_file, "r", encoding="utf-8") as f:
             manifest = sjson.load(f)
     except Exception:
         results.add_error(prefix, "manifest corrupted")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -46,6 +45,8 @@ class OpenclIcdLoader(CMakePackage):
     version(
         "2021.04.29", sha256="c2eb8a15b3d6d0795d609f55a4cea92eaa34571f6a21428d5593673b568ac6fd"
     )
+
+    depends_on("c", type="build")  # generated
 
     depends_on("opencl-c-headers@2024.05.08", when="@2024.05.08")
     depends_on("opencl-c-headers@2023.12.14", when="@2023.12.14")

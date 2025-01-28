@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,6 +26,8 @@ class PyTuiview(PythonPackage):
     version("1.2.8", sha256="e75950908a2d1f7c7216dfeead82483e1d3b0267fff9561549d85ca00725456b")
     version("1.2.7", sha256="35dfeb79b2bb57dfb5b8c90c3edf8c8a0a3f89cef85c33f9935e4a4add282aaf")
     version("1.2.6", sha256="61b136fa31c949d7a7a4dbf8562e6fc677d5b1845b152ec39e337f4eb2e91662")
+
+    depends_on("c", type="build")  # generated
 
     # pip silently replaces distutils with setuptools
     depends_on("py-setuptools", type="build")

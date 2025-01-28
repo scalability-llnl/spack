@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,6 +24,8 @@ class Libecpint(CMakePackage):
     version("1.0.2", sha256="2fb73af4d30a40bdd9df9e04b1f762c38ab7ed3a39c11509f3f87250fe0b5778")
     version("1.0.1", sha256="245b89fe8cb0a92cbbb79c811b48cb15fcfc937389df89387466f1bf76a096bf")
     version("1.0.0", sha256="47d741cc48a543ef9c85483cb2d5cd1c9f6677fa7e9920886d083b3c25232379")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("pugixml")
     depends_on("googletest")

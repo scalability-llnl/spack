@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,8 @@ class Librsvg(AutotoolsPackage):
     version("2.44.14", sha256="6a85a7868639cdd4aa064245cc8e9d864dad8b8e9a4a8031bb09a4796bc4e303")
     version("2.40.21", sha256="f7628905f1cada84e87e2b14883ed57d8094dca3281d5bcb24ece4279e9a92ba")
 
+    depends_on("c", type="build")  # generated
+
     variant("doc", default=False, description="Build documentation with gtk-doc")
 
     depends_on("gobject-introspection", type="build")
@@ -35,9 +36,9 @@ class Librsvg(AutotoolsPackage):
     depends_on("gtk-doc", type="build", when="+doc")
 
     # requirements according to `configure` file
-    depends_on("cairo@1.16:+gobject", when="@2.50:")
-    depends_on("cairo@1.15.12:+gobject", when="@2.44.14:")
-    depends_on("cairo@1.2.0:+gobject")
+    depends_on("cairo@1.16:+gobject+png", when="@2.50:")
+    depends_on("cairo@1.15.12:+gobject+png", when="@2.44.14:")
+    depends_on("cairo@1.2.0:+gobject+png")
     depends_on("libcroco@0.6.1:", when="@:2.44.14")
     depends_on("gdk-pixbuf@2.20:")
     depends_on("glib@2.50:", when="@2.50:")
@@ -50,6 +51,7 @@ class Librsvg(AutotoolsPackage):
 
     depends_on("libffi")
     depends_on("shared-mime-info")
+    depends_on("py-docutils", type="build")
 
     def url_for_version(self, version):
         url = "https://download.gnome.org/sources/librsvg/"
@@ -72,7 +74,7 @@ class Librsvg(AutotoolsPackage):
 
     def configure_args(self):
         args = []
-        if "+doc" in self.spec:
+        if self.spec.satisfies("+doc"):
             args.append("--enable-gtk-doc")
         else:
             args.extend(

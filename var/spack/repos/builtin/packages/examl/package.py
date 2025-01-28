@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -30,6 +29,8 @@ class Examl(MakefilePackage):
     version("3.0.15", sha256="da5e66a63d6fa34b640535c359d8daf67f23bd2fcc958ac604551082567906b0")
     version("3.0.14", sha256="698b538996946ae23a2d6fa1e230c210832e59080da33679ff7d6b342a9e6180")
     version("3.0.13", sha256="893aecb5545798235a17975aa07268693d3526d0aee0ed59a2d6e791248791ed")
+
+    depends_on("c", type="build")  # generated
 
     variant("mpi", default=True, description="Enable MPI parallel support")
 

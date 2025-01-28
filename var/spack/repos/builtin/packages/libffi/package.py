@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -32,6 +31,9 @@ class Libffi(AutotoolsPackage):
         url="https://sourceware.org/pub/libffi/libffi-3.2.1.tar.gz",
         sha256="d06ebb8e1d9a22d19e38d63fdb83954253f39bedc5d46232a05645685722ca37",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     patch("clang-powerpc-3.2.1.patch", when="@3.2.1%clang platform=linux")
     # ref.: https://github.com/libffi/libffi/pull/561

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,8 +19,10 @@ class Xfsinfo(AutotoolsPackage, XorgPackage):
     version("1.0.6", sha256="a817e553703748fe2d721b1fe8ea95687ee78f7aef25427ed72d9584494d91e1")
     version("1.0.5", sha256="56a0492ed2cde272dc8f4cff4ba0970ccb900e51c10bb8ec62747483d095fd69")
 
+    depends_on("c", type="build")
+
     depends_on("libfs")
 
-    depends_on("xproto@7.0.17:")
+    depends_on("xproto@7.0.17:", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")

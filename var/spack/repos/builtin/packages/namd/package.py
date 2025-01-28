@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,10 +8,11 @@ import sys
 
 import llnl.util.tty as tty
 
+from spack.build_environment import optimization_flags
 from spack.package import *
 
 
-class Namd(MakefilePackage, CudaPackage):
+class Namd(MakefilePackage, CudaPackage, ROCmPackage):
     """NAMD is a parallel molecular dynamics code designed for
     high-performance simulation of large biomolecular systems."""
 
@@ -25,14 +25,33 @@ class Namd(MakefilePackage, CudaPackage):
     maintainers("jcphill")
 
     version("master", branch="master")
-    version("3.0b7", sha256="b18ff43b0f55ec59e137c62eba1812589dd88b2122c3a05ea652781667f438b4")
-    version("3.0b6", sha256="8b5fb1dc8d5b5666c6a45d20ee7e8c9d1f5c186578e2cf148b68ba421d43b850")
-    version("3.0b3", sha256="20c32b6161f9c376536e3cb97c3bfe5367e1baaaace3c716ff79831fc2eb8199")
-    version("2.15a2", sha256="8748cbaa93fc480f92fc263d9323e55bce6623fc693dbfd4a40f59b92669713e")
-    version("2.15a1", branch="master", tag="release-2-15-alpha-1")
+    version("3.0", sha256="301c64f0f1db860f7336efdb26223ccf66b5ab42bfc9141df8d81ec1e20bf472")
+    version(
+        "3.0b7",
+        sha256="b18ff43b0f55ec59e137c62eba1812589dd88b2122c3a05ea652781667f438b4",
+        deprecated=True,
+    )
+    version(
+        "3.0b6",
+        sha256="8b5fb1dc8d5b5666c6a45d20ee7e8c9d1f5c186578e2cf148b68ba421d43b850",
+        deprecated=True,
+    )
+    version(
+        "3.0b3",
+        sha256="20c32b6161f9c376536e3cb97c3bfe5367e1baaaace3c716ff79831fc2eb8199",
+        deprecated=True,
+    )
+    version(
+        "2.15a2",
+        sha256="8748cbaa93fc480f92fc263d9323e55bce6623fc693dbfd4a40f59b92669713e",
+        deprecated=True,
+    )
+    version("2.15a1", branch="master", tag="release-2-15-alpha-1", deprecated=True)
     # Same as above, but lets you use a local file instead of git
     version(
-        "2.15a1.manual", sha256="474006e98e32dddae59616b3b75f13a2bb149deaf7a0d617ce7fb9fd5a56a33a"
+        "2.15a1.manual",
+        sha256="474006e98e32dddae59616b3b75f13a2bb149deaf7a0d617ce7fb9fd5a56a33a",
+        deprecated=True,
     )
     version(
         "2.14",
@@ -56,8 +75,23 @@ class Namd(MakefilePackage, CudaPackage):
         description="Enables Tcl and/or python interface",
     )
 
-    variant("avxtiles", when="target=x86_64_v4:", default=False, description="Enable avxtiles")
+    variant(
+        "avxtiles",
+        when="target=x86_64_v4: @2.15:",
+        default=False,
+        description="Enable avxtiles supported with NAMD 2.15+",
+    )
     variant("single_node_gpu", default=False, description="Single node GPU")
+
+    # Adding memopt variant to build memory-optimized mode that utilizes a compressed
+    # version of the molecular structure and also supports parallel I/O.
+    # Refer: https://www.ks.uiuc.edu/Research/namd/wiki/index.cgi?NamdMemoryReduction
+    variant(
+        "memopt",
+        when="@2.8:",
+        default=False,
+        description="Enable memory-optimized build supported with NAMD 2.8+",
+    )
 
     # init_tcl_pointers() declaration and implementation are inconsistent
     # "src/colvarproxy_namd.C", line 482: error: inherited member is not
@@ -84,7 +118,13 @@ class Namd(MakefilePackage, CudaPackage):
     depends_on("tcl", when="interface=python")
     depends_on("python", when="interface=python")
 
-    conflicts("+avxtiles", when="@:2.14,3:", msg="AVXTiles algorithm requires NAMD 2.15")
+    conflicts("+rocm", when="+cuda", msg="NAMD supports only one GPU backend at a time")
+    conflicts("+single_node_gpu", when="~cuda~rocm")
+    conflicts(
+        "+memopt",
+        when="+single_node_gpu",
+        msg="memopt mode is not compatible with GPU-resident builds",
+    )
 
     # https://www.ks.uiuc.edu/Research/namd/2.12/features.html
     # https://www.ks.uiuc.edu/Research/namd/2.13/features.html
@@ -107,11 +147,9 @@ class Namd(MakefilePackage, CudaPackage):
     def _append_option(self, opts, lib):
         if lib != "python":
             self._copy_arch_file(lib)
-        spec = self.spec
+        lib_pkg = self[lib]
         lib_prefix = (
-            spec[lib].package.component_prefix
-            if spec[lib].name == "intel-oneapi-mkl"
-            else spec[lib].prefix
+            lib_pkg.component_prefix if lib_pkg.name == "intel-oneapi-mkl" else lib_pkg.prefix
         )
         opts.extend(["--with-{0}".format(lib), "--{0}-prefix".format(lib), lib_prefix])
 
@@ -135,33 +173,25 @@ class Namd(MakefilePackage, CudaPackage):
                 # this options are take from the default provided
                 # configuration files
                 # https://github.com/UIUC-PPL/charm/pull/2778
-                archopt = spec.architecture.target.optimization_flags(spec.compiler)
+                archopt = optimization_flags(self.compiler, spec.target)
 
                 if self.spec.satisfies("^charmpp@:6.10.1"):
                     optims_opts = {
                         "gcc": m64
-                        + "-O3 -fexpensive-optimizations \
-                                        -ffast-math -lpthread "
+                        + "-O3 -fexpensive-optimizations -ffast-math -lpthread "
                         + archopt,
                         "intel": "-O2 -ip -qopenmp-simd" + archopt,
                         "clang": m64 + "-O3 -ffast-math -fopenmp " + archopt,
-                        "aocc": m64
-                        + "-O3 -ffp-contract=fast -ffast-math \
-                                        -fopenmp "
-                        + archopt,
+                        "aocc": m64 + "-O3 -ffp-contract=fast -ffast-math -fopenmp " + archopt,
                     }
                 else:
                     optims_opts = {
                         "gcc": m64
-                        + "-O3 -fexpensive-optimizations \
-                                        -ffast-math -lpthread "
+                        + "-O3 -fexpensive-optimizations -ffast-math -lpthread "
                         + archopt,
                         "intel": "-O2 -ip " + archopt,
                         "clang": m64 + "-O3 -ffast-math -fopenmp " + archopt,
-                        "aocc": m64
-                        + "-O3 -ffp-contract=fast \
-                                        -ffast-math "
-                        + archopt,
+                        "aocc": m64 + "-O3 -ffp-contract=fast -ffast-math " + archopt,
                     }
 
                 if self.spec.satisfies("+avxtiles"):
@@ -274,6 +304,17 @@ class Namd(MakefilePackage, CudaPackage):
 
             if "+single_node_gpu" in spec:
                 opts.extend(["--with-single-node-cuda"])
+
+        if "+rocm" in spec:
+            self._copy_arch_file("hip")
+            opts.append("--with-hip")
+            opts.extend(["--rocm-prefix", os.environ["ROCM_PATH"]])
+
+            if "+single_node_gpu" in spec:
+                opts.extend(["--with-single-node-hip"])
+
+        if spec.satisfies("+memopt"):
+            opts.append("--with-memopt")
 
         config = Executable("./config")
 

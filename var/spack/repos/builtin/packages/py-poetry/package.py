@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,8 @@ class PyPoetry(PythonPackage):
     version("1.2.0", sha256="17c527d5d5505a5a7c5c14348d87f077d643cf1f186321530cde68e530bba59f")
     version("1.1.13", sha256="b905ed610085f568aa61574e0e09260c02bff9eae12ff672af39e9f399357ac4")
     version("1.1.12", sha256="5c66e2357fe37b552462a88b7d31bfa2ed8e84172208becd666933c776252567")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("python@3.8:3", when="@1.6.0:", type=("build", "run"))
     depends_on("python@3.7:3", when="@1.2.0:", type=("build", "run"))

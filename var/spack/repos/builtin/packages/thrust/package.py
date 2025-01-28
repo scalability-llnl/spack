@@ -1,8 +1,9 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import spack.build_systems.cmake
+import spack.build_systems.generic
 from spack.package import *
 
 
@@ -51,6 +52,8 @@ class Thrust(Package, CMakePackage):
     version("1.9.0", sha256="a98cf59fc145dd161471291d4816f399b809eb0db2f7085acc7e3ebc06558b37")
     version("1.8.3", sha256="2254200512fde7f4fd0fc74306286e192ea6ac9037576dbd31309c0579229dbb")
     version("1.8.2", sha256="83bc9e7b769daa04324c986eeaf48fcb53c2dda26bcc77cb3c07f4b1c359feb8")
+
+    depends_on("cxx", type="build")  # generated
 
     # leave the build system of pre-1.17 as originally implemented,
     # but use CMake for newer versions

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -36,3 +35,5 @@ class PyAutograd(PythonPackage):
     depends_on("py-setuptools", type="build")
     depends_on("py-future@0.15.2:", type=("build", "run"))
     depends_on("py-numpy@1.12:", type=("build", "run"))
+    # https://github.com/HIPS/autograd/releases/tag/v1.7.0
+    depends_on("py-numpy@:1", when="@:1.6", type=("build", "run"))

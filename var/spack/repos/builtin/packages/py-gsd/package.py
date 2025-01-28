@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -29,6 +28,8 @@ class PyGsd(PythonPackage):
     version("3.0.1", sha256="7b3ce7428d9f9f708618b3a2ef19ab122cc36b658ea53b70d0de40189d19647c")
     version("2.8.0", sha256="f2b031a26a7a5bee5f3940dc2f36c5a5b6670307b297c526adf2e26c1f5b46ae")
     version("1.9.3", sha256="c6b37344e69020f69fda2b8d97f894cb41fd720840abeda682edd680d1cff838")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("py-setuptools", type="build")
     depends_on("py-setuptools@42:", type="build", when="@2.8.0:")

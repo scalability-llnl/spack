@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,6 +24,9 @@ class Jasper(AutotoolsPackage, CMakePackage):
         sha256="c2b03f28166f9dc8ae434918839ae9aa9962b880fcfd24eebddd0a2daeb9192c",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     build_system(
         conditional("cmake", when="@2:"), conditional("autotools", when="@:1"), default="cmake"

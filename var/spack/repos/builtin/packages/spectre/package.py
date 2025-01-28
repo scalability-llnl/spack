@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -31,6 +30,21 @@ class Spectre(CMakePackage):
     license("MIT")
 
     version("develop", branch="develop")
+    version(
+        "2024.12.16", sha256="ddd53fc6e5b42bca5d636862b69859ff7040ac243e097a4a6c0a8d0a8c58ffce"
+    )
+    version(
+        "2024.03.19", sha256="42a25c8827b56268d9826239cde521491be19318d83785b35cd0265a9f6a1f7c"
+    )
+    version(
+        "2024.09.29", sha256="b5e84b4564ad7cd2e069a24c6c472aab342753fe8393242eceba378b52226acb"
+    )
+    version(
+        "2024.09.16", sha256="2524d4e3cbe9206c0d8830fd6969dcf4cf53aefb26c882c6a743638611763171"
+    )
+    version(
+        "2024.08.03", sha256="18582b625b121c16cd9a1ec421c4ac6cb77bb252622a205b038306e75a466138"
+    )
     version(
         "2024.06.18", sha256="75ca22f3f9d59887b4ae40397fffc0ada9f218cbb23013e86e14deabb30490f7"
     )
@@ -127,6 +141,10 @@ class Spectre(CMakePackage):
     version(
         "2021.12.15", sha256="4bfe9e27412e263ffdc6fcfcb84011f16d34a9fdd633ad7fc84a34c898f67e5c"
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # Configuration variants
     variant(

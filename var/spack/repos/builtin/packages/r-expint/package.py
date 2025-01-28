@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 # See the Spack documentation for more information on packaging.
@@ -26,5 +25,7 @@ class RExpint(RPackage):
     version("0.1-7", sha256="7cfbd77e5c8ee2f4be5d12d3dd364819a146cbb6d533a00801a763c2ee51a005")
     version("0.1-6", sha256="c7d13a8e299a91e94622047fe22b0006137e7bf82e34d10871b631fa58115145")
     version("0.1-5", sha256="b03d60938cd6cf615aa3a02b1bf73436785eca89eaff56059ee0807b8244718a")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r@3.3.0:", type=("build", "run"))

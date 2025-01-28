@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,8 @@ class PyPickle5(PythonPackage):
     license("PSF-2.0")
 
     version("0.0.11", sha256="7e013be68ba7dde1de5a8dbcc241f201dab1126e326715916ce4a26c27919ffc")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("python@3.5:", type=("build", "run"))
     depends_on("py-setuptools", type="build")

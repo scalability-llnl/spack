@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -36,6 +35,10 @@ class Spla(CMakePackage):
     version("1.0.0", sha256="a0eb269b84d7525b223dc650de12170bba30fbb3ae4f93eb2b5cbdce335e4da1")
     version("develop", branch="develop")
     version("master", branch="master")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("openmp", default=True, when="@:1.5.5", description="Build with OpenMP support")
     variant("static", default=False, description="Build as static library")

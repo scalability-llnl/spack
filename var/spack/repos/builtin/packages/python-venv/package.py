@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -93,6 +92,9 @@ class PythonVenv(Package):
             path = os.path.join(dependent_spec.prefix, directory)
             if os.path.isdir(path):
                 env.prepend_path("PYTHONPATH", path)
+        dep_bin_dir = getattr(dependent_spec.package, "bindir", None)
+        if dep_bin_dir and os.path.isdir(dep_bin_dir):
+            env.prepend_path("PATH", dep_bin_dir)
 
     def setup_dependent_package(self, module, dependent_spec):
         """Called before python modules' install() methods."""

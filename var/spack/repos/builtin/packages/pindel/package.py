@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,8 @@ class Pindel(MakefilePackage):
     version("0.2.5b1", sha256="b626e23ddfb3590174cfe38458b537e96707eedc6c2b054504f72ca141ba306c")
     version("0.2.5a7", sha256="0a270483dee9ef617d422eb61d3478334ee8f55e952d0a439529c2b21fcf8fb4")
     version("0.2.5", sha256="9908940d090eff23d940c3b6f2f6b3fc2bb1fd3b7a2d553cc81eed240a23fd9f")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("htslib@1.7:")
 

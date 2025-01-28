@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -89,6 +88,9 @@ class IntelGtpin(Package):
         sha256="57f4d3aa67e8b7eb8a2456a4a770e60af770c599180cb2b6c3c8addd37311093",
         url="https://downloadmirror.intel.com/682779/external-gtpin-2.11.4-linux.tar.bz2",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("patchelf", type="build")
 

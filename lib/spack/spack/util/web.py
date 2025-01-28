@@ -1,14 +1,12 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import codecs
-import concurrent.futures
 import email.message
 import errno
+import json
 import os
-import os.path
 import re
 import shutil
 import ssl
@@ -26,12 +24,15 @@ import llnl.url
 from llnl.util import lang, tty
 from llnl.util.filesystem import mkdirp, rename, working_dir
 
+import spack
 import spack.config
 import spack.error
+import spack.util.executable
+import spack.util.parallel
 import spack.util.path
 import spack.util.url as url_util
 
-from .executable import CommandNotFoundError, Executable, which
+from .executable import CommandNotFoundError, Executable
 from .gcs import GCSBlob, GCSBucket, GCSHandler
 from .s3 import UrllibS3Handler, get_s3_session
 
@@ -151,7 +152,8 @@ class HTMLParseError(Exception):
 
 class LinkParser(HTMLParser):
     """This parser just takes an HTML page and strips out the hrefs on the
-    links.  Good enough for a really simple spider."""
+    links, as well as some javascript tags used on GitLab servers.
+    Good enough for a really simple spider."""
 
     def __init__(self):
         super().__init__()
@@ -159,9 +161,18 @@ class LinkParser(HTMLParser):
 
     def handle_starttag(self, tag, attrs):
         if tag == "a":
-            for attr, val in attrs:
-                if attr == "href":
-                    self.links.append(val)
+            self.links.extend(val for key, val in attrs if key == "href")
+
+        # GitLab uses a javascript function to place dropdown links:
+        #  <div class="js-source-code-dropdown" ...
+        #   data-download-links="[{"path":"/graphviz/graphviz/-/archive/12.0.0/graphviz-12.0.0.zip",...},...]"/>
+        if tag == "div" and ("class", "js-source-code-dropdown") in attrs:
+            try:
+                links_str = next(val for key, val in attrs if key == "data-download-links")
+                links = json.loads(links_str)
+                self.links.extend(x["path"] for x in links)
+            except Exception:
+                pass
 
 
 class ExtractMetadataParser(HTMLParser):
@@ -197,8 +208,8 @@ def read_from_url(url, accept_content_type=None):
 
     try:
         response = urlopen(request)
-    except URLError as err:
-        raise SpackWebError("Download failed: {}".format(str(err)))
+    except OSError as e:
+        raise SpackWebError(f"Download of {url.geturl()} failed: {e.__class__.__name__}: {e}")
 
     if accept_content_type:
         try:
@@ -215,7 +226,7 @@ def read_from_url(url, accept_content_type=None):
             tty.debug(msg)
             return None, None, None
 
-    return response.geturl(), response.headers, response
+    return response.url, response.headers, response
 
 
 def push_to_url(local_file_path, remote_path, keep_original=True, extra_args=None):
@@ -307,45 +318,44 @@ def base_curl_fetch_args(url, timeout=0):
     return curl_args
 
 
-def check_curl_code(returncode):
+def check_curl_code(returncode: int) -> None:
     """Check standard return code failures for provided arguments.
 
     Arguments:
-        returncode (int): curl return code
+        returncode: curl return code
 
     Raises FetchError if the curl returncode indicates failure
     """
-    if returncode != 0:
-        if returncode == 22:
-            # This is a 404. Curl will print the error.
-            raise spack.error.FetchError("URL was not found!")
+    if returncode == 0:
+        return
+    elif returncode == 22:
+        # This is a 404. Curl will print the error.
+        raise spack.error.FetchError("URL was not found!")
+    elif returncode == 60:
+        # This is a certificate error.  Suggest spack -k
+        raise spack.error.FetchError(
+            "Curl was unable to fetch due to invalid certificate. "
+            "This is either an attack, or your cluster's SSL "
+            "configuration is bad.  If you believe your SSL "
+            "configuration is bad, you can try running spack -k, "
+            "which will not check SSL certificates."
+            "Use this at your own risk."
+        )
 
-        if returncode == 60:
-            # This is a certificate error.  Suggest spack -k
-            raise spack.error.FetchError(
-                "Curl was unable to fetch due to invalid certificate. "
-                "This is either an attack, or your cluster's SSL "
-                "configuration is bad.  If you believe your SSL "
-                "configuration is bad, you can try running spack -k, "
-                "which will not check SSL certificates."
-                "Use this at your own risk."
-            )
-
-        raise spack.error.FetchError("Curl failed with error {0}".format(returncode))
+    raise spack.error.FetchError(f"Curl failed with error {returncode}")
 
 
-def _curl(curl=None):
-    if not curl:
-        try:
-            curl = which("curl", required=True)
-        except CommandNotFoundError as exc:
-            tty.error(str(exc))
-            raise spack.error.FetchError("Missing required curl fetch method")
+def require_curl() -> Executable:
+    try:
+        path = spack.util.executable.which_string("curl", required=True)
+    except CommandNotFoundError as e:
+        raise spack.error.FetchError(f"curl is required but not found: {e}") from e
+    curl = spack.util.executable.Executable(path)
     set_curl_env_for_ssl_certs(curl)
     return curl
 
 
-def fetch_url_text(url, curl=None, dest_dir="."):
+def fetch_url_text(url, curl: Optional[Executable] = None, dest_dir="."):
     """Retrieves text-only URL content using the configured fetch method.
     It determines the fetch method from:
 
@@ -379,10 +389,7 @@ def fetch_url_text(url, curl=None, dest_dir="."):
     fetch_method = spack.config.get("config:url_fetch_method")
     tty.debug("Using '{0}' to fetch {1} into {2}".format(fetch_method, url, path))
     if fetch_method == "curl":
-        curl_exe = _curl(curl)
-        if not curl_exe:
-            raise spack.error.FetchError("Missing required fetch method (curl)")
-
+        curl_exe = curl or require_curl()
         curl_args = ["-O"]
         curl_args.extend(base_curl_fetch_args(url))
 
@@ -397,22 +404,16 @@ def fetch_url_text(url, curl=None, dest_dir="."):
         try:
             _, _, response = read_from_url(url)
 
-            returncode = response.getcode()
-            if returncode and returncode != 200:
-                raise spack.error.FetchError(
-                    "Urllib failed with error code {0}".format(returncode)
-                )
-
             output = codecs.getreader("utf-8")(response).read()
             if output:
                 with working_dir(dest_dir, create=True):
-                    with open(filename, "w") as f:
+                    with open(filename, "w", encoding="utf-8") as f:
                         f.write(output)
 
                 return path
 
-        except SpackWebError as err:
-            raise spack.error.FetchError("Urllib fetch failed to verify url: {0}".format(str(err)))
+        except (SpackWebError, OSError, ValueError) as err:
+            raise spack.error.FetchError(f"Urllib fetch failed: {err}")
 
     return None
 
@@ -439,9 +440,7 @@ def url_exists(url, curl=None):
         "config:url_fetch_method", "urllib"
     ) == "curl" and url_result.scheme not in ("gs", "s3")
     if use_curl:
-        curl_exe = _curl(curl)
-        if not curl_exe:
-            return False
+        curl_exe = curl or require_curl()
 
         # Telling curl to fetch the first byte (-r 0-0) is supposed to be
         # portable.
@@ -458,8 +457,8 @@ def url_exists(url, curl=None):
             timeout=spack.config.get("config:connect_timeout", 10),
         )
         return True
-    except URLError as e:
-        tty.debug("Failure reading URL: " + str(e))
+    except OSError as e:
+        tty.debug(f"Failure reading {url}: {e}")
         return False
 
 
@@ -635,7 +634,7 @@ def spider(
         root = urllib.parse.urlparse(root_str)
         spider_args.append((root, go_deeper, _visited))
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=concurrency) as tp:
+    with spack.util.parallel.make_concurrent_executor(concurrency, require_fork=False) as tp:
         while current_depth <= depth:
             tty.debug(
                 f"SPIDER: [depth={current_depth}, max_depth={depth}, urls={len(spider_args)}]"
@@ -740,10 +739,10 @@ def _spider(url: urllib.parse.ParseResult, collect_nested: bool, _visited: Set[s
                 subcalls.append(abs_link)
                 _visited.add(abs_link)
 
-    except URLError as e:
+    except OSError as e:
         tty.debug(f"[SPIDER] Unable to read: {url}")
         tty.debug(str(e), level=2)
-        if hasattr(e, "reason") and isinstance(e.reason, ssl.SSLError):
+        if isinstance(e, URLError) and isinstance(e.reason, ssl.SSLError):
             tty.warn(
                 "Spack was unable to fetch url list due to a "
                 "certificate verification problem. You can try "

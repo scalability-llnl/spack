@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,3 +15,12 @@ class PerlJson(PerlPackage):
 
     version("4.10", sha256="df8b5143d9a7de99c47b55f1a170bd1f69f711935c186a6dc0ab56dd05758e35")
     version("2.97001", sha256="e277d9385633574923f48c297e1b8acad3170c69fa590e31fa466040fc6f8f5a")
+
+    variant(
+        "json-xs",
+        default=True,
+        description="""Makes the preferred backend JSON::XS available to avoid defaulting to the
+        slower JSON::PP""",
+    )
+
+    depends_on("perl-json-xs", when="+json-xs", type=("run"))

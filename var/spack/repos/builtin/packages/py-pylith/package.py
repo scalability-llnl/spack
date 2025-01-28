@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,8 @@ class PyPylith(AutotoolsPackage, PythonExtension):
     license("MIT", checked_by="downloadico")
 
     version("4.0.0", sha256="31e0131683292ee2e62f2c818cc2777f026104ae73d7a8368975dd6560292689")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("py-setuptools")
     depends_on("py-cig-pythia")

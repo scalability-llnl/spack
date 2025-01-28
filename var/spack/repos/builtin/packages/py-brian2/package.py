@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,9 @@ class PyBrian2(PythonPackage):
     version("2.2.2.1", sha256="02075f66d42fd243fc5e28e1add8862709ae9fdabaffb69858e6d7f684a91525")
     version("2.0.1", sha256="195d8ced0d20e9069917776948f92aa70b7457bbc6b5222b8199654402ee1153")
     version("2.0rc3", sha256="05f347f5fa6b25d1ce5ec152a2407bbce033599eb6664f32f5331946eb3c7d66")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("python@2.7:", type=("build", "run"))
     depends_on("python@3.6:", type=("build", "run"), when="@2.4:")

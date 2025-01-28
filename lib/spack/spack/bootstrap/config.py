@@ -1,11 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Manage configuration swapping for bootstrapping purposes"""
 
 import contextlib
-import os.path
+import os
 import sys
 from typing import Any, Dict, Generator, MutableSequence, Sequence
 
@@ -14,6 +13,7 @@ from llnl.util import tty
 import spack.compilers
 import spack.config
 import spack.environment
+import spack.modules
 import spack.paths
 import spack.platforms
 import spack.repo
@@ -129,10 +129,10 @@ def _bootstrap_config_scopes() -> Sequence["spack.config.ConfigScope"]:
     configuration_paths = (spack.config.CONFIGURATION_DEFAULTS_PATH, ("bootstrap", _config_path()))
     for name, path in configuration_paths:
         platform = spack.platforms.host().name
-        platform_scope = spack.config.ConfigScope(
-            "/".join([name, platform]), os.path.join(path, platform)
+        platform_scope = spack.config.DirectoryConfigScope(
+            f"{name}/{platform}", os.path.join(path, platform)
         )
-        generic_scope = spack.config.ConfigScope(name, path)
+        generic_scope = spack.config.DirectoryConfigScope(name, path)
         config_scopes.extend([generic_scope, platform_scope])
         msg = "[BOOTSTRAP CONFIG SCOPE] name={0}, path={1}"
         tty.debug(msg.format(generic_scope.name, generic_scope.path))
@@ -143,11 +143,7 @@ def _bootstrap_config_scopes() -> Sequence["spack.config.ConfigScope"]:
 def _add_compilers_if_missing() -> None:
     arch = spack.spec.ArchSpec.frontend_arch()
     if not spack.compilers.compilers_for_arch(arch):
-        new_compilers = spack.compilers.find_new_compilers(
-            mixed_toolchain=sys.platform == "darwin"
-        )
-        if new_compilers:
-            spack.compilers.add_compilers_to_config(new_compilers)
+        spack.compilers.find_compilers()
 
 
 @contextlib.contextmanager
@@ -156,7 +152,7 @@ def _ensure_bootstrap_configuration() -> Generator:
     bootstrap_store_path = store_path()
     user_configuration = _read_and_sanitize_configuration()
     with spack.environment.no_active_environment():
-        with spack.platforms.prevent_cray_detection(), spack.platforms.use_platform(
+        with spack.platforms.use_platform(
             spack.platforms.real_host()
         ), spack.repo.use_repositories(spack.paths.packages_path):
             # Default configuration scopes excluding command line

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,8 @@ class Conserver(AutotoolsPackage):
     version("8.2.3", sha256="764443b2798047f7429747510eeb3207240260590551700d13dbbad8a5bdee08")
     version("8.2.2", sha256="05ea1693bf92b42ad2f0a9389c60352ccd35c2ea93c8fc8e618d0153362a7d81")
     version("8.2.1", sha256="251ae01997e8f3ee75106a5b84ec6f2a8eb5ff2f8092438eba34384a615153d0")
+
+    depends_on("c", type="build")  # generated
 
     def setup_run_environment(self, env):
         env.prepend_path("PATH", self.prefix.sbin)

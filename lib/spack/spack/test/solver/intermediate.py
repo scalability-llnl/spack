@@ -1,12 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Unit tests for objects turning configuration into an intermediate format used by the solver."""
 import pytest
 
 import spack.compilers
-import spack.config
 import spack.spec
 from spack.concretize import UnavailableCompilerVersionError
 from spack.solver import asp

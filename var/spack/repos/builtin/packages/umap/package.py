@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,6 +27,9 @@ class Umap(CMakePackage):
     version("0.0.3", sha256="8e80835a85ad69fcd95f963822b1616c782114077d79c350017db4d82871455c")
     version("0.0.2", sha256="eccc987b414bc568bd33b569ab6e18c328409499f11e65ac5cd5c3e1a8b47509")
     version("0.0.1", sha256="49020adf55aa3f8f03757373b21ff229d2e8cf4155d54835019cd4745c1291ef")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("logging", default=False, description="Build with logging enabled.")
     variant("tests", default=False, description="Build test programs.")

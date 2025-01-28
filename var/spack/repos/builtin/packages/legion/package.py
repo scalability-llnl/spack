@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -29,6 +28,8 @@ class Legion(CMakePackage, ROCmPackage):
 
     maintainers("pmccormick", "streichler", "elliottslaughter")
     tags = ["e4s"]
+    version("24.12.0", tag="legion-24.12.0", commit="2f087ebe433a19f9a3abd05382f951027933bad9")
+    version("24.09.0", tag="legion-24.09.0", commit="4a03402467547b99530042cfe234ceec2cd31b2e")
     version("24.06.0", tag="legion-24.06.0", commit="3f27977943626ef23038ef0049b7ad1b389caad1")
     version("24.03.0", tag="legion-24.03.0", commit="c61071541218747e35767317f6f89b83f374f264")
     version("23.12.0", tag="legion-23.12.0", commit="8fea67ee694a5d9fb27232a7976af189d6c98456")
@@ -50,6 +51,10 @@ class Legion(CMakePackage, ROCmPackage):
     version("cr-20230307", commit="435183796d7c8b6ac1035a6f7af480ded750f67d", deprecated=True)
     version("cr-20210122", commit="181e63ad4187fbd9a96761ab3a52d93e157ede20", deprecated=True)
     version("cr-20191217", commit="572576b312509e666f2d72fafdbe9d968b1a6ac3", deprecated=True)
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("cmake@3.16:", type="build")
     # TODO: Need to spec version of MPI v3 for use of the low-level MPI transport
@@ -88,7 +93,9 @@ class Legion(CMakePackage, ROCmPackage):
     patch("hip-offload-arch.patch", when="@23.03.0 +rocm")
 
     def patch(self):
-        if "network=gasnet conduit=ofi-slingshot11 ^cray-mpich+wrappers" in self.spec:
+        if self.spec.satisfies(
+            "network=gasnet conduit=ofi-slingshot11 ^[virtuals=mpi] cray-mpich+wrappers"
+        ):
             filter_file(
                 r"--with-mpi-cc=cc",
                 f"--with-mpi-cc={self.spec['mpi'].mpicc}",
@@ -303,6 +310,12 @@ class Legion(CMakePackage, ROCmPackage):
         "sysomp", default=False, description="Use system OpenMP implementation instead of Realm's"
     )
 
+    def flag_handler(self, name, flags):
+        if name == "cxxflags":
+            if self.spec.satisfies("%oneapi@2025:"):
+                flags.append("-Wno-error=missing-template-arg-list-after-template-kw")
+        return (flags, None, None)
+
     def cmake_args(self):
         spec = self.spec
         from_variant = self.define_from_variant
@@ -394,6 +407,11 @@ class Legion(CMakePackage, ROCmPackage):
             # default is off.
             options.append("-DLegion_USE_Kokkos=ON")
             os.environ["KOKKOS_CXX_COMPILER"] = spec["kokkos"].kokkos_cxx
+            if spec.satisfies("+cuda+cuda_unsupported_compiler ^kokkos%clang +cuda"):
+                # Keep CMake CUDA compiler detection happy
+                options.append(
+                    self.define("CMAKE_CUDA_FLAGS", "--allow-unsupported-compiler -std=c++17")
+                )
 
         if spec.satisfies("+libdl"):
             # default is on.
@@ -486,7 +504,7 @@ class Legion(CMakePackage, ROCmPackage):
     def cache_test_sources(self):
         """Copy the example source files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources([join_path("examples", "local_function_tasks")])
+        cache_extra_test_sources(self, [join_path("examples", "local_function_tasks")])
 
     def test_run_local_function_tasks(self):
         """Build and run external application example"""

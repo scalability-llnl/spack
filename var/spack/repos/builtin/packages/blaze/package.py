@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -46,6 +45,8 @@ class Blaze(CMakePackage):
     version("1.2", sha256="16f56d4f61dca229fa7e17a0d1e348a1f3246c65cded2df5db33babebf8f9b9d")
     version("1.1", sha256="6add20eb9c176ea9f8091c49b101f46d1a1a6bd9c31553a6eff5e53603f0527f")
     version("1.0", sha256="ee13cfd467c1a4b0fe7cc58b61b846eae862167a90dd2e60559626a30418b5a3")
+
+    depends_on("cxx", type="build")  # generated
 
     # These configuration options set defaults for dependent packages and
     # control Blaze dependencies. They can also be enabled or disabled with

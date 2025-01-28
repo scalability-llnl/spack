@@ -1,10 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import re
 
+import spack.variant
 from spack.package import *
 
 
@@ -14,13 +14,18 @@ class Hipsparse(CMakePackage, CudaPackage, ROCmPackage):
 
     homepage = "https://github.com/ROCm/hipSPARSE"
     git = "https://github.com/ROCm/hipSPARSE.git"
-    url = "https://github.com/ROCm/hipSPARSE/archive/rocm-6.1.1.tar.gz"
+    url = "https://github.com/ROCm/hipSPARSE/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
-    maintainers("cgmb", "srekolam", "renjithravindrankannath", "haampie")
+    maintainers("cgmb", "srekolam", "renjithravindrankannath", "haampie", "afzpatel")
     libraries = ["libhipsparse"]
 
     license("MIT")
+    version("6.3.1", sha256="d64bc48e0aa5ec2f48853272a9c554b37ec98cb0724135e45f21b1340df7bccb")
+    version("6.3.0", sha256="550fd5a480490e631507e8c34b2b0cf9cbc2ad2a5bf84e8ea0a8fad96eecb25a")
+    version("6.2.4", sha256="0ecc0ff1eeb99e9a9ac419e49e9be9ec4cd23a117d819710114ee2f35aefe88b")
+    version("6.2.1", sha256="5a3241c857f705b1e5c64b3f5163575726e64a8d19f3957f7326622fda277710")
+    version("6.2.0", sha256="e51b9871d764763519c14be2ec52c1e1ae3959b439afb4be6518b9f9a6f0ebaf")
     version("6.1.2", sha256="dd44f9b6000b3b0ac0fa238037a80f79d6745a689d4a6755f2d595643be1ef6d")
     version("6.1.1", sha256="307cff012f0465942dd6666cb00ae60c35941699677c4b26b08e4832bc499059")
     version("6.1.0", sha256="1d9277a11f71474ea4a9f8419a7a2c37170a86969584e5724e385ec74241e565")
@@ -37,6 +42,9 @@ class Hipsparse(CMakePackage, CudaPackage, ROCmPackage):
         version("5.4.0", sha256="47420d38483c8124813b744971e428a0352c83d9b62a5a50f74ffa8f9b785b20")
         version("5.3.3", sha256="d96d0e47594ab12e8c380da2300704c105736a0771940d7d2fae666f2869e457")
         version("5.3.0", sha256="691b32b916952ed9af008aa29f60cc190322b73cfc098bb2eda3ff68c89c7b35")
+
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # default to an 'auto' variant until amdgpu_targets can be given a better default than 'none'
     amdgpu_targets = ROCmPackage.amdgpu_targets
@@ -60,6 +68,7 @@ class Hipsparse(CMakePackage, CudaPackage, ROCmPackage):
 
     depends_on("cmake@3.5:", type="build")
     depends_on("git", type="build")
+    depends_on("googletest", when="@6.3:")
 
     for ver in [
         "5.3.0",
@@ -77,6 +86,11 @@ class Hipsparse(CMakePackage, CudaPackage, ROCmPackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
     ]:
         depends_on(f"rocm-cmake@{ver}:", type="build", when=f"@{ver}")
         depends_on(f"rocsparse@{ver}", when=f"+rocm @{ver}")

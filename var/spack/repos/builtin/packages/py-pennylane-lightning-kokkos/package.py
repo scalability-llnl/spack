@@ -1,7 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import spack.build_systems.cmake
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -18,6 +19,8 @@ class PyPennylaneLightningKokkos(CMakePackage, PythonExtension, CudaPackage, ROC
 
     version("main", branch="main")
     version("master", branch="master")
+    version("0.37.0", sha256="3f70e3e3b7e4d0f6a679919c0c83e451e129666b021bb529dd02eb915d0666a0")
+    version("0.36.0", sha256="c5fb24bdaf2ebdeaf614bfb3a8bcc07ee83c2c7251a3893399bb0c189d2d1d01")
     version("0.35.1", sha256="d39a2749d08ef2ba336ed2d6f77b3bd5f6d1b25292263a41b97943ae7538b7da")
     version("0.35.0", sha256="1a16fd3dbf03788e4f8dd510bbb668e7a7073ca62be4d9414e2c32e0166e8bda")
     version("0.34.0", sha256="398c3a1d4450a9f3e146204c22329da9adc3f83a1685ae69187f3b25f47824c0")
@@ -28,9 +31,12 @@ class PyPennylaneLightningKokkos(CMakePackage, PythonExtension, CudaPackage, ROC
     version("0.30.0", sha256="7c8f0e0431f8052993cd8033a316f53590c7bf5419445d0725e214b93cbc661b")
     version("0.29.1", sha256="f51ba7718defc7bb5064f690f381e04b2ec58cb09f22a171ae5f410860716e30")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("kokkos@:3.7.2", when="@:0.30", type=("run", "build"))
     depends_on("kokkos@4:4.1", when="@0.31", type=("run", "build"))
-    depends_on("kokkos@4:4.2", when="@0.32:", type=("run", "build"))
+    depends_on("kokkos@4:4.2", when="@0.32:0.36", type=("run", "build"))
+    depends_on("kokkos@4.3:", when="@0.37:", type=("run", "build"))
 
     # kokkos backends
     backends = {
@@ -84,7 +90,7 @@ class PyPennylaneLightningKokkos(CMakePackage, PythonExtension, CudaPackage, ROC
     # but the introduction of `StatePrep` demands `pennylane>=0.32`
     depends_on("py-pennylane@0.32:", type=("build", "run"), when="@0.32")
     depends_on("py-pennylane-lightning~kokkos", type=("build", "run"), when="@:0.31")
-    for v in range(33, 36):
+    for v in range(33, 38):
         depends_on(f"py-pennylane@0.{v}:", type="run", when=f"@0.{v}")
         depends_on(f"py-pennylane-lightning@0.{v}", type=("build", "run"), when=f"@0.{v}")
 
@@ -138,8 +144,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
             python("setup.py", "build_ext", *args)
 
     def install(self, pkg, spec, prefix):
-        pip_args = std_pip_args + [f"--prefix={prefix}", "."]
-        pip(*pip_args)
+        pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
         super().install(pkg, spec, prefix)
 
     @run_after("install")

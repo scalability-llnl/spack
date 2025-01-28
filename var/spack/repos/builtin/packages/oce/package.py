@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -37,6 +36,9 @@ class Oce(CMakePackage):
             "0.16.1", sha256="d31030c8da4a1b33f767d0d59895a995c8eabc8fc65cbe0558734f6021ea2f57"
         )
         version("0.16", sha256="841fe4337a5a4e733e36a2efc4fe60a4e6e8974917028df05d47a02f59787515")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("tbb", default=True, description="Build with Intel Threading Building Blocks")
     variant("X11", default=False, description="Build with X11 enabled")

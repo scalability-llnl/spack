@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,10 @@ class Clamr(CMakePackage):
     license("Unlicense")
 
     version("master")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant(
         "graphics",
@@ -40,16 +43,16 @@ class Clamr(CMakePackage):
     def cmake_args(self):
         spec = self.spec
         cmake_args = []
-        if "graphics=none" in spec:
+        if spec.satisfies("graphics=none"):
             cmake_args.append("-DGRAPHICS_TYPE=None")
-        elif "graphics=mpe" in spec:
+        elif spec.satisfies("graphics=mpe"):
             cmake_args.append("-DGRAPHICS_TYPE=MPE")
         else:
             cmake_args.append("-DGRAPHICS_TYPE=OpenGL")
 
-        if "precision=full" in spec:
+        if spec.satisfies("precision=full"):
             cmake_args.append("-DPRECISION_TYPE=full_precision")
-        elif "precision=single" in spec:
+        elif spec.satisfies("precision=single"):
             cmake_args.append("-DPRECISION_TYPE=minimum_precision")
         else:
             cmake_args.append("-DPRECISION_TYPE=mixed_precision")

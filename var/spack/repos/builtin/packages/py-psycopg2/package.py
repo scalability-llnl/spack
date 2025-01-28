@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,8 @@ class PyPsycopg2(PythonPackage):
     version("2.9.6", sha256="f15158418fd826831b28585e2ab48ed8df2d0d98f502a2b4fe619e7d5ca29011")
     version("2.9.1", sha256="de5303a6f1d0a7a34b9d40e4d3bef684ccc44a49bbe3eb85e3c0bffb4a131b7c")
     version("2.8.6", sha256="fb23f6c71107c37fd667cb4ea363ddeb936b348bbd6449278eb92c189699f543")
+
+    depends_on("c", type="build")  # generated
 
     # https://www.psycopg.org/docs/install.html#prerequisites
     # https://github.com/psycopg/psycopg2/blob/master/doc/src/install.rst

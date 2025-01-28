@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -29,6 +28,9 @@ class Libaec(CMakePackage):
     version("1.0.1", sha256="3668eb4ed36724441e488a7aadc197426afef4b1e8bd139af6d3e36023906459")
     version("1.0.0", sha256="849f08b08ddaaffe543d06d0ced5e4ee3e526b13a67c5f422d126b1c9cf1b546")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Builds a shared version of the library")
 
     @property
@@ -45,7 +47,7 @@ class Libaec(CMakePackage):
 
         if not libs:
             msg = "Unable to recursively locate {0} {1} libraries in {2}"
-            raise spack.error.NoLibrariesError(
+            raise NoLibrariesError(
                 msg.format("shared" if shared else "static", self.spec.name, self.spec.prefix)
             )
         return libs

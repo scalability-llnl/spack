@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,5 +14,7 @@ class Fastjar(AutotoolsPackage):
     license("GPL-2.0")
 
     version("0.98", sha256="f156abc5de8658f22ee8f08d7a72c88f9409ebd8c7933e9466b0842afeb2f145")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("zlib-api")

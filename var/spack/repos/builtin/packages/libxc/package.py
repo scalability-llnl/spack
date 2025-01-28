@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,7 @@ class Libxc(AutotoolsPackage, CudaPackage):
 
     license("MPL-2.0-no-copyleft-exception")
 
+    version("7.0.0", sha256="8d4e343041c9cd869833822f57744872076ae709a613c118d70605539fb13a77")
     version("6.2.2", sha256="d1b65ef74615a1e539d87a0e6662f04baf3a2316706b4e2e686da3193b26b20f")
     version("6.2.1", sha256="da96fc4f6e4221734986f49758b410ffe1d406efd3538761062a4af57a2bd272")
     version("6.2.0", sha256="31edb72c69157b6c0beaff1f10cbbb6348ce7579ef81d8f286764e5ab61194d1")
@@ -33,6 +33,9 @@ class Libxc(AutotoolsPackage, CudaPackage):
     version("3.0.0", sha256="df2362351280edaf2233f3b2c8eb8e6dd6c68105f152897a4cc629fa346a7396")
     version("2.2.2", sha256="6ffaad40505dbe8f155049448554b54ea31d31babf74ccf6b7935bfe55eeafd8")
     version("2.2.1", sha256="c8577ba1ddd5c28fd0aa7c579ae65ab990eb7cb51ecf9f8175f9251f6deb9a06")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("shared", default=True, description="Build shared libraries")
     variant("kxc", default=False, when="@5:", description="Build with third derivatives")
@@ -92,14 +95,14 @@ class Libxc(AutotoolsPackage, CudaPackage):
         # https://gitlab.com/libxc/libxc/-/issues/430 (configure script does not ensure C99)
         # TODO: Switch to cmake since this is better supported
         env.append_flags("CFLAGS", self.compiler.c99_flag)
-        if "%intel" in self.spec:
+        if self.spec.satisfies("%intel"):
             if which("xiar"):
                 env.set("AR", "xiar")
 
-        if "%aocc" in self.spec:
+        if self.spec.satisfies("%aocc"):
             env.append_flags("FCFLAGS", "-fPIC")
 
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             nvcc = self.spec["cuda"].prefix.bin.nvcc
             env.set("CCLD", "{0} -ccbin {1}".format(nvcc, spack_cc))
             env.set("CC", "{0} -x cu -ccbin {1}".format(nvcc, spack_cc))
@@ -113,16 +116,16 @@ class Libxc(AutotoolsPackage, CudaPackage):
         args = []
         args += self.enable_or_disable("shared")
         args += self.enable_or_disable("cuda")
-        if "+kxc" in self.spec:
+        if self.spec.satisfies("+kxc"):
             args.append("--enable-kxc")
-        if "+lxc" in self.spec:
+        if self.spec.satisfies("+lxc"):
             args.append("--enable-lxc")
         return args
 
     @run_after("configure")
     def patch_libtool(self):
         """AOCC support for LIBXC"""
-        if "%aocc" in self.spec:
+        if self.spec.satisfies("%aocc"):
             filter_file(
                 r"\$wl-soname \$wl\$soname",
                 r"-fuse-ld=ld -Wl,-soname,\$soname",
