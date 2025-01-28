@@ -450,10 +450,10 @@ def test_source_visitor_path_normalization(tmp_path: pathlib.Path, monkeypatch):
     file = os.path.join(src_a, "file")
     FILE = os.path.join(src_b, "FILE")
 
-    with open(file, "w") as f:
+    with open(file, "wb"):
         pass
 
-    with open(FILE, "w") as f:
+    with open(FILE, "wb"):
         pass
 
     assert os.path.exists(file)
