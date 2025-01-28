@@ -551,7 +551,7 @@ class ArchSpec:
                     if n_min and n_max:
                         _n_min = _make_microarchitecture(n_min)
                         _n_max = _make_microarchitecture(n_max)
-                        if _n_min.family != _n_max.family or _n_min > _n_max:
+                        if _n_min.family != _n_max.family or not _n_min <= _n_max:
                             continue
                         if n_min == n_max:
                             results.append(n_min)
