@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """This is where most of the action happens in Spack.
@@ -25,6 +24,8 @@ import time
 import traceback
 import typing
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, Type, TypeVar, Union
+
+from typing_extensions import Literal
 
 import llnl.util.filesystem as fsys
 import llnl.util.tty as tty
@@ -766,6 +767,9 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         self.win_rpath = fsys.WindowsSimulatedRPath(self)
         super().__init__()
 
+    def __getitem__(self, key: str) -> "PackageBase":
+        return self.spec[key].package
+
     @classmethod
     def dependency_names(cls):
         return _subkeys(cls.dependencies)
@@ -1009,10 +1013,8 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
                 return False
         return True
 
-    # NOTE: return type should be Optional[Literal['all', 'specific', 'none']] in
-    # Python 3.8+, but we still support 3.6.
     @property
-    def keep_werror(self) -> Optional[str]:
+    def keep_werror(self) -> Optional[Literal["all", "specific", "none"]]:
         """Keep ``-Werror`` flags, matches ``config:flags:keep_werror`` to override config.
 
         Valid return values are:
@@ -1097,14 +1099,14 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         """
         pass
 
-    def detect_dev_src_change(self):
+    def detect_dev_src_change(self) -> bool:
         """
         Method for checking for source code changes to trigger rebuild/reinstall
         """
         dev_path_var = self.spec.variants.get("dev_path", None)
         _, record = spack.store.STORE.db.query_by_spec_hash(self.spec.dag_hash())
-        mtime = fsys.last_modification_time_recursive(dev_path_var.value)
-        return mtime > record.installation_time
+        assert dev_path_var and record, "dev_path variant and record must be present"
+        return fsys.recursive_mtime_greater_than(dev_path_var.value, record.installation_time)
 
     def all_urls_for_version(self, version: StandardVersion) -> List[str]:
         """Return all URLs derived from version_urls(), url, urls, and
@@ -1817,12 +1819,6 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         Returns:
             bool: True if 'target' is found, else False
         """
-        # Prevent altering LC_ALL for 'make' outside this function
-        make = copy.deepcopy(self.module.make)
-
-        # Use English locale for missing target message comparison
-        make.add_default_env("LC_ALL", "C")
-
         # Check if we have a Makefile
         for makefile in ["GNUmakefile", "Makefile", "makefile"]:
             if os.path.exists(makefile):
@@ -1830,6 +1826,12 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         else:
             tty.debug("No Makefile found in the build directory")
             return False
+
+        # Prevent altering LC_ALL for 'make' outside this function
+        make = copy.deepcopy(self.module.make)
+
+        # Use English locale for missing target message comparison
+        make.add_default_env("LC_ALL", "C")
 
         # Check if 'target' is a valid target.
         #

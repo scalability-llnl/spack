@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -103,12 +102,20 @@ from spack.package_completions import *
 from spack.phase_callbacks import run_after, run_before
 from spack.spec import InvalidSpecDetected, Spec
 from spack.util.executable import *
-from spack.util.filesystem import file_command, fix_darwin_install_name, mime_type
+from spack.util.filesystem import fix_darwin_install_name
 from spack.variant import any_combination_of, auto_or_any_combination_of, disjoint_sets
 from spack.version import Version, ver
 
-# These are just here for editor support; they will be replaced when the build env
-# is set up.
-make = MakeExecutable("make", jobs=1)
-ninja = MakeExecutable("ninja", jobs=1)
-configure = Executable(join_path(".", "configure"))
+# These are just here for editor support; they may be set when the build env is set up.
+configure: Executable
+make_jobs: int
+make: MakeExecutable
+ninja: MakeExecutable
+python_include: str
+python_platlib: str
+python_purelib: str
+python: Executable
+spack_cc: str
+spack_cxx: str
+spack_f77: str
+spack_fc: str

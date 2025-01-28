@@ -1,0 +1,45 @@
+diff --git a/driver/CMakeLists.txt b/driver/CMakeLists.txt
+index 60d6fe6..bba3ad6 100644
+--- a/driver/CMakeLists.txt
++++ b/driver/CMakeLists.txt
+@@ -71,7 +71,11 @@ if(WIN32)
+ endif()
+ add_dependencies(MIOpenDriver generate_kernels)
+ target_include_directories(MIOpenDriver PRIVATE ../src/kernels)
+-target_link_libraries(MIOpenDriver MIOpen Threads::Threads roc::rocrand)
++target_link_libraries(MIOpenDriver MIOpen Threads::Threads roc::rocrand roc::hipblas roc::hipblaslt)
++if(MIOPEN_USE_ROCTRACER)
++    target_include_directories(MIOpenDriver PRIVATE ${ROCTRACER_INCLUDE_DIR})
++    target_link_libraries(MIOpenDriver ${rocTracer})
++endif()
+ if(NOT MIOPEN_EMBED_DB STREQUAL "")
+ target_link_libraries(MIOpenDriver $<BUILD_INTERFACE:miopen_data> )
+ endif()
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 92e4f42..7e169a1 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -940,6 +940,13 @@ if(hipblaslt_FOUND)
+     target_link_libraries( MIOpen PRIVATE roc::hipblaslt )
+ endif()
+ 
++if(hipblas_FOUND)
++    target_link_libraries( MIOpen PRIVATE roc::hipblas )
++endif()
++if(rocrand_FOUND)
++    target_link_libraries( MIOpen PRIVATE roc::rocrand )
++endif()
++
+ # For backward compatibility with ROCm 5.3
+ # Build with library libMLIRMIOpen
+ if(LIBMLIRMIOPEN)
+@@ -994,7 +1001,8 @@ if(NOT WIN32 AND NOT APPLE)
+ endif()
+ 
+ if(MIOPEN_USE_ROCTRACER)
+-    target_link_libraries(MIOpen PRIVATE roctx64)
++    target_include_directories(MIOpen PRIVATE ${ROCTRACER_INCLUDE_DIR})
++    target_link_libraries(MIOpen PRIVATE ${rocTracer})
+ endif()
+ 
+ ############################################################

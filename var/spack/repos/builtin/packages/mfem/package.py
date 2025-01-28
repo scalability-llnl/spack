@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -159,6 +158,7 @@ class Mfem(Package, CudaPackage, ROCmPackage):
     )
 
     depends_on("cxx", type="build")  # generated
+    depends_on("gmake", type="build")
 
     variant("static", default=True, description="Build static library")
     variant("shared", default=False, description="Build shared library")
@@ -1310,7 +1310,7 @@ class Mfem(Package, CudaPackage, ROCmPackage):
     @property
     def config_mk(self):
         """Export the location of the config.mk file.
-        This property can be accessed using spec["mfem"].package.config_mk
+        This property can be accessed using pkg["mfem"].config_mk
         """
         dirs = [self.prefix, self.prefix.share.mfem]
         for d in dirs:
@@ -1322,7 +1322,7 @@ class Mfem(Package, CudaPackage, ROCmPackage):
     @property
     def test_mk(self):
         """Export the location of the test.mk file.
-        This property can be accessed using spec["mfem"].package.test_mk.
+        This property can be accessed using pkg["mfem"].test_mk.
         In version 3.3.2 and newer, the location of test.mk is also defined
         inside config.mk, variable MFEM_TEST_MK.
         """

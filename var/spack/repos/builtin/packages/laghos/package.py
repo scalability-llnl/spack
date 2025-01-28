@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -59,8 +58,8 @@ class Laghos(MakefilePackage):
         spec = self.spec
 
         targets.append("MFEM_DIR=%s" % spec["mfem"].prefix)
-        targets.append("CONFIG_MK=%s" % spec["mfem"].package.config_mk)
-        targets.append("TEST_MK=%s" % spec["mfem"].package.test_mk)
+        targets.append("CONFIG_MK=%s" % self["mfem"].config_mk)
+        targets.append("TEST_MK=%s" % self["mfem"].test_mk)
         if spec.satisfies("@:2.0"):
             targets.append("CXX=%s" % spec["mpi"].mpicxx)
         if self.spec.satisfies("+ofast %gcc"):

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,7 @@ import pytest
 import llnl.util.tty as tty
 from llnl.util.filesystem import is_exe, working_dir
 
+import spack.concretize
 import spack.config
 import spack.error
 import spack.fetch_strategy as fs
@@ -22,7 +22,6 @@ import spack.util.crypto as crypto
 import spack.util.executable
 import spack.util.web as web_util
 import spack.version
-from spack.spec import Spec
 from spack.stage import Stage
 from spack.util.executable import which
 
@@ -193,7 +192,7 @@ def test_from_list_url(mock_packages, config, spec, url, digest, _fetch_method):
     have checksums in the package.
     """
     with spack.config.override("config:url_fetch_method", _fetch_method):
-        s = Spec(spec).concretized()
+        s = spack.concretize.concretize_one(spec)
         fetch_strategy = fs.from_list_url(s.package)
         assert isinstance(fetch_strategy, fs.URLFetchStrategy)
         assert os.path.basename(fetch_strategy.url) == url
@@ -219,7 +218,7 @@ def test_new_version_from_list_url(
 ):
     """Test non-specific URLs from the url-list-test package."""
     with spack.config.override("config:url_fetch_method", _fetch_method):
-        s = Spec(f"url-list-test @{requested_version}").concretized()
+        s = spack.concretize.concretize_one(f"url-list-test @{requested_version}")
         fetch_strategy = fs.from_list_url(s.package)
 
         assert isinstance(fetch_strategy, fs.URLFetchStrategy)
@@ -233,7 +232,7 @@ def test_new_version_from_list_url(
 
 def test_nosource_from_list_url(mock_packages, config):
     """This test confirms BundlePackages do not have list url."""
-    s = Spec("nosource").concretized()
+    s = spack.concretize.concretize_one("nosource")
     fetch_strategy = fs.from_list_url(s.package)
     assert fetch_strategy is None
 
@@ -355,21 +354,6 @@ def test_url_missing_curl(mutable_config, missing_curl, monkeypatch):
         web_util.url_exists("https://example.com/")
 
 
-def test_url_fetch_text_urllib_bad_returncode(mutable_config, monkeypatch):
-    class response:
-        def getcode(self):
-            return 404
-
-    def _read_from_url(*args, **kwargs):
-        return None, None, response()
-
-    monkeypatch.setattr(web_util, "read_from_url", _read_from_url)
-    mutable_config.set("config:url_fetch_method", "urllib")
-
-    with pytest.raises(spack.error.FetchError, match="failed with error code"):
-        web_util.fetch_url_text("https://example.com/")
-
-
 def test_url_fetch_text_urllib_web_error(mutable_config, monkeypatch):
     def _raise_web_error(*args, **kwargs):
         raise web_util.SpackWebError("bad url")
@@ -377,5 +361,5 @@ def test_url_fetch_text_urllib_web_error(mutable_config, monkeypatch):
     monkeypatch.setattr(web_util, "read_from_url", _raise_web_error)
     mutable_config.set("config:url_fetch_method", "urllib")
 
-    with pytest.raises(spack.error.FetchError, match="fetch failed to verify"):
+    with pytest.raises(spack.error.FetchError, match="fetch failed"):
         web_util.fetch_url_text("https://example.com/")

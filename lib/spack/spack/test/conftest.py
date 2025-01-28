@@ -1,13 +1,14 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import collections
 import datetime
+import email.message
 import errno
 import functools
 import inspect
+import io
 import itertools
 import json
 import os
@@ -37,6 +38,7 @@ import spack.bootstrap.core
 import spack.caches
 import spack.compiler
 import spack.compilers
+import spack.concretize
 import spack.config
 import spack.directives_meta
 import spack.environment as ev
@@ -636,11 +638,6 @@ def ensure_debug(monkeypatch):
     tty.set_debug(current_debug_level)
 
 
-@pytest.fixture(autouse=sys.platform == "win32", scope="session")
-def platform_config():
-    spack.config.add_default_platform_scope(spack.platforms.real_host().name)
-
-
 @pytest.fixture
 def default_config():
     """Isolates the default configuration from the user configs.
@@ -855,7 +852,7 @@ def _populate(mock_db):
     """
 
     def _install(spec):
-        s = spack.spec.Spec(spec).concretized()
+        s = spack.concretize.concretize_one(spec)
         PackageInstaller([s.package], fake=True, explicit=True).install()
 
     _install("mpileaks ^mpich")
@@ -893,20 +890,25 @@ def mock_store(
     """
     store_path, store_cache = _store_dir_and_cache
 
+    # Make the DB filesystem read-only to ensure constructors don't modify anything in it.
+    # We want Spack to be able to point to a DB on a read-only filesystem easily.
+    store_path.chmod(mode=0o555, rec=1)
+
     # If the cache does not exist populate the store and create it
     if not os.path.exists(str(store_cache.join(".spack-db"))):
         with spack.config.use_configuration(*mock_configuration_scopes):
             with spack.store.use_store(str(store_path)) as store:
                 with spack.repo.use_repositories(mock_repo_path):
+                    # make the DB filesystem writable only while we populate it
+                    store_path.chmod(mode=0o755, rec=1)
                     _populate(store.db)
-        copy_tree(str(store_path), str(store_cache))
+                    store_path.chmod(mode=0o555, rec=1)
 
-    # Make the DB filesystem read-only to ensure we can't modify entries
-    store_path.join(".spack-db").chmod(mode=0o555, rec=1)
+        store_cache.chmod(mode=0o755, rec=1)
+        copy_tree(str(store_path), str(store_cache))
+        store_cache.chmod(mode=0o555, rec=1)
 
     yield store_path
-
-    store_path.join(".spack-db").chmod(mode=0o755, rec=1)
 
 
 @pytest.fixture(scope="function")
@@ -933,7 +935,7 @@ def mutable_database(database_mutable_config, _store_dir_and_cache):
     """
     # Make the database writeable, as we are going to modify it
     store_path, store_cache = _store_dir_and_cache
-    store_path.join(".spack-db").chmod(mode=0o755, rec=1)
+    store_path.chmod(mode=0o755, rec=1)
 
     yield database_mutable_config
 
@@ -941,7 +943,7 @@ def mutable_database(database_mutable_config, _store_dir_and_cache):
     # the store and making the database read-only
     store_path.remove(rec=1)
     copy_tree(str(store_cache), str(store_path))
-    store_path.join(".spack-db").chmod(mode=0o555, rec=1)
+    store_path.chmod(mode=0o555, rec=1)
 
 
 @pytest.fixture()
@@ -1045,7 +1047,8 @@ def temporary_store(tmpdir, request):
     temporary_store_path = tmpdir.join("opt")
     with spack.store.use_store(str(temporary_store_path)) as s:
         yield s
-    temporary_store_path.remove()
+    if temporary_store_path.exists():
+        temporary_store_path.remove()
 
 
 @pytest.fixture()
@@ -1983,7 +1986,9 @@ def default_mock_concretization(config, mock_packages, concretized_specs_cache):
     def _func(spec_str, tests=False):
         key = spec_str, tests
         if key not in concretized_specs_cache:
-            concretized_specs_cache[key] = spack.spec.Spec(spec_str).concretized(tests=tests)
+            concretized_specs_cache[key] = spack.concretize.concretize_one(
+                spack.spec.Spec(spec_str), tests=tests
+            )
         return concretized_specs_cache[key].copy()
 
     return _func
@@ -2125,3 +2130,46 @@ def mock_test_cache(tmp_path_factory):
     cache_dir = tmp_path_factory.mktemp("cache")
     print(cache_dir)
     return spack.util.file_cache.FileCache(str(cache_dir))
+
+
+class MockHTTPResponse(io.IOBase):
+    """This is a mock HTTP response, which implements part of http.client.HTTPResponse"""
+
+    def __init__(self, status, reason, headers=None, body=None):
+        self.msg = None
+        self.version = 11
+        self.url = None
+        self.headers = email.message.EmailMessage()
+        self.status = status
+        self.code = status
+        self.reason = reason
+        self.debuglevel = 0
+        self._body = body
+
+        if headers is not None:
+            for key, value in headers.items():
+                self.headers[key] = value
+
+    @classmethod
+    def with_json(cls, status, reason, headers=None, body=None):
+        """Create a mock HTTP response with JSON string as body"""
+        body = io.BytesIO(json.dumps(body).encode("utf-8"))
+        return cls(status, reason, headers, body)
+
+    def read(self, *args, **kwargs):
+        return self._body.read(*args, **kwargs)
+
+    def getheader(self, name, default=None):
+        self.headers.get(name, default)
+
+    def getheaders(self):
+        return self.headers.items()
+
+    def fileno(self):
+        return 0
+
+    def getcode(self):
+        return self.status
+
+    def info(self):
+        return self.headers

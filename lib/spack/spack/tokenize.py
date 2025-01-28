@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """This module provides building blocks for tokenizing strings. Users can define tokens by
@@ -51,7 +50,6 @@ class Tokenizer:
     def __init__(self, tokens: Type[TokenBase]):
         self.tokens = tokens
         self.regex = re.compile("|".join(f"(?P<{token}>{token.regex})" for token in tokens))
-        self.full_match = True
 
     def tokenize(self, text: str) -> Generator[Token, None, None]:
         if not text:

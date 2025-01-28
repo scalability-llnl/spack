@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os.path
@@ -15,9 +14,9 @@ import spack
 import spack.bootstrap
 import spack.bootstrap.config
 import spack.bootstrap.core
+import spack.concretize
 import spack.config
 import spack.mirrors.utils
-import spack.spec
 import spack.stage
 import spack.util.path
 import spack.util.spack_yaml
@@ -29,7 +28,7 @@ level = "long"
 
 
 # Tarball to be downloaded if binary packages are requested in a local mirror
-BINARY_TARBALL = "https://github.com/spack/spack-bootstrap-mirrors/releases/download/v0.4/bootstrap-buildcache.tar.gz"
+BINARY_TARBALL = "https://github.com/spack/spack-bootstrap-mirrors/releases/download/v0.6/bootstrap-buildcache.tar.gz"
 
 #: Subdirectory where to create the mirror
 LOCAL_MIRROR_DIR = "bootstrap_cache"
@@ -51,9 +50,9 @@ BINARY_METADATA = {
     },
 }
 
-CLINGO_JSON = "$spack/share/spack/bootstrap/github-actions-v0.4/clingo.json"
-GNUPG_JSON = "$spack/share/spack/bootstrap/github-actions-v0.4/gnupg.json"
-PATCHELF_JSON = "$spack/share/spack/bootstrap/github-actions-v0.4/patchelf.json"
+CLINGO_JSON = "$spack/share/spack/bootstrap/github-actions-v0.6/clingo.json"
+GNUPG_JSON = "$spack/share/spack/bootstrap/github-actions-v0.6/gnupg.json"
+PATCHELF_JSON = "$spack/share/spack/bootstrap/github-actions-v0.6/patchelf.json"
 
 # Metadata for a generated source mirror
 SOURCE_METADATA = {
@@ -398,7 +397,7 @@ def _mirror(args):
         llnl.util.tty.msg(msg.format(spec_str, mirror_dir))
         # Suppress tty from the call below for terser messages
         llnl.util.tty.set_msg_enabled(False)
-        spec = spack.spec.Spec(spec_str).concretized()
+        spec = spack.concretize.concretize_one(spec_str)
         for node in spec.traverse():
             spack.mirrors.utils.create(mirror_dir, [node])
         llnl.util.tty.set_msg_enabled(True)
@@ -437,6 +436,7 @@ def _mirror(args):
         shutil.copy(spack.util.path.canonicalize_path(GNUPG_JSON), abs_directory)
         shutil.copy(spack.util.path.canonicalize_path(PATCHELF_JSON), abs_directory)
         instructions += cmd.format("local-binaries", rel_directory)
+        instructions += "  % spack buildcache update-index <final-path>/bootstrap_cache\n"
     print(instructions)
 
 

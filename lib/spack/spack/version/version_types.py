@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -7,7 +6,6 @@ import re
 from bisect import bisect_left
 from typing import Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
-from spack.util.spack_yaml import syaml_dict
 from spack.util.typing import SupportsRichComparison
 
 from .common import (
@@ -490,6 +488,21 @@ class StandardVersion(ConcreteVersion):
             Version: The first index components of the version
         """
         return self[:index]
+
+    @property
+    def up_to_1(self):
+        """The version truncated to the first component."""
+        return self.up_to(1)
+
+    @property
+    def up_to_2(self):
+        """The version truncated to the first two components."""
+        return self.up_to(2)
+
+    @property
+    def up_to_3(self):
+        """The version truncated to the first three components."""
+        return self.up_to(3)
 
 
 _STANDARD_VERSION_TYPEMIN = StandardVersion("", ((), (ALPHA,)), ("",))
@@ -1030,8 +1043,8 @@ class VersionList(VersionType):
     def to_dict(self) -> Dict:
         """Generate human-readable dict for YAML."""
         if self.concrete:
-            return syaml_dict([("version", str(self[0]))])
-        return syaml_dict([("versions", [str(v) for v in self])])
+            return {"version": str(self[0])}
+        return {"versions": [str(v) for v in self]}
 
     @staticmethod
     def from_dict(dictionary) -> "VersionList":
