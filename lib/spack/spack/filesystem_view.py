@@ -892,6 +892,4 @@ class ConflictingProjectionsError(SpackError):
 
 def is_folder_on_case_insensitive_filesystem(path: str) -> bool:
     with tempfile.NamedTemporaryFile(dir=path, prefix=".sentinel") as sentinel:
-        return os.path.exists(
-            os.path.join(path, os.path.join(path, os.path.basename(sentinel.name).upper()))
-        )
+        return os.path.exists(os.path.join(path, os.path.basename(sentinel.name).upper()))
