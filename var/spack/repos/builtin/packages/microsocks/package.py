@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,8 @@ class Microsocks(MakefilePackage):
 
     version("develop", branch="master")
     version("1.0.2", sha256="5ece77c283e71f73b9530da46302fdb4f72a0ae139aa734c07fe532407a6211a")
+
+    depends_on("c", type="build")  # generated
 
     def flag_handler(self, name, flags):
         if name == "cflags":

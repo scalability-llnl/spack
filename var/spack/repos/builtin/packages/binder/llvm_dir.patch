@@ -1,0 +1,12 @@
+diff --git a/source/CMakeLists.txt b/source/CMakeLists.txt
+index 06a0353..32678eb 100644
+--- a/source/CMakeLists.txt
++++ b/source/CMakeLists.txt
+@@ -107,7 +107,6 @@ if(USE_EXTERNAL_LLVM)
+     else()
+       target_link_libraries(binder
+         PRIVATE
+-        ${lib_llvm_path}
+         clang
+         clang-cpp
+         )

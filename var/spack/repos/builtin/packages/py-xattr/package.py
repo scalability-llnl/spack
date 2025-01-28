@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,8 @@ class PyXattr(PythonPackage):
     version("0.9.8", sha256="bf11c8c857215e3ef60b031e7807264f30af4348d7565a7e9b8dca70593753c7")
     version("0.9.7", sha256="b0bbca828e04ef2d484a6522ae7b3a7ccad5e43fa1c6f54d78e24bb870f49d44")
     version("0.9.6", sha256="7cb1b28eeab4fe99cc4350e831434142fce658f7d03f173ff7722144e6a47458")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("python@2.7:", type=("build", "run"))
     depends_on("py-setuptools", type="build")

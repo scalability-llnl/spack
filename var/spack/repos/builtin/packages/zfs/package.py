@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,8 @@ class Zfs(AutotoolsPackage):
     version("0.8.2", sha256="47608e257c8ecebb918014ef1da6172c3a45d990885891af18e80f5cc28beab8")
     version("0.8.1", sha256="0af79fde44b7b8ecb94d5166ce2e4fff7409c20ed874c2d759db92909e6c2799")
     version("0.8.0", sha256="0fd92e87f4b9df9686f18e2ac707c16b2eeaf00f682d41c20ea519f3a0fe4705")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("uuid")
     depends_on("libtirpc")

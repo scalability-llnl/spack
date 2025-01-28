@@ -1,0 +1,11 @@
+--- a/CMakeLists.txt	2024-06-24 15:48:01.389773228 +0200
++++ b/CMakeLists.txt	2024-06-25 09:51:13.637660505 +0200
+@@ -539,7 +539,7 @@
+ # drm headers
+ 
+ # Check if the headers have been installed by kernel-headers
+-find_path(DRM_INCLUDE_DIRS "drm.h" PATH_SUFFIXES "drm")
++find_path(DRM_INCLUDE_DIRS "drm.h" PATH_SUFFIXES "drm" "libdrm")
+ 
+ # Alternatively the headers could have been installed by libdrm
+ if (NOT DRM_INCLUDE_DIRS)

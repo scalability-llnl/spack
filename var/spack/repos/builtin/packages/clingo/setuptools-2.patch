@@ -1,8 +1,0 @@
-diff --git a/cmake/python-site.py b/cmake/python-site.py
---- a/cmake/python-site.py
-+++ b/cmake/python-site.py
-@@ -1,3 +1,4 @@
-+import setuptools  # makes import distutils work
- from distutils.sysconfig import get_python_lib, get_config_vars
- import sys
- if sys.argv[1] == "prefix":

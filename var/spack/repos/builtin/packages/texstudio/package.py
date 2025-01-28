@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,9 @@ class Texstudio(QMakePackage):
     version("2.12.14", sha256="61df71f368bbf21f865645534f63840fd48dbd2996d6d0188aa26d3b647fede0")
     version("2.12.12", sha256="5978daa806c616f9a1eea231bb613f0bc1037d7d2435ee5ca6b14fe88a2caa8c")
     version("2.12.10", sha256="92cf9cbb536e58a5929611fa40438cd9d7ea6880022cd3c5de0483fd15d3df0b")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "poppler",

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -37,10 +36,10 @@ class Repeatmasker(Package):
 
     def url_for_version(self, version):
         if version >= Version("4.1.0"):
-            url = "http://www.repeatmasker.org/RepeatMasker/RepeatMasker-{0}.tar.gz"
+            url = "https://www.repeatmasker.org/RepeatMasker/RepeatMasker-{0}.tar.gz"
             return url.format(version)
         else:
-            url = "http://www.repeatmasker.org/RepeatMasker/RepeatMasker-open-{0}.tar.gz"
+            url = "https://www.repeatmasker.org/RepeatMasker/RepeatMasker-open-{0}.tar.gz"
             return url.format(version.dashed)
 
     def install(self, spec, prefix):

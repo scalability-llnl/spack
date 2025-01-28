@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,8 @@ class PyJarowinkler(PythonPackage):
     license("MIT")
 
     version("1.2.3", sha256="af28ea284cfbd1b21b29ff94b759f20e94e4f7c06f424b0b4702e701c2a21668")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("py-setuptools@42:", type="build")
     depends_on("py-scikit-build@0.15.0", type="build")

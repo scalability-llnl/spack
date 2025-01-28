@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,6 +27,8 @@ class P4est(AutotoolsPackage):
     version("2.1", sha256="07ab24bd63a652a30576fbca12c0fc068dffa615d888802d7f229fa994a9c1ef")
     version("2.0", sha256="c522c5b69896aab39aa5a81399372a19a6b03fc6200d2d5d677d9a22fe31029a")
     version("1.1", sha256="0b5327a35f0c869bf920b8cab5f20caa4eb55692eaaf1f451d5de30285b25139")
+
+    depends_on("c", type="build")  # generated
 
     variant("mpi", default=True, description="Enable MPI")
     variant("openmp", default=False, description="Enable OpenMP")

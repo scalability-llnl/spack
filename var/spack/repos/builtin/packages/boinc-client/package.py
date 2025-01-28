@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,9 @@ class BoincClient(AutotoolsPackage):
     license("LGPL-3.0-only")
 
     version("7.16.5", sha256="33db60991b253e717c6124cce4750ae7729eaab4e54ec718b9e37f87012d668a")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("manager", default=False, description="Builds the client manager")
     variant("graphics", default=False, description="Graphic apps support")
@@ -57,7 +59,7 @@ class BoincClient(AutotoolsPackage):
         args.append("--disable-server")
         args.append("--enable-client")
 
-        if "+manager" in spec:
+        if spec.satisfies("+manager"):
             args.append("--enable-manager")
         else:
             args.append("--disable-manager")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -30,6 +29,8 @@ class Shapemapper(CMakePackage):
         sha256="0846a5d8b5f01d2d039fad4b957df0b6220a8505463f1a410368a1b90d2b227c",
         url="https://github.com/Weeks-UNC/shapemapper2/releases/download/2.1.5/shapemapper-2.1.5-source-only.tar.gz",
     )
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("bowtie2@2.3.0:", type="run", when="@2.1.5")
     depends_on("bowtie2@2.3.4:", type="run", when="@2.2.0:")

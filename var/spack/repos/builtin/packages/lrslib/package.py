@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,11 +22,15 @@ class Lrslib(Package):
     version("5.1", sha256="500893df61631944bac14a76c6e13fc08e6e729727443fa5480b2510de0db635")
     version("4.3", sha256="04fc1916ea122b3f2446968d2739717aa2c6c94b21fba1f2c627fd17fcf7a963")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # Note: lrslib can also be built with Boost, and probably without gmp
 
     # depends_on("boost")
     depends_on("gmp")
     depends_on("libtool", type="build")
+    depends_on("gmake", type="build")
 
     patch("Makefile.spack.patch")
     # Ref: https://github.com/mkoeppe/lrslib/commit/2e8c5bd6c06430151faea5910f44aa032c4178a9

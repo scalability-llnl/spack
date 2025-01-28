@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -41,6 +40,8 @@ class Nvbandwidth(CMakePackage, CudaPackage):
         url="https://github.com/NVIDIA/nvbandwidth/archive/refs/tags/v0.1.tar.gz",
         sha256="ce164f91e35d1b28ebb1f83b22f38199e430d18ebfb8e21fa8c5e53c38d82daf",
     )
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("boost@1.66.0 +program_options")
 

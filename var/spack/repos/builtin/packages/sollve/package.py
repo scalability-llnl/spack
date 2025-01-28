@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,8 +14,6 @@ class Sollve(CMakePackage):
 
     homepage = "https://www.bnl.gov/compsci/projects/SOLLVE/"
     git = "https://github.com/SOLLVE/llvm.git"
-
-    family = "compiler"  # Used by lmod
 
     # NOTE: The debug version of LLVM is an order of magnitude larger than
     # the release version, and may take up 20-30 GB of space. If you want

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -29,6 +28,8 @@ class Metabat(CMakePackage):
         sha256="9baf81b385e503e71792706237c308a21ff9177a3211c79057dcecf8434e9a67",
         deprecated=True,
     )
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("cmake", type="build", when="@2.13:")

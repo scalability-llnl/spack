@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,7 +15,10 @@ class Mdtest(Package):
 
     version("1.9.3", commit="49f3f047c254c62848c23226d6f1afa5fc3c6583")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("mpi")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         filter_file("$(CC.$(OS))", spec["mpi"].mpicc, "Makefile", string=True)

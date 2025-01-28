@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import re
@@ -17,6 +16,8 @@ class Which(AutotoolsPackage):
     license("GPL-3.0")
 
     version("2.21", sha256="f4a245b94124b377d8b49646bf421f9155d36aa7614b6ebf83705d3ffc76eaad")
+
+    depends_on("c", type="build")  # generated
 
     executables = ["which"]
 

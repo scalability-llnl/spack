@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class Keyutils(MakefilePackage):
     version("1.6", sha256="c6a27b4e3d0122d921f3dcea4b1f02a8616ca844535960d6af76ef67d015b5cf")
     version("1.5.10", sha256="e1fdbde234c786b65609a4cf080a2c5fbdb57f049249c139160c85fc3dfa7da9")
     version("1.5.9", sha256="2dc0bdb099ab8331e02e5dbbce320359bef76eda0a4ddbd2ba1d1b9d3a8cdff8")
+
+    depends_on("c", type="build")  # generated
 
     conflicts("platform=darwin", msg="Linux-only")
 

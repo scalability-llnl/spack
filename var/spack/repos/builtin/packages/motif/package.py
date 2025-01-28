@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,9 @@ class Motif(AutotoolsPackage):
     license("LGPL-2.1-or-later")
 
     version("2.3.8", sha256="859b723666eeac7df018209d66045c9853b50b4218cecadb794e2359619ebce7")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("flex")
     depends_on("libx11")

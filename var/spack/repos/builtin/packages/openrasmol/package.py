@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,8 @@ class Openrasmol(MakefilePackage):
     license("GPL-2.0-only")
 
     version("2.7.5.2", sha256="b975e6e69d5c6b161a81f04840945d2f220ac626245c61bcc6c56181b73a5718")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("imake", type="build")
     depends_on("libxext", type="link")

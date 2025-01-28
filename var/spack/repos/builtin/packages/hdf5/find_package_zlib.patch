@@ -1,0 +1,12 @@
+diff --git a/CMakeFilters.cmake b/CMakeFilters.cmake
+index dbd68fd110..3d06b13d57 100644
+--- a/CMakeFilters.cmake
++++ b/CMakeFilters.cmake
+@@ -70,7 +70,6 @@ option (HDF5_ENABLE_Z_LIB_SUPPORT "Enable Zlib Filters" ON)
+ if (HDF5_ENABLE_Z_LIB_SUPPORT)
+   if (NOT H5_ZLIB_HEADER)
+     if (NOT ZLIB_USE_EXTERNAL)
+-      find_package (ZLIB NAMES ${ZLIB_PACKAGE_NAME}${HDF_PACKAGE_EXT} COMPONENTS static shared)
+       if (NOT ZLIB_FOUND)
+         find_package (ZLIB) # Legacy find
+       endif ()

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,8 @@ class HadoopXrootd(MavenPackage):
     license("Apache-2.0")
 
     version("1.0.7", sha256="9a129dc14b3dc139aa4da7543f6392a5c80b41fea6bb9f6cd27db5acf6f5471f")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("hadoop")
     depends_on("xrootd")

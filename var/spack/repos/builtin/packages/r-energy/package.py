@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -30,6 +29,9 @@ class REnergy(RPackage):
     version("1.7-7", sha256="67b88fb33ee6e7bec2e4fe356a4efd36f70c3cf9b0ebe2f6d9da9ec96de9968f")
     version("1.7-6", sha256="900edbb28e1f1bccd78580828470628cf75eb6333b63e1a58e4da7fc5c5fa89a")
     version("1.7-5", sha256="24c2cf080939f8f56cd9cda06d2dfc30d0389cd3ec7250af4f9a09a4c06b6996")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r@2.10:", type=("build", "run"))
     depends_on("r@3.1:", type=("build", "run"), when="@1.7-11:")

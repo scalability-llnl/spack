@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,8 @@ class Libpostal(AutotoolsPackage):
     version("0.3.2", sha256="9a1590eadf4ebe84979113b71059410413adf239b2999d22d11fe8778945f2c1")
     version("0.3.1", sha256="68c51a5fdae41e1cac474742789ba5a46a38e307a0a2450cb2d3e33b4f17cf4d")
     version("0.3", sha256="28c19e21bab13425a76aa65a8435f4b3909611056c2ff439c39b4e57b2a70150")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

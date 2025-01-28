@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,10 @@ class Libxstream(Package):
     license("BSD-3-Clause")
 
     version("0.9.0", sha256="03365f23b337533b8e5a049a24bc5a91c0f1539dd042ca5312abccc8f713b473")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("gmake", type="build")
 
     def patch(self):
         kwargs = {"ignore_absent": False, "backup": True, "string": True}

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,6 +24,9 @@ class Jemalloc(AutotoolsPackage):
     version("4.2.0", sha256="b216ddaeb901697fe38bd30ea02d7505a4b60e8979092009f95cfda860d46acb")
     version("4.1.0", sha256="fad06d714f72adb4265783bc169c6d98eeb032d57ba02d87d1dcb4a2d933ec8e")
     version("4.0.4", sha256="3fda8d8d7fcd041aa0bebbecd45c46b28873cf37bd36c56bf44961b36d0f42d0")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("stats", default=False, description="Enable heap statistics")
     variant("prof", default=False, description="Enable heap profiling")

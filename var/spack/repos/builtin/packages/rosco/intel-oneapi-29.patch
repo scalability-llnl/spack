@@ -1,0 +1,13 @@
+diff --git a/rosco/controller/CMakeLists.txt b/rosco/controller/CMakeLists.txt
+index 0d29085..46705c2 100644
+--- a/rosco/controller/CMakeLists.txt
++++ b/rosco/controller/CMakeLists.txt
+@@ -11,7 +11,7 @@ endif()
+ message(STATUS "CMAKE_Fortran_COMPILER_ID = ${CMAKE_Fortran_COMPILER_ID}")
+ if(APPLE OR UNIX)
+ # Enable .dll export
+-if (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
++if (CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
+ set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -r8 -double-size 64 -cpp -no-wrap-margin")
+ else()
+ set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -ffree-line-length-0 -fdefault-real-8 -fdefault-double-8 -cpp")  

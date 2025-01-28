@@ -1,0 +1,14 @@
+--- a/CMakeLists.txt	2024-04-22 08:25:42.000000000 -0600
++++ b/CMakeLists.txt	2024-04-22 08:25:54.000000000 -0600
+@@ -6,8 +6,9 @@
+ 
+ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+ set(CMAKE_DIRECTORY_LABELS ${PROJECT_NAME})
+-set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR} CACHE PATH "default install path" FORCE)
+-message("CMAKE_INSTALL_PREFIX set to ${CMAKE_INSTALL_PREFIX}")
++# https://github.com/JCSDA/spack-stack/issues/1088
++#set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR} CACHE PATH "default install path" FORCE)
++#message("CMAKE_INSTALL_PREFIX set to ${CMAKE_INSTALL_PREFIX}")
+ 
+ ## Configuration options
+ include(${PROJECT_NAME}_compiler_flags)

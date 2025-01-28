@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,14 +17,17 @@ class LuaLuajitOpenresty(LuaImplPackage):
     license("MIT")
 
     version(
+        "2.1-20240626", sha256="1e53822a1105df216b9657ccb0293a152ac5afd875abc848453bfa353ca8181b"
+    )
+    version(
         "2.1-20230410", sha256="77bbcbb24c3c78f51560017288f3118d995fe71240aa379f5818ff6b166712ff"
     )
     version(
         "2.1-20220111", sha256="1ad2e34b111c802f9d0cdf019e986909123237a28c746b21295b63c9e785d9c3"
     )
-    version(
-        "2.1-20230410", sha256="77bbcbb24c3c78f51560017288f3118d995fe71240aa379f5818ff6b166712ff"
-    )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "lualinks",
@@ -61,3 +63,11 @@ class LuaLuajitOpenresty(LuaImplPackage):
         # that unwinding symbols are not included by libc, this is necessary
         # on some platforms for the final link stage to work
         src_makefile.filter("^TARGET_LD = .*", f"TARGET_LD = {spack_cxx}")
+
+    def setup_run_environment(self, env):
+        env.prepend_path(
+            "LUA_PATH",
+            os.path.join(self.spec.prefix, "share", f"luajit-{self.version[0:2]}", "?.lua"),
+            separator=";",
+        )
+        super().setup_run_environment(env)

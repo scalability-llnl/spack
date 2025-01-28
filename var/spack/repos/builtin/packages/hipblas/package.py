@@ -1,10 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import re
 
+import spack.variant
 from spack.package import *
 
 
@@ -17,13 +17,21 @@ class Hipblas(CMakePackage, CudaPackage, ROCmPackage):
     url = "https://github.com/ROCm/hipBLAS/archive/rocm-6.0.2.tar.gz"
     tags = ["rocm"]
 
-    maintainers("cgmb", "srekolam", "renjithravindrankannath", "haampie")
+    maintainers("cgmb", "srekolam", "renjithravindrankannath", "haampie", "afzpatel")
     libraries = ["libhipblas"]
 
     license("MIT")
 
     version("develop", branch="develop")
     version("master", branch="master")
+    version("6.3.1", sha256="77a1845254d738c43a48bc52fa3e94499ed83535b5771408ff476122bc4b7b7c")
+    version("6.3.0", sha256="72604c1896e42e65ea2b3e905159af6ec5eede6a353678009c47d0a24f462c92")
+    version("6.2.4", sha256="3137ba35e0663d6cceed70086fc6397d9e74803e1711382be62809b91beb2f32")
+    version("6.2.1", sha256="b770b6ebd27d5c12ad01827195e996469bfc826e8a2531831df475fc8d7f6b2e")
+    version("6.2.0", sha256="33688a4d929b13e1fd800aff7e0833a9f7abf3913754b6b15995595e0d434e94")
+    version("6.1.2", sha256="73699892855775a67f48c38beae78169a516078c17f1ed5d67c80abe5d308502")
+    version("6.1.1", sha256="087ea82dff13c8162bf93343b174b18f1d58681711bce4fb7c8dc7212020c099")
+    version("6.1.0", sha256="5f8193c4ef0508967e608a8adf86d63066a984c5803a4d05dd617021d6298091")
     version("6.0.2", sha256="10c1b6c1deb0f225c0fb6b2bb88398a32cd0d32d3ffce9b5c8df9db2cf88d25c")
     version("6.0.0", sha256="8fbd0c244fe82eded866e06d2399b1d91ab5d43d2ebcb73382c7ce1ae48d9cb3")
     version("5.7.1", sha256="794e9298f48ffbe3bd1c1ab87a5c2c2b953713500155fdec9ef8cbb11f81fc8a")
@@ -32,16 +40,15 @@ class Hipblas(CMakePackage, CudaPackage, ROCmPackage):
     version("5.6.0", sha256="9453a31324e10ba528f8f4755d2c270d0ed9baa33e980d8f8383204d8e28a563")
     version("5.5.1", sha256="5920c9a9c83cf7e2b42d1f99f5d5091cac7f6c0a040a737e869e57b92d7045a9")
     version("5.5.0", sha256="b080c25cb61531228d26badcdca856c46c640035c058bfc1c9f63de65f418cd5")
-    version("5.4.3", sha256="5acac147aafc15c249c2f24c19459135ed68b506403aa92e602b67cfc10c38b7")
-    version("5.4.0", sha256="341d61adff8d08cbf70aa07bd11a088bcd0687fc6156870a1aee9eff74f3eb4f")
-    version("5.3.3", sha256="1ce093fc6bc021ad4fe0b0b93f9501038a7a5a16b0fd4fc485d65cbd220a195e")
-    version("5.3.0", sha256="873d55749479873994679840906c4257316dfb09a6200411204ad4a8c2480565")
     with default_args(deprecated=True):
-        version("5.2.3", sha256="4d66db9b000b6207b5270d90556b724bfdb08ebbfcc675f014287e0be7ee6344")
-        version("5.2.1", sha256="ccae36b118b7a1eb4b2f7d65fb163f54ab9c5cf774dbe2ec60971d4f78ae8308")
-        version("5.2.0", sha256="5e9091dc4ef83896f5c3bc5ade1cb5db8e1a6afc451dbba4da19d8a7ec2b6f29")
-        version("5.1.3", sha256="f0fdaa851971b41b48ec2e7d640746fbd6f9f433da2020c5fd95c91a7473d9e1")
-        version("5.1.0", sha256="22faba3828e50a4c4e22f569a7d6441c797a11db1d472619c01d3515a3275e92")
+        version("5.4.3", sha256="5acac147aafc15c249c2f24c19459135ed68b506403aa92e602b67cfc10c38b7")
+        version("5.4.0", sha256="341d61adff8d08cbf70aa07bd11a088bcd0687fc6156870a1aee9eff74f3eb4f")
+        version("5.3.3", sha256="1ce093fc6bc021ad4fe0b0b93f9501038a7a5a16b0fd4fc485d65cbd220a195e")
+        version("5.3.0", sha256="873d55749479873994679840906c4257316dfb09a6200411204ad4a8c2480565")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # default to an 'auto' variant until amdgpu_targets can be given a better default than 'none'
     amdgpu_targets = ROCmPackage.amdgpu_targets
@@ -66,23 +73,32 @@ class Hipblas(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("googletest@1.10.0:", type="test")
     depends_on("netlib-lapack@3.7.1:", type="test")
     depends_on("boost@1.64.0:1.76.0 +program_options cxxstd=14", type="test")
+    depends_on("py-pyaml", type="test", when="@6.1:")
 
     patch("remove-hipblas-clients-file-installation.patch", when="@5.5:5.7.1")
     patch("remove-hipblas-clients-file-installation-6.0.patch", when="@6.0:")
+    patch("modify-hipblas-common-dependency.patch", when="@6.3:")
 
     depends_on("rocm-cmake@5.2.0:", type="build", when="@5.2.0:5.7")
     depends_on("rocm-cmake@4.5.0:", type="build")
-    for ver in ["6.0.0", "6.0.2"]:
+    for ver in [
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
+    ]:
         depends_on(f"rocm-cmake@{ver}", when=f"+rocm @{ver}")
+        depends_on(f"rocm-openmp-extras@{ver}", type="test", when=f"+rocm @{ver}")
 
     depends_on("hip +cuda", when="+cuda")
 
     for ver in [
-        "5.1.0",
-        "5.1.3",
-        "5.2.0",
-        "5.2.1",
-        "5.2.3",
         "5.3.0",
         "5.3.3",
         "5.4.0",
@@ -95,6 +111,14 @@ class Hipblas(CMakePackage, CudaPackage, ROCmPackage):
         "5.7.1",
         "6.0.0",
         "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
         "master",
         "develop",
     ]:
@@ -103,6 +127,8 @@ class Hipblas(CMakePackage, CudaPackage, ROCmPackage):
     for tgt in ROCmPackage.amdgpu_targets:
         depends_on(f"rocblas amdgpu_target={tgt}", when=f"+rocm amdgpu_target={tgt}")
         depends_on(f"rocsolver amdgpu_target={tgt}", when=f"+rocm amdgpu_target={tgt}")
+    for ver in ["6.3.0", "6.3.1"]:
+        depends_on(f"hipblas-common@{ver}", when=f"@{ver}")
 
     @classmethod
     def determine_version(cls, lib):
@@ -117,7 +143,7 @@ class Hipblas(CMakePackage, CudaPackage, ROCmPackage):
 
     def setup_build_environment(self, env):
         if self.spec.satisfies("+asan"):
-            self.asan_on(env, self.spec["llvm-amdgpu"].prefix)
+            self.asan_on(env)
 
     def cmake_args(self):
         args = [
@@ -128,22 +154,16 @@ class Hipblas(CMakePackage, CudaPackage, ROCmPackage):
 
         # FindHIP.cmake is still used for +cuda
         if self.spec.satisfies("+cuda"):
-            if self.spec["hip"].satisfies("@:5.1"):
-                args.append(self.define("CMAKE_MODULE_PATH", self.spec["hip"].prefix.cmake))
-            else:
-                args.append(
-                    self.define("CMAKE_MODULE_PATH", self.spec["hip"].prefix.lib.cmake.hip)
-                )
-
+            args.append(self.define("CMAKE_MODULE_PATH", self.spec["hip"].prefix.lib.cmake.hip))
         if self.spec.satisfies("@5.2.0:"):
             args.append(self.define("BUILD_FILE_REORG_BACKWARD_COMPATIBILITY", True))
         if self.spec.satisfies("@5.3.0:"):
             args.append("-DCMAKE_INSTALL_LIBDIR=lib")
+        if self.spec.satisfies("@6.1:") and self.run_tests:
+            args.append(self.define("LINK_BLIS", "OFF"))
 
         return args
 
-    @run_after("build")
-    @on_package_attributes(run_tests=True)
-    def check_build(self):
+    def check(self):
         exe = Executable(join_path(self.build_directory, "clients", "staging", "hipblas-test"))
         exe("--gtest_filter=-*known_bug*")

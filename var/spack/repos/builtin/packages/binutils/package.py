@@ -1,8 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
+import pathlib
 import re
 
 import spack.build_systems.autotools
@@ -26,6 +26,8 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
         checked_by="tgamblin",
     )
 
+    version("2.43.1", sha256="becaac5d295e037587b63a42fad57fe3d9d7b83f478eb24b67f9eec5d0f1872f")
+    version("2.43", sha256="fed3c3077f0df7a4a1aa47b080b8c53277593ccbb4e5e78b73ffb4e3f265e750")
     version("2.42", sha256="aa54850ebda5064c72cd4ec2d9b056c294252991486350d9a97ab2a6dfdfaf12")
     version("2.41", sha256="a4c4bec052f7b8370024e60389e194377f3f48b56618418ea51067f67aaab30b")
     version("2.40", sha256="f8298eb153a4b37d112e945aa5cb2850040bcf26a3ea65b5a715c83afe05e48a")
@@ -86,6 +88,9 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
         sha256="71d37c96451333c5c0b84b170169fdcb138bbb27397dc06281905d9717c8ed64",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("plugins", default=True, description="enable plugins, needed for gold linker")
     # When you build ld.gold you automatically get ld, even when you add the
@@ -177,6 +182,20 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
         match = re.search(r"GNU (nm|readelf).* (\S+)", output)
         return Version(match.group(2)).dotted.up_to(3) if match else None
 
+    @classmethod
+    def determine_variants(cls, exes, version_str):
+        bin_dir = pathlib.Path(exes[0]).parent
+        include_dir = bin_dir.parent / "include"
+        plugin_h = include_dir / "plugin-api.h"
+
+        variants = "+gold" if find(str(bin_dir), "gold", recursive=False) else "~gold"
+        if find(str(include_dir), str(plugin_h), recursive=False):
+            variants += "+headers"
+        else:
+            variants += "~headers"
+
+        return variants
+
     def flag_handler(self, name, flags):
         spec = self.spec
 
@@ -204,6 +223,7 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
         return (iflags, None, flags)
 
     def test_binaries(self):
+        """check versions reported by binaries"""
         binaries = [
             "ar",
             "c++filt",
@@ -238,7 +258,7 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
 class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
     def configure_args(self):
         known_targets = {"x86_64": "x86_64", "aarch64": "aarch64", "ppc64le": "powerpc"}
-        known_platforms = {"linux": "linux-gnu", "cray": "linux-gnu", "darwin": "apple-darwin"}
+        known_platforms = {"linux": "linux-gnu", "darwin": "apple-darwin"}
 
         family = str(self.spec.target.family)
         platform = self.spec.platform
@@ -268,7 +288,7 @@ class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
         args += self.enable_or_disable("lto")
         args += self.enable_or_disable("nls")
         args += self.enable_or_disable("plugins")
-        if "+pgo" in self.spec:
+        if self.spec.satisfies("+pgo"):
             args.append("--enable-pgo-build=lto")
         else:
             args.append("--disable-pgo-build")

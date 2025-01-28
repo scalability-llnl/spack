@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -36,6 +35,4 @@ class PyInstaller(Package, PythonExtension):
         python(*args)
 
     def setup_dependent_package(self, module, dependent_spec):
-        installer = dependent_spec["python"].command
-        installer.add_default_arg("-m", "installer")
-        setattr(module, "installer", installer)
+        setattr(module, "installer", python.with_default_args("-m", "installer"))

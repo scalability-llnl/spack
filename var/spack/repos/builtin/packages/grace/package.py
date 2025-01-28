@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,9 @@ class Grace(AutotoolsPackage):
     license("GPL-2.0-or-later")
 
     version("5.1.25", sha256="751ab9917ed0f6232073c193aba74046037e185d73b77bab0f5af3e3ff1da2ac")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("libx11")
     depends_on("libxext")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class PyPyqt4(SIPPackage):
     license("GPL-3.0-or-later")
 
     version("4.12.3", sha256="a00f5abef240a7b5852b7924fa5fdf5174569525dc076cd368a566619e56d472")
+
+    depends_on("cxx", type="build")  # generated
 
     # API files can be installed regardless if QScintilla is installed or not
     variant("qsci_api", default=False, description="Install PyQt API file for QScintilla")
@@ -42,13 +43,13 @@ class PyPyqt4(SIPPackage):
             "--sip",
             self.spec["py-sip"].prefix.bin.sip,
             "--sip-incdir",
-            join_path(self.spec["py-sip"].prefix, self.spec["python"].package.include),
+            join_path(self.spec["py-sip"].prefix, self["python"].include),
             "--bindir",
             self.prefix.bin,
             "--destdir",
             python_platlib,
             "--pyuic4-interpreter",
-            self.spec["python"].command.path,
+            python.path,
             "--sipdir",
             self.prefix.share.sip.PyQt4,
             "--stubsdir",

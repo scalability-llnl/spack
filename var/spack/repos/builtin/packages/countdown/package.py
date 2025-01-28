@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class Countdown(CMakePackage, CudaPackage):
     maintainers("f-tesser", "danielecesarini")
 
     version("1.1.1", sha256="ee7f00ffc047f000a21a7a71f6ea6f4049afb1a8407608adc04993929ceba917")
+
+    depends_on("c", type="build")  # generated
 
     variant(
         "acc_mpi",

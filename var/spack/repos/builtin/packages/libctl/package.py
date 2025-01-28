@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,8 @@ class Libctl(AutotoolsPackage):
         sha256="8abd8b58bc60e84e16d25b56f71020e0cb24d75b28bc5db86d50028197c7efbc",
         url="http://ab-initio.mit.edu/libctl/libctl-3.2.2.tar.gz",
     )
+
+    depends_on("c", type="build")  # generated
 
     depends_on("guile")
 

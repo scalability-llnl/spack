@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,8 @@ class Hacckernels(CMakePackage):
     license("BSD-3-Clause")
 
     version("develop", branch="master")
+
+    depends_on("cxx", type="build")  # generated
 
     def install(self, spec, prefix):
         mkdirp(prefix.bin)

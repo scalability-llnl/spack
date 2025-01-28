@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -30,6 +29,10 @@ class Libceed(MakefilePackage, CudaPackage, ROCmPackage):
     version("0.4", tag="v0.4", commit="40b9dad77dea06a1608fa8b93a0d8b9c993ee43d")
     version("0.2", tag="v0.2", commit="113004cb41757b819325a4b3a8a7dfcea5156531")
     version("0.1", tag="v0.1", commit="74e0540e2478136394f75869675056eb6aba67cc")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("occa", default=False, description="Enable OCCA backends")
     variant("debug", default=False, description="Enable debug build")
@@ -72,12 +75,12 @@ class Libceed(MakefilePackage, CudaPackage, ROCmPackage):
         # Use verbose building output
         makeopts = ["V=1"]
 
-        if "@:0.2" in spec:
-            makeopts += ["NDEBUG=%s" % ("" if "+debug" in spec else "1")]
+        if spec.satisfies("@:0.2"):
+            makeopts += ["NDEBUG=%s" % ("" if spec.satisfies("+debug") else "1")]
 
-        elif "@0.4:" in spec:
+        elif spec.satisfies("@0.4:"):
             # Determine options based on the compiler:
-            if "+debug" in spec:
+            if spec.satisfies("+debug"):
                 opt = "-g"
             elif compiler.name == "gcc":
                 opt = "-O3 -g -ffp-contract=fast"
@@ -110,7 +113,7 @@ class Libceed(MakefilePackage, CudaPackage, ROCmPackage):
             if spec.satisfies("@:0.7") and "avx" in self.spec.target:
                 makeopts.append("AVX=1")
 
-            if "+cuda" in spec:
+            if spec.satisfies("+cuda"):
                 makeopts += ["CUDA_DIR=%s" % spec["cuda"].prefix]
                 makeopts += ["CUDA_ARCH=sm_%s" % spec.variants["cuda_arch"].value]
                 if spec.satisfies("@:0.4"):
@@ -124,17 +127,17 @@ class Libceed(MakefilePackage, CudaPackage, ROCmPackage):
                 # Disable CUDA auto-detection:
                 makeopts += ["CUDA_DIR=/disable-cuda"]
 
-            if "+rocm" in spec:
+            if spec.satisfies("+rocm"):
                 makeopts += ["HIP_DIR=%s" % spec["hip"].prefix]
                 amdgpu_target = ",".join(spec.variants["amdgpu_target"].value)
                 makeopts += ["HIP_ARCH=%s" % amdgpu_target]
                 if spec.satisfies("@0.8"):
                     makeopts += ["HIPBLAS_DIR=%s" % spec["hipblas"].prefix]
 
-            if "+libxsmm" in spec:
+            if spec.satisfies("+libxsmm"):
                 makeopts += ["XSMM_DIR=%s" % spec["libxsmm"].prefix]
 
-            if "+magma" in spec:
+            if spec.satisfies("+magma"):
                 makeopts += ["MAGMA_DIR=%s" % spec["magma"].prefix]
 
         return makeopts

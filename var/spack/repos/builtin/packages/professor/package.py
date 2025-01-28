@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -17,6 +16,8 @@ class Professor(Package):
 
     version("2.3.3", sha256="60c5ba00894c809e2c31018bccf22935a9e1f51c0184468efbdd5d27b211009f")
 
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "interactive",
         default=True,
@@ -30,6 +31,7 @@ class Professor(Package):
     depends_on("py-matplotlib")
     depends_on("py-matplotlib backend=wx", when="+interactive")
     depends_on("root")
+    depends_on("gmake", type="build")
 
     extends("python")
 

@@ -1,0 +1,296 @@
+warning: refname 'v1.14.0' is ambiguous.
+diff --git a/include/Random123/array.h b/include/Random123/array.h
+index 8076f23..06650ec 100644
+--- a/include/Random123/array.h
++++ b/include/Random123/array.h
+@@ -81,7 +81,7 @@ inline R123_CUDA_DEVICE value_type assemble_from_u32(uint32_t *p32){
+ 
+ /** @endcond */
+ 
+-#ifdef __CUDA_ARCH__
++#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
+ /* CUDA can't handle std::reverse_iterator.  We *could* implement it
+    ourselves, but let's not bother until somebody really feels a need
+    to reverse-iterate through an r123array */
+@@ -114,8 +114,8 @@ inline R123_CUDA_DEVICE value_type assemble_from_u32(uint32_t *p32){
+     enum {static_size = _N};                                            \
+     R123_CUDA_DEVICE reference operator[](size_type i){return v[i];}                     \
+     R123_CUDA_DEVICE const_reference operator[](size_type i) const {return v[i];}        \
+-    R123_CUDA_DEVICE reference at(size_type i){ if(i >=  _N) R123_THROW(std::out_of_range("array index out of range")); return (*this)[i]; } \
+-    R123_CUDA_DEVICE const_reference at(size_type i) const { if(i >=  _N) R123_THROW(std::out_of_range("array index out of range")); return (*this)[i]; } \
++    R123_CUDA_DEVICE reference at(size_type i){ if(i >=  _N) {R123_THROW(std::out_of_range("array index out of range"));}; return (*this)[i]; } \
++    R123_CUDA_DEVICE const_reference at(size_type i) const { if(i >=  _N) {R123_THROW(std::out_of_range("array index out of range"));}; return (*this)[i]; } \
+     R123_CUDA_DEVICE size_type size() const { return  _N; }                              \
+     R123_CUDA_DEVICE size_type max_size() const { return _N; }                           \
+     R123_CUDA_DEVICE bool empty() const { return _N==0; };                               \
+diff --git a/include/Random123/boxmuller.hpp b/include/Random123/boxmuller.hpp
+index 9c91cf8..16d91f9 100644
+--- a/include/Random123/boxmuller.hpp
++++ b/include/Random123/boxmuller.hpp
+@@ -49,7 +49,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ //
+ //   r123::float2  r123::boxmuller(uint32_t u0, uint32_t u1);
+ //   r123::double2 r123::boxmuller(uint64_t u0, uint64_t u1);
+-//  
++//
+ // float2 and double2 are identical to their synonymous global-
+ // namespace structures in CUDA.
+ //
+@@ -68,7 +68,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ 
+ namespace r123{
+ 
+-#if !defined(__CUDACC__)
++#if !(defined(__CUDACC__) || defined(__HIPCC__))
+ typedef struct { float x, y; } float2;
+ typedef struct { double x, y; } double2;
+ #else
+diff --git a/include/Random123/features/compilerfeatures.h b/include/Random123/features/compilerfeatures.h
+index 0606dee..9ad3f82 100644
+--- a/include/Random123/features/compilerfeatures.h
++++ b/include/Random123/features/compilerfeatures.h
+@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ The Random123 library is portable across C, C++, CUDA, OpenCL environments,
+ and multiple operating systems (Linux, Windows 7, Mac OS X, FreeBSD, Solaris).
+ This level of portability requires the abstraction of some features
+-and idioms that are either not standardized (e.g., asm statments), or for which 
++and idioms that are either not standardized (e.g., asm statments), or for which
+ different vendors have their own standards (e.g., SSE intrinsics) or for
+ which vendors simply refuse to conform to well-established standards (e.g., <inttypes.h>).
+ 
+@@ -55,7 +55,7 @@ Most of the symbols are boolean valued.  In general, they will
+ Library users can override any value by defining the pp-symbol with a compiler option,
+ e.g.,
+ 
+-    cc -DR123_USE_MULHILO64_C99 
++    cc -DR123_USE_MULHILO64_C99
+ 
+ will use a strictly c99 version of the full-width 64x64->128-bit multiplication
+ function, even if it would be disabled by default.
+@@ -84,8 +84,8 @@ All boolean-valued pre-processor symbols in Random123/features/compilerfeatures.
+          CXX11_EXPLICIT_CONVERSIONS
+          CXX11_LONG_LONG
+          CXX11_STD_ARRAY
+-         CXX11 
+-   
++         CXX11
++
+          X86INTRIN_H
+          IA32INTRIN_H
+          XMMINTRIN_H
+@@ -102,7 +102,7 @@ All boolean-valued pre-processor symbols in Random123/features/compilerfeatures.
+          MULHILO64_C99
+ 
+          U01_DOUBLE
+-	 
++
+ @endverbatim
+ Most have obvious meanings.  Some non-obvious ones:
+ 
+@@ -141,11 +141,11 @@ There are also non-boolean valued symbols:
+ <ul>
+ <li>R123_STATIC_INLINE -
+   According to both C99 and GNU99, the 'static inline' declaration allows
+-  the compiler to not emit code if the function is not used.  
++  the compiler to not emit code if the function is not used.
+   Note that the semantics of 'inline', 'static' and 'extern' in
+   gcc have changed over time and are subject to modification by
+   command line options, e.g., -std=gnu89, -fgnu-inline.
+-  Nevertheless, it appears that the meaning of 'static inline' 
++  Nevertheless, it appears that the meaning of 'static inline'
+   has not changed over time and (with a little luck) the use of 'static inline'
+   here will be portable between versions of gcc and to other C99
+   compilers.
+@@ -157,7 +157,7 @@ There are also non-boolean valued symbols:
+   embellishments to strongly encourage that the declared function be
+   inlined.  If there is no such compiler-specific magic, it should
+   expand to decl, unadorned.
+-   
++
+ <li>R123_CUDA_DEVICE - which expands to __device__ (or something else with
+   sufficiently similar semantics) when CUDA is in use, and expands
+   to nothing in other cases.
+@@ -192,7 +192,7 @@ There are also non-boolean valued symbols:
+ \cond HIDDEN_FROM_DOXYGEN
+ */
+ 
+-/* 
++/*
+ N.B.  When something is added to the list of features, it should be
+ added to each of the *features.h files, AND to examples/ut_features.cpp.
+ */
+@@ -204,6 +204,8 @@ added to each of the *features.h files, AND to examples/ut_features.cpp.
+ #include "openclfeatures.h"
+ #elif defined(__CUDACC__)
+ #include "nvccfeatures.h"
++#elif defined(__HIPCC__)
++#include "hipfeatures.h"
+ #elif defined(__ICC)
+ #include "iccfeatures.h"
+ #elif defined(__xlC__) || defined(__ibmxl__)
+@@ -292,7 +294,7 @@ added to each of the *features.h files, AND to examples/ut_features.cpp.
+ 
+ #ifndef R123_USE_64BIT
+ #define R123_USE_64BIT 1
+-#endif    
++#endif
+ 
+ #ifndef R123_USE_PHILOX_64BIT
+ #define R123_USE_PHILOX_64BIT (R123_USE_64BIT && (R123_USE_MULHILO64_ASM || R123_USE_MULHILO64_MSVC_INTRIN || R123_USE_MULHILO64_CUDA_INTRIN || R123_USE_GNU_UINT128 || R123_USE_MULHILO64_C99 || R123_USE_MULHILO64_OPENCL_INTRIN || R123_USE_MULHILO64_MULHI_INTRIN))
+@@ -327,7 +329,7 @@ added to each of the *features.h files, AND to examples/ut_features.cpp.
+ #ifndef R123_METAL_CONSTANT_ADDRESS_SPACE
+ #define R123_METAL_CONSTANT_ADDRESS_SPACE
+ #endif
+-    
++
+ /*
+  * Windows.h (and perhaps other "well-meaning" code define min and
+  * max, so there's a high chance that our definition of min, max
+diff --git a/include/Random123/features/hipfeatures.h b/include/Random123/features/hipfeatures.h
+new file mode 100644
+index 0000000..f3ac0ed
+--- /dev/null
++++ b/include/Random123/features/hipfeatures.h
+@@ -0,0 +1,129 @@
++/*
++Copyright 2010-2011, D. E. Shaw Research.
++All rights reserved.
++
++Redistribution and use in source and binary forms, with or without
++modification, are permitted provided that the following conditions are
++met:
++
++* Redistributions of source code must retain the above copyright
++  notice, this list of conditions, and the following disclaimer.
++
++* Redistributions in binary form must reproduce the above copyright
++  notice, this list of conditions, and the following disclaimer in the
++  documentation and/or other materials provided with the distribution.
++
++* Neither the name of D. E. Shaw Research nor the names of its
++  contributors may be used to endorse or promote products derived from
++  this software without specific prior written permission.
++
++THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++*/
++#ifndef __r123_hip_features_dot_h__
++#define __r123_hip_features_dot_h__
++
++#if !(defined(CUDART_VERSION) || defined(HIP_INCLUDE_HIP_HIP_RUNTIME_API_H))
++#error "why are we in hipfeatures.h if neither CUDART_VERSION NOR HIP_PLATFORM?"
++#endif
++
++#if CUDART_VERSION < 4010 && !defined(HIP_INCLUDE_HIP_HIP_RUNTIME_API_H)
++#error "CUDA versions earlier than 4.1 produce incorrect results for some templated functions in namespaces.  Random123 is unsupported.  See comments in nvccfeatures.h"
++// This test was added in Random123-1.08 (August, 2013) because we
++// discovered that Ftype(maxTvalue<T>()) with Ftype=double and
++// T=uint64_t in examples/uniform.hpp produces -1 for CUDA4.0 and
++// earlier.  We can't be sure this bug doesn't also affect invocations
++// of other templated functions, e.g., essentially all of Random123.
++// Thus, we no longer trust CUDA versions earlier than 4.1 even though
++// we had previously tested and timed Random123 with CUDA 3.x and 4.0.
++// If you feel lucky or desperate, you can change #error to #warning, but
++// please take extra care to be sure that you are getting correct
++// results.
++#endif
++
++// nvcc falls through to gcc or msvc.  So first define
++// a couple of things and then include either gccfeatures.h
++// or msvcfeatures.h
++
++//#ifdef  __CUDA_ARCH__ allows Philox32 and Philox64 to be compiled
++//for both device and host functions in CUDA by setting compiler flags
++//for the device function
++#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
++#ifndef R123_CUDA_DEVICE
++#define R123_CUDA_DEVICE __host__ __device__
++#endif
++
++#ifndef R123_USE_MULHILO64_CUDA_INTRIN
++#define R123_USE_MULHILO64_CUDA_INTRIN 1
++#endif
++
++#ifndef R123_THROW
++// No exceptions in CUDA, at least upto 4.0
++#define R123_THROW(x)    R123_ASSERT(0)
++#endif
++
++#ifndef R123_ASSERT
++#  if defined(__CUDA_ARCH__)
++#    define R123_ASSERT(x) if((x)); else asm("trap;")
++#  elif defined(__HIP_DEVICE_COMPILE__)
++#    define R123_ASSERT(x) if((x)); else asm("s_trap 2;")
++#  endif
++#endif
++
++#else // ! ( defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__) )
++// If we're using nvcc not compiling for the CUDA architecture,
++// then we must be compiling for the host.  In that case,
++// tell the philox code to use the mulhilo64 asm because
++// nvcc doesn't grok uint128_t.
++#ifndef R123_USE_MULHILO64_ASM
++#define R123_USE_MULHILO64_ASM 1
++#endif
++
++#endif // __CUDA_ARCH__
++
++#ifndef R123_BUILTIN_EXPECT
++#define R123_BUILTIN_EXPECT(expr,likely) expr
++#endif
++
++#ifndef R123_USE_AES_NI
++#define R123_USE_AES_NI 0
++#endif
++
++#ifndef R123_USE_SSE4_2
++#define R123_USE_SSE4_2 0
++#endif
++
++#ifndef R123_USE_SSE4_1
++#define R123_USE_SSE4_1 0
++#endif
++
++#ifndef R123_USE_SSE
++#define R123_USE_SSE 0
++#endif
++
++#ifndef R123_USE_GNU_UINT128
++#define R123_USE_GNU_UINT128 0
++#endif
++
++#ifndef R123_ULONG_LONG
++// uint64_t, which is what we'd get without this, is
++// not the same as unsigned long long
++#define R123_ULONG_LONG unsigned long long
++#endif
++
++#if defined(__GNUC__)
++#include "gccfeatures.h"
++#elif defined(_MSC_FULL_VER)
++#include "msvcfeatures.h"
++#endif
++
++#endif
+diff --git a/include/Random123/uniform.hpp b/include/Random123/uniform.hpp
+index ee4ddfb..d40d0a4 100644
+--- a/include/Random123/uniform.hpp
++++ b/include/Random123/uniform.hpp
+@@ -125,7 +125,7 @@ R123_MK_SIGNED_UNSIGNED(__int128_t, __uint128_t);
+ #undef R123_MK_SIGNED_UNSIGNED
+ #endif
+ 
+-#if defined(__CUDACC__) || defined(_LIBCPP_HAS_NO_CONSTEXPR)
++#if defined(__CUDACC__) || defined(_LIBCPP_HAS_NO_CONSTEXPR) || defined(__HIPCC__)
+ // Amazing! cuda thinks numeric_limits::max() is a __host__ function, so
+ // we can't use it in a device function.  
+ //

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,6 +25,8 @@ class Quickjs(MakefilePackage):
     version(
         "2020-09-06", sha256="0021a3e8cdc6b61e225411d05e2841d2437e1ccf4b4cabb9a5f7685ebfb57717"
     )
+
+    depends_on("c", type="build")  # generated
 
     variant("lto", default=True, when="%gcc", description="Enable link-time optimization")
 

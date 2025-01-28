@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,8 @@ class RIrlba(RPackage):
     version("2.3.2", sha256="3fdf2d8fefa6ab14cd0992740de7958f9f501c71aca93229f5eb03c54558fc38")
     version("2.1.2", sha256="5183e8dd7943df11c0f44460566adf06c03d5320f142699298f516d423b06ce1")
     version("2.0.0", sha256="15f8d6c1107d6bb872411efd61e6077d9d7ac826f4da2d378999889a7b1ebabe")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r@3.6.2:", type=("build", "run"), when="@2.3.5:")
     depends_on("r-matrix", type=("build", "run"))

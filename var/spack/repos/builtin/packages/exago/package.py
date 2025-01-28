@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -59,6 +58,10 @@ class Exago(CMakePackage, CudaPackage, ROCmPackage):
         submodules=True,
     )
     version("kpp2", tag="kpp2", commit="1da764d80a2db793f4c43ca50e50981f7ed3880a", submodules=True)
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # Progrmming model options
     variant("mpi", default=True, description="Enable/Disable MPI")
@@ -195,7 +198,7 @@ class Exago(CMakePackage, CudaPackage, ROCmPackage):
         args = []
         spec = self.spec
 
-        if "~mpi" in self.spec:
+        if self.spec.satisfies("~mpi"):
             args.append(self.define("CMAKE_C_COMPILER", os.environ["CC"]))
             args.append(self.define("CMAKE_CXX_COMPILER", os.environ["CXX"]))
         else:
@@ -203,7 +206,7 @@ class Exago(CMakePackage, CudaPackage, ROCmPackage):
             args.append(self.define("CMAKE_CXX_COMPILER", spec["mpi"].mpicxx))
             args.append(self.define("MPI_C_COMPILER", spec["mpi"].mpicc))
             args.append(self.define("MPI_CXX_COMPILER", spec["mpi"].mpicxx))
-            if "+cuda" in spec:
+            if spec.satisfies("+cuda"):
                 args.append(self.define("MPI_CXX_HEADER_DIR", spec["mpi"].prefix.include))
 
         # NOTE: If building with spack develop on a cluster, you may want to
@@ -229,7 +232,7 @@ class Exago(CMakePackage, CudaPackage, ROCmPackage):
             ]
         )
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             cuda_arch_list = spec.variants["cuda_arch"].value
             if cuda_arch_list[0] != "none":
                 args.append(self.define("CMAKE_CUDA_ARCHITECTURES", cuda_arch_list))
@@ -242,7 +245,7 @@ class Exago(CMakePackage, CudaPackage, ROCmPackage):
         # args.append(
         #     self.define('HIP_CLANG_INCLUDE_PATH',
         #         '/opt/rocm-X.Y.Z/llvm/lib/clang/14.0.0/include/'))
-        if "+rocm" in spec:
+        if spec.satisfies("+rocm"):
             args.append(self.define("CMAKE_CXX_COMPILER", spec["hip"].hipcc))
 
             rocm_arch_list = spec.variants["amdgpu_target"].value

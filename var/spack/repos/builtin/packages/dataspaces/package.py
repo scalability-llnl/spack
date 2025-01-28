@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -52,7 +51,7 @@ class Dataspaces(AutotoolsPackage):
 
         env.set("CFLAGS", self.compiler.cc_pic_flag)
 
-        if "%gcc@10:" in self.spec:
+        if self.spec.satisfies("%gcc@10:"):
             env.set("FCFLAGS", "-fallow-argument-mismatch")
 
     def configure_args(self):

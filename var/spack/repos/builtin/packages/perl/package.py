@@ -1,16 +1,7 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-#
-# Author: Milton Woods <milton.woods@bom.gov.au>
-# Date: March 22, 2017
-# Author: George Hartzell <hartzell@alerce.com>
-# Date: July 21, 2016
-# Author: Justin Too <justin@doubleotoo.com>
-# Date: September 6, 2015
-#
 import os
 import re
 import sys
@@ -35,89 +26,150 @@ class Perl(Package):  # Perl doesn't use Autotools, it should subclass Package
 
     maintainers("LydDeb")
 
+    license("Artistic-1.0-Perl OR GPL-1.0-or-later")
+
     executables = [r"^perl(-?\d+.*)?$"]
+
+    # TODO: resolve the circular dependency between perl and libxcrypt.
+    unresolved_libraries = ["libcrypt.so.*"]
 
     # see https://www.cpan.org/src/README.html for
     # explanation of version numbering scheme
 
-    license("Artistic-1.0-Perl OR GPL-1.0-or-later")
+    # Maintenance releases (even numbers)
+    version("5.40.0", sha256="c740348f357396327a9795d3e8323bafd0fe8a5c7835fc1cbaba0cc8dfe7161f")
+    version("5.38.2", sha256="a0a31534451eb7b83c7d6594a497543a54d488bc90ca00f5e34762577f40655e")
+    version("5.38.0", sha256="213ef58089d2f2c972ea353517dc60ec3656f050dcc027666e118b508423e517")
+    version("5.36.3", sha256="f2a1ad88116391a176262dd42dfc52ef22afb40f4c0e9810f15d561e6f1c726a")
+    version("5.36.1", sha256="68203665d8ece02988fc77dc92fccbb297a83a4bb4b8d07558442f978da54cc1")
+    version("5.36.0", sha256="e26085af8ac396f62add8a533c3a0ea8c8497d836f0689347ac5abd7b7a4e00a")
 
-    # Maintenance releases (even numbers, preferred)
-    version(
-        "5.38.0",
-        sha256="213ef58089d2f2c972ea353517dc60ec3656f050dcc027666e118b508423e517",
-        preferred=True,
-    )
-    version(
-        "5.36.1",
-        sha256="68203665d8ece02988fc77dc92fccbb297a83a4bb4b8d07558442f978da54cc1",
-        preferred=True,
-    )
-    version(
-        "5.36.0",
-        sha256="e26085af8ac396f62add8a533c3a0ea8c8497d836f0689347ac5abd7b7a4e00a",
-        preferred=True,
-    )
+    # End of life releases (deprecated)
     version(
         "5.34.1",
         sha256="357951a491b0ba1ce3611263922feec78ccd581dddc24a446b033e25acf242a1",
-        preferred=True,
+        deprecated=True,
     )
     version(
         "5.34.0",
         sha256="551efc818b968b05216024fb0b727ef2ad4c100f8cb6b43fab615fa78ae5be9a",
-        preferred=True,
+        deprecated=True,
     )
     version(
         "5.32.1",
         sha256="03b693901cd8ae807231b1787798cf1f2e0b8a56218d07b7da44f784a7caeb2c",
-        preferred=True,
+        deprecated=True,
     )
     version(
         "5.32.0",
         sha256="efeb1ce1f10824190ad1cadbcccf6fdb8a5d37007d0100d2d9ae5f2b5900c0b4",
-        preferred=True,
+        deprecated=True,
     )
     version(
         "5.30.3",
         sha256="32e04c8bb7b1aecb2742a7f7ac0eabac100f38247352a73ad7fa104e39e7406f",
-        preferred=True,
+        deprecated=True,
     )
     version(
         "5.30.2",
         sha256="66db7df8a91979eb576fac91743644da878244cf8ee152f02cd6f5cd7a731689",
-        preferred=True,
+        deprecated=True,
     )
     version(
         "5.30.1",
         sha256="bf3d25571ff1ee94186177c2cdef87867fd6a14aa5a84f0b1fb7bf798f42f964",
-        preferred=True,
+        deprecated=True,
     )
     version(
         "5.30.0",
         sha256="851213c754d98ccff042caa40ba7a796b2cee88c5325f121be5cbb61bbf975f2",
-        preferred=True,
+        deprecated=True,
+    )
+    version(
+        "5.28.0",
+        sha256="7e929f64d4cb0e9d1159d4a59fc89394e27fa1f7004d0836ca0d514685406ea8",
+        deprecated=True,
+    )
+    version(
+        "5.26.2",
+        sha256="572f9cea625d6062f8a63b5cee9d3ee840800a001d2bb201a41b9a177ab7f70d",
+        deprecated=True,
+    )
+    version(
+        "5.24.1",
+        sha256="e6c185c9b09bdb3f1b13f678999050c639859a7ef39c8cad418448075f5918af",
+        deprecated=True,
+    )
+    version(
+        "5.22.4",
+        sha256="ba9ef57c2b709f2dad9c5f6acf3111d9dfac309c484801e0152edbca89ed61fa",
+        deprecated=True,
+    )
+    version(
+        "5.22.3",
+        sha256="1b351fb4df7e62ec3c8b2a9f516103595b2601291f659fef1bbe3917e8410083",
+        deprecated=True,
+    )
+    version(
+        "5.22.2",
+        sha256="81ad196385aa168cb8bd785031850e808c583ed18a7901d33e02d4f70ada83c2",
+        deprecated=True,
+    )
+    version(
+        "5.22.1",
+        sha256="2b475d0849d54c4250e9cba4241b7b7291cffb45dfd083b677ca7b5d38118f27",
+        deprecated=True,
+    )
+    version(
+        "5.22.0",
+        sha256="0c690807f5426bbd1db038e833a917ff00b988bf03cbf2447fa9ffdb34a2ab3c",
+        deprecated=True,
+    )
+    version(
+        "5.20.3",
+        sha256="3524e3a76b71650ab2f794fd68e45c366ec375786d2ad2dca767da424bbb9b4a",
+        deprecated=True,
+    )
+    version(
+        "5.18.4",
+        sha256="01a4e11a9a34616396c4a77b3cef51f76a297e1a2c2c490ae6138bf0351eb29f",
+        deprecated=True,
+    )
+    version(
+        "5.16.3",
+        sha256="69cf08dca0565cec2c5c6c2f24b87f986220462556376275e5431cc2204dedb6",
+        deprecated=True,
     )
 
     # Development releases (odd numbers)
-    version("5.37.9", sha256="9884fa8a4958bf9434b50f01cbfd187f9e2738f38fe1ae37f844e9950c5117c1")
-    version("5.35.0", sha256="d6c0eb4763d1c73c1d18730664d43fcaf6100c31573c3b81e1504ec8f5b22708")
-    version("5.33.3", sha256="4f4ba0aceb932e6cf7c05674d05e51ef759d1c97f0685dee65a8f3d190f737cd")
-    version("5.31.7", sha256="d05c4e72128f95ef6ffad42728ecbbd0d9437290bf0f88268b51af011f26b57d")
-    version("5.31.4", sha256="418a7e6fe6485cc713a86d1227ef112f0bb3f80322e3b715ffe42851d97804a5")
+    version("5.39.10", sha256="4b7ffb3e068583fa5c8413390c998b2c15214f205ce737acc485b40932b9f419")
+    version(
+        "5.37.9",
+        sha256="9884fa8a4958bf9434b50f01cbfd187f9e2738f38fe1ae37f844e9950c5117c1",
+        deprecated=True,
+    )
+    version(
+        "5.35.0",
+        sha256="d6c0eb4763d1c73c1d18730664d43fcaf6100c31573c3b81e1504ec8f5b22708",
+        deprecated=True,
+    )
+    version(
+        "5.33.3",
+        sha256="4f4ba0aceb932e6cf7c05674d05e51ef759d1c97f0685dee65a8f3d190f737cd",
+        deprecated=True,
+    )
+    version(
+        "5.31.7",
+        sha256="d05c4e72128f95ef6ffad42728ecbbd0d9437290bf0f88268b51af011f26b57d",
+        deprecated=True,
+    )
+    version(
+        "5.31.4",
+        sha256="418a7e6fe6485cc713a86d1227ef112f0bb3f80322e3b715ffe42851d97804a5",
+        deprecated=True,
+    )
 
-    # End of life releases
-    version("5.28.0", sha256="7e929f64d4cb0e9d1159d4a59fc89394e27fa1f7004d0836ca0d514685406ea8")
-    version("5.26.2", sha256="572f9cea625d6062f8a63b5cee9d3ee840800a001d2bb201a41b9a177ab7f70d")
-    version("5.24.1", sha256="e6c185c9b09bdb3f1b13f678999050c639859a7ef39c8cad418448075f5918af")
-    version("5.22.4", sha256="ba9ef57c2b709f2dad9c5f6acf3111d9dfac309c484801e0152edbca89ed61fa")
-    version("5.22.3", sha256="1b351fb4df7e62ec3c8b2a9f516103595b2601291f659fef1bbe3917e8410083")
-    version("5.22.2", sha256="81ad196385aa168cb8bd785031850e808c583ed18a7901d33e02d4f70ada83c2")
-    version("5.22.1", sha256="2b475d0849d54c4250e9cba4241b7b7291cffb45dfd083b677ca7b5d38118f27")
-    version("5.22.0", sha256="0c690807f5426bbd1db038e833a917ff00b988bf03cbf2447fa9ffdb34a2ab3c")
-    version("5.20.3", sha256="3524e3a76b71650ab2f794fd68e45c366ec375786d2ad2dca767da424bbb9b4a")
-    version("5.18.4", sha256="01a4e11a9a34616396c4a77b3cef51f76a297e1a2c2c490ae6138bf0351eb29f")
-    version("5.16.3", sha256="69cf08dca0565cec2c5c6c2f24b87f986220462556376275e5431cc2204dedb6")
+    depends_on("c", type="build")  # generated
 
     extendable = True
 
@@ -214,7 +266,7 @@ class Perl(Package):  # Perl doesn't use Autotools, it should subclass Package
 
     @classmethod
     def determine_version(cls, exe):
-        perl = spack.util.executable.Executable(exe)
+        perl = Executable(exe)
         output = perl("--version", output=str, error=str)
         if output:
             match = re.search(r"perl.*\(v([0-9.]+)\)", output)
@@ -225,7 +277,7 @@ class Perl(Package):  # Perl doesn't use Autotools, it should subclass Package
     @classmethod
     def determine_variants(cls, exes, version):
         for exe in exes:
-            perl = spack.util.executable.Executable(exe)
+            perl = Executable(exe)
             output = perl("-V", output=str, error=str)
             variants = ""
             if output:
@@ -454,10 +506,6 @@ class Perl(Package):  # Perl doesn't use Autotools, it should subclass Package
 
             # Add variables for library directory
             module.perl_lib_dir = dependent_spec.prefix.lib.perl5
-
-            # Make the site packages directory for extensions,
-            # if it does not exist already.
-            mkdirp(module.perl_lib_dir)
 
     def setup_build_environment(self, env):
         if sys.platform == "win32":

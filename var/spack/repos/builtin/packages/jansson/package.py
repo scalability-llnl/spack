@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,9 @@ class Jansson(CMakePackage):
     version("2.11", sha256="6ff0eab3a8baf64d21cae25f88a0311fb282006eb992080722a9099469c32881")
     version("2.10", sha256="b0a899f90ade82e42da0ecabc8af1fa296d69691e7c0786c4994fb79d4833ebb")
     version("2.9", sha256="952fa714b399e71c1c3aa020e32e899f290c82126ca4d0d14cff5d10af457656")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("shared", default=True, description="Enables the build of shared libraries")
 

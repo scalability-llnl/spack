@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class PyEprosimaFastdds(CMakePackage, PythonExtension):
     license("Apache-2.0")
 
     version("1.2.2", sha256="78c53739a66544b8c91d0016560c267e11bd7fdaf727b3bfbffd44ae65c93c62")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3.15:", type="build")
     extends("python")

@@ -9,15 +9,15 @@ bootstrap:
   # may not be able to bootstrap all the software that Spack needs,
   # depending on its type.
   sources:
-  - name: 'github-actions-v0.5'
+  - name: github-actions-v0.6
+    metadata: $spack/share/spack/bootstrap/github-actions-v0.6
+  - name: github-actions-v0.5
     metadata: $spack/share/spack/bootstrap/github-actions-v0.5
-  - name: 'github-actions-v0.4'
-    metadata: $spack/share/spack/bootstrap/github-actions-v0.4
-  - name: 'spack-install'
+  - name: spack-install
     metadata: $spack/share/spack/bootstrap/spack-install
   trusted:
     # By default we trust bootstrapping from sources and from binaries
     # produced on Github via the workflow
+    github-actions-v0.6: true
     github-actions-v0.5: true
-    github-actions-v0.4: true
     spack-install: true

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,9 +13,11 @@ class RDeseq2(RPackage):
     sequencing assays and test for differential expression based on a model
     using the negative binomial distribution."""
 
-    homepage = "https://bioconductor.org/packages/DESeq2"
-    git = "https://git.bioconductor.org/packages/DESeq2.git"
+    bioc = "DESeq2"
 
+    version("1.46.0", commit="4887eb42fa96fcc234118ead8ffd11032a8f08bb")
+    version("1.44.0", commit="5facd3093468ce2e75a2b742b1533efee13e5818")
+    version("1.42.0", commit="17a39b5296cb3d897f1e2a9aa4bebbdefb13b46a")
     version("1.40.0", commit="c4962c3b16546e552fbc1a712258e4e21ff44241")
     version("1.38.0", commit="0e059f425d4ce6a5203685a4ad434f15bbd6e211")
     version("1.36.0", commit="2800b78ae52c0600f7e603c54af59beed3a2ed17")
@@ -27,6 +28,8 @@ class RDeseq2(RPackage):
     version("1.20.0", commit="7e88ea5c5e68473824ce0af6e10f19e22374cb7c")
     version("1.18.1", commit="ef65091d46436af68915124b752f5e1cc55e93a7")
     version("1.16.1", commit="f41d9df2de25fb57054480e50bc208447a6d82fb")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r-s4vectors@0.9.25:", type=("build", "run"))
     depends_on("r-s4vectors@0.23.18:", type=("build", "run"), when="@1.30.0:")

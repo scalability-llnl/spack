@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,9 @@ class Foundationdb(CMakePackage):
     version("6.3.1", sha256="1162cf93f72c809fa43f0ec6722b01169a9522ec5de95aa52a76b485009a3c95")
     version("6.3.0", sha256="307f99014fe0bb8fbb05399c303f5a7a5007ceee207810857a7b5e6a7df7c8e8")
     version("6.2.24", sha256="9225316e43691ff344224824384acfdf16ff2aac5468d6d810e38846051d5db8")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3.13.0:", type="build")
     depends_on("mono")

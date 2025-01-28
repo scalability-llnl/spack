@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -35,6 +34,9 @@ class Winbison(CMakePackage):
     version("2.5.15", sha256="a5ea5b98bb8d4054961f7bc82f458b4a9ef60c5e2dedcaba23a8e4363c2e6dfc")
     version("2.5.14", sha256="2ace5c964fb4b45279544669950412dbe4e86908c03bd5ebc8c8d306e458e97d")
     version("2.4.12", sha256="fcffc223897e14f2b5dce2db1c832f297cc43a1204e4b3fd713f1dc410e956e4")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     build_directory = "spack-build"
     cmake_dir = os.path.join(build_directory, "CMakeBuild")

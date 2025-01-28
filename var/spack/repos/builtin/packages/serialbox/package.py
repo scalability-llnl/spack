@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,10 @@ class Serialbox(CMakePackage):
     version("2.5.4", sha256="f4aee8ef284f58e6847968fe4620e222ac7019d805bbbb26c199e4b6a5094fee")
     version("2.5.3", sha256="696499b3f43978238c3bcc8f9de50bce2630c07971c47c9e03af0324652b2d5d")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("c", default=True, description="enable C interface")
     variant("python", default=False, description="enable Python interface")
     variant("fortran", default=False, description="enable Fortran interface")
@@ -41,9 +44,6 @@ class Serialbox(CMakePackage):
     )
 
     depends_on("cmake@3.12:", type="build")
-    # We might be provided with an external vanilla cmake, and we need one with
-    # with https://gitlab.kitware.com/cmake/cmake/-/merge_requests/5025
-    depends_on("cmake@3.19:", when="%pgi", type="build")
 
     depends_on("boost@1.54:", type="build")
     depends_on("boost+filesystem+system", when="~std-filesystem", type=("build", "link"))
@@ -130,7 +130,7 @@ class Serialbox(CMakePackage):
             return libs
 
         msg = "Unable to recursively locate {0} libraries in {1}"
-        raise spack.error.NoLibrariesError(msg.format(self.spec.name, self.spec.prefix))
+        raise NoLibrariesError(msg.format(self.spec.name, self.spec.prefix))
 
     def flag_handler(self, name, flags):
         cmake_flags = []
@@ -143,10 +143,7 @@ class Serialbox(CMakePackage):
             # undefined reference to
             #     `std::experimental::filesystem::v1::__cxx11::path::
             #         _M_find_extension[abi:cxx11]() const'
-            if any(
-                self.spec.satisfies("{0}+std-filesystem".format(x))
-                for x in ["%intel@:19.0.1", "%pgi@:19.9"]
-            ):
+            if self.spec.satisfies("%intel@:19.0.1+std-filesystem"):
                 cmake_flags.append("-D_GLIBCXX_USE_CXX11_ABI=0")
 
         return flags, None, (cmake_flags or None)

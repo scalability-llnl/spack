@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,10 @@ class Viennarna(AutotoolsPackage):
     version("2.5.0", sha256="b85544650ee316743173ec9b30497cc4c559f1bfb8f66d16c563f780afd8c0c5")
     version("2.4.3", sha256="4cda6e22029b34bb9f5375181562f69e4a780a89ead50fe952891835e9933ac0")
     version("2.3.5", sha256="26b62a00da21bc5597b580ab8fef4e624234ec446d7d3cb0ce22803a5d7074ca")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant(
         "sse", default=True, description="Enable SSE in order to substantially speed up execution"

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,8 @@ class Vmc(CMakePackage):
     version("1-0-p3", sha256="46385776d7639fdf23df2a2a5426fb9a9a69836d237c1259b1a22bfb649cb47e")
     version("1-0-p2", sha256="46b4c82b0b7516502e88db920732fc78f06f0393ac740a17816f2eb53f80e75e")
     version("1-0-p1", sha256="4a20515f7de426797955cec4a271958b07afbaa330770eeefb5805c882ad9749")
+
+    depends_on("cxx", type="build")  # generated
 
     patch("dict_fixes_101.patch", when="@1-0-p1")
 

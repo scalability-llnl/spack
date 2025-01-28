@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,7 +9,7 @@ class PyGnuplot(PythonPackage):
     """Gnuplot.py is a Python package that allows you to create graphs from
     within Python using the gnuplot plotting program."""
 
-    homepage = "http://gnuplot-py.sourceforge.net/"
+    homepage = "https://gnuplot-py.sourceforge.net/"
     url = (
         "http://downloads.sourceforge.net/project/gnuplot-py/Gnuplot-py/1.8/gnuplot-py-1.8.tar.gz"
     )

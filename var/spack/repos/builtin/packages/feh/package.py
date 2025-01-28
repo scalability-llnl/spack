@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -24,6 +23,8 @@ class Feh(MakefilePackage):
     version("3.9.1", sha256="455c92711b588af149b945edc5c145f3e9aa137ed9689dabed49d5e4acac75fa")
     version("3.3", sha256="f3959958258111d5f7c9fbe2e165c52b9d5987f07fd1f37540a4abf9f9638811")
     version("3.1.1", sha256="61d0242e3644cf7c5db74e644f0e8a8d9be49b7bd01034265cc1ebb2b3f9c8eb")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("imlib2")
     depends_on("curl")

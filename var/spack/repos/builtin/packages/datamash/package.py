@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,5 +21,7 @@ class Datamash(AutotoolsPackage, GNUMirrorPackage):
     version("1.0.7", sha256="1a0b300611a5dff89e08e20773252b00f5e2c2d65b2ad789872fc7df94fa8978")
     version("1.0.6", sha256="0154c25c45b5506b6d618ca8e18d0ef093dac47946ac0df464fb21e77b504118")
     version("1.0.5", sha256="cb7c0b7bf654eea5bb80f10c1710c8dffab8106549fd6b4341cba140e15a9938")
+
+    depends_on("c", type="build")  # generated
 
     build_directory = "spack-build"

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -37,6 +36,8 @@ class Trf(AutotoolsPackage):
         url="file://{0}/trf407b.linux64".format(os.getcwd()),
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
 
     @when("@4.07b")
     def autoreconf(self, spec, prefix):

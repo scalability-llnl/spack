@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -40,6 +39,10 @@ class Moab(AutotoolsPackage):
     version("4.9.1", sha256="b26cee46c096157323cafe047ad58616e16ebdb1e06caf6878673817cb4410cf")
     version("4.9.0", sha256="267a7c05da847e4ea856db2c649a5484fb7bdc132ab56721ca50ee69a7389f4d")
     version("4.8.2", sha256="b105cff42930058dc14eabb9a25e979df7289b175732fe319d2494e83e09e968")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("mpi", default=True, description="Enable MPI parallelism support")
     variant("hdf5", default=True, description="Enable the HDF5 (default I/O) format")

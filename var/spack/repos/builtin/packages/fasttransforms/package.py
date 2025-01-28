@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,8 @@ class Fasttransforms(MakefilePackage):
     version("0.5.0", sha256="9556d0037bd5348a33f15ad6100e32053b6e22cab16a97c504f30d6c52fd0efd")
     version("0.3.4", sha256="a5c8b5aedbdb40218521d061a7df65ef32ce153d4e19d232957db7e3e63c7e9b")
 
+    depends_on("c", type="build")  # generated
+
     variant("quadmath", default=False, description="Support 128-bit floats")
 
     depends_on("blas")
@@ -30,9 +31,9 @@ class Fasttransforms(MakefilePackage):
 
     def build(self, spec, prefix):
         makeargs = ["CC=cc"]
-        if "openblas" in spec:
+        if spec.satisfies("openblas"):
             makeargs += ["FT_BLAS=openblas"]
-        if "quadmath" in spec:
+        if spec.satisfies("quadmath"):
             makeargs += ["FT_QUADMATH=1"]
         make("assembly", *makeargs)
         make("lib", *makeargs)

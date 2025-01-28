@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class Grafana(Package):
     version("6.7.1", sha256="5750d286273069a195679d5586e810b0ca8cdd08ee07dcdd9b52cfaac8c62b89")
     version("6.7.0", sha256="7f4e3f0d42b8188a334e97062c3bf63ff43af273095ba10147b299e3c1c5a7b7")
     version("6.6.2", sha256="e11e5971d08e45e277b55e060c0ce3cf25ca0ba144367c53b4836f2d133ed9b8")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("go", type="build")
 

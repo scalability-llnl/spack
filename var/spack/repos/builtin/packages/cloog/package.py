@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,8 +20,12 @@ class Cloog(Package):
     version("0.18.0", sha256="1c4aa8dde7886be9cbe0f9069c334843b21028f61d344a2d685f88cb1dcf2228")
     version("0.17.0", sha256="f265f5069830c03d2919a7673c0963495437d6d79a8cbd3474cde2d4e3291e04")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("gmp")
     depends_on("isl")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         configure(

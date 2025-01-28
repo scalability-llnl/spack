@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,10 @@ class PyAnuga(PythonPackage):
 
     # The git main branch of the repo is now python3-only
     version("main", branch="main")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # Non-versioned dependencies for Anuga main and future versions based on python@3.5:
     depends_on("python@3.5:", type=("build", "run"), when="@2.2:")
@@ -46,7 +49,7 @@ class PyAnuga(PythonPackage):
         if self.run_tests:
             env.prepend_path("PATH", self.spec["mpi"].prefix.bin)
 
-    install_time_test_callbacks = ["test", "installtest"]
+    install_time_test_callbacks = ["test_imports", "installtest"]
 
     def installtest(self):
         python("runtests.py", "--no-build")

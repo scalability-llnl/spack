@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,6 +24,8 @@ class Opensubdiv(CMakePackage, CudaPackage):
     version("3.5.0", sha256="8f5044f453b94162755131f77c08069004f25306fd6dc2192b6d49889efb8095")
     version("3.4.3", sha256="7b22eb27d636ab0c1e03722c7a5a5bd4f11664ee65c9b48f341a6d0ce7f36745")
     version("3.4.0", sha256="d932b292f83371c7518960b2135c7a5b931efb43cdd8720e0b27268a698973e4")
+
+    depends_on("cxx", type="build")  # generated
 
     def url_for_version(self, version):
         url = "https://github.com/PixarAnimationStudios/OpenSubdiv/archive/v{0}.tar.gz"

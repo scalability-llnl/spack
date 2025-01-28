@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -59,6 +58,9 @@ class MariadbCClient(CMakePackage):
     version("2.2.1", sha256="c30ba19be03a6ac8688ef7620aed0eabdf34ca9ee886c017c56b013b5f8ee06a")
     version("2.2.0", sha256="3825b068d38bc19d6ad1eaecdd74bcd49d6ddd9d00559fb150e4e851a55bbbd4")
     version("2.1.0", sha256="568050b89463af7610d458669fd9eee06dcc9405689aca8a526ac8c013b59167")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     provides("mariadb-client")
     provides("mysql-client")

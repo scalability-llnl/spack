@@ -1,0 +1,35 @@
+name: coverage
+
+on:
+  workflow_call:
+
+jobs:
+  # Upload coverage reports to codecov once as a single bundle
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+    - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install python dependencies
+      run: pip install -r .github/workflows/requirements/coverage/requirements.txt
+
+    - name: Download coverage artifact files
+      uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16
+      with:
+        pattern: coverage-*
+        path: coverage
+        merge-multiple: true
+
+    - run: ls -la coverage
+    - run: coverage combine -a coverage/.coverage*
+    - run: coverage xml
+
+    - name: "Upload coverage report to CodeCov"
+      uses: codecov/codecov-action@1e68e06f1dbfde0e4cefc87efeba9e4643565303
+      with:
+        verbose: true
+        fail_ci_if_error: false

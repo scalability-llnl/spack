@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,8 @@ class Glusterfs(AutotoolsPackage):
     version("7.0", sha256="8a872518bf9bd4dc1568f45c716bcde09e3bf7abf5b156ea90405e0fc2e9f07b")
     version("6.8", sha256="41e855bdc456759c8c15ef494c636a25cc7b62c55ad132ecd55bec05df64793f")
     version("6.7", sha256="e237dd59a2d5b73e156b0b71df49ff64a143b3aaf8f0a65daaf369bb40f5e923")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("m4", type="build")
     depends_on("autoconf", type="build")

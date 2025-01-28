@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class PyPyinstrument(PythonPackage):
     version("4.0.3", sha256="08caf41d21ae8f24afe79c664a34af1ed1e17aa5d4441cd9b1dc15f87bbbac95")
     version("3.1.3", sha256="353c7000a6563b16c0be0c6a04104d42b3154c5cd7c1979ab66efa5fdc5f5571")
     version("3.1.0", sha256="10c1fed4996a72c3e1e2bac1940334756894dbd116df3cc3b2d9743f2ae43016")
+
+    depends_on("c", type="build")  # generated
 
     variant("jupyter", default=False, description="Support Jupyter/IPython magic", when="@4.1:")
 

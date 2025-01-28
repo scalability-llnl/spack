@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,6 +24,9 @@ class Folly(CMakePackage):
     version(
         "2021.05.24.00", sha256="9d308adefe4670637f5c7d96309b3b394ac3fa129bc954f5dfbdd8b741c02aad"
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     # CMakePackage Dependency
     depends_on("pkgconfig", type="build")

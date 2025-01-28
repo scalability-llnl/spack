@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,8 @@ class RPryr(RPackage):
     version("0.1.4", sha256="d39834316504c49ecd4936cbbcaf3ee3dae6ded287af42475bf38c9e682f721b")
     version("0.1.3", sha256="6acd88341dde4fe247a5cafd3949b281dc6742b7d60f68b57c1feb84b96739ac")
     version("0.1.2", sha256="65c2b7c9f96e2aa683ac9cdab3c215fd3039ecd66a2ba7002a8e77881428c3c6")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r@3.1.0:", type=("build", "run"))
     depends_on("r-stringr", type=("build", "run"))

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,7 +15,6 @@ class PyMatplotlib(PythonPackage):
     homepage = "https://matplotlib.org/"
     pypi = "matplotlib/matplotlib-3.3.2.tar.gz"
 
-    maintainers("adamjstewart")
     skip_modules = [
         "matplotlib.tests",
         "mpl_toolkits.axes_grid1.tests",
@@ -25,12 +23,20 @@ class PyMatplotlib(PythonPackage):
     ]
 
     license("Apache-2.0")
+    maintainers("adamjstewart", "rgommers")
 
+    version("3.10.0", sha256="b886d02a581b96704c9d1ffe55709e49b4d2d52709ccebc4be42db856e511278")
+    version("3.9.4", sha256="1e00e8be7393cbdc6fedfa8a6fba02cf3e83814b285db1c60b906a023ba41bc3")
+    version("3.9.3", sha256="cd5dbbc8e25cad5f706845c4d100e2c8b34691b412b93717ce38d8ae803bcfa5")
+    version("3.9.2", sha256="96ab43906269ca64a6366934106fa01534454a69e471b7bf3d79083981aaab92")
+    version("3.9.1", sha256="de06b19b8db95dd33d0dc17c926c7c9ebed9f572074b6fac4f65068a6814d010")
+    version("3.9.0", sha256="e6d29ea6c19e34b30fb7d88b7081f869a03014f66fe06d62cc77d5a6ea88ed7a")
     version("3.8.4", sha256="8aac397d5e9ec158960e31c381c5ffc52ddd52bd9a47717e2a694038167dffea")
     version("3.8.3", sha256="7b416239e9ae38be54b028abbf9048aff5054a9aba5416bef0bd17f9162ce161")
     version("3.8.2", sha256="01a978b871b881ee76017152f1f1a0cbf6bd5f7b8ff8c96df0df1bd57d8755a1")
     version("3.8.1", sha256="044df81c1f6f3a8e52d70c4cfcb44e77ea9632a10929932870dfaa90de94365d")
     version("3.8.0", sha256="df8505e1c19d5c2c26aff3497a7cbd3ccfc2e97043d1e4db3e76afa399164b69")
+    version("3.7.5", sha256="1e5c971558ebc811aa07f54c7b7c677d78aa518ef4c390e14673a09e0860184a")
     version("3.7.4", sha256="7cd4fef8187d1dd0d9dcfdbaa06ac326d396fb8c71c647129f0bf56835d77026")
     version("3.7.3", sha256="f09b3dd6bdeb588de91f853bbb2d6f0ff8ab693485b0c49035eaa510cb4f142e")
     version("3.7.2", sha256="a8cdb91dddb04436bd2f098b8fdf4b81352e68cf4d2c6756fcc414791076569b")
@@ -60,80 +66,53 @@ class PyMatplotlib(PythonPackage):
     version("3.1.2", sha256="8e8e2c2fe3d873108735c6ee9884e6f36f467df4a143136209cff303b183bada")
     version("3.1.1", sha256="1febd22afe1489b13c6749ea059d392c03261b2950d1d45c17e3aed812080c93")
     version("3.1.0", sha256="1e0213f87cc0076f7b0c4c251d7e23601e2419cd98691df79edb95517ba06f0c")
+    version("3.0.3", sha256="e1d33589e32f482d0a7d1957bf473d43341115d40d33f578dad44432e47df7b7")
     version("3.0.2", sha256="c94b792af431f6adb6859eb218137acd9a35f4f7442cea57e4a59c54751c36af")
+    version("3.0.1", sha256="70f8782c50ac2c7617aad0fa5ba59fc49f690a851d6afc0178813c49767644dd")
     version("3.0.0", sha256="b4e2333c98a7c2c1ff6eb930cd2b57d4b818de5437c5048802096b32f66e65f9")
-    version(
-        "2.2.5",
-        sha256="a3037a840cd9dfdc2df9fee8af8f76ca82bfab173c0f9468193ca7a89a2b60ea",
-        deprecated=True,
-    )
-    version(
-        "2.2.4",
-        sha256="029620799e581802961ac1dcff5cb5d3ee2f602e0db9c0f202a90495b37d2126",
-        deprecated=True,
-    )
-    version(
-        "2.2.3",
-        sha256="7355bf757ecacd5f0ac9dd9523c8e1a1103faadf8d33c22664178e17533f8ce5",
-        deprecated=True,
-    )
-    version(
-        "2.2.2",
-        sha256="4dc7ef528aad21f22be85e95725234c5178c0f938e2228ca76640e5e84d8cde8",
-        deprecated=True,
-    )
-    version(
-        "2.0.2",
-        sha256="0ffbc44faa34a8b1704bc108c451ecf87988f900ef7ce757b8e2e84383121ff1",
-        deprecated=True,
-    )
-    version(
-        "2.0.0",
-        sha256="36cf0985829c1ab2b8b1dae5e2272e53ae681bf33ab8bedceed4f0565af5f813",
-        deprecated=True,
-    )
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     # https://matplotlib.org/stable/users/explain/figure/backends.html
-    # From `lib/matplotlib/rcsetup.py`:
-    interactive_bk = [
+    # matplotlib 3.9+: lib/matplotlib/backends/registry.py
+    # matplotlib 3.8-: lib/matplotlib/rcsetup.py
+    all_backends = [
         # GTK
-        conditional("gtk", when="@:2"),
-        conditional("gtkagg", when="@:2"),
-        conditional("gtkcairo", when="@:2"),
         "gtk3agg",
         "gtk3cairo",
         conditional("gtk4agg", when="@3.5:"),
         conditional("gtk4cairo", when="@3.5:"),
+        # Cocoa
+        "macosx",
+        # Jupyter Notebook
+        "nbagg",
+        conditional("notebook", when="@3.9:"),
         # Qt
         conditional("qtagg", when="@3.5:"),
         conditional("qtcairo", when="@3.5:"),
         conditional("qt4agg", when="@:3.4"),
-        conditional("qt4cairo", when="@2.2:3.4"),
+        conditional("qt4cairo", when="@:3.4"),
         "qt5agg",
-        conditional("qt5cairo", when="@2.2:"),
+        "qt5cairo",
         # Tk
         "tkagg",
         "tkcairo",
+        # WebAgg
+        "webagg",
         # Wx
         "wx",
         "wxagg",
-        conditional("wxcairo", when="@2.2:"),
-        # Other
-        "macosx",
-        "nbagg",
-        "webagg",
-    ]
-    non_interactive_bk = [
+        "wxcairo",
+        # Headless
         "agg",
         "cairo",
-        conditional("gdk", when="@:2"),
         "pdf",
         "pgf",
         "ps",
         "svg",
         "template",
     ]
-    all_backends = interactive_bk + non_interactive_bk
 
     default_backend = "agg"
     if sys.platform == "darwin":
@@ -158,9 +137,10 @@ class PyMatplotlib(PythonPackage):
     variant("latex", default=False, description="Enable LaTeX text rendering support")
     variant("fonts", default=False, description="Enable support for system font detection")
 
-    # https://matplotlib.org/stable/users/installing/dependencies.html
+    # https://matplotlib.org/stable/install/dependencies.html
     # Runtime dependencies
     # Mandatory dependencies
+    depends_on("python@3.10:", when="@3.10:", type=("build", "link", "run"))
     depends_on("python@3.9:", when="@3.8:", type=("build", "link", "run"))
     depends_on("python@3.8:", when="@3.6:", type=("build", "link", "run"))
     depends_on("python", type=("build", "link", "run"))
@@ -168,15 +148,17 @@ class PyMatplotlib(PythonPackage):
     depends_on("py-cycler@0.10:", type=("build", "run"))
     depends_on("py-fonttools@4.22:", when="@3.5:", type=("build", "run"))
     depends_on("py-kiwisolver@1.3.1:", when="@3.8.1:", type=("build", "run"))
-    depends_on("py-kiwisolver@1.0.1:", when="@2.2:", type=("build", "run"))
-    depends_on("py-numpy@1.21:", when="@3.8.4:", type=("build", "link", "run"))
-    depends_on("py-numpy@1.21:1", when="@3.8.0:3.8.3", type=("build", "link", "run"))
-    depends_on("py-numpy@1.20:1", when="@3.7", type=("build", "link", "run"))
-    depends_on("py-numpy@1.19:1", when="@3.6", type=("build", "link", "run"))
-    depends_on("py-numpy@1.17:1", when="@3.5", type=("build", "link", "run"))
-    depends_on("py-numpy@1.16:1", when="@3.4", type=("build", "link", "run"))
-    depends_on("py-numpy@1.15:1", when="@3.3", type=("build", "link", "run"))
-    depends_on("py-numpy@1.11:1", when="@:3.2", type=("build", "run"))
+    depends_on("py-kiwisolver@1.0.1:", type=("build", "run"))
+    depends_on("py-numpy@1.23:", when="@3.9:", type=("build", "link", "run"))
+    depends_on("py-numpy@1.21:", when="@3.8", type=("build", "link", "run"))
+    depends_on("py-numpy@1.20:", when="@3.7", type=("build", "link", "run"))
+    depends_on("py-numpy@1.19:", when="@3.6", type=("build", "link", "run"))
+    depends_on("py-numpy@1.17:", when="@3.5", type=("build", "link", "run"))
+    depends_on("py-numpy@1.16:", when="@3.4", type=("build", "link", "run"))
+    depends_on("py-numpy@1.15:", when="@3.3", type=("build", "link", "run"))
+    depends_on("py-numpy@1.11:", when="@:3.2", type=("build", "link", "run"))
+    # https://github.com/matplotlib/matplotlib/issues/26778
+    depends_on("py-numpy@:1", when="@:3.8.3", type=("build", "link", "run"))
     depends_on("py-packaging@20:", when="@3.6:", type=("build", "run"))
     depends_on("py-packaging", when="@3.5:", type=("build", "run"))
     depends_on("pil@8:", when="@3.8.1:", type=("build", "run"))
@@ -189,15 +171,13 @@ class PyMatplotlib(PythonPackage):
     depends_on("py-python-dateutil@2.1:", type=("build", "run"))
     depends_on("py-importlib-resources@3.2:", when="@3.7: ^python@:3.9", type=("build", "run"))
 
-    # Historical dependencies
-    depends_on("py-pytz", type=("build", "run"), when="@:2")
-    depends_on("py-six@1.10.0:", type=("build", "run"), when="@2")
-
     # Optional dependencies
     # Backends
     # Tk
     for backend in ["tkagg", "tkcairo"]:
-        depends_on("tk@8.4:8.5,8.6.2:", when="backend=" + backend, type="run")
+        depends_on("tk@8.5:", when="@3.8: backend=" + backend, type="run")
+        depends_on("tk@8.4:", when="@3.5: backend=" + backend, type="run")
+        depends_on("tk@8.3:", when="backend=" + backend, type="run")
         depends_on("python+tkinter", when="backend=" + backend, type="run")
     # Qt
     # matplotlib/backends/qt_compat.py
@@ -205,18 +185,19 @@ class PyMatplotlib(PythonPackage):
         depends_on("py-pyqt4@4.6:", when="backend=" + backend, type="run")
         depends_on("qt+gui", when="backend=" + backend, type="run")
     for backend in ["qt5agg", "qt5cairo"]:
-        depends_on("py-pyqt5", when="backend=" + backend, type="run")
+        depends_on("py-pyqt5@5.12:", when="backend=" + backend, type="run")
         depends_on("qt+gui", when="backend=" + backend, type="run")
     for backend in ["qtagg", "qtcairo"]:
         depends_on("py-pyqt6@6.1:", when="backend=" + backend, type="run")
         depends_on("qt-base+gui+widgets", when="backend=" + backend, type="run")
     # GTK
-    for backend in ["gtk", "gtkagg", "gtkcairo", "gtk3agg", "gtk3cairo", "gtk4agg", "gtk4cairo"]:
+    for backend in ["gtk3agg", "gtk3cairo", "gtk4agg", "gtk4cairo"]:
         depends_on("py-pygobject", when="backend=" + backend, type="run")
-        depends_on("py-pycairo@1.14:", when="backend=" + backend, type="run")
+        depends_on("py-pycairo@1.14:", when="@3.6: backend=" + backend, type="run")
+        depends_on("py-pycairo@1.11:", when="@3.3: backend=" + backend, type="run")
+        depends_on("py-pycairo", when="backend=" + backend, type="run")
     # Cairo
     for backend in [
-        "gtkcairo",
         "gtk3cairo",
         "gtk4cairo",
         "qtcairo",
@@ -226,12 +207,15 @@ class PyMatplotlib(PythonPackage):
         "wxcairo",
         "cairo",
     ]:
-        depends_on("py-pycairo@1.14:", when="backend=" + backend, type="run")
+        depends_on("py-pycairo@1.14:", when="@3.6: backend=" + backend, type="run")
+        depends_on("py-pycairo@1.11:", when="@3.3: backend=" + backend, type="run")
+        depends_on("py-pycairo", when="backend=" + backend, type="run")
     # Wx
     for backend in ["wx", "wxagg", "wxcairo"]:
         depends_on("py-wxpython@4:", when="backend=" + backend, type="run")
     # Other
-    depends_on("py-tornado@5:", when="backend=webagg", type="run")
+    depends_on("py-tornado@5:", when="@3.5: backend=webagg", type="run")
+    depends_on("py-tornado", when="backend=webagg", type="run")
     depends_on("py-ipykernel", when="backend=nbagg", type="run")
 
     # Optional dependencies
@@ -253,40 +237,45 @@ class PyMatplotlib(PythonPackage):
 
     # Dependencies for building matplotlib
     # Setup dependencies
-    depends_on("py-certifi@2020.6.20:", when="@3.3.1:", type="build")
-    depends_on("py-numpy@1.25:", when="@3.8:", type="build")
-    depends_on("py-pybind11@2.6:", when="@3.7:", type="build")
-    depends_on("py-setuptools@64:", when="@3.8.1:", type="build")
-    depends_on("py-setuptools@42:", when="@3.8:", type="build")
-    depends_on("py-setuptools@42:", when="@3.7.2:3.7", type=("build", "run"))
-    depends_on("py-setuptools", when="@:3.7.1", type=("build", "run"))
+    depends_on("py-meson-python@0.13.1:0.16", when="@3.9:", type="build")
+    depends_on("ninja@1.8.2:", when="@3.9:", type="build")
+    depends_on("py-pybind11@2.13.2:", when="@3.10:", type=("build", "link"))
+    depends_on("py-pybind11@2.6:", when="@3.7:", type=("build", "link"))
     depends_on("py-setuptools-scm@7:", when="@3.6:", type="build")
     depends_on("py-setuptools-scm@4:6", when="@3.5", type="build")
+
+    # Historical dependencies
+    depends_on("py-certifi@2020.6.20:", when="@3.3.1:3.8", type="build")
+    depends_on("py-setuptools@64:", when="@3.8.1:3.8", type="build")
+    depends_on("py-setuptools@42:", when="@3.8.0", type="build")
+    depends_on("py-setuptools@42:", when="@3.7.2:3.7", type=("build", "run"))
+    depends_on("py-setuptools", when="@:3.7.1", type=("build", "run"))
     depends_on("py-setuptools-scm-git-archive", when="@3.5", type="build")
 
     # Testing dependencies
     # Required
-    depends_on("freetype@2.6.1 build_system=autotools", type="test")
+    # https://github.com/spack/spack/issues/43597
+    # depends_on("freetype@2.6.1 build_system=autotools", type="test")
     depends_on("py-pytest@7:", type="test")
 
     msg = "MacOSX backend requires macOS 10.12+"
     conflicts("platform=linux", when="backend=macosx", msg=msg)
-    conflicts("platform=cray", when="backend=macosx", msg=msg)
     conflicts("platform=windows", when="backend=macosx", msg=msg)
+
+    conflicts("tk@8.6.0:8.6.1")
+    conflicts("py-pybind11@2.13.3")
 
     # https://github.com/matplotlib/matplotlib/pull/21662
     patch("matplotlibrc.patch", when="@3.5.0")
-    # Patch to pick up correct freetype headers
-    patch("freetype-include-path.patch", when="@2.2.2:2.9.9")
-
-    @property
-    def config_file(self):
-        # https://github.com/matplotlib/matplotlib/pull/20871
-        return "mplsetup.cfg" if self.spec.satisfies("@3.5:") else "setup.cfg"
 
     @property
     def archive_files(self):
-        return [os.path.join(self.build_directory, self.config_file)]
+        if self.spec.satisfies("@3.9:"):
+            return [os.path.join(self.stage.source_path, "build", "meson-logs", "meson-log.txt")]
+        elif self.spec.satisfies("@3.5:"):
+            return [os.path.join(self.build_directory, "mplsetup.cfg")]
+        else:
+            return [os.path.join(self.build_directory, "setup.cfg")]
 
     def flag_handler(self, name, flags):
         if name == "cxxflags":
@@ -294,13 +283,62 @@ class PyMatplotlib(PythonPackage):
                 flags.append("-Wno-error=register")
         return (flags, None, None)
 
+    @when("@3.9:")
+    def config_settings(self, spec, prefix):
+        return {
+            "builddir": "build",
+            "compile-args": f"-j{make_jobs}",
+            "setup-args": {
+                "-Dsystem-freetype": True,
+                "-Dsystem-qhull": True,
+                "-DrcParams-backend": spec.variants["backend"].value,
+                # Avoids error where link time opt is used for compile but not link
+                "-Db_lto": not (self.spec.satisfies("%clang") or self.spec.satisfies("%oneapi")),
+            },
+        }
+
+    @run_after("install")
+    @on_package_attributes(run_tests=True)
+    def copy_reference_images(self):
+        # https://matplotlib.org/devdocs/devel/testing.html#obtain-the-reference-images
+        install_tree(
+            join_path("lib", "matplotlib", "tests", "baseline_images"),
+            join_path(python_platlib, "matplotlib", "tests", "baseline_images"),
+        )
+        if self.spec.satisfies("@3.7:"):
+            for toolkit in ["axes_grid1", "axisartist", "mplot3d"]:
+                install_tree(
+                    join_path("lib", "mpl_toolkits", toolkit, "tests", "baseline_images"),
+                    join_path(python_platlib, "mpl_toolkits", toolkit, "tests", "baseline_images"),
+                )
+        else:
+            install_tree(
+                join_path("lib", "mpl_toolkits", "tests", "baseline_images"),
+                join_path(python_platlib, "mpl_toolkits", "tests", "baseline_images"),
+            )
+
+    @run_after("install")
+    @on_package_attributes(run_tests=True)
+    def install_test(self):
+        # https://matplotlib.org/devdocs/devel/testing.html#run-the-tests
+        python("-m", "pytest", "--pyargs", "matplotlib.tests")
+        if self.spec.satisfies("@3.7:"):
+            for toolkit in ["axes_grid1", "axisartist", "mplot3d"]:
+                python("-m", "pytest", "--pyargs", f"mpl_toolkits.{toolkit}.tests")
+        else:
+            python("-m", "pytest", "--pyargs", "mpl_toolkits.tests")
+
+    @when("@:3.8")
     def setup_build_environment(self, env):
         include = []
         library = []
         for dep in self.spec.dependencies(deptype="link"):
             query = self.spec[dep.name]
             include.extend(query.headers.directories)
-            library.extend(query.libs.directories)
+            try:
+                library.extend(query.libs.directories)
+            except NoLibrariesError:
+                pass
 
         # Build uses a mix of Spack's compiler wrapper and the actual compiler,
         # so this is needed to get parts of the build working.
@@ -308,13 +346,19 @@ class PyMatplotlib(PythonPackage):
         env.set("CPATH", ":".join(include))
         env.set("LIBRARY_PATH", ":".join(library))
 
+    @when("@:3.8")
     @run_before("install")
     def configure(self):
         """Set build options with regards to backend GUI libraries."""
 
         backend = self.spec.variants["backend"].value
 
-        with open(self.config_file, "w") as config:
+        if self.spec.satisfies("@3.5:"):
+            config_file = "mplsetup.cfg"
+        else:
+            config_file = "setup.cfg"
+
+        with open(config_file, "w") as config:
             # Default backend
             config.write("[rc_options]\n")
             config.write("backend = " + backend + "\n")
@@ -328,24 +372,3 @@ class PyMatplotlib(PythonPackage):
                 # avoids error where link time opt is used for compile but not link
                 if self.spec.satisfies("%clang") or self.spec.satisfies("%oneapi"):
                     config.write("enable_lto = False\n")
-
-    @run_after("install")
-    def copy_reference_images(self):
-        # https://matplotlib.org/devdocs/devel/testing.html#obtain-the-reference-images
-        install_tree(
-            join_path("lib", "matplotlib", "tests", "baseline_images"),
-            join_path(python_platlib, "matplotlib", "tests", "baseline_images"),
-        )
-        for toolkit in ["axes_grid1", "axisartist", "mplot3d"]:
-            install_tree(
-                join_path("lib", "mpl_toolkits", toolkit, "tests", "baseline_images"),
-                join_path(python_platlib, "mpl_toolkits", toolkit, "tests", "baseline_images"),
-            )
-
-    @run_after("install")
-    @on_package_attributes(run_tests=True)
-    def install_test(self):
-        # https://matplotlib.org/devdocs/devel/testing.html#run-the-tests
-        python("-m", "pytest", "--pyargs", "matplotlib.tests")
-        for toolkit in ["axes_grid1", "axisartist", "mplot3d"]:
-            python("-m", "pytest", "--pyargs", f"mpl_toolkits.{toolkit}.tests")

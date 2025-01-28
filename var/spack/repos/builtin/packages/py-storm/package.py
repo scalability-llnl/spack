@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class PyStorm(PythonPackage):
         sha256="01c59f1c898fb9891333abd65519ba2dd5f68623ac8e67b54932e99ce52593d3",
         url="https://files.pythonhosted.org/packages/source/s/storm/storm-0.23.tar.bz2",
     )
+
+    depends_on("c", type="build")  # generated
 
     depends_on("py-setuptools", type="build")
     depends_on("py-six", type=("build", "run"))

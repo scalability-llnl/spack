@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class Sysget(MakefilePackage):
     version("2.3", sha256="bba647bfd7093d18ee2b471a79f0cc50d84846aa3a04d790244acfefded79477")
     version("2.2", sha256="8f55ee8402d6de3cc16fa0577148b484e35da6688ad5f3ee3e9c1be04c88863a")
     version("2.1", sha256="0590aaae10494ca76c6749264925feb0e40b6e4b3822a8a4d148761addcb66c1")
+
+    depends_on("cxx", type="build")  # generated
 
     def edit(self, spec, prefix):
         if os.path.exists("Makefile"):

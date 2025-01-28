@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,15 +17,20 @@ class Qgis(CMakePackage):
     maintainers("adamjstewart", "Sinan81")
 
     license("GPL-2.0-or-later")
-
-    # TODO version 3.36 isn't building right now.
-    version("3.36.0", sha256="1b64bc92660bf07edc6b6478fc6a13656149e87d92eabe5c3db9493072506e2c")
+    version("3.40.1", sha256="53110464c9f5ba5562c437e1563ab36dad2f218e6e7d1c0cfbe5b6effe241c8e")
+    #  version 3.36 isn't building right now.
+    version(
+        "3.36.0",
+        sha256="1b64bc92660bf07edc6b6478fc6a13656149e87d92eabe5c3db9493072506e2c",
+        deprecated=True,
+    )
     # Prefer latest LTR
     version(
-        "3.34.4",
-        sha256="7d1c5fafff13f508a9bcf6244c9666f891351deb1ace2aedcc63504f070c5ce4",
+        "3.34.13",
+        sha256="a8873ca9bae346bae48ef3fe3eed702ef1f06d951201464464a64019302ba50b",
         preferred=True,
     )
+    version("3.34.4", sha256="7d1c5fafff13f508a9bcf6244c9666f891351deb1ace2aedcc63504f070c5ce4")
     version("3.34.0", sha256="348a2df4c4520813a319b7f72546b3823e044cacd28646ba189b56a49c7d1b5f")
     version("3.28.15", sha256="217342ba2232cc8fe5bf8f3671c2b3d6daf5504c33006b67424373e70d568dfa")
     version("3.28.12", sha256="d6d0ea39ed3433d553f8b83324dc14cfa90f8caaf766fa484791df9169800f25")
@@ -59,6 +63,9 @@ class Qgis(CMakePackage):
     version("3.8.1", sha256="d65c8e1c7471bba46f5017f261ebbef81dffb5843a24f0e7713a00f70785ea99")
     version("3.4.15", sha256="81c93b72adbea41bd765294c0cdb09476a632d8b3f90101abc409ca9ea7fb04d")
     version("3.4.14", sha256="e138716c7ea84011d3b28fb9c75e6a79322fb66f532246393571906a595d7261")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("3d", default=False, description="Build QGIS 3D library")
     variant("analysis", default=True, description="Build QGIS analysis library")
@@ -124,6 +131,9 @@ class Qgis(CMakePackage):
     depends_on("proj@4.9.3:", when="@3.8.2:")
     depends_on("proj@7.2:", when="@3.28:")
     depends_on("proj@:8", when="@3.28")  # build fails with proj@9
+    # fails to build with proj 9.4+ until the backported patch in 3.34.5
+    # https://github.com/qgis/QGIS/pull/56761
+    depends_on("proj@:9.3", when="@:3.34.4")
     depends_on("py-psycopg2", type=("build", "run"))  # TODO: is build dependency necessary?
     depends_on("py-pyqt4", when="@2")
     depends_on("py-pyqt5@5.3:", when="@3")
@@ -188,9 +198,7 @@ class Qgis(CMakePackage):
     @run_before("cmake", when="^py-pyqt5")
     def fix_pyqt5_cmake(self):
         cmfile = FileFilter(join_path("cmake", "FindPyQt5.cmake"))
-        pyqtpath = join_path(
-            self.spec["py-pyqt5"].prefix, self.spec["python"].package.platlib, "PyQt5"
-        )
+        pyqtpath = join_path(self.spec["py-pyqt5"].package.module.python_platlib, "PyQt5")
         cmfile.filter(
             'SET(PYQT5_MOD_DIR "${Python_SITEARCH}/PyQt5")',
             'SET(PYQT5_MOD_DIR "' + pyqtpath + '")',
@@ -209,9 +217,7 @@ class Qgis(CMakePackage):
         elif "^py-pyqt6" in self.spec:
             pyqtx = "PyQt6"
 
-        sip_inc_dir = join_path(
-            self.spec["qscintilla"].prefix, self.spec["python"].package.platlib, pyqtx, "bindings"
-        )
+        sip_inc_dir = join_path(self["qscintilla"].module.python_platlib, pyqtx, "bindings")
         with open(join_path("python", "gui", "pyproject.toml.in"), "a") as tomlfile:
             tomlfile.write(f'\n[tool.sip.project]\nsip-include-dirs = ["{sip_inc_dir}"]\n')
 

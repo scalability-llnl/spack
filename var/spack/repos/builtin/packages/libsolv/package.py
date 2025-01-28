@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,9 @@ class Libsolv(CMakePackage):
 
     version("0.7.22", sha256="968aef452b5493751fa0168cd58745a77c755e202a43fe8d549d791eb16034d5")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Build shared libraries")
     variant("conda", default=False, description="Include solv/conda.h")
 
@@ -26,7 +28,7 @@ class Libsolv(CMakePackage):
 
     def cmake_args(self):
         return [
-            self.define("ENABLE_STATIC", "~shared" in self.spec),
-            self.define("DISABLE_DYNAMIC", "~shared" in self.spec),
+            self.define("ENABLE_STATIC", self.spec.satisfies("~shared")),
+            self.define("DISABLE_DYNAMIC", self.spec.satisfies("~shared")),
             self.define_from_variant("ENABLE_CONDA", "conda"),
         ]

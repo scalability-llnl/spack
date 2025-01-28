@@ -1,8 +1,8 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import spack.build_systems.generic
 from spack.package import *
 
 
@@ -21,6 +21,8 @@ class Codipack(CMakePackage, Package):
     version("2.0.2", sha256="c6eecfdbf5818daf80871461f23f8a29b5b72e314d2034047d0b0fcd44744339")
     version("1.9.3", sha256="27dd92d0b5132de37b431989c0c3d5bd829821a6a2e31e0529137e427421f06e")
     version("openmp", branch="experimentalOpenMPSupport")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3.12:", type="build", when="@2.1.0:")
 

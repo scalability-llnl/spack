@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,8 @@ class PyTornado(PythonPackage):
     version("6.0.3", sha256="c845db36ba616912074c5b1ee897f8e0124df269468f25e4fe21fe72f6edd7a9")
     version("5.1.1", sha256="4e5158d97583502a7e2739951553cbd88a72076f152b4b11b64b9a10c4c49409")
     version("4.4", sha256="3176545b6cb2966870db4def4f646da6ab7a0c19400576969c57279a7561ab02")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("python@3.8:", when="@6.3:", type=("build", "run"))
     depends_on("py-setuptools", type="build")

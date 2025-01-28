@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,6 +25,37 @@ class IntelOneapiMkl(IntelOneApiLibraryPackage):
     )
 
     version(
+        "2025.0.1",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/246ea40e-5aa7-42a4-81fa-0c029dc8650f/intel-onemkl-2025.0.1.16_offline.sh",
+        sha256="bd86677aa17499c89ca7a3c3c83b73f0644147e4f1d2a218b45a7349cf582f4a",
+        expand=False,
+    )
+    version(
+        "2025.0.0",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/79153e0f-74d7-45af-b8c2-258941adf58a/intel-onemkl-2025.0.0.940_offline.sh",
+        sha256="c0fe8c43718c56858df96ad469b22d9d5e5c1aa4b872e34c6cbebfb17bd15b9c",
+        expand=False,
+    )
+    version(
+        "2024.2.2",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/89a381f6-f85d-4dda-ae62-30d51470f53c/l_onemkl_p_2024.2.2.17_offline.sh",
+        sha256="6b64ab95567bee53d6cf7e78f9f7b15695902fb9da0d20c29e638ad001b6b348",
+        expand=False,
+        preferred=True,
+    )
+    version(
+        "2024.2.1",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/6e00e368-b61d-4f87-a409-9b510c022a37/l_onemkl_p_2024.2.1.105_offline.sh",
+        sha256="adfb1391f87a0a638772ac3146db92126a4accf4da1fe8707a000b27dd2448ef",
+        expand=False,
+    )
+    version(
+        "2024.2.0",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/cdff21a5-6ac7-4b41-a7ec-351b5f9ce8fd/l_onemkl_p_2024.2.0.664_offline.sh",
+        sha256="f1f46f5352c197a9840e08fc191a879dad79ebf742fe782e386ba8006f262f7a",
+        expand=False,
+    )
+    version(
         "2024.1.0",
         url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/2f3a5785-1c41-4f65-a2f9-ddf9e0db3ea0/l_onemkl_p_2024.1.0.695_offline.sh",
         sha256="b121bc70d3493ef1fbd05f077b1cd27ac4eb2fd1099f44e9f4b8a1366995fb92",
@@ -36,7 +66,6 @@ class IntelOneapiMkl(IntelOneApiLibraryPackage):
         url="https://registrationcenter-download.intel.com/akdlm//IRC_NAS/86d6a4c1-c998-4c6b-9fff-ca004e9f7455/l_onemkl_p_2024.0.0.49673_offline.sh",
         sha256="2a3be7d01d75ba8cc3059f9a32ae72e5bfc93e68e72e94e79d7fa6ea2f7814de",
         expand=False,
-        preferred=True,
     )
     version(
         "2023.2.0",
@@ -111,6 +140,8 @@ class IntelOneapiMkl(IntelOneApiLibraryPackage):
         expand=False,
     )
 
+    variant("gfortran", default=False, description="Compatibility with GNU Fortran")
+
     variant("shared", default=True, description="Builds shared library")
     variant("ilp64", default=False, description="Build with ILP64 support")
     variant(
@@ -145,6 +176,18 @@ class IntelOneapiMkl(IntelOneApiLibraryPackage):
     depends_on("tbb")
     # cluster libraries need mpi
     depends_on("mpi", when="+cluster")
+
+    # If a +cluster then mpi_family must be set
+    with when("+cluster"):
+        conflicts("mpi_family=none")
+        requires("mpi_family=mpich", when="^intel-oneapi-mpi")
+        requires("mpi_family=mpich", when="^intel-mpi")
+        requires("mpi_family=mpich", when="^mpich")
+        requires("mpi_family=mpich", when="^mvapich")
+        requires("mpi_family=mpich", when="^mvapich2")
+        requires("mpi_family=mpich", when="^cray-mpich")
+        requires("mpi_family=openmpi", when="^openmpi")
+        requires("mpi_family=openmpi", when="^hpcx-mpi")
 
     provides("fftw-api@3")
     provides("scalapack", when="+cluster")
@@ -200,7 +243,17 @@ class IntelOneapiMkl(IntelOneApiLibraryPackage):
         if self.spec.satisfies("+cluster"):
             libs.extend([self._xlp64_lib("libmkl_scalapack"), "libmkl_cdft_core"])
 
-        libs.append(self._xlp64_lib("libmkl_intel"))
+        # Explicit variant for compatibility with gfortran, otherwise
+        # support intel fortran. Be aware that some dependencies may
+        # be using this logic and other dependencies might be using
+        # cmake for the library list and they have to be consistent.
+        # https://github.com/spack/spack/pull/43673 for discussion
+        if self.spec.satisfies("+gfortran"):
+            depends_on("fortran", type="build")
+            libs.append(self._xlp64_lib("libmkl_gf"))
+        else:
+            libs.append(self._xlp64_lib("libmkl_intel"))
+
         if self.spec.satisfies("threads=tbb"):
             libs.append("libmkl_tbb_thread")
         elif self.spec.satisfies("threads=openmp"):
@@ -214,29 +267,10 @@ class IntelOneapiMkl(IntelOneApiLibraryPackage):
         libs.append("libmkl_core")
 
         if self.spec.satisfies("+cluster"):
-            if any(
-                self.spec.satisfies(m)
-                for m in [
-                    "^intel-oneapi-mpi",
-                    "^intel-mpi",
-                    "^mpich",
-                    "^cray-mpich",
-                    "mpi_family=mpich",
-                ]
-            ):
+            if self.spec.satisfies("mpi_family=mpich"):
                 libs.append(self._xlp64_lib("libmkl_blacs_intelmpi"))
-            elif any(
-                self.spec.satisfies(m) for m in ["^openmpi", "^hpcx-mpi", "mpi_family=openmpi"]
-            ):
+            elif self.spec.satisfies("mpi_family=openmpi"):
                 libs.append(self._xlp64_lib("libmkl_blacs_openmpi"))
-            else:
-                raise RuntimeError(
-                    (
-                        "intel-oneapi-mkl +cluster requires one of ^intel-oneapi-mpi, "
-                        "^intel-mpi, ^mpich, ^cray-mpich, mpi_family=mpich, ^openmpi, "
-                        "^hpcx-mpi, or mpi_family=openmpi"
-                    )
-                )
 
         lib_path = (
             self.component_prefix.lib if self.v2_layout else self.component_prefix.lib.intel64
@@ -255,7 +289,7 @@ class IntelOneapiMkl(IntelOneApiLibraryPackage):
         try:
             if self.spec.satisfies("+cluster ^mpi"):
                 resolved_libs = resolved_libs + self.spec["mpi"].libs
-        except spack.error.NoLibrariesError:
+        except NoLibrariesError:
             pass
 
         if self.spec.satisfies("threads=openmp"):

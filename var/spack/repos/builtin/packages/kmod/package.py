@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,11 +21,13 @@ class Kmod(AutotoolsPackage):
     version("24", sha256="f7a5ee07d4901c87711880536604de7e31c182d85a72de7b8d7dd04d4ee0aa59")
     version("23", sha256="8f139543d82e8ccc2227dec4c016d6656e9789365a6dce73f90b620a53e62ee6")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")
     depends_on("pkgconfig", type="build")
-    depends_on("lzma")
+    depends_on("xz")
 
     def autoreconf(self, spec, prefix):
         bash = which("bash")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -31,6 +30,8 @@ class PyZarr(PythonPackage):
     depends_on("py-asciitree", type=("build", "run"))
     depends_on("py-numpy@1.21.1:", type=("build", "run"), when="@2.17:")
     depends_on("py-numpy@1.7:", type=("build", "run"))
+    # https://github.com/zarr-developers/zarr-python/issues/1818
+    depends_on("py-numpy@:1", when="@:2.17", type=("build", "run"))
     depends_on("py-fasteners", type=("build", "run"))
     depends_on("py-numcodecs@0.10:", type=("build", "run"), when="@2.17:")
     depends_on("py-numcodecs@0.6.4:", type=("build", "run"), when="@2.4.0:")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -50,14 +49,7 @@ class Mpt(BundlePackage):
         env.set("MPIF90", self.prefix.bin.mpif90)
 
     def setup_dependent_package(self, module, dependent_spec):
-        if "platform=cray" in self.spec:
-            dependent_module = dependent_spec.package.module
-            self.spec.mpicc = dependent_module.spack_cc
-            self.spec.mpicxx = dependent_module.spack_cxx
-            self.spec.mpifc = dependent_module.spack_fc
-            self.spec.mpif77 = dependent_module.spack_f77
-        else:
-            self.spec.mpicc = self.prefix.bin.mpicc
-            self.spec.mpicxx = self.prefix.bin.mpicxx
-            self.spec.mpifc = self.prefix.bin.mpif90
-            self.spec.mpif77 = self.prefix.bin.mpif77
+        self.spec.mpicc = self.prefix.bin.mpicc
+        self.spec.mpicxx = self.prefix.bin.mpicxx
+        self.spec.mpifc = self.prefix.bin.mpif90
+        self.spec.mpif77 = self.prefix.bin.mpif77

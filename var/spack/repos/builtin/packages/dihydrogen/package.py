@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,7 +11,7 @@ from spack.package import *
 def get_blas_entries(inspec):
     entries = []
     spec = inspec["hydrogen"]
-    if "blas=openblas" in spec:
+    if spec.satisfies("blas=openblas"):
         entries.append(cmake_cache_option("DiHydrogen_USE_OpenBLAS", True))
     elif "blas=mkl" in spec or spec.satisfies("^intel-mkl"):
         entries.append(cmake_cache_option("DiHydrogen_USE_MKL", True))
@@ -33,7 +32,7 @@ def get_blas_entries(inspec):
                 % ";".join("-l{0}".format(lib) for lib in self.spec["essl"].libs.names),
             )
         )
-    elif "blas=accelerate" in spec:
+    elif spec.satisfies("blas=accelerate"):
         entries.append(cmake_cache_option("DiHydrogen_USE_ACCELERATE", True))
     elif spec.satisfies("^netlib-lapack"):
         entries.append(cmake_cache_string("BLA_VENDOR", "Generic"))
@@ -60,6 +59,8 @@ class Dihydrogen(CachedCMakePackage, CudaPackage, ROCmPackage):
     version("master", branch="master")
 
     version("0.3.0", sha256="8dd143441a28e0c7662cd92694e9a4894b61fd48508ac1d77435f342bc226dcf")
+
+    depends_on("cxx", type="build")  # generated
 
     # Primary features
 
@@ -257,13 +258,6 @@ class Dihydrogen(CachedCMakePackage, CudaPackage, ROCmPackage):
         entries.append(cmake_cache_string("CMAKE_CXX_STANDARD", "17"))
         entries.append(cmake_cache_option("BUILD_SHARED_LIBS", "+shared" in spec))
         entries.append(cmake_cache_option("CMAKE_EXPORT_COMPILE_COMMANDS", True))
-
-        # It's possible this should have a `if "platform=cray" in
-        # spec:` in front of it, but it's not clear to me when this is
-        # set. In particular, I don't actually see this blurb showing
-        # up on Tioga builds. Which is causing the obvious problem
-        # (namely, the one this was added to supposedly solve in the
-        # first place.
         entries.append(cmake_cache_option("MPI_ASSUME_NO_BUILTIN_MPI", True))
 
         if spec.satisfies("%clang +distconv platform=darwin"):
@@ -337,18 +331,18 @@ class Dihydrogen(CachedCMakePackage, CudaPackage, ROCmPackage):
         # all this, but this shouldn't hurt to have.
         entries.append(cmake_cache_path("spdlog_ROOT", spec["spdlog"].prefix))
 
-        if "+developer" in spec:
+        if spec.satisfies("+developer"):
             entries.append(cmake_cache_path("Catch2_ROOT", spec["catch2"].prefix))
 
-        if "+coverage" in spec:
+        if spec.satisfies("+coverage"):
             entries.append(cmake_cache_path("lcov_ROOT", spec["lcov"].prefix))
             entries.append(cmake_cache_path("genhtml_ROOT", spec["lcov"].prefix))
-            if "+ci" in spec:
+            if spec.satisfies("+ci"):
                 entries.append(cmake_cache_path("gcovr_ROOT", spec["py-gcovr"].prefix))
 
-        if "+distconv" in spec:
+        if spec.satisfies("+distconv"):
             entries.append(cmake_cache_path("Aluminum_ROOT", spec["aluminum"].prefix))
-            if "+cuda" in spec:
+            if spec.satisfies("+cuda"):
                 entries.append(cmake_cache_path("cuDNN_ROOT", spec["cudnn"].prefix))
 
         # Currently this is a hack for all Hydrogen versions. WIP to

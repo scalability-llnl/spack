@@ -1,10 +1,11 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Test basic behavior of compilers in Spack"""
+import json
 import os
 from copy import copy
+from typing import Optional
 
 import pytest
 
@@ -12,31 +13,12 @@ import llnl.util.filesystem as fs
 
 import spack.compiler
 import spack.compilers
+import spack.config
 import spack.spec
-import spack.util.environment
+import spack.util.module_cmd
 from spack.compiler import Compiler
 from spack.util.executable import Executable, ProcessError
-
-
-@pytest.fixture()
-def make_args_for_version(monkeypatch):
-    def _factory(version, path="/usr/bin/gcc"):
-        class MockOs:
-            pass
-
-        compiler_name = "gcc"
-        compiler_cls = spack.compilers.class_for_compiler_name(compiler_name)
-        monkeypatch.setattr(compiler_cls, "cc_version", lambda x: version)
-
-        compiler_id = spack.compilers.CompilerID(
-            os=MockOs, compiler_name=compiler_name, version=None
-        )
-        variation = spack.compilers.NameVariation(prefix="", suffix="")
-        return spack.compilers.DetectVersionArgs(
-            id=compiler_id, variation=variation, language="cc", path=path
-        )
-
-    return _factory
+from spack.util.file_cache import FileCache
 
 
 def test_multiple_conflicting_compiler_definitions(mutable_config):
@@ -60,40 +42,6 @@ def test_multiple_conflicting_compiler_definitions(mutable_config):
     arch_spec = spack.spec.ArchSpec(("test", "test", "test"))
     cmp = spack.compilers.compiler_for_spec("clang@=0.0.0", arch_spec)
     assert cmp.f77 == "f77"
-
-
-def test_get_compiler_duplicates(mutable_config, compiler_factory):
-    # In this case there is only one instance of the specified compiler in
-    # the test configuration (so it is not actually a duplicate), but the
-    # method behaves the same.
-    cnl_compiler = compiler_factory(spec="gcc@4.5.0", operating_system="CNL")
-    # CNL compiler has no target attribute, and this is essential to make detection pass
-    del cnl_compiler["compiler"]["target"]
-    mutable_config.set(
-        "compilers", [compiler_factory(spec="gcc@4.5.0", operating_system="SuSE11"), cnl_compiler]
-    )
-    cfg_file_to_duplicates = spack.compilers.get_compiler_duplicates(
-        "gcc@4.5.0", spack.spec.ArchSpec("cray-CNL-xeon")
-    )
-
-    assert len(cfg_file_to_duplicates) == 1
-    cfg_file, duplicates = next(iter(cfg_file_to_duplicates.items()))
-    assert len(duplicates) == 1
-
-
-@pytest.mark.parametrize(
-    "input_version,expected_version,expected_error",
-    [(None, None, "Couldn't get version for compiler /usr/bin/gcc"), ("4.9", "4.9", None)],
-)
-def test_version_detection_is_empty(
-    make_args_for_version, input_version, expected_version, expected_error
-):
-    args = make_args_for_version(version=input_version)
-    result, error = spack.compilers.detect_version(args)
-    if not error:
-        assert result.id.version == expected_version
-
-    assert error == expected_error
 
 
 def test_compiler_flags_from_config_are_grouped():
@@ -137,14 +85,6 @@ class MockCompiler(Compiler):
             environment={},
         )
 
-    def _get_compiler_link_paths(self):
-        # Mock os.path.isdir so the link paths don't have to exist
-        old_isdir = os.path.isdir
-        os.path.isdir = lambda x: True
-        ret = super()._get_compiler_link_paths()
-        os.path.isdir = old_isdir
-        return ret
-
     @property
     def name(self):
         return "mockcompiler"
@@ -162,34 +102,28 @@ class MockCompiler(Compiler):
     required_libs = ["libgfortran"]
 
 
+@pytest.mark.not_on_windows("Not supported on Windows (yet)")
 def test_implicit_rpaths(dirs_with_libfiles, monkeypatch):
     lib_to_dirs, all_dirs = dirs_with_libfiles
-
-    def try_all_dirs(*args):
-        return all_dirs
-
-    monkeypatch.setattr(MockCompiler, "_get_compiler_link_paths", try_all_dirs)
-
-    expected_rpaths = set(lib_to_dirs["libstdc++"] + lib_to_dirs["libgfortran"])
-
-    compiler = MockCompiler()
-    retrieved_rpaths = compiler.implicit_rpaths()
-    assert set(retrieved_rpaths) == expected_rpaths
+    monkeypatch.setattr(
+        MockCompiler,
+        "_compile_dummy_c_source",
+        lambda self: "ld " + " ".join(f"-L{d}" for d in all_dirs),
+    )
+    retrieved_rpaths = MockCompiler().implicit_rpaths()
+    assert set(retrieved_rpaths) == set(lib_to_dirs["libstdc++"] + lib_to_dirs["libgfortran"])
 
 
-no_flag_dirs = ["/path/to/first/lib", "/path/to/second/lib64"]
-no_flag_output = "ld -L%s -L%s" % tuple(no_flag_dirs)
-
-flag_dirs = ["/path/to/first/with/flag/lib", "/path/to/second/lib64"]
-flag_output = "ld -L%s -L%s" % tuple(flag_dirs)
+without_flag_output = "ld -L/path/to/first/lib -L/path/to/second/lib64"
+with_flag_output = "ld -L/path/to/first/with/flag/lib -L/path/to/second/lib64"
 
 
 def call_compiler(exe, *args, **kwargs):
     # This method can replace Executable.__call__ to emulate a compiler that
     # changes libraries depending on a flag.
     if "--correct-flag" in exe.exe:
-        return flag_output
-    return no_flag_output
+        return with_flag_output
+    return without_flag_output
 
 
 @pytest.mark.not_on_windows("Not supported on Windows (yet)")
@@ -203,8 +137,8 @@ def call_compiler(exe, *args, **kwargs):
         ("cc", "cppflags"),
     ],
 )
-@pytest.mark.enable_compiler_link_paths
-def test_get_compiler_link_paths(monkeypatch, exe, flagname):
+@pytest.mark.enable_compiler_execution
+def test_compile_dummy_c_source_adds_flags(monkeypatch, exe, flagname):
     # create fake compiler that emits mock verbose output
     compiler = MockCompiler()
     monkeypatch.setattr(Executable, "__call__", call_compiler)
@@ -221,40 +155,38 @@ def test_get_compiler_link_paths(monkeypatch, exe, flagname):
         assert False
 
     # Test without flags
-    assert compiler._get_compiler_link_paths() == no_flag_dirs
+    assert compiler._compile_dummy_c_source() == without_flag_output
 
     if flagname:
         # set flags and test
         compiler.flags = {flagname: ["--correct-flag"]}
-        assert compiler._get_compiler_link_paths() == flag_dirs
+        assert compiler._compile_dummy_c_source() == with_flag_output
 
 
-def test_get_compiler_link_paths_no_path():
+@pytest.mark.enable_compiler_execution
+def test_compile_dummy_c_source_no_path():
     compiler = MockCompiler()
     compiler.cc = None
     compiler.cxx = None
-    compiler.f77 = None
-    compiler.fc = None
-    assert compiler._get_compiler_link_paths() == []
+    assert compiler._compile_dummy_c_source() is None
 
 
-def test_get_compiler_link_paths_no_verbose_flag():
+@pytest.mark.enable_compiler_execution
+def test_compile_dummy_c_source_no_verbose_flag():
     compiler = MockCompiler()
     compiler._verbose_flag = None
-    assert compiler._get_compiler_link_paths() == []
+    assert compiler._compile_dummy_c_source() is None
 
 
 @pytest.mark.not_on_windows("Not supported on Windows (yet)")
-@pytest.mark.enable_compiler_link_paths
-def test_get_compiler_link_paths_load_env(working_env, monkeypatch, tmpdir):
+@pytest.mark.enable_compiler_execution
+def test_compile_dummy_c_source_load_env(working_env, monkeypatch, tmpdir):
     gcc = str(tmpdir.join("gcc"))
-    with open(gcc, "w") as f:
+    with open(gcc, "w", encoding="utf-8") as f:
         f.write(
-            """#!/bin/sh
+            f"""#!/bin/sh
 if [ "$ENV_SET" = "1" ] && [ "$MODULE_LOADED" = "1" ]; then
-  echo '"""
-            + no_flag_output
-            + """'
+  printf '{without_flag_output}'
 fi
 """
         )
@@ -274,7 +206,7 @@ fi
     compiler.environment = {"set": {"ENV_SET": "1"}}
     compiler.modules = ["turn_on"]
 
-    assert compiler._get_compiler_link_paths() == no_flag_dirs
+    assert compiler._compile_dummy_c_source() == without_flag_output
 
 
 # Get the desired flag from the specified compiler spec.
@@ -402,9 +334,18 @@ def test_clang_flags():
     unsupported_flag_test("cxx17_flag", "clang@3.4")
     supported_flag_test("cxx17_flag", "-std=c++1z", "clang@3.5")
     supported_flag_test("cxx17_flag", "-std=c++17", "clang@5.0")
+    unsupported_flag_test("cxx20_flag", "clang@4.0")
+    supported_flag_test("cxx20_flag", "-std=c++2a", "clang@5.0")
+    supported_flag_test("cxx20_flag", "-std=c++20", "clang@11.0")
+    unsupported_flag_test("cxx23_flag", "clang@11.0")
+    supported_flag_test("cxx23_flag", "-std=c++2b", "clang@12.0")
+    supported_flag_test("cxx23_flag", "-std=c++23", "clang@17.0")
     supported_flag_test("c99_flag", "-std=c99", "clang@3.3")
     unsupported_flag_test("c11_flag", "clang@2.0")
     supported_flag_test("c11_flag", "-std=c11", "clang@6.1.0")
+    unsupported_flag_test("c23_flag", "clang@8.0")
+    supported_flag_test("c23_flag", "-std=c2x", "clang@9.0")
+    supported_flag_test("c23_flag", "-std=c23", "clang@18.0")
     supported_flag_test("cc_pic_flag", "-fPIC", "clang@3.3")
     supported_flag_test("cxx_pic_flag", "-fPIC", "clang@3.3")
     supported_flag_test("f77_pic_flag", "-fPIC", "clang@3.3")
@@ -525,9 +466,13 @@ def test_intel_flags():
     unsupported_flag_test("cxx14_flag", "intel@=14.0")
     supported_flag_test("cxx14_flag", "-std=c++1y", "intel@=15.0")
     supported_flag_test("cxx14_flag", "-std=c++14", "intel@=15.0.2")
+    unsupported_flag_test("cxx17_flag", "intel@=18")
+    supported_flag_test("cxx17_flag", "-std=c++17", "intel@=19.0")
     unsupported_flag_test("c99_flag", "intel@=11.0")
     supported_flag_test("c99_flag", "-std=c99", "intel@=12.0")
     unsupported_flag_test("c11_flag", "intel@=15.0")
+    supported_flag_test("c18_flag", "-std=c18", "intel@=21.5.0")
+    unsupported_flag_test("c18_flag", "intel@=21.4.0")
     supported_flag_test("c11_flag", "-std=c1x", "intel@=16.0")
     supported_flag_test("cc_pic_flag", "-fPIC", "intel@=1.0")
     supported_flag_test("cxx_pic_flag", "-fPIC", "intel@=1.0")
@@ -591,22 +536,6 @@ def test_nvhpc_flags():
     supported_flag_test("stdcxx_libs", ("-c++libs",), "nvhpc@=20.9")
 
 
-def test_pgi_flags():
-    supported_flag_test("openmp_flag", "-mp", "pgi@=1.0")
-    supported_flag_test("cxx11_flag", "-std=c++11", "pgi@=1.0")
-    unsupported_flag_test("c99_flag", "pgi@=12.9")
-    supported_flag_test("c99_flag", "-c99", "pgi@=12.10")
-    unsupported_flag_test("c11_flag", "pgi@=15.2")
-    supported_flag_test("c11_flag", "-c11", "pgi@=15.3")
-    supported_flag_test("cc_pic_flag", "-fpic", "pgi@=1.0")
-    supported_flag_test("cxx_pic_flag", "-fpic", "pgi@=1.0")
-    supported_flag_test("f77_pic_flag", "-fpic", "pgi@=1.0")
-    supported_flag_test("fc_pic_flag", "-fpic", "pgi@=1.0")
-    supported_flag_test("stdcxx_libs", ("-pgc++libs",), "pgi@=1.0")
-    supported_flag_test("debug_flags", ["-g", "-gopt"], "pgi@=1.0")
-    supported_flag_test("opt_flags", ["-O", "-O0", "-O1", "-O2", "-O3", "-O4"], "pgi@=1.0")
-
-
 def test_xl_flags():
     supported_flag_test("openmp_flag", "-qsmp=omp", "xl@=1.0")
     unsupported_flag_test("cxx11_flag", "xl@=13.0")
@@ -653,6 +582,7 @@ def test_xl_r_flags():
     "compiler_spec,expected_result",
     [("gcc@4.7.2", False), ("clang@3.3", False), ("clang@8.0.0", True)],
 )
+@pytest.mark.not_on_windows("GCC and LLVM currently not supported on the platform")
 def test_detecting_mixed_toolchains(
     compiler_spec, expected_result, mutable_config, compiler_factory
 ):
@@ -706,13 +636,14 @@ def test_raising_if_compiler_target_is_over_specific(config):
 
 
 @pytest.mark.not_on_windows("Not supported on Windows (yet)")
+@pytest.mark.enable_compiler_execution
 def test_compiler_get_real_version(working_env, monkeypatch, tmpdir):
     # Test variables
     test_version = "2.2.2"
 
     # Create compiler
     gcc = str(tmpdir.join("gcc"))
-    with open(gcc, "w") as f:
+    with open(gcc, "w", encoding="utf-8") as f:
         f.write(
             """#!/bin/sh
 if [ "$CMP_ON" = "1" ]; then
@@ -795,13 +726,14 @@ def test_get_compilers(config):
     ) == [spack.compilers._compiler_from_config_entry(without_suffix)]
 
 
+@pytest.mark.enable_compiler_execution
 def test_compiler_get_real_version_fails(working_env, monkeypatch, tmpdir):
     # Test variables
     test_version = "2.2.2"
 
     # Create compiler
     gcc = str(tmpdir.join("gcc"))
-    with open(gcc, "w") as f:
+    with open(gcc, "w", encoding="utf-8") as f:
         f.write(
             """#!/bin/sh
 if [ "$CMP_ON" = "1" ]; then
@@ -843,19 +775,17 @@ fi
     compilers = spack.compilers.get_compilers([compiler_dict])
     assert len(compilers) == 1
     compiler = compilers[0]
-    try:
-        _ = compiler.get_real_version()
-        assert False
-    except ProcessError:
-        # Confirm environment does not change after failed call
-        assert "SPACK_TEST_CMP_ON" not in os.environ
+    assert compiler.get_real_version() == "unknown"
+    # Confirm environment does not change after failed call
+    assert "SPACK_TEST_CMP_ON" not in os.environ
 
 
 @pytest.mark.not_on_windows("Bash scripting unsupported on Windows (for now)")
+@pytest.mark.enable_compiler_execution
 def test_compiler_flags_use_real_version(working_env, monkeypatch, tmpdir):
     # Create compiler
     gcc = str(tmpdir.join("gcc"))
-    with open(gcc, "w") as f:
+    with open(gcc, "w", encoding="utf-8") as f:
         f.write(
             """#!/bin/sh
 echo "4.4.4"
@@ -912,3 +842,99 @@ def test_compiler_executable_verification_success(tmpdir):
     # Test that null entries don't fail
     compiler.cc = None
     compiler.verify_executables()
+
+
+@pytest.mark.parametrize(
+    "compilers_extra_attributes,expected_length",
+    [
+        # If we detect a C compiler we expect the result to be valid
+        ({"c": "/usr/bin/clang-12", "cxx": "/usr/bin/clang-12"}, 1),
+        # If we detect only a C++ compiler we expect the result to be discarded
+        ({"cxx": "/usr/bin/clang-12"}, 0),
+    ],
+)
+def test_detection_requires_c_compiler(compilers_extra_attributes, expected_length):
+    """Tests that compilers automatically added to the configuration have
+    at least a C compiler.
+    """
+    packages_yaml = {
+        "llvm": {
+            "externals": [
+                {
+                    "spec": "clang@12.0.0",
+                    "prefix": "/usr",
+                    "extra_attributes": {"compilers": compilers_extra_attributes},
+                }
+            ]
+        }
+    }
+    result = spack.compilers.CompilerConfigFactory.from_packages_yaml(packages_yaml)
+    assert len(result) == expected_length
+
+
+def test_compiler_environment(working_env):
+    """Test whether environment modifications from compilers are applied in compiler_environment"""
+    os.environ.pop("TEST", None)
+    compiler = Compiler(
+        "gcc@=13.2.0",
+        operating_system="ubuntu20.04",
+        target="x86_64",
+        paths=["/test/bin/gcc", "/test/bin/g++"],
+        environment={"set": {"TEST": "yes"}},
+    )
+    with compiler.compiler_environment():
+        assert os.environ["TEST"] == "yes"
+
+
+class MockCompilerWithoutExecutables(MockCompiler):
+    def __init__(self):
+        super().__init__()
+        self._compile_dummy_c_source_count = 0
+        self._get_real_version_count = 0
+
+    def _compile_dummy_c_source(self) -> Optional[str]:
+        self._compile_dummy_c_source_count += 1
+        return "gcc helloworld.c -o helloworld"
+
+    def get_real_version(self) -> str:
+        self._get_real_version_count += 1
+        return "1.0.0"
+
+
+def test_compiler_output_caching(tmp_path):
+    """Test that compiler output is cached on the filesystem."""
+    # The first call should trigger the cache to updated.
+    a = MockCompilerWithoutExecutables()
+    cache = spack.compiler.FileCompilerCache(FileCache(str(tmp_path)))
+    assert cache.get(a).c_compiler_output == "gcc helloworld.c -o helloworld"
+    assert cache.get(a).real_version == "1.0.0"
+    assert a._compile_dummy_c_source_count == 1
+    assert a._get_real_version_count == 1
+
+    # The second call on an equivalent but distinct object should not trigger compiler calls.
+    b = MockCompilerWithoutExecutables()
+    cache = spack.compiler.FileCompilerCache(FileCache(str(tmp_path)))
+    assert cache.get(b).c_compiler_output == "gcc helloworld.c -o helloworld"
+    assert cache.get(b).real_version == "1.0.0"
+    assert b._compile_dummy_c_source_count == 0
+    assert b._get_real_version_count == 0
+
+    # Cache schema change should be handled gracefully.
+    with open(cache.cache.cache_path(cache.name), "w", encoding="utf-8") as f:
+        for k in cache._data:
+            cache._data[k] = "corrupted entry"
+        f.write(json.dumps(cache._data))
+
+    c = MockCompilerWithoutExecutables()
+    cache = spack.compiler.FileCompilerCache(FileCache(str(tmp_path)))
+    assert cache.get(c).c_compiler_output == "gcc helloworld.c -o helloworld"
+    assert cache.get(c).real_version == "1.0.0"
+
+    # Cache corruption should be handled gracefully.
+    with open(cache.cache.cache_path(cache.name), "w", encoding="utf-8") as f:
+        f.write("corrupted cache")
+
+    d = MockCompilerWithoutExecutables()
+    cache = spack.compiler.FileCompilerCache(FileCache(str(tmp_path)))
+    assert cache.get(d).c_compiler_output == "gcc helloworld.c -o helloworld"
+    assert cache.get(d).real_version == "1.0.0"

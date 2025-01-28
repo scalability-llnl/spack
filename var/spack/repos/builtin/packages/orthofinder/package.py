@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -54,7 +53,7 @@ class Orthofinder(Package):
     depends_on("blast-plus", type="run", when="+blast")
     depends_on("mmseqs2", type="run", when="+mmseqs2")
     depends_on("muscle5", type="run", when="+muscle")
-    depends_on("iqtree2", type="run", when="+iqtree")
+    depends_on("iq-tree@2", type="run", when="+iqtree")
     depends_on("raxml", type="run", when="+raxml")
     depends_on("raxml-ng", type="run", when="+raxml-ng")
 

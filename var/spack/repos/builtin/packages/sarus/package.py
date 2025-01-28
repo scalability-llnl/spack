@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -30,6 +29,8 @@ class Sarus(CMakePackage):
     version("1.1.0", commit="ed5b640a45ced6f6a7a2a9d295d3d6c6106f39c3")
     version("1.0.1", commit="abb8c314a196207204826f7b60e5064677687405")
     version("1.0.0", commit="d913b1d0ef3729f9f41ac5bd06dd5615c407ced4")
+
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "ssh",

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,8 @@ class Editline(AutotoolsPackage):
 
     version("1.17.1", sha256="d65c5739c8ca388fa71feabc5aae506d052e1a6d288ee4e7fcab7efb07a3be74")
     version("1.16.0", sha256="33421a1569d025f332a87054bfea28e2c757bdb573f1437bc22c34b798b6383c")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

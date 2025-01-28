@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,7 +8,7 @@ from spack.package import *
 class PyJupyterServerMathjax(PythonPackage):
     """MathJax resources as a Jupyter Server Extension."""
 
-    homepage = "http://jupyter.org/"
+    homepage = "https://jupyter.org/"
     pypi = "jupyter_server_mathjax/jupyter_server_mathjax-0.2.3.tar.gz"
 
     license("BSD-3-Clause")

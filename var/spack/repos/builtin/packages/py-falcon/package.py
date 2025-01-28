@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,7 +10,7 @@ class PyFalcon(PythonPackage):
     building large-scale app backends and microservices."""
 
     homepage = "https://github.com/falconry/falcon"
-    url = "https://github.com/falconry/falcon/archive/3.0.0a2.tar.gz"
+    url = "https://github.com/falconry/falcon/archive/refs/tags/3.0.0a2.tar.gz"
 
     license("Apache-2.0")
 

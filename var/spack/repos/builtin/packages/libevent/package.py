@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -36,6 +35,8 @@ class Libevent(AutotoolsPackage):
     version("2.0.13", sha256="e2cc3b9f03e68ff878919b1cd031a210ba9ff376283d895161afcbc25aca00a9")
     version("2.0.12", sha256="ac0283f72e0f881e93ac3ae9497a20c78bd075c6c12506ad10e821aa1c29e5ab")
 
+    depends_on("c", type="build")  # generated
+
     variant(
         "openssl", default=True, description="Build with encryption enabled at the libevent level."
     )
@@ -59,7 +60,7 @@ class Libevent(AutotoolsPackage):
     def configure_args(self):
         spec = self.spec
         configure_args = []
-        if "+openssl" in spec:
+        if spec.satisfies("+openssl"):
             configure_args.append("--enable-openssl")
         else:
             configure_args.append("--disable-openssl")

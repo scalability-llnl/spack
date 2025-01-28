@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,9 @@ class PyFlye(PythonPackage):
     version("2.7", sha256="4d595f53bd68c820b43509ce6ee7284847237e70a3b4bc16c57170bb538d3947")
     version("2.7.1", sha256="0e826261c81537a7fa8fd37dc583edd75535eee0f30429d6bdb55f37b5722dbb")
     version("2.6", sha256="5bdc44b84712794fa4264eed690d8c65c0d72f495c7bbf2cd15b634254809131")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     # https://github.com/fenderglass/Flye/blob/flye/docs/INSTALL.md
     depends_on("python@2.7:2.8,3.5:", type=("build", "run"))

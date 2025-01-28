@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,9 @@ class XmlrpcC(AutotoolsPackage):
     license("BSD-3-Clause AND MIT", checked_by="tgamblin")
 
     version("1.51.06", sha256="06dcd87d9c88374559369ffbe83b3139cf41418c1a2d03f20e08808085f89fd0")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("curl", default=False, description="Build the XMLRPC curl client")
     depends_on("curl", when="+curl")

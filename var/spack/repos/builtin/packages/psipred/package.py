@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class Psipred(MakefilePackage):
     license_url = "http://bioinfadmin.cs.ucl.ac.uk/downloads/psipred/LICENSE"
 
     version("4.02", sha256="b4009b6a5f8b76c6d60ac91c4a743512d844864cf015c492fb6d1dc0d092c467")
+
+    depends_on("c", type="build")  # generated
 
     variant("blast-plus", default=False, description="Use blast-plus in place of blast-legacy")
 

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -30,6 +29,8 @@ class PyModin(PythonPackage):
     depends_on("py-pandas@1.1.5", when="^python@:3.7", type=("build", "run"))
     depends_on("py-packaging", type=("build", "run"))
     depends_on("py-numpy@1.18.5:", type=("build", "run"))
+    # https://github.com/modin-project/modin/issues/7310
+    depends_on("py-numpy@:1", when="@:0.30", type=("build", "run"))
     depends_on("py-fsspec", type=("build", "run"))
     depends_on("py-psutil", type=("build", "run"))
 

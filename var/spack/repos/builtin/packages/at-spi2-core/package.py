@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class AtSpi2Core(MesonPackage):
 
     license("LGPL-2.1-or-later")
 
+    version("2.54.0", sha256="d7eee7e75beddcc272cedc2b60535600f3aae6e481589ebc667afc437c0a6079")
+    version("2.52.0", sha256="0ac3fc8320c8d01fa147c272ba7fa03806389c6b03d3c406d0823e30e35ff5ab")
     version("2.51.91", sha256="1344bd5c1732b55fcf3df9e3b87569f60984ae83ce75881b5a057c69f8d73e34")
     version("2.48.3", sha256="37316df43ca9989ce539d54cf429a768c28bb38a0b34950beadd0421827edf55")
     version("2.48.0", sha256="905a5b6f1790b68ee803bffa9f5fab4ceb591fb4fae0b2f8c612c54f1d4e8a30")
@@ -26,6 +27,8 @@ class AtSpi2Core(MesonPackage):
     version("2.38.0", sha256="84e36c3fe66862133f5fe229772b76aa2526e10de5014a3778f2fa46ce550da5")
     version("2.36.0", sha256="88da57de0a7e3c60bc341a974a80fdba091612db3547c410d6deab039ca5c05a")
     version("2.28.0", sha256="42a2487ab11ce43c288e73b2668ef8b1ab40a0e2b4f94e80fca04ad27b6f1c87")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("meson@0.46.0:", type="build")
     depends_on("glib@2.56.1:")

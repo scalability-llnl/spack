@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,6 +26,8 @@ class Fasta(MakefilePackage):
         sha256="d13ec06a040e4d77bf6913af44b705d3ecc921131da018e71d24daf47d3664d3",
         url="https://github.com/wrpearson/fasta36/archive/refs/tags/v36.3.8h_04-May-2020.tar.gz",
     )
+
+    depends_on("c", type="build")  # generated
 
     depends_on("zlib-api")
 

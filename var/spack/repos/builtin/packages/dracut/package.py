@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,5 +17,7 @@ class Dracut(AutotoolsPackage):
 
     version("059", sha256="eabf0bb685420c1e1d5475b6855ef787104508f0135ff570312845256e0fcecf")
     version("050", sha256="f9dbf18597e5929221365964293212c8c9ffb7d84529c5a338c834ecab06e333")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("kmod")

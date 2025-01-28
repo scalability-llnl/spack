@@ -1,9 +1,7 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Common utilities for managing intel oneapi packages."""
-import getpass
 import os
 import platform
 import shutil
@@ -13,9 +11,10 @@ from llnl.util import tty
 from llnl.util.filesystem import HeaderList, LibraryList, find_libraries, join_path, mkdirp
 from llnl.util.link_tree import LinkTree
 
+import spack.util.path
 from spack.build_environment import dso_suffix
-from spack.directives import conflicts, license, variant
-from spack.package_base import InstallError
+from spack.directives import conflicts, license, redistribute, variant
+from spack.error import InstallError
 from spack.util.environment import EnvironmentModifications
 from spack.util.executable import Executable
 
@@ -30,15 +29,17 @@ class IntelOneApiPackage(Package):
 
     # oneAPI license does not allow mirroring outside of the
     # organization (e.g. University/Company).
-    redistribute_source = False
+    redistribute(source=False, binary=False)
+
+    # contains precompiled binaries without rpaths
+    unresolved_libraries = ["*"]
 
     for c in [
         "target=ppc64:",
         "target=ppc64le:",
         "target=aarch64:",
-        "platform=darwin:",
-        "platform=cray:",
-        "platform=windows:",
+        "platform=darwin",
+        "platform=windows",
     ]:
         conflicts(c, msg="This package in only available for x86_64 and Linux")
 
@@ -100,7 +101,7 @@ class IntelOneApiPackage(Package):
             # with other install depends on the userid. For root, we
             # delete the installercache before and after install. For
             # non root we redefine the HOME environment variable.
-            if getpass.getuser() == "root":
+            if spack.util.path.get_user() == "root":
                 shutil.rmtree("/var/intel/installercache", ignore_errors=True)
 
             bash = Executable("bash")
@@ -123,7 +124,7 @@ class IntelOneApiPackage(Package):
                 self.prefix,
             )
 
-            if getpass.getuser() == "root":
+            if spack.util.path.get_user() == "root":
                 shutil.rmtree("/var/intel/installercache", ignore_errors=True)
 
         # Some installers have a bug and do not return an error code when failing
@@ -256,7 +257,7 @@ class IntelOneApiLibraryPackage(IntelOneApiPackage):
         return find_libraries("*", root=self.component_prefix.lib, recursive=not self.v2_layout)
 
 
-class IntelOneApiLibraryPackageWithSdk(IntelOneApiPackage):
+class IntelOneApiLibraryPackageWithSdk(IntelOneApiLibraryPackage):
     """Base class for Intel oneAPI library packages with SDK components.
 
     Contains some convenient default implementations for libraries

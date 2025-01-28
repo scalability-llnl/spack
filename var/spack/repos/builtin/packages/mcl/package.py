@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,8 @@ class Mcl(AutotoolsPackage):
     license("GPL-3.0-or-later")
 
     version("14-137", sha256="b5786897a8a8ca119eb355a5630806a4da72ea84243dba85b19a86f14757b497")
+
+    depends_on("c", type="build")  # generated
 
     @when("%gcc@10:")
     def patch(self):

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,7 +14,9 @@ pycmake_versions = {
 
 class PyCmake(PythonPackage):
     """CMake is an open-source, cross-platform family of tools designed to
-    build, test and package software
+    build, test and package software.
+
+    Deprecated: use cmake instead.
     """
 
     homepage = "https://cmake.org"
@@ -25,7 +26,7 @@ class PyCmake(PythonPackage):
     license("Apache-2.0")
 
     for v, sha in pycmake_versions.items():
-        version(v, sha256=sha)
+        version(v, sha256=sha, deprecated=True)
 
     depends_on("ninja", type="build")
     depends_on("py-scikit-build@0.12:", type="build")

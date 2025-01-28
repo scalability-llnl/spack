@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -34,5 +33,5 @@ class PyPhylophlan(PythonPackage):
     depends_on("mafft@7.310:", type=("build", "run"))
     depends_on("fasttree@2.1.8:", type=("build", "run"))
     depends_on("raxml@8.2.10:", type=("build", "run"))
-    depends_on("iqtree2", type=("build", "run"))
+    depends_on("iq-tree@2", type=("build", "run"))
     depends_on("mash", type=("build", "run"))

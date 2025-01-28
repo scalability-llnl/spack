@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,8 @@ class Helics(CMakePackage):
     version("develop", branch="develop", submodules=True)
     version("main", branch="main", submodules=True)
     version("master", branch="main", submodules=True)
+    version("3.6.0", sha256="e111ac5d92e808f27e330afd1f8b8ca4d86adf6ccd74e3280f2d40fb3e0e2ce9")
+    version("3.5.3", sha256="f9ace240510b18caf642f55d08f9009a9babb203fbc032ec7d7d8aa6fd5e1553")
     version("3.5.2", sha256="c2604694698a1e33c4a68f3d1c5ab0a228ef2bfca1b0d3bae94801dbd3b11048")
     version("3.5.1", sha256="546fc6e6a85de6ba841e4bd547b811cc81a67a22be5e212ccb54be139d740555")
     version("3.5.0", sha256="0c02ebaecf3d4ead7911e13325b26706f1e4b316ca51ec609e969e18ec584b78")
@@ -48,6 +49,9 @@ class Helics(CMakePackage):
     version("2.5.0", sha256="6f4f9308ebb59d82d71cf068e0d9d66b6edfa7792d61d54f0a61bf20dd2a7428")
     version("2.4.2", sha256="957856f06ed6d622f05dfe53df7768bba8fe2336d841252f5fac8345070fa5cb")
     version("2.4.1", sha256="ac077e9efe466881ea366721cb31fb37ea0e72a881a717323ba4f3cdda338be4")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("apps", default=True, description="Install the HELICS apps executables")
     variant("apps_lib", default=True, description="Install the HELICS apps library")
@@ -85,8 +89,10 @@ class Helics(CMakePackage):
     depends_on("git", type="build", when="@master:")
     depends_on("cmake@3.4:", type="build", when="@:2")
     depends_on("cmake@3.10:", type="build", when="@3.0.0:3.2.1")
-    depends_on("cmake@3.11:", type="build", when="@3.3.0:")
-    depends_on("boost@1.70:", type="build", when="+boost")
+    depends_on("cmake@3.11:", type="build", when="@3.3.0:3.5.3")
+    depends_on("cmake@3.22:", type="build", when="@3.6.0:")
+    depends_on("boost@1.70:", type="build", when="@:3.5.3 +boost")
+    depends_on("boost@1.75:", type="build", when="@3.6.0: +boost")
 
     # TODO: replace this with an explicit list of components of Boost,
     # for instance depends_on('boost +filesystem')
@@ -102,11 +108,24 @@ class Helics(CMakePackage):
     depends_on("python@3:", when="@:2 +python")
 
     # Compiler restrictions based on C++ standard supported
-    conflicts("%gcc@:6", when="@3.0.0:", msg="HELICS 3+ cannot be built with GCC older than 7.0")
     conflicts(
-        "%clang@:4", when="@3.0.0:", msg="HELICS 3+ cannot be built with Clang older than 5.0"
+        "%gcc@:6", when="@3.0.0:3.5.3", msg="HELICS 3+ cannot be built with GCC older than 7.0"
     )
-    conflicts("%intel@:18", when="@3.0.0:", msg="HELICS 3+ cannot be built with ICC older than 19")
+    conflicts(
+        "%gcc@:11", when="@3.6.0:", msg="HELICS 3.6+ cannot be built with GCC older than 11.0"
+    )
+    conflicts(
+        "%clang@:4", when="@3.0.0:3.5.3", msg="HELICS 3+ cannot be built with Clang older than 5.0"
+    )
+    conflicts(
+        "%clang@:15", when="@3.6.0:", msg="HELICS 3.6+ cannot be built with Clang older than 15.0"
+    )
+    conflicts(
+        "%intel@:18", when="@3.0.0:3.5.3", msg="HELICS 3+ cannot be built with ICC older than 19"
+    )
+    conflicts(
+        "%intel@:21", when="@3.6.0:", msg="HELICS 3.6+ cannot be built with ICC older than 21"
+    )
 
     # OpenMPI doesn't work with HELICS <=2.4.1
     conflicts("^openmpi", when="@:2.4.1 +mpi")
@@ -138,7 +157,9 @@ class Helics(CMakePackage):
 
         # HELICS shared library options
         args.append(
-            "-DHELICS_DISABLE_C_SHARED_LIB={0}".format("OFF" if "+c_shared" in spec else "ON")
+            "-DHELICS_DISABLE_C_SHARED_LIB={0}".format(
+                "OFF" if spec.satisfies("+c_shared") else "ON"
+            )
         )
         args.append(from_variant("HELICS_BUILD_CXX_SHARED_LIB", "cxx_shared"))
 
@@ -146,13 +167,17 @@ class Helics(CMakePackage):
         args.append(from_variant("HELICS_BUILD_APP_EXECUTABLES", "apps"))
         args.append(from_variant("HELICS_BUILD_APP_LIBRARY", "apps_lib"))
         args.append(
-            "-DHELICS_DISABLE_WEBSERVER={0}".format("OFF" if "+webserver" in spec else "ON")
+            "-DHELICS_DISABLE_WEBSERVER={0}".format(
+                "OFF" if spec.satisfies("+webserver") else "ON"
+            )
         )
         args.append(from_variant("HELICS_BUILD_BENCHMARKS", "benchmarks"))
 
         # Extra HELICS library dependencies
-        args.append("-DHELICS_DISABLE_BOOST={0}".format("OFF" if "+boost" in spec else "ON"))
-        args.append("-DHELICS_DISABLE_ASIO={0}".format("OFF" if "+asio" in spec else "ON"))
+        args.append(
+            "-DHELICS_DISABLE_BOOST={0}".format("OFF" if spec.satisfies("+boost") else "ON")
+        )
+        args.append("-DHELICS_DISABLE_ASIO={0}".format("OFF" if spec.satisfies("+asio") else "ON"))
 
         # Encryption
         args.append(from_variant("HELICS_ENABLE_ENCRYPTION", "encryption"))
@@ -165,14 +190,14 @@ class Helics(CMakePackage):
             # Python interface was removed from the main HELICS build in v3
             args.append(from_variant("BUILD_PYTHON_INTERFACE", "python"))
 
-        # GCC >=13
-        if spec.satisfies("%gcc@13:"):
-            # C++20 required when building with GCC>=13
+        # GCC >=13 or HELICS 3.6+
+        if spec.satisfies("%gcc@13:") or spec.satisfies("@3.6.0:"):
+            # C++20 required when building with GCC>=13 or HELICS 3.6+
             args.append("-DCMAKE_CXX_STANDARD=20")
 
         return args
 
     def setup_run_environment(self, env):
         spec = self.spec
-        if "+python" in spec:
+        if spec.satisfies("+python"):
             env.prepend_path("PYTHONPATH", self.prefix.python)

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,9 @@ class Khmer(PythonPackage):
     license("BSD-3-Clause", checked_by="A-N-Other")
 
     version("2.1.1", sha256="a709606910bb8679bd8525e9d2bf6d1421996272e343b54cc18090feb2fdbe24")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     # https://github.com/dib-lab/khmer/pull/1922 ...
     conflicts("^python@3.12:")

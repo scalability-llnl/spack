@@ -5,13 +5,10 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
-  # Requirements to build documentation
+  # Requirements to run style checks and build documentation
   - package-ecosystem: "pip"
-    directory: "/lib/spack/docs"
-    schedule:
-      interval: "daily"
-  # Requirements to run style checks
-  - package-ecosystem: "pip"
-    directory: "/.github/workflows/style"
+    directories:
+     - "/.github/workflows/requirements/style/*"
+     - "/lib/spack/docs"
     schedule:
       interval: "daily"

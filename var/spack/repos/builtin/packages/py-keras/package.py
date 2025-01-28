@@ -1,10 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import tempfile
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -22,6 +22,16 @@ class PyKeras(PythonPackage):
     maintainers("adamjstewart")
     license("Apache-2.0")
 
+    version("3.8.0", sha256="6289006e6f6cb2b68a563b58cf8ae5a45569449c5a791df6b2f54c1877f3f344")
+    version("3.7.0", sha256="a4451a5591e75dfb414d0b84a3fd2fb9c0240cc87ebe7e397f547ce10b0e67b7")
+    version("3.6.0", sha256="405727525a3522ed8f9ec0b46e0667e4c65fcf714a067322c16a00d902ded41d")
+    version("3.5.0", sha256="53ae4f9472ec9d9c6941c82a3fda86969724ace3b7630a94ba0a1f17ba1065c3")
+    version("3.4.1", sha256="34cd9aeaa008914715149234c215657ca758e1b473bd2aab2e211ac967d1f8fe")
+    version("3.4.0", sha256="c4b05b150b1c4df27b4a17efd137b2d5e20f385f146fd48636791d675e75059d")
+    version("3.3.3", sha256="f2fdffc8434fd77045cf8fb21816dbaa2308d5f76974ca924b2f60b40433b1a0")
+    version("3.3.2", sha256="e7e2ccba2dfe2cf10b82e3c75ea971b82a4c62560dc562c43b33f7790127c92f")
+    version("3.3.1", sha256="03531beb01b108b867683762ceaacd0f28efc40cb92eee3c8c988b80cf718bbe")
+    version("3.3.0", sha256="46763bd84696aa5e326734ee0ccfde12bef73b27f1e5e241bbf539cb6411e78d")
     version("3.2.1", sha256="966abbf0dfc1f9725f6293fb2a04ec83f56cd2a800990b38d1a03041255214a7")
     version("3.2.0", sha256="e3ff572c872ebb24d2ae62d4e12c3579ccd0019d0f0adaf3cb7dc610e77e84c1")
     version("3.1.1", sha256="55558ea228dc38e7667874fd2e83eaf7faeb026e2e8615b36a8616830f7e303b")
@@ -55,6 +65,7 @@ class PyKeras(PythonPackage):
     version("2.2.1", sha256="0d3cb14260a3fa2f4a5c4c9efa72226ffac3b4c50135ba6edaf2b3d1d23b11ee")
     version("2.2.0", sha256="5b8499d157af217f1a5ee33589e774127ebc3e266c833c22cb5afbb0ed1734bf")
 
+    # TODO: add openvino backend (keras 3.8+)
     variant(
         "backend",
         default="tensorflow",
@@ -64,61 +75,77 @@ class PyKeras(PythonPackage):
         when="@3:",
     )
 
-    # setup.py
-    depends_on("python@3.9:", type=("build", "run"), when="@3:")
-    depends_on("python@3.8:", type=("build", "run"), when="@2.12:")
-    depends_on("py-setuptools", type="build")
-    depends_on("py-absl-py", type=("build", "run"), when="@2.6:")
-    depends_on("py-numpy", type=("build", "run"))
-    depends_on("py-rich", type=("build", "run"), when="@3:")
-    depends_on("py-namex", type=("build", "run"), when="@3:")
-    depends_on("py-h5py", type=("build", "run"))
-    depends_on("py-optree", type=("build", "run"), when="@3.1:")
-    depends_on("py-ml-dtypes", type=("build", "run"), when="@3.0.5:")
+    with default_args(type="build"):
+        # pyproject.toml
+        depends_on("py-setuptools@61:", when="@3.7:")
+        depends_on("py-setuptools")
 
-    # requirements-common.txt
-    depends_on("py-scipy", type=("build", "run"))
-    depends_on("py-pandas", type=("build", "run"))
-    depends_on("py-requests", type=("build", "run"), when="@3:")
-    depends_on("py-protobuf", type=("build", "run"), when="@3:")
+    with default_args(type=("build", "run")):
+        # pyproject.toml
+        depends_on("python@3.9:", when="@3:")
+        depends_on("python@3.8:", when="@2.12:")
+        depends_on("py-absl-py", when="@2.6:")
+        depends_on("py-numpy")
+        depends_on("py-rich", when="@3:")
+        depends_on("py-namex", when="@3:")
+        depends_on("py-h5py")
+        depends_on("py-optree", when="@3.1:")
+        depends_on("py-ml-dtypes", when="@3.0.5:")
+        depends_on("py-packaging", when="@3.4:")
 
-    # requirements-tensorflow-cuda.txt
-    depends_on("py-tensorflow@2.16.1", type=("build", "run"), when="@3.0: backend=tensorflow")
+        # requirements-common.txt
+        # Many more (optional?) dependencies
 
-    # requirements-jax-cuda.txt
-    depends_on("py-jax@0.4.23", type=("build", "run"), when="@3.0.5: backend=jax")
-    depends_on("py-jax", type=("build", "run"), when="@3: backend=jax")
+        # requirements-tensorflow-cuda.txt
+        with when("backend=tensorflow"):
+            depends_on("py-tensorflow@2.18", when="@3.7:")
+            depends_on("py-tensorflow@2.17", when="@3.5:3.6")
+            depends_on("py-tensorflow@2.16.1:2.16", when="@3.0:3.4")
+            # depends_on("py-tf2onnx", when="@3.8:")
 
-    # requirements-torch-cuda.txt
-    depends_on("py-torch@2.2.1", type=("build", "run"), when="@3.1.0: backend=torch")
-    depends_on("py-torch@2.1.2", type=("build", "run"), when="@3.0.3:3.0.5 backend=torch")
-    depends_on("py-torch@2.1.1", type=("build", "run"), when="@3.0.1:3.0.2 backend=torch")
-    depends_on("py-torch@2.1.0", type=("build", "run"), when="@3.0.0 backend=torch")
-    depends_on("py-torchvision@0.17.1", type=("build", "run"), when="@3.1.0: backend=torch")
-    depends_on("py-torchvision@0.16.2", type=("build", "run"), when="@3.0.3:3.0.5 backend=torch")
-    depends_on("py-torchvision@0.16.1", type=("build", "run"), when="@3.0.1:3.0.2 backend=torch")
-    depends_on("py-torchvision@0.16.0", type=("build", "run"), when="@3.0.0 backend=torch")
+        # requirements-jax-cuda.txt
+        with when("backend=jax"):
+            depends_on("py-jax@0.4.28", when="@3.6:")
+            depends_on("py-jax@0.4.23", when="@3.0.5:3.5")
+            depends_on("py-jax", when="@3:")
+            # depends_on("py-flax", when="@3.2:")
+
+        # requirements-torch-cuda.txt
+        with when("backend=torch"):
+            depends_on("py-torch@2.5.1", when="@3.7:")
+            depends_on("py-torch@2.4.1", when="@3.6")
+            depends_on("py-torch@2.4.0", when="@3.5")
+            depends_on("py-torch@2.2.1", when="@3.1:3.4")
+            depends_on("py-torch@2.1.2", when="@3.0.3:3.0.5")
+            depends_on("py-torch@2.1.1", when="@3.0.1:3.0.2")
+            depends_on("py-torch@2.1.0", when="@3.0.0")
+            depends_on("py-torchvision@0.20.1", when="@3.7:")
+            depends_on("py-torchvision@0.19.1", when="@3.6")
+            depends_on("py-torchvision@0.19.0", when="@3.5")
+            depends_on("py-torchvision@0.17.1", when="@3.1:3.4")
+            depends_on("py-torchvision@0.16.2", when="@3.0.3:3.0.5")
+            depends_on("py-torchvision@0.16.1", when="@3.0.1:3.0.2")
+            depends_on("py-torchvision@0.16.0", when="@3.0.0")
+            # depends_on("py-torch-xla", when="@3.8:")
 
     # Historical dependencies
-    depends_on("bazel", type="build", when="@2.5:2")
-    depends_on("protobuf", type="build", when="@2.5:2")
-    depends_on("pil", type=("build", "run"), when="@:2")
-    depends_on("py-dm-tree", type=("build", "run"), when="@3.0")
-    depends_on("py-portpicker", type=("build", "run"), when="@2.10:2")
-    depends_on("py-pydot", type=("build", "run"), when="@:2")
-    depends_on("py-pyyaml", type=("build", "run"), when="@:2")
-    depends_on("py-six", type=("build", "run"), when="@:2")
-    for minor_ver in range(6, 16):
-        depends_on(
-            "py-tensorflow@2.{}".format(minor_ver),
-            type=("build", "run"),
-            when="@2.{}".format(minor_ver),
-        )
-        depends_on(
-            "py-tensorboard@2.{}".format(minor_ver),
-            type=("build", "run"),
-            when="@2.{}".format(minor_ver),
-        )
+    with default_args(type="build"):
+        depends_on("bazel", when="@2.5:2")
+        depends_on("protobuf", when="@2.5:2")
+
+    with default_args(type=("build", "run")):
+        depends_on("pil", when="@:2")
+        depends_on("py-dm-tree", when="@3.0")
+        # https://github.com/keras-team/keras/issues/19691
+        depends_on("py-numpy@:1", when="@:3.4")
+        depends_on("py-portpicker", when="@2.10:2")
+        depends_on("py-pydot", when="@:2")
+        depends_on("py-pyyaml", when="@:2")
+        depends_on("py-six", when="@:2")
+
+        for minor_ver in range(6, 16):
+            depends_on("py-tensorflow@2.{}".format(minor_ver), when="@2.{}".format(minor_ver))
+            depends_on("py-tensorboard@2.{}".format(minor_ver), when="@2.{}".format(minor_ver))
 
     def url_for_version(self, version):
         if version >= Version("3"):
@@ -179,6 +206,5 @@ class PyKeras(PythonPackage):
         build_pip_package("--src", buildpath)
 
         with working_dir(buildpath):
-            args = std_pip_args + ["--prefix=" + prefix, "."]
-            pip(*args)
+            pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
         remove_linked_tree(self.tmp_path)

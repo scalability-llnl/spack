@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -29,6 +28,8 @@ class OpaPsm2(MakefilePackage, CudaPackage):
     version("10.2-260", sha256="825913e6a8848508eb65fa2ca97546943a90ef0c9e16dbdd543bc75b45aa51d7")
     version("10.2-235", sha256="052031ab87abadc2c11971e6aa53be363b38d58a496a6e54a820ca5bcd6545a5")
     version("10.2-175", sha256="61b694191eca66e15e7ae1659bfacb10813e569d4e27182a88fb00b5661fb365")
+
+    depends_on("c", type="build")  # generated
 
     variant("avx2", default=True, description="Enable AVX2 instructions")
 

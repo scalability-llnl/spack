@@ -47,7 +47,11 @@ def detection(operating_system: str):
 
 
 def partial_uarch(
-    name: str = "", vendor: str = "", features: Optional[Set[str]] = None, generation: int = 0
+    name: str = "",
+    vendor: str = "",
+    features: Optional[Set[str]] = None,
+    generation: int = 0,
+    cpu_part: str = "",
 ) -> Microarchitecture:
     """Construct a partial microarchitecture, from information gathered during system scan."""
     return Microarchitecture(
@@ -57,6 +61,7 @@ def partial_uarch(
         features=features or set(),
         compilers={},
         generation=generation,
+        cpu_part=cpu_part,
     )
 
 
@@ -90,6 +95,7 @@ def proc_cpuinfo() -> Microarchitecture:
         return partial_uarch(
             vendor=_canonicalize_aarch64_vendor(data),
             features=_feature_set(data, key="Features"),
+            cpu_part=data.get("CPU part", ""),
         )
 
     if architecture in (PPC64LE, PPC64):
@@ -155,6 +161,31 @@ class CpuidInfoCollector:
         mask = 1 << bit
         return register & mask > 0
 
+    def brand_string(self) -> Optional[str]:
+        """Returns the brand string, if available."""
+        if self.highest_extension_support < 0x80000004:
+            return None
+
+        r1 = self.cpuid.registers_for(eax=0x80000002, ecx=0)
+        r2 = self.cpuid.registers_for(eax=0x80000003, ecx=0)
+        r3 = self.cpuid.registers_for(eax=0x80000004, ecx=0)
+        result = struct.pack(
+            "IIIIIIIIIIII",
+            r1.eax,
+            r1.ebx,
+            r1.ecx,
+            r1.edx,
+            r2.eax,
+            r2.ebx,
+            r2.ecx,
+            r2.edx,
+            r3.eax,
+            r3.ebx,
+            r3.ecx,
+            r3.edx,
+        ).decode("utf-8")
+        return result.strip("\x00")
+
 
 @detection(operating_system="Windows")
 def cpuid_info():
@@ -174,8 +205,8 @@ def _check_output(args, env):
 
 
 WINDOWS_MAPPING = {
-    "AMD64": "x86_64",
-    "ARM64": "aarch64",
+    "AMD64": X86_64,
+    "ARM64": AARCH64,
 }
 
 
@@ -320,6 +351,10 @@ def host():
     generic_candidates = [c for c in candidates if c.vendor == "generic"]
     best_generic = max(generic_candidates, key=sorting_fn)
 
+    # Relevant for AArch64. Filter on "cpu_part" if we have any match
+    if info.cpu_part != "" and any(c for c in candidates if info.cpu_part == c.cpu_part):
+        candidates = [c for c in candidates if info.cpu_part == c.cpu_part]
+
     # Filter the candidates to be descendant of the best generic candidate.
     # This is to avoid that the lack of a niche feature that can be disabled
     # from e.g. BIOS prevents detection of a reasonably performant architecture
@@ -409,3 +444,16 @@ def compatibility_check_for_riscv64(info, target):
     return (target == arch_root or arch_root in target.ancestors) and (
         target.name == info.name or target.vendor == "generic"
     )
+
+
+def brand_string() -> Optional[str]:
+    """Returns the brand string of the host, if detected, or None."""
+    if platform.system() == "Darwin":
+        return _check_output(
+            ["sysctl", "-n", "machdep.cpu.brand_string"], env=_ensure_bin_usrbin_in_path()
+        ).strip()
+
+    if host().family == X86_64:
+        return CpuidInfoCollector().brand_string()
+
+    return None

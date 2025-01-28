@@ -1,0 +1,23 @@
+paths:
+- layout:
+  - executables:
+    - "compiler/2021.2.0/linux/bin/icx"
+    - "compiler/2021.2.0/linux/bin/icpx"
+    script: |
+      echo "Intel(R) oneAPI DPC++ Compiler 2021.2.0 (2021.2.0.20210317)"
+      echo "Target: x86_64-unknown-linux-gnu"
+      echo "Thread model: posix"
+      echo "InstalledDir: /made/up/path",
+  - executables:
+    - "compiler/2021.2.0/linux/bin/ifx"
+    script: |
+      echo "ifx (IFORT) 2021.2.0 Beta 20201214"
+      echo "Copyright (C) 1985-2020 Intel Corporation.  All rights reserved."
+  platforms: [linux]
+  results:
+  - spec: intel-oneapi-compilers@2021.2.0
+    extra_attributes:
+      compilers:
+        c: ".*/compiler/2021.2.0/linux/bin/icx"
+        cxx: ".*/compiler/2021.2.0/linux/bin/icpx"
+        fortran: ".*/compiler/2021.2.0/linux/bin/ifx"

@@ -1,0 +1,13 @@
+diff --git a/configure b/configure
+index 494ea9f..1ca6516 100755
+--- a/configure
++++ b/configure
+@@ -17006,7 +17006,7 @@ int
+ main ()
+ {
+ 
+-        fftw_plan *plan;
++        fftw_plan plan;
+         fftw_complex *a1, *a2;
+         fftw_execute_dft(plan, a1, a2);
+ 

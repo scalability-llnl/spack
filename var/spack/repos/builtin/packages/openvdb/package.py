@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,6 +26,8 @@ class Openvdb(CMakePackage):
     version("8.2.0", sha256="d2e77a0720db79e9c44830423bdb013c24a1cf50994dd61d570b6e0c3e0be699")
     version("8.0.1", sha256="a6845da7c604d2c72e4141c898930ac8a2375521e535f696c2cd92bebbe43c4f")
     version("7.1.0", sha256="0c3588c1ca6e647610738654ec2c6aaf41a203fd797f609fbeab1c9f7c3dc116")
+
+    depends_on("cxx", type="build")  # generated
 
     # these variants were for 8.0.1 and probably could be updated...
     variant("shared", default=True, description="Build as a shared library.")
@@ -83,10 +84,10 @@ class Openvdb(CMakePackage):
                 pyso = "pyopenvdb.dylib"
             else:
                 pyso = "pyopenvdb.so"
-            pyver = "python{0}".format(spec["python"].package.version.up_to(2))
+            pyver = f"python{self['python'].version.up_to(2)}"
 
-            src = prefix.lib.join(pyver).join(pyso)
+            src = self.prefix.lib.join(pyver).join(pyso)
             if not os.path.isfile(src):
-                src = prefix.lib64.join(pyver).join(pyso)
+                src = self.prefix.lib64.join(pyver).join(pyso)
             assert os.path.isfile(src)
             os.rename(src, os.path.join(python_platlib, pyso))

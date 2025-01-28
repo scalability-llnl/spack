@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,10 +16,10 @@ class Rocsparse(CMakePackage):
 
     homepage = "https://github.com/ROCm/rocSPARSE"
     git = "https://github.com/ROCm/rocSPARSE.git"
-    url = "https://github.com/ROCm/rocSPARSE/archive/rocm-6.0.2.tar.gz"
+    url = "https://github.com/ROCm/rocSPARSE/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
-    maintainers("cgmb", "srekolam", "renjithravindrankannath")
+    maintainers("cgmb", "srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["librocsparse"]
 
     amdgpu_targets = ROCmPackage.amdgpu_targets
@@ -32,8 +31,21 @@ class Rocsparse(CMakePackage):
         sticky=True,
     )
     variant("test", default=False, description="Build rocsparse-test client")
+    variant("asan", default=False, description="Build with address-sanitizer enabled or disabled")
+
+    conflicts("+asan", when="os=rhel9")
+    conflicts("+asan", when="os=centos7")
+    conflicts("+asan", when="os=centos8")
 
     license("MIT")
+    version("6.3.1", sha256="95c9dcc8421711f2f203a34c2830c5ac504e127922e0a83dbc68bccd5509c72f")
+    version("6.3.0", sha256="38aaf1cc55f57566a3056a970f73f40a9a4930583d6e57fc9c7745a127029227")
+    version("6.2.4", sha256="1f86c2d439e777cd17724269da66997d351b3a1b83f44143361e9c77d80e2370")
+    version("6.2.1", sha256="4691d689db0a03fc950dbc9d88471752f6d17f5382a4bd2f7e23dfb43fc7074c")
+    version("6.2.0", sha256="d07357d180423cedbabc849983a2d4d79b0e9f4c9b5e07d4993043e646fe6df9")
+    version("6.1.2", sha256="e8989c28085275e7c044b19fd2bc86d8493ce6a1b8545126f787722c535fe6eb")
+    version("6.1.1", sha256="9ac2bf84962cfdf24e4fa68e6f1d91ffdad5d5a5287ecdaddf331e6073ba57b3")
+    version("6.1.0", sha256="d69d9b0079159abb2d7514f8f45a41bb2cbcaf8b52e600e794aca3facf274b5e")
     version("6.0.2", sha256="00292eb7efe5719a65960bdbe391ba8e0ce610487eea11397aad6a14b11e12cd")
     version("6.0.0", sha256="bdc618677ec78830c6af315d61194d6ab8532345b8daeeb115aca96f274d4ca4")
     version("5.7.1", sha256="4c09b182b371124675d4057246021b5ed45e2833fdbf265b37a9b06b668baf0a")
@@ -42,25 +54,19 @@ class Rocsparse(CMakePackage):
     version("5.6.0", sha256="5797db3deb4a532e691447e3e8c923b93bd9fe4c468f3a88f00cecd80bebcae4")
     version("5.5.1", sha256="1dd2d18898dfebdf898e8fe7d1c1198e8f8451fd70ff12a1990ec1419cf359e1")
     version("5.5.0", sha256="cbee79b637691bc710c1c83fbaa91db7498d38d4df873be23e28ed5617acde72")
-    version("5.4.3", sha256="9fb633f235eb0567cc54fae6bdc779f16bf0bb4e6f5bdddb40312c6d11ca8478")
-    version("5.4.0", sha256="c8f0e920a8ec15b9ae40564c68191363356cc4d793c16247bb6e11ef5293ed11")
-    version("5.3.3", sha256="4204035e952e20ada4526a94989e8e5c76c04574176fe63a021522862461c800")
-    version("5.3.0", sha256="521ca0e7b52f26edbff8507eb1479dc26019f456756d884d7b8b192c3ea518e8")
     with default_args(deprecated=True):
-        version("5.2.3", sha256="6da3f3303a8ada94c4dbff4b42ee33a2e2883a908ee21c41cb2aa7180382026a")
-        version("5.2.1", sha256="01f3535442740221edad2cde0a20b2499c807f6733d5016b33c47f34a5a55c49")
-        version("5.2.0", sha256="7ed929af16d2502135024a6463997d9a95f03899b8a33aa95db7029575c89572")
-        version("5.1.3", sha256="ef9641045b36c9aacc87e4fe7717b41b1e29d97e21432678dce7aca633a8edc2")
-        version("5.1.0", sha256="a2f0f8cb02b95993480bd7264fc65e8b11464a90b86f2dcd0dd82a2e6d4bd704")
+        version("5.4.3", sha256="9fb633f235eb0567cc54fae6bdc779f16bf0bb4e6f5bdddb40312c6d11ca8478")
+        version("5.4.0", sha256="c8f0e920a8ec15b9ae40564c68191363356cc4d793c16247bb6e11ef5293ed11")
+        version("5.3.3", sha256="4204035e952e20ada4526a94989e8e5c76c04574176fe63a021522862461c800")
+        version("5.3.0", sha256="521ca0e7b52f26edbff8507eb1479dc26019f456756d884d7b8b192c3ea518e8")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("cmake@3.5:", type="build")
 
     for ver in [
-        "5.1.0",
-        "5.1.3",
-        "5.2.0",
-        "5.2.1",
-        "5.2.3",
         "5.3.0",
         "5.3.3",
         "5.4.0",
@@ -73,6 +79,14 @@ class Rocsparse(CMakePackage):
         "5.7.1",
         "6.0.0",
         "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
     ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"rocprim@{ver}", when=f"@{ver}")
@@ -82,9 +96,6 @@ class Rocsparse(CMakePackage):
     patch("0001-set-mtx-directory.patch", when="@:5.3 +test")
     # Enable use of Spack-provided Python.
     patch("0002-fix-gentest-shebang.patch", when="@:5.3 +test")
-    # Fix build for most Radeon 5000 and Radeon 6000 series GPUs.
-    patch("0003-fix-navi-1x-rocm-4.5.patch", when="@:5.1")
-    patch("0003-fix-navi-1x-rocm-5.2.patch", when="@5.2")
 
     depends_on("googletest@1.11.0:", when="@5.1.0: +test")
     depends_on("googletest@1.10.0:", when="+test")
@@ -247,6 +258,13 @@ class Rocsparse(CMakePackage):
 
     def setup_build_environment(self, env):
         env.set("CXX", self.spec["hip"].hipcc)
+        if self.spec.satisfies("+asan"):
+            env.set("CC", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang")
+            env.set("CXX", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang++")
+            env.set("ASAN_OPTIONS", "detect_leaks=0")
+            env.set("CFLAGS", "-fsanitize=address -shared-libasan")
+            env.set("CXXFLAGS", "-fsanitize=address -shared-libasan")
+            env.set("LDFLAGS", "-fuse-ld=lld")
 
     @classmethod
     def determine_version(cls, lib):
