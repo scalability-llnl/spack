@@ -18,7 +18,8 @@ spack:
     celeritas:
       require: +geant4 +hepmc3 +openmp +root +shared cxxstd=20
     root:
-      require: +davix +dcache +examples +fftw +fits +fortran +gdml +graphviz +gsl +http +math +minuit +mlp +mysql +opengl +postgres +pythia8 +python +r +roofit +root7 +rpath ~shadow +spectrum +sqlite +ssl +tbb +threads +tmva +tmva-cpu +unuran +vc +vdt +veccore +webgui +x +xml +xrootd cxxstd=20
+      require: +davix +dcache +examples +fftw +fits +fortran +gdml +graphviz +gsl +http +math +minuit +mlp +mysql +opengl +postgres +pythia8 +python +r +roofit +root7 +rpath ~shadow +spectrum +sqlite +ssl +tbb +threads +tmva +tmva-cpu +unuran +vc +vdt +veccore +webgui +x +xml +xrootd # cxxstd=20
+      # note: root cxxstd=20 not concretizable within sherpa
     vecgeom:
       require: +gdml +geant4 +root +shared cxxstd=20
 
@@ -26,16 +27,16 @@ spack:
     geant4-data:
       buildable: false
       externals:
-        - spec: geant4-data@11.3.0
-          prefix: /usr
-        - spec: geant4-data@11.2.2
-          prefix: /usr
-        - spec: geant4-data@11.2.0
-          prefix: /usr
-        - spec: geant4-data@11.1.0
-          prefix: /usr
-        - spec: geant4-data@11.0.0
-          prefix: /usr
+      - spec: geant4-data@11.3.0
+        prefix: /usr
+      - spec: geant4-data@11.2.2
+        prefix: /usr
+      - spec: geant4-data@11.2.0
+        prefix: /usr
+      - spec: geant4-data@11.1.0
+        prefix: /usr
+      - spec: geant4-data@11.0.0
+        prefix: /usr
 
   specs:
   # CPU
@@ -100,26 +101,46 @@ spack:
   - xrootd +davix +http +krb5 +python +readline +scitokens-cpp
   - yoda +root
 
-  # CUDA NOARCH
-  - root +cuda +cudnn +tmva-gpu
-
-  # CUDA 80
+  # CUDA
   #- acts +cuda +traccc cuda_arch=80
   - celeritas +cuda +vecgeom cuda_arch=80
+  - root +cuda +cudnn +tmva-gpu
   - vecgeom +cuda cuda_arch=80
 
-  # CUDA 90
-  #- acts +cuda +traccc cuda_arch=90
-  - celeritas +cuda +vecgeom cuda_arch=90
-  - vecgeom +cuda cuda_arch=90
-
-  # ROCm 90a
+  # ROCm
   - celeritas +rocm amdgpu_target=gfx90a ~vecgeom  # only available with ORANGE
 
   ci:
     pipeline-gen:
     - build-job:
-        image: "ghcr.io/spack/spack/ubuntu22.04-runner-amd64-gcc-11.4:2024.03.01"
+        image: ghcr.io/spack/spack/ubuntu22.04-runner-amd64-gcc-11.4:2024.03.01
 
   cdash:
     build-group: HEP
+  compilers:
+  - compiler:
+      spec: gcc@=9.4.0
+      paths:
+        cc: /usr/bin/gcc
+        cxx: /usr/bin/g++
+        f77: null
+        fc: null
+      flags: {}
+      operating_system: ubuntu20.04
+      target: x86_64
+      modules: []
+      environment: {}
+      extra_rpaths: []
+  - compiler:
+      spec: clang@=10.0.0
+      paths:
+        cc: /usr/bin/clang
+        cxx: /usr/bin/clang++
+        f77: null
+        fc: null
+      flags: {}
+      operating_system: ubuntu20.04
+      target: x86_64
+      modules: []
+      environment: {}
+      extra_rpaths: []
