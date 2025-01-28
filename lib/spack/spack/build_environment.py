@@ -301,11 +301,13 @@ def clean_environment():
     env.unset("CPLUS_INCLUDE_PATH")
     env.unset("OBJC_INCLUDE_PATH")
 
+    # prevent configure scripts from sourcing variables from config site file (AC_SITE_LOAD).
+    env.set("CONFIG_SITE", os.devnull)
     env.unset("CMAKE_PREFIX_PATH")
+
     env.unset("PYTHONPATH")
     env.unset("R_HOME")
     env.unset("R_ENVIRON")
-
     env.unset("LUA_PATH")
     env.unset("LUA_CPATH")
 

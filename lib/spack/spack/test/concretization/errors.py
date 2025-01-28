@@ -4,9 +4,9 @@
 
 import pytest
 
+import spack.concretize
 import spack.config
 import spack.solver.asp
-import spack.spec
 
 version_error_messages = [
     "Cannot satisfy 'fftw@:1.0' and 'fftw@1.1:",
@@ -57,7 +57,7 @@ def test_error_messages(error_messages, config_set, spec, mock_packages, mutable
         spack.config.set(path, conf)
 
     with pytest.raises(spack.solver.asp.UnsatisfiableSpecError) as e:
-        _ = spack.spec.Spec(spec).concretized()
+        _ = spack.concretize.concretize_one(spec)
 
     for em in error_messages:
         assert em in str(e.value)

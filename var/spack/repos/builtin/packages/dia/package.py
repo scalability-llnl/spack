@@ -31,6 +31,7 @@ class Dia(Package):
     depends_on("libxrender")
     depends_on("libxml2")
     depends_on("freetype")
+    depends_on("gmake", type="build")
 
     # TODO: Optional dependencies, not yet supported by Spack
     # depends_on('libart')

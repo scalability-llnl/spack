@@ -22,6 +22,7 @@ class Seqfu(Package):
 
     depends_on("nim@2", type="build")
     depends_on("zlib", type="build")
+    depends_on("gmake", type="build")
 
     patch("wno_incompatible_pointer_types.patch", when="@:1.21%gcc@14:")
 

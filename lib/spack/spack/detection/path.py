@@ -7,7 +7,6 @@ and running executables.
 import collections
 import concurrent.futures
 import os
-import os.path
 import re
 import sys
 import traceback

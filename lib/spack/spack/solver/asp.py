@@ -37,6 +37,7 @@ import spack.package_base
 import spack.package_prefs
 import spack.platforms
 import spack.repo
+import spack.solver.splicing
 import spack.spec
 import spack.store
 import spack.util.crypto
@@ -67,7 +68,7 @@ from .version_order import concretization_version_order
 
 GitOrStandardVersion = Union[spack.version.GitVersion, spack.version.StandardVersion]
 
-TransformFunction = Callable[["spack.spec.Spec", List[AspFunction]], List[AspFunction]]
+TransformFunction = Callable[[spack.spec.Spec, List[AspFunction]], List[AspFunction]]
 
 #: Enable the addition of a runtime node
 WITH_RUNTIME = sys.platform != "win32"
@@ -127,8 +128,8 @@ class Provenance(enum.IntEnum):
 
 @contextmanager
 def named_spec(
-    spec: Optional["spack.spec.Spec"], name: Optional[str]
-) -> Iterator[Optional["spack.spec.Spec"]]:
+    spec: Optional[spack.spec.Spec], name: Optional[str]
+) -> Iterator[Optional[spack.spec.Spec]]:
     """Context manager to temporarily set the name of a spec"""
     if spec is None or name is None:
         yield spec
@@ -747,11 +748,11 @@ class ErrorHandler:
 class KnownCompiler(NamedTuple):
     """Data class to collect information on compilers"""
 
-    spec: "spack.spec.Spec"
+    spec: spack.spec.Spec
     os: str
-    target: str
+    target: Optional[str]
     available: bool
-    compiler_obj: Optional["spack.compiler.Compiler"]
+    compiler_obj: Optional[spack.compiler.Compiler]
 
     def _key(self):
         return self.spec, self.os, self.target
@@ -1132,7 +1133,7 @@ class SpackSolverSetup:
             set
         )
 
-        self.possible_compilers: List = []
+        self.possible_compilers: List[KnownCompiler] = []
         self.possible_oses: Set = set()
         self.variant_values_from_specs: Set = set()
         self.version_constraints: Set = set()
@@ -1386,7 +1387,7 @@ class SpackSolverSetup:
 
     def define_variant(
         self,
-        pkg: "Type[spack.package_base.PackageBase]",
+        pkg: Type[spack.package_base.PackageBase],
         name: str,
         when: spack.spec.Spec,
         variant_def: vt.Variant,
@@ -1490,7 +1491,7 @@ class SpackSolverSetup:
             )
         )
 
-    def variant_rules(self, pkg: "Type[spack.package_base.PackageBase]"):
+    def variant_rules(self, pkg: Type[spack.package_base.PackageBase]):
         for name in pkg.variant_names():
             self.gen.h3(f"Variant {name} in package {pkg.name}")
             for when, variant_def in pkg.variant_definitions(name):
@@ -1681,8 +1682,8 @@ class SpackSolverSetup:
     def _gen_match_variant_splice_constraints(
         self,
         pkg,
-        cond_spec: "spack.spec.Spec",
-        splice_spec: "spack.spec.Spec",
+        cond_spec: spack.spec.Spec,
+        splice_spec: spack.spec.Spec,
         hash_asp_var: "AspVar",
         splice_node,
         match_variants: List[str],
@@ -1740,7 +1741,7 @@ class SpackSolverSetup:
                     if any(
                         v in cond.variants or v in spec_to_splice.variants for v in match_variants
                     ):
-                        raise Exception(
+                        raise spack.error.PackageError(
                             "Overlap between match_variants and explicitly set variants"
                         )
                     variant_constraints = self._gen_match_variant_splice_constraints(
@@ -2710,7 +2711,7 @@ class SpackSolverSetup:
         if env:
             dev_specs = tuple(
                 spack.spec.Spec(info["spec"]).constrained(
-                    "dev_path=%s"
+                    'dev_path="%s"'
                     % spack.util.path.canonicalize_path(info["path"], default_wd=env.path)
                 )
                 for name, info in env.dev_specs.items()
@@ -2977,7 +2978,7 @@ class SpackSolverSetup:
             for s in spec_group[key]:
                 yield _spec_with_default_name(s, pkg_name)
 
-    def pkg_class(self, pkg_name: str) -> typing.Type["spack.package_base.PackageBase"]:
+    def pkg_class(self, pkg_name: str) -> typing.Type[spack.package_base.PackageBase]:
         request = pkg_name
         if pkg_name in self.explicitly_required_namespaces:
             namespace = self.explicitly_required_namespaces[pkg_name]
@@ -3096,7 +3097,7 @@ class CompilerParser:
 
             self.compilers.add(candidate)
 
-    def with_input_specs(self, input_specs: List["spack.spec.Spec"]) -> "CompilerParser":
+    def with_input_specs(self, input_specs: List[spack.spec.Spec]) -> "CompilerParser":
         """Accounts for input specs when building the list of possible compilers.
 
         Args:
@@ -3136,7 +3137,7 @@ class CompilerParser:
 
         return self
 
-    def add_compiler_from_concrete_spec(self, spec: "spack.spec.Spec") -> None:
+    def add_compiler_from_concrete_spec(self, spec: spack.spec.Spec) -> None:
         """Account for compilers that are coming from concrete specs, through reuse.
 
         Args:
@@ -3374,14 +3375,6 @@ class RuntimePropertyRecorder:
         self._setup.effect_rules()
 
 
-# This should be a dataclass, but dataclasses don't work on Python 3.6
-class Splice:
-    def __init__(self, splice_node: NodeArgument, child_name: str, child_hash: str):
-        self.splice_node = splice_node
-        self.child_name = child_name
-        self.child_hash = child_hash
-
-
 class SpecBuilder:
     """Class with actions to rebuild a spec from ASP results."""
 
@@ -3421,7 +3414,7 @@ class SpecBuilder:
         self._specs: Dict[NodeArgument, spack.spec.Spec] = {}
 
         # Matches parent nodes to splice node
-        self._splices: Dict[NodeArgument, List[Splice]] = {}
+        self._splices: Dict[spack.spec.Spec, List[spack.solver.splicing.Splice]] = {}
         self._result = None
         self._command_line_specs = specs
         self._flag_sources: Dict[Tuple[NodeArgument, str], Set[str]] = collections.defaultdict(
@@ -3540,15 +3533,13 @@ class SpecBuilder:
         )
         cmd_specs = dict((s.name, s) for spec in self._command_line_specs for s in spec.traverse())
 
-        for spec in self._specs.values():
+        for node, spec in self._specs.items():
             # if bootstrapping, compiler is not in config and has no flags
             flagmap_from_compiler = {}
             if spec.compiler in compilers:
                 flagmap_from_compiler = compilers[spec.compiler].flags
 
             for flag_type in spec.compiler_flags.valid_compiler_flags():
-                node = SpecBuilder.make_node(pkg=spec.name)
-
                 ordered_flags = []
 
                 # 1. Put compiler flags first
@@ -3630,49 +3621,12 @@ class SpecBuilder:
         child_name: str,
         child_hash: str,
     ):
-        splice = Splice(splice_node, child_name=child_name, child_hash=child_hash)
-        self._splices.setdefault(parent_node, []).append(splice)
-
-    def _resolve_automatic_splices(self):
-        """After all of the specs have been concretized, apply all immediate splices.
-
-        Use reverse topological order to ensure that all dependencies are resolved
-        before their parents, allowing for maximal sharing and minimal copying.
-
-        """
-        fixed_specs = {}
-
-        # create a mapping from dag hash to an integer representing position in reverse topo order.
-        specs = self._specs.values()
-        topo_order = list(traverse.traverse_nodes(specs, order="topo", key=traverse.by_dag_hash))
-        topo_lookup = {spec.dag_hash(): index for index, spec in enumerate(reversed(topo_order))}
-
-        # iterate over specs, children before parents
-        for node, spec in sorted(self._specs.items(), key=lambda x: topo_lookup[x[1].dag_hash()]):
-            immediate = self._splices.get(node, [])
-            if not immediate and not any(
-                edge.spec in fixed_specs for edge in spec.edges_to_dependencies()
-            ):
-                continue
-            new_spec = spec.copy(deps=False)
-            new_spec.build_spec = spec
-            for edge in spec.edges_to_dependencies():
-                depflag = edge.depflag & ~dt.BUILD
-                if any(edge.spec.dag_hash() == splice.child_hash for splice in immediate):
-                    splice = [s for s in immediate if s.child_hash == edge.spec.dag_hash()][0]
-                    new_spec.add_dependency_edge(
-                        self._specs[splice.splice_node], depflag=depflag, virtuals=edge.virtuals
-                    )
-                elif edge.spec in fixed_specs:
-                    new_spec.add_dependency_edge(
-                        fixed_specs[edge.spec], depflag=depflag, virtuals=edge.virtuals
-                    )
-                else:
-                    new_spec.add_dependency_edge(
-                        edge.spec, depflag=depflag, virtuals=edge.virtuals
-                    )
-            self._specs[node] = new_spec
-            fixed_specs[spec] = new_spec
+        parent_spec = self._specs[parent_node]
+        splice_spec = self._specs[splice_node]
+        splice = spack.solver.splicing.Splice(
+            splice_spec, child_name=child_name, child_hash=child_hash
+        )
+        self._splices.setdefault(parent_spec, []).append(splice)
 
     @staticmethod
     def sort_fn(function_tuple) -> Tuple[int, int]:
@@ -3765,7 +3719,15 @@ class SpecBuilder:
         for root in roots.values():
             root._finalize_concretization()
 
-        self._resolve_automatic_splices()
+        # Only attempt to resolve automatic splices if the solver produced any
+        if self._splices:
+            resolved_splices = spack.solver.splicing._resolve_collected_splices(
+                list(self._specs.values()), self._splices
+            )
+            new_specs = {}
+            for node, spec in self._specs.items():
+                new_specs[node] = resolved_splices.get(spec, spec)
+            self._specs = new_specs
 
         for s in self._specs.values():
             spack.spec.Spec.ensure_no_deprecated(s)

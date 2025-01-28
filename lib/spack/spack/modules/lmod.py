@@ -4,7 +4,7 @@
 
 import collections
 import itertools
-import os.path
+import os
 from typing import Dict, List, Optional, Tuple
 
 import llnl.util.filesystem as fs

@@ -22,6 +22,7 @@ class Rocblas(CMakePackage):
 
     version("develop", branch="develop")
     version("master", branch="master")
+    version("6.3.1", sha256="88d2de6ce6b23a157eea8be63408350848935e4dfc3e27e5f2add78834c6d6ba")
     version("6.3.0", sha256="051f53bb69a9aba55a0c66c32688bf6af80e29e4a6b56b380b3c427e7a6aff9d")
     version("6.2.4", sha256="8bacf74e3499c445f1bb0a8048df1ef3ce6f72388739b1823b5784fd1e8aa22a")
     version("6.2.1", sha256="cf3bd7b47694f95f387803191615e2ff5c1106175473be7a5b2e8eb6fb99179f")
@@ -86,10 +87,11 @@ class Rocblas(CMakePackage):
         "6.2.1",
         "6.2.4",
         "6.3.0",
+        "6.3.1",
     ]:
         depends_on(f"rocm-openmp-extras@{ver}", type="test", when=f"@{ver}")
 
-    for ver in ["6.2.0", "6.2.1", "6.2.4", "6.3.0"]:
+    for ver in ["6.2.0", "6.2.1", "6.2.4", "6.3.0", "6.3.1"]:
         depends_on(f"rocm-smi-lib@{ver}", type="test", when=f"@{ver}")
 
     depends_on("rocm-cmake@master", type="build", when="@master:")
@@ -114,13 +116,15 @@ class Rocblas(CMakePackage):
         "6.2.1",
         "6.2.4",
         "6.3.0",
+        "6.3.1",
     ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"llvm-amdgpu@{ver}", type="build", when=f"@{ver}")
         depends_on(f"rocminfo@{ver}", type="build", when=f"@{ver}")
         depends_on(f"rocm-cmake@{ver}", type="build", when=f"@{ver}")
 
-    depends_on("hipblaslt@6.3.0", when="@6.3.0")
+    for ver in ["6.3.0", "6.3.1"]:
+        depends_on(f"hipblaslt@{ver}", when=f"@{ver}")
     depends_on("python@3.6:", type="build")
 
     with when("+tensile"):
@@ -155,6 +159,7 @@ class Rocblas(CMakePackage):
         ("@6.2.1", "dbc2062dced66e4cbee8e0591d76e0a1588a4c70"),
         ("@6.2.4", "81ae9537671627fe541332c0a5d953bfd6af71d6"),
         ("@6.3.0", "aca95d1743c243dd0dd0c8b924608bc915ce1ae7"),
+        ("@6.3.1", "aca95d1743c243dd0dd0c8b924608bc915ce1ae7"),
     ]:
         resource(
             name="Tensile",

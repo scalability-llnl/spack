@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
-import itertools
 import os
 import re
 import sys
@@ -1035,11 +1034,6 @@ with '-Wl,-commons,use_dylibs' and without
         if spec.satisfies("@:4.1.6,5.0.0:5.0.3 %apple-clang@15:"):
             config_args.append("--with-wrapper-fcflags=-Wl,-ld_classic")
 
-        # All rpath flags should be appended with self.compiler.cc_rpath_arg.
-        # Later, we might need to update share/openmpi/mpic++-wrapper-data.txt
-        # and mpifort-wrapper-data.txt (see filter_rpaths()).
-        wrapper_ldflags = []
-
         config_args.extend(self.enable_or_disable("builtin-atomics", variant="atomics"))
 
         if spec.satisfies("+pmi"):
@@ -1182,25 +1176,12 @@ with '-Wl,-commons,use_dylibs' and without
             # filter_pc_files()):
             if spec.satisfies("@3.0.5:"):
                 config_args.append("--disable-wrapper-runpath")
-
-            # Add extra_rpaths and implicit_rpaths into the wrappers.
-            wrapper_ldflags.extend(
-                [
-                    self.compiler.cc_rpath_arg + path
-                    for path in itertools.chain(
-                        self.compiler.extra_rpaths, self.compiler.implicit_rpaths()
-                    )
-                ]
-            )
         else:
             config_args.append("--disable-wrapper-rpath")
             config_args.append("--disable-wrapper-runpath")
 
         config_args.extend(self.enable_or_disable("mpi-cxx", variant="cxx"))
         config_args.extend(self.enable_or_disable("cxx-exceptions", variant="cxx_exceptions"))
-
-        if wrapper_ldflags:
-            config_args.append("--with-wrapper-ldflags={0}".format(" ".join(wrapper_ldflags)))
 
         #
         # the Spack path padding feature causes issues with Open MPI's lex based parsing system
@@ -1239,53 +1220,6 @@ with '-Wl,-commons,use_dylibs' and without
         config_args += self.enable_or_disable("debug")
 
         return config_args
-
-    @run_after("install", when="+wrapper-rpath")
-    def filter_rpaths(self):
-        def filter_lang_rpaths(lang_tokens, rpath_arg):
-            if self.compiler.cc_rpath_arg == rpath_arg:
-                return
-
-            files = find(
-                self.spec.prefix.share.openmpi,
-                ["*{0}-wrapper-data*".format(t) for t in lang_tokens],
-            )
-            files.extend(
-                find(
-                    self.spec.prefix.lib.pkgconfig, ["ompi-{0}.pc".format(t) for t in lang_tokens]
-                )
-            )
-
-            x = FileFilter(*[f for f in files if not os.path.islink(f)])
-
-            # Replace self.compiler.cc_rpath_arg, which have been added as
-            # '--with-wrapper-ldflags', with rpath_arg in the respective
-            # language-specific wrappers and pkg-config files.
-            x.filter(self.compiler.cc_rpath_arg, rpath_arg, string=True, backup=False)
-
-            if self.spec.satisfies("@:1.10.3,2:2.1.1"):
-                # Replace Libtool-style RPATH prefixes '-Wl,-rpath -Wl,' with
-                # rpath_arg for old version of OpenMPI, which assumed that CXX
-                # and FC had the same prefixes as CC.
-                x.filter("-Wl,-rpath -Wl,", rpath_arg, string=True, backup=False)
-
-        filter_lang_rpaths(["c++", "CC", "cxx"], self.compiler.cxx_rpath_arg)
-        filter_lang_rpaths(["fort", "f77", "f90"], self.compiler.fc_rpath_arg)
-
-    @run_after("install", when="@:3.0.4+wrapper-rpath")
-    def filter_pc_files(self):
-        files = find(self.spec.prefix.lib.pkgconfig, "*.pc")
-        x = FileFilter(*[f for f in files if not os.path.islink(f)])
-
-        # Remove this linking flag if present (it turns RPATH into RUNPATH)
-        x.filter(
-            "{0}--enable-new-dtags".format(self.compiler.linker_arg), "", string=True, backup=False
-        )
-
-        # NAG compiler is usually mixed with GCC, which has a different
-        # prefix for linker arguments.
-        if self.compiler.name == "nag":
-            x.filter("-Wl,--enable-new-dtags", "", string=True, backup=False)
 
     # For v4 and lower
     @run_after("install")

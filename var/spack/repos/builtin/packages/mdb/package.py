@@ -40,6 +40,7 @@ class Mdb(PythonPackage):
         depends_on("py-sphinx", type=("build"))
         depends_on("py-sphinx-rtd-theme", type=("build"))
         depends_on("py-sphinx-click", type=("build"))
+    depends_on("gmake", type="build")
 
     @run_after("install")
     def build_docs(self):
