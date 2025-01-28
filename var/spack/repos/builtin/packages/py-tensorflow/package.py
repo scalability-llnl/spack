@@ -663,10 +663,7 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
         # Do you wish to build TensorFlow with ROCm support?
         if "+rocm" in spec:
             env.set("TF_NEED_ROCM", "1")
-            if self.spec.satisfies("@2.18:"):
-                env.set("TF_HIPBLASLT", "1")
-            else:
-                env.set("TF_HIPBLASLT", "0")
+            env.set("TF_HIPBLASLT", "0")
             env.set("MIOPEN_PATH", spec["miopen-hip"].prefix)
             env.set("ROCTRACER_PATH", spec["roctracer-dev"].prefix)
             env.set("LLVM_PATH", spec["llvm-amdgpu"].prefix)
