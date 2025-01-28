@@ -385,6 +385,7 @@ class Root(CMakePackage):
     depends_on("pythia8", when="+pythia8")
     depends_on("r", when="+r", type=("build", "run"))
     depends_on("r-rcpp", when="+r", type=("build", "run"))
+    depends_on("r-rcpp@:1.0.12", when="+r @:6.32.02", type=("build", "run"))
     depends_on("r-rinside", when="+r", type=("build", "run"))
     depends_on("readline", when="+r")
     depends_on("shadow", when="+shadow")
@@ -843,6 +844,7 @@ class Root(CMakePackage):
         # the following vars are copied from thisroot.sh; silence a cppyy warning
         env.set("CLING_STANDARD_PCH", "none")
         env.set("CPPYY_API_PATH", "none")
+        env.set("CPPYY_BACKEND_LIBRARY", self.prefix.lib.root.libcppyy_backend)
         if "+rpath" not in self.spec:
             env.prepend_path(self.root_library_path, self.prefix.lib.root)
 

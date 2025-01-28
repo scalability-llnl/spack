@@ -5,7 +5,6 @@ import json
 import os
 import pathlib
 import shutil
-from io import BytesIO
 from typing import NamedTuple
 
 import jsonschema
@@ -28,9 +27,11 @@ from spack.ci import gitlab as gitlab_generator
 from spack.ci.common import PipelineDag, PipelineOptions, SpackCIConfig
 from spack.ci.generator_registry import generator
 from spack.cmd.ci import FAILED_CREATE_BUILDCACHE_CODE
+from spack.database import INDEX_JSON_FILE
 from spack.schema.buildcache_spec import schema as specfile_schema
 from spack.schema.database_index import schema as db_idx_schema
 from spack.spec import Spec
+from spack.test.conftest import MockHTTPResponse
 
 config_cmd = spack.main.SpackCommand("config")
 ci_cmd = spack.main.SpackCommand("ci")
@@ -238,7 +239,7 @@ spack:
     # That fake token should have resulted in being unable to
     # register build group with cdash, but the workload should
     # still have been generated.
-    assert "Problem populating buildgroup" in output
+    assert "Failed to create or retrieve buildgroups" in output
     expected_keys = ["rebuild-index", "stages", "variables", "workflow"]
     assert all([key in yaml_contents.keys() for key in expected_keys])
 
@@ -847,7 +848,7 @@ spack:
 
             # Test generating buildcache index while we have bin mirror
             buildcache_cmd("update-index", mirror_url)
-            with open(mirror_dir / "build_cache" / "index.json", encoding="utf-8") as idx_fd:
+            with open(mirror_dir / "build_cache" / INDEX_JSON_FILE, encoding="utf-8") as idx_fd:
                 index_object = json.load(idx_fd)
                 jsonschema.validate(index_object, db_idx_schema)
 
@@ -1065,7 +1066,7 @@ spack:
             buildcache_cmd("push", "-u", "-f", mirror_url, "callpath")
             ci_cmd("rebuild-index")
 
-            with open(mirror_dir / "build_cache" / "index.json", encoding="utf-8") as f:
+            with open(mirror_dir / "build_cache" / INDEX_JSON_FILE, encoding="utf-8") as f:
                 jsonschema.validate(json.load(f), db_idx_schema)
 
 
@@ -1547,10 +1548,10 @@ def test_ci_dynamic_mapping_empty(
     ci_base_environment,
 ):
     # The test will always return an empty dictionary
-    def fake_dyn_mapping_urlopener(*args, **kwargs):
-        return BytesIO("{}".encode())
+    def _urlopen(*args, **kwargs):
+        return MockHTTPResponse.with_json(200, "OK", headers={}, body={})
 
-    monkeypatch.setattr(ci.common, "_dyn_mapping_urlopener", fake_dyn_mapping_urlopener)
+    monkeypatch.setattr(ci.common, "_urlopen", _urlopen)
 
     _ = dynamic_mapping_setup(tmpdir)
     with tmpdir.as_cwd():
@@ -1571,15 +1572,15 @@ def test_ci_dynamic_mapping_full(
     monkeypatch,
     ci_base_environment,
 ):
-    # The test will always return an empty dictionary
-    def fake_dyn_mapping_urlopener(*args, **kwargs):
-        return BytesIO(
-            json.dumps(
-                {"variables": {"MY_VAR": "hello"}, "ignored_field": 0, "unallowed_field": 0}
-            ).encode()
+    def _urlopen(*args, **kwargs):
+        return MockHTTPResponse.with_json(
+            200,
+            "OK",
+            headers={},
+            body={"variables": {"MY_VAR": "hello"}, "ignored_field": 0, "unallowed_field": 0},
         )
 
-    monkeypatch.setattr(ci.common, "_dyn_mapping_urlopener", fake_dyn_mapping_urlopener)
+    monkeypatch.setattr(ci.common, "_urlopen", _urlopen)
 
     label = dynamic_mapping_setup(tmpdir)
     with tmpdir.as_cwd():

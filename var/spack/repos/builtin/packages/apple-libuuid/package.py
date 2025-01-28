@@ -15,8 +15,7 @@ class AppleLibuuid(BundlePackage):
     provides("uuid")
 
     # Only supported on 'platform=darwin'
-    conflicts("platform=linux")
-    conflicts("platform=windows")
+    requires("platform=darwin")
 
     @property
     def headers(self):
