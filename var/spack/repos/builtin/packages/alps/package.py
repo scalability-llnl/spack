@@ -43,6 +43,9 @@ class Alps(CMakePackage):
 
     extends("python")
 
+    # https://github.com/ALPSim/ALPS/issues/9
+    conflicts("%gcc@14", when="@:2.2.3-beta.6", msg="use gcc older than version 14 or else build fails")
+
     # See https://github.com/ALPSim/ALPS/issues/6#issuecomment-2604912169
     # for why this is needed
     resources = {
