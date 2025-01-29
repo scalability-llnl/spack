@@ -5,6 +5,7 @@
 import collections
 import copy
 from collections.abc import Mapping
+from typing import Set
 
 import spack.error
 import spack.repo
@@ -110,23 +111,20 @@ class TagIndex(Mapping):
             spkgs, opkgs = self.tags[tag], other.tags[tag]
             self.tags[tag] = sorted(list(set(spkgs + opkgs)))
 
-    def update_package(self, pkg_name):
-        """Updates a package in the tag index.
-
-        Args:
-            pkg_name (str): name of the package to be removed from the index
-        """
-        pkg_cls = self.repository.get_pkg_class(pkg_name)
-
+    def update_packages(self, pkg_names: Set[str]):
+        """Updates a package in the tag index."""
         # Remove the package from the list of packages, if present
         for pkg_list in self._tag_dict.values():
-            if pkg_name in pkg_list:
-                pkg_list.remove(pkg_name)
+            if pkg_names.isdisjoint(pkg_list):
+                continue
+            pkg_list[:] = [pkg for pkg in pkg_list if pkg not in pkg_names]
 
         # Add it again under the appropriate tags
-        for tag in getattr(pkg_cls, "tags", []):
-            tag = tag.lower()
-            self._tag_dict[tag].append(pkg_cls.name)
+        for pkg_name in pkg_names:
+            pkg_cls = self.repository.get_pkg_class(pkg_name)
+            for tag in getattr(pkg_cls, "tags", []):
+                tag = tag.lower()
+                self._tag_dict[tag].append(pkg_cls.name)
 
 
 class TagIndexError(spack.error.SpackError):

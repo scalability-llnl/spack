@@ -154,7 +154,6 @@ def test_tag_no_tags(mock_packages):
 def test_tag_update_package(mock_packages):
     mock_index = mock_packages.tag_index
     index = spack.tag.TagIndex(repository=mock_packages)
-    for name in spack.repo.all_package_names():
-        index.update_package(name)
+    index.update_packages(set(spack.repo.all_package_names()))
 
     ensure_tags_results_equal(mock_index.tags, index.tags)

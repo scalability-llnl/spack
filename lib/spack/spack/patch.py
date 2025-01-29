@@ -6,7 +6,7 @@ import hashlib
 import os
 import pathlib
 import sys
-from typing import Any, Dict, Optional, Tuple, Type, Union
+from typing import Any, Dict, Optional, Set, Tuple, Type, Union
 
 import llnl.util.filesystem
 from llnl.url import allowed_archive
@@ -503,36 +503,38 @@ class PatchCache:
         patch_dict["sha256"] = sha256
         return from_dict(patch_dict, repository=self.repository)
 
-    def update_package(self, pkg_fullname: str) -> None:
+    def update_packages(self, pkgs_fullname: Set[str]) -> None:
         """Update the patch cache.
 
         Args:
             pkg_fullname: package to update.
         """
         # remove this package from any patch entries that reference it.
-        empty = []
-        for sha256, package_to_patch in self.index.items():
-            remove = []
-            for fullname, patch_dict in package_to_patch.items():
-                if patch_dict["owner"] == pkg_fullname:
-                    remove.append(fullname)
+        if self.index:
+            empty = []
+            for sha256, package_to_patch in self.index.items():
+                remove = []
+                for fullname, patch_dict in package_to_patch.items():
+                    if patch_dict["owner"] in pkgs_fullname:
+                        remove.append(fullname)
 
-            for fullname in remove:
-                package_to_patch.pop(fullname)
+                for fullname in remove:
+                    package_to_patch.pop(fullname)
 
-            if not package_to_patch:
-                empty.append(sha256)
+                if not package_to_patch:
+                    empty.append(sha256)
 
-        # remove any entries that are now empty
-        for sha256 in empty:
-            del self.index[sha256]
+            # remove any entries that are now empty
+            for sha256 in empty:
+                del self.index[sha256]
 
         # update the index with per-package patch indexes
-        pkg_cls = self.repository.get_pkg_class(pkg_fullname)
-        partial_index = self._index_patches(pkg_cls, self.repository)
-        for sha256, package_to_patch in partial_index.items():
-            p2p = self.index.setdefault(sha256, {})
-            p2p.update(package_to_patch)
+        for pkg_fullname in pkgs_fullname:
+            pkg_cls = self.repository.get_pkg_class(pkg_fullname)
+            partial_index = self._index_patches(pkg_cls, self.repository)
+            for sha256, package_to_patch in partial_index.items():
+                p2p = self.index.setdefault(sha256, {})
+                p2p.update(package_to_patch)
 
     def update(self, other: "PatchCache") -> None:
         """Update this cache with the contents of another.
