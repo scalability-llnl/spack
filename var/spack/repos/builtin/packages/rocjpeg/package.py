@@ -10,7 +10,8 @@ class Rocjpeg(CMakePackage):
     """rocJPEG is a high-performance jpeg decode SDK for decoding jpeg images
     using a hardware-accelerated jpeg decoder on AMD's GPUs."""
 
-    homepage = "https://rocm.docs.amd.com/projects/rocJPEG/en/latest/"
+    homepage= "https://github.com/ROCm/rocJPEG"
+    git="https://github.com/ROCm/rocJPEG.git"
     url = "https://github.com/ROCm/rocJPEG/archive/refs/tags/rocm-6.3.0.tar.gz"
 
     maintainers("afzpatel", "srekolam", "renjithravindrankannath")
