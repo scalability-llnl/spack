@@ -278,7 +278,7 @@ def _do_fake_install(pkg: "spack.package_base.PackageBase") -> None:
     fs.touch(prefix_bin / command)
     if sys.platform != "win32":
         chmod = which("chmod", required=True)
-        chmod("+x", os.fspath(prefix_bin / command))
+        chmod("+x", str(prefix_bin / command))
 
     # Install fake header file
     prefix_include = Path(pkg.prefix.include)
@@ -563,7 +563,7 @@ def dump_packages(spec: "spack.spec.Spec", path: str) -> None:
 
             # Create a source repo and get the pkg directory out of it.
             try:
-                source_repo = spack.repo.from_path(os.fspath(source_repo_root))
+                source_repo = spack.repo.from_path(source_repo_root)
                 source_pkg_dir = source_repo.dirname_for_package_name(node.name)
             except spack.repo.RepoError as err:
                 tty.debug(f"Failed to create source repo for {node.name}: {str(err)}")
@@ -573,8 +573,8 @@ def dump_packages(spec: "spack.spec.Spec", path: str) -> None:
         # Create a destination repository
         dest_repo_root = path / node.namespace
         if not dest_repo_root.exists():
-            spack.repo.create_repo(os.fspath(dest_repo_root))
-        repo = spack.repo.from_path(os.fspath(dest_repo_root))
+            spack.repo.create_repo(dest_repo_root)
+        repo = spack.repo.from_path(dest_repo_root)
 
         # Get the location of the package in the dest repo.
         dest_pkg_dir = repo.dirname_for_package_name(node.name)
@@ -650,7 +650,7 @@ def log(pkg: "spack.package_base.PackageBase") -> None:
         # FIXME : this potentially catches too many things...
         tty.debug(e)
 
-    archive_install_logs(pkg, os.path.dirname(packages_dir))
+    archive_install_logs(pkg, str(packages_dir.parent))
 
     # Archive the environment modifications for the build.
     fs.install(pkg.env_mods_path, pkg.install_env_path)
@@ -2432,10 +2432,9 @@ class BuildProcessInstaller:
             # Spawn a daemon that reads from a pipe and redirects
             # everything to log_path, and provide the phase for logging
             builder = spack.builder.create(pkg)
-            log_path = PurePath(pkg.log_path)
+            log_dir = PurePath(pkg.log_path).parent
             for i, phase_fn in enumerate(builder):
                 # Keep a log file for each phase
-                log_dir = log_path.parent
                 log_file = "spack-build-%02d-%s-out.txt" % (i + 1, phase_fn.name.lower())
                 log_file = os.fspath(log_dir / log_file)
 

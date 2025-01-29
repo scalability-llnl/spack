@@ -185,7 +185,7 @@ def substitute_config_variables(path):
         return m if repl is NOMATCH else str(repl)
 
     # Replace $var or ${var}.
-    return re.sub(r"(\$\w+\b|\$\{\w+\})", repl, path)
+    return re.sub(r"(\$\w+\b|\$\{\w+\})", repl, str(path))
 
 
 def substitute_path_variables(path):
