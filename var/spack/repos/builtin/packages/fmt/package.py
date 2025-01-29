@@ -117,11 +117,7 @@ class Fmt(CMakePackage):
             args.append("-DBUILD_SHARED_LIBS=ON")
 
         if spec.satisfies("+pic"):
-            args.extend(
-                [
-                    "-DCMAKE_CXX_FLAGS={0}".format(self.compiler.cxx_pic_flag),
-                ]
-            )
+            args.append("-DCMAKE_CXX_FLAGS={0}".format(self.compiler.cxx_pic_flag))
 
         args.append("-DCMAKE_CXX_STANDARD={0}".format(spec.variants["cxxstd"].value))
         # Require standard at configure time to guarantee the
