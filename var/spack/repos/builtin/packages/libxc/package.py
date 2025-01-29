@@ -46,12 +46,6 @@ class Libxc(AutotoolsPackage, CudaPackage, CMakePackage):
         description="Build Fortran 2003 interface",
         when="build_system=cmake",
     )
-    variant(
-        "tests",
-        default=False,
-        description="Build testing infrastructure",
-        when="build_system=cmake",
-    )
 
     generator("ninja")
 
@@ -115,7 +109,7 @@ class AutotoolsBuilder(autotools.AutotoolsBuilder):
 
         # https://gitlab.com/libxc/libxc/-/issues/430 (configure script does not ensure C99)
         # TODO: Switch to cmake since this is better supported
-        env.append_flags("CFLAGS", self.compiler.c99_flag)
+        env.append_flags("CFLAGS", self.pkg.compiler.c99_flag)
         if self.spec.satisfies("%intel"):
             if which("xiar"):
                 env.set("AR", "xiar")
@@ -170,6 +164,6 @@ class CMakeBuilder(cmake.CMakeBuilder):
             self.define_from_variant("ENABLE_CUDA", "cuda"),
             self.define("DISABLE_KXC", spec.satisfies("~kxc")),
             self.define("DISABLE_LXC", spec.satisfies("~lxc")),
-            self.define_from_variant("BUILD_TESTING", "tests"),
+            self.define("BUILD_TESTING", self.pkg.run_tests),
         ]
         return args
