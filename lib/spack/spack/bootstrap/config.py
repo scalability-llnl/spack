@@ -4,7 +4,7 @@
 """Manage configuration swapping for bootstrapping purposes"""
 
 import contextlib
-import os.path
+import os
 import sys
 from typing import Any, Dict, Generator, MutableSequence, Sequence
 
@@ -141,7 +141,7 @@ def _bootstrap_config_scopes() -> Sequence["spack.config.ConfigScope"]:
 
 
 def _add_compilers_if_missing() -> None:
-    arch = spack.spec.ArchSpec.frontend_arch()
+    arch = spack.spec.ArchSpec.default_arch()
     if not spack.compilers.compilers_for_arch(arch):
         spack.compilers.find_compilers()
 

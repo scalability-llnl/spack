@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections
 import hashlib
-import os.path
+import os
 import platform
 import posixpath
 import re
@@ -106,7 +106,7 @@ class CDash(Reporter):
         self.site = configuration.site or socket.gethostname()
         self.osname = platform.system()
         self.osrelease = platform.release()
-        self.target = spack.platforms.host().target("default_target")
+        self.target = spack.platforms.host().default_target()
         self.starttime = int(time.time())
         self.endtime = self.starttime
         self.buildstamp = (

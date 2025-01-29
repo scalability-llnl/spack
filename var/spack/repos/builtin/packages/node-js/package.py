@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import re
 import subprocess
 import sys
 
@@ -143,6 +144,14 @@ class NodeJs(Package):
     # until https://github.com/spack/spack/issues/48492 is resolved
     patch("wasm-compiler-gcc11p2.patch", when="@21:22 %gcc@11.2")
     conflicts("%gcc@11.2", when="@21:")
+
+    executables = ["^node$"]
+
+    @classmethod
+    def determine_version(cls, exe):
+        output = Executable(exe)("--version", output=str, error=str)
+        match = re.match(r"v([\d.]+)\s*", output)
+        return match.group(1) if match else None
 
     def setup_build_environment(self, env):
         # Force use of experimental Python 3 support

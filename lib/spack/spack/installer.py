@@ -275,7 +275,7 @@ def _do_fake_install(pkg: "spack.package_base.PackageBase") -> None:
     fs.mkdirp(pkg.prefix.bin)
     fs.touch(os.path.join(pkg.prefix.bin, command))
     if sys.platform != "win32":
-        chmod = which("chmod")
+        chmod = which("chmod", required=True)
         chmod("+x", os.path.join(pkg.prefix.bin, command))
 
     # Install fake header file
@@ -539,7 +539,7 @@ def dump_packages(spec: "spack.spec.Spec", path: str) -> None:
     # Note that we copy them in as they are in the *install* directory
     # NOT as they are in the repository, because we want a snapshot of
     # how *this* particular build was done.
-    for node in spec.traverse(deptype=all):
+    for node in spec.traverse(deptype="all"):
         if node is not spec:
             # Locate the dependency package in the install tree and find
             # its provenance information.

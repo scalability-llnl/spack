@@ -17,6 +17,7 @@ class PyScipy(PythonPackage):
     license("BSD-3-Clause")
 
     version("main", branch="main")
+    version("1.15.1", sha256="033a75ddad1463970c96a88063a1df87ccfddd526437136b6ee81ff0312ebdf6")
     version("1.15.0", sha256="300742e2cc94e36a2880ebe464a1c8b4352a7b0f3e36ec3d2ac006cdbe0219ac")
     version("1.14.1", sha256="5a275584e726026a5699459aa72f828a610821006228e841b94275c4a7c08417")
     version("1.14.0", sha256="b5923f48cb840380f9854339176ef21763118a7300a88203ccd0bdd26e58527b")
@@ -183,9 +184,6 @@ class PyScipy(PythonPackage):
 
     # https://github.com/spack/spack/issues/48243
     conflicts("%intel", when="@1.14:", msg="SciPy 1.14: Use Intel LLVM instead of Intel Classic")
-
-    # https://github.com/spack/spack/issues/45718
-    conflicts("%aocc", msg="SciPy doesn't compile with AOCC yet")
 
     # https://github.com/scipy/scipy/issues/19831
     conflicts("^openblas@0.3.26:", when="@:1.12")

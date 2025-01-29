@@ -85,6 +85,7 @@ class Pango(MesonPackage):
     depends_on("fribidi@1.0.6:", when="@1.49:")
     depends_on("harfbuzz@2.6.0:", when="@1.49:")
     depends_on("json-glib@1.6.0:", when="@1.49:")
+    depends_on("gmake", type="build")
 
     def url_for_version(self, version):
         url = "http://ftp.gnome.org/pub/GNOME/sources/pango/{0}/pango-{1}.tar.xz"

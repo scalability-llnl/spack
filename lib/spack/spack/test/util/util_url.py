@@ -4,7 +4,6 @@
 
 """Test Spack's URL handling utility functions."""
 import os
-import os.path
 import urllib.parse
 
 import pytest

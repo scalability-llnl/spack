@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import copy
 import os
-import os.path
 import sys
 
 import spack.util.environment
@@ -790,7 +789,7 @@ class MakefileBuilder(makefile.MakefileBuilder):
                     "# include Plumed.inc as recommended by"
                     "PLUMED to include libraries and flags"
                 )
-                mkf.write("include {0}\n".format(spec["plumed"].package.plumed_inc))
+                mkf.write("include {0}\n".format(self.pkg["plumed"].plumed_inc))
 
             mkf.write("\n# COMPILER, LINKER, TOOLS\n\n")
             mkf.write(

@@ -13,6 +13,7 @@ import pytest
 
 from llnl.util.filesystem import working_dir
 
+import spack.concretize
 import spack.package_base
 import spack.spec
 import spack.version
@@ -707,7 +708,9 @@ def test_git_hash_comparisons(
         spack.package_base.PackageBase, "git", pathlib.Path(repo_path).as_uri(), raising=False
     )
 
-    spec = spack.spec.Spec(f"git-test-commit@{commits[commit_idx]}").concretized()
+    spec = spack.concretize.concretize_one(
+        spack.spec.Spec(f"git-test-commit@{commits[commit_idx]}")
+    )
     for item in expected_satisfies:
         assert spec.satisfies(item)
 
@@ -723,15 +726,13 @@ def test_git_ref_comparisons(mock_git_version_info, install_mockery, mock_packag
     )
 
     # Spec based on tag v1.0
-    spec_tag = spack.spec.Spec("git-test-commit@git.v1.0")
-    spec_tag.concretize()
+    spec_tag = spack.concretize.concretize_one("git-test-commit@git.v1.0")
     assert spec_tag.satisfies("@1.0")
     assert not spec_tag.satisfies("@1.1:")
     assert str(spec_tag.version) == "git.v1.0=1.0"
 
     # Spec based on branch 1.x
-    spec_branch = spack.spec.Spec("git-test-commit@git.1.x")
-    spec_branch.concretize()
+    spec_branch = spack.concretize.concretize_one("git-test-commit@git.1.x")
     assert spec_branch.satisfies("@1.2")
     assert spec_branch.satisfies("@1.1:1.3")
     assert str(spec_branch.version) == "git.1.x=1.2"
@@ -1030,7 +1031,7 @@ def test_git_version_repo_attached_after_serialization(
     monkeypatch.setattr(
         spack.package_base.PackageBase, "git", "file://%s" % repo_path, raising=False
     )
-    spec = spack.spec.Spec(f"git-test-commit@{commits[-2]}").concretized()
+    spec = spack.concretize.concretize_one(f"git-test-commit@{commits[-2]}")
 
     # Before serialization, the repo is attached
     assert spec.satisfies("@1.0")
@@ -1050,7 +1051,7 @@ def test_resolved_git_version_is_shown_in_str(
         spack.package_base.PackageBase, "git", "file://%s" % repo_path, raising=False
     )
     commit = commits[-3]
-    spec = spack.spec.Spec(f"git-test-commit@{commit}").concretized()
+    spec = spack.concretize.concretize_one(f"git-test-commit@{commit}")
 
     assert spec.version.satisfies(ver("1.0"))
     assert str(spec.version) == f"{commit}=1.0-git.1"

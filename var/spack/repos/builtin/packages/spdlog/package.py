@@ -13,6 +13,7 @@ class Spdlog(CMakePackage):
 
     license("MIT")
 
+    version("1.15.0", sha256="9962648c9b4f1a7bbc76fd8d9172555bad1871fdb14ff4f842ef87949682caa5")
     version("1.14.1", sha256="1586508029a7d0670dfcb2d97575dcdc242d3868a259742b69f100801ab4e16b")
     version("1.13.0", sha256="534f2ee1a4dcbeb22249856edfb2be76a1cf4f708a20b0ac2ed090ee24cfdbc9")
     version("1.12.0", sha256="4dccf2d10f410c1e2feaff89966bfc49a1abb29ef6f08246335b110e001e09a9")
@@ -68,6 +69,20 @@ class Spdlog(CMakePackage):
         sha256="31b22a9bfa6790fdabff186c0a9b0fd588439485f05cbef5e661231d15fec49b",
         when="@1.11.0 ^fmt@10:",
     )
+
+    # spdlog@1.15.0 with fmt@11  https://github.com/gabime/spdlog/pull/3314
+    # (with https://github.com/gabime/spdlog/pull/3301 as a prerequisite)
+    patch(
+        "https://github.com/gabime/spdlog/commit/276ee5f5c0eb13626bd367b006ace5eae9526d8a.patch?full_index=1",
+        sha256="fd4cbb10a795a03c7182a4070056c2b004d47b120a86e1958ff82316627bb565",
+        when="@1.13.0:1.15.0",
+    )
+    patch(
+        "https://github.com/gabime/spdlog/commit/96a8f6250cbf4e8c76387c614f666710a2fa9bad.patch?full_index=1",
+        sha256="5ed92f4c131fd31eb3d28390615ecff3ade3789cdecfd3db18cadb07cc8095e3",
+        when="@1.13.0:1.15.0",
+    )
+    conflicts("^fmt@11.1:", when="@:1.12")
 
     def cmake_args(self):
         args = []

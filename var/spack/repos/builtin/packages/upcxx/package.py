@@ -98,11 +98,11 @@ class Upcxx(Package, CudaPackage, ROCmPackage):
         deprecated=True,
         sha256="01be35bef4c0cfd24e9b3d50c88866521b9cac3ad4cbb5b1fc97aea55078810f",
     )
-
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
     # Do NOT add older versions here.
     # UPC++ releases over 2 years old are not supported.
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("gmake", type="build")
 
     patch("fix_configure_ldflags.patch", when="@2021.9.0:master")
 
