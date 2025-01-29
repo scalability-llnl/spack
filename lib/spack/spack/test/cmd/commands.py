@@ -260,14 +260,16 @@ def test_updated_completion_scripts(shell, tmpdir):
     """Make sure our shell tab completion scripts remain up-to-date."""
 
     msg = (
-        "It looks like Spack's command-line interface has been modified. "
-        "Please update Spack's shell tab completion scripts by running:\n\n"
+        "It looks like Spack's command-line interface has been\nmodified. "
+        "If differences are more than your global 'include:' scopes,\nplease "
+        "update Spack's shell tab completion scripts by running:\n\n"
         "    spack commands --update-completion\n\n"
-        "and adding the changed files to your pull request."
+        "and adding the changed files (minus your global 'include:' scopes)\n"
+        "to your pull request.\n"
     )
 
     header = os.path.join(spack.paths.share_path, shell, f"spack-completion.{shell}")
-    script = "spack-completion.{0}".format(shell)
+    script = f"spack-completion.{shell}"
     old_script = os.path.join(spack.paths.share_path, script)
     new_script = str(tmpdir.join(script))
 
