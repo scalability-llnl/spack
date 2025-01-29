@@ -13,6 +13,7 @@ class PyFolium(PythonPackage):
 
     license("MIT")
 
+    version("0.19.4", sha256="431a655b52a9bf3efda336f2be022103f0106504a0599e7c349efbfd30bafda6")
     version("0.16.0", sha256="2585ee9253dc758d3a365534caa6fb5fa0c244646db4dc5819afc67bbd4daabb")
 
     depends_on("py-setuptools@41.2:", type="build")

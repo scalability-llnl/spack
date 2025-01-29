@@ -7,6 +7,7 @@
 import base64
 import json
 import re
+import socket
 import time
 import urllib.error
 import urllib.parse
@@ -410,7 +411,7 @@ def default_retry(f, retries: int = 5, sleep=None):
         for i in range(retries):
             try:
                 return f(*args, **kwargs)
-            except (urllib.error.URLError, TimeoutError) as e:
+            except OSError as e:
                 # Retry on internal server errors, and rate limit errors
                 # Potentially this could take into account the Retry-After header
                 # if registries support it
@@ -420,9 +421,10 @@ def default_retry(f, retries: int = 5, sleep=None):
                         and (500 <= e.code < 600 or e.code == 429)
                     )
                     or (
-                        isinstance(e, urllib.error.URLError) and isinstance(e.reason, TimeoutError)
+                        isinstance(e, urllib.error.URLError)
+                        and isinstance(e.reason, socket.timeout)
                     )
-                    or isinstance(e, TimeoutError)
+                    or isinstance(e, socket.timeout)
                 ):
                     # Exponential backoff
                     sleep(2**i)

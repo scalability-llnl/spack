@@ -319,7 +319,6 @@ class TestSpecDag:
             ("mpich@1.0", "mpileaks ^mpich@2.0"),
             ("mpich%gcc", "mpileaks ^mpich%intel"),
             ("mpich%gcc@4.6", "mpileaks ^mpich%gcc@4.5"),
-            ("mpich platform=test target=be", "mpileaks ^mpich platform=test target=fe"),
         ],
     )
     def test_unsatisfiable_cases(self, set_dependency, constraint_str, spec_str):

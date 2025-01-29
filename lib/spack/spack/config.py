@@ -53,6 +53,7 @@ import spack.schema.config
 import spack.schema.definitions
 import spack.schema.develop
 import spack.schema.env
+import spack.schema.env_vars
 import spack.schema.mirrors
 import spack.schema.modules
 import spack.schema.packages
@@ -70,6 +71,7 @@ SECTION_SCHEMAS: Dict[str, Any] = {
     "compilers": spack.schema.compilers.schema,
     "concretizer": spack.schema.concretizer.schema,
     "definitions": spack.schema.definitions.schema,
+    "env_vars": spack.schema.env_vars.schema,
     "view": spack.schema.view.schema,
     "develop": spack.schema.develop.schema,
     "mirrors": spack.schema.mirrors.schema,
