@@ -2799,7 +2799,7 @@ Adding the following to a package:
     )
 
 expresses the fact that the current package *cannot be built* with the Intel
-compiler when we are trying to install a version "<=1.2". 
+compiler when we are trying to install a version "<=1.2".
 
 If the ``when`` argument is omitted then conflict will always be active.
 
