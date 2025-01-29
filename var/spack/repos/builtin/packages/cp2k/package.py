@@ -116,7 +116,6 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     variant("pytorch", default=False, description="Enable libtorch support")
     variant("quip", default=False, description="Enable quip support")
     variant("mpi_f08", default=False, description="Use MPI F08 module")
-    variant("smeagol", default=False, description="Enable libsmeagol support")
 
     variant(
         "enable_regtests",
@@ -260,8 +259,6 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
         depends_on("plumed+shared")
         depends_on("plumed+mpi", when="+mpi")
         depends_on("plumed~mpi", when="~mpi")
-
-    depends_on("libsmeagol", when="+smeagol")
 
     # while we link statically against PEXSI, its own deps may be linked in
     # dynamically, therefore can't set this as pure build-type dependency.
@@ -623,12 +620,6 @@ class MakefileBuilder(makefile.MakefileBuilder):
             spglib = spec["spglib"].libs
             ldflags += [spglib.search_flags]
             libs.append(spglib.ld_flags)
-        
-        if spec.satisfies("+smeagol"):
-            cppflags += ["-D__SMEAGOL"]
-            smeagol = spec["libsmeagol"].libs
-            ldflags += [smeagol.search_flags]
-            libs.append(smeagol.ld_flags)
 
         cc = spack_cc if "~mpi" in spec else spec["mpi"].mpicc
         cxx = spack_cxx if "~mpi" in spec else spec["mpi"].mpicxx
