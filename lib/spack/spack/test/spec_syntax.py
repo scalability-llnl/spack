@@ -315,7 +315,7 @@ def specfile_for(default_mock_concretization):
         ),
         (
             r"target=be",
-            [Token(TokenType.KEY_VALUE_PAIR, value="target=be")],
+            [Token(SpecTokens.KEY_VALUE_PAIR, value="target=be")],
             f"arch=test-None-{spack.platforms.test.Test.default}",
         ),
         (
