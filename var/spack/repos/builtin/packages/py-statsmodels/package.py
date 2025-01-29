@@ -15,6 +15,8 @@ class PyStatsmodels(PythonPackage):
     pypi = "statsmodels/statsmodels-0.8.0.tar.gz"
     git = "https://github.com/statsmodels/statsmodels.git"
 
+    maintainers("climbfuji")
+
     license("BSD-3-Clause")
 
     version("0.14.1", sha256="2260efdc1ef89f39c670a0bd8151b1d0843567781bcafec6cda0534eb47a94f6")
