@@ -76,6 +76,7 @@ class Papi(AutotoolsPackage, ROCmPackage):
     depends_on("lm-sensors", when="+lmsensors")
     depends_on("cuda", when="+cuda")
     depends_on("cuda", when="+nvml")
+    depends_on("bc", when="+cuda", type="build")
     depends_on("hsa-rocr-dev", when="+rocm")
     depends_on("rocprofiler-dev", when="+rocm")
     depends_on("llvm-amdgpu", when="+rocm")
@@ -229,6 +230,7 @@ class Papi(AutotoolsPackage, ROCmPackage):
             raise SkipTest("Skipping smoke tests, directory doesn't exist")
         with working_dir(test_dir, create=False):
             with spack.util.environment.set_env(PAPIROOT=self.prefix):
+                make = self.spec["gmake"].command
                 make()
                 exe_simple = which("simple")
                 exe_simple()
