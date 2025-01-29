@@ -1,41 +1,31 @@
 #!/bin/sh
 
-# separator_exists sep
+# _separator_exists sep
 #
 # Fails if separator argument was not supplied
-separator_exists() {
+_separator_exists() {
     if [ -z "$1" ]; then
         echo "Missing argument: separator"
         exit 1
     fi
 }
 
-# _value_not_in_varname varname value sep
+# _value_in_varname varname value sep
 #
 # Return whether the variable value is found in varname
-_value_not_in_varname () {
+_value_in_varname () {
     varname="$1"
     value="$2"
     sep="$3"
 
     eval "var=\"\${${varname}}\""
+    value_in_varname=1
 
-    echo "here $var"
-    if eval "[ \"yes another one\" =~ \"*another*\" ]"; then
-        echo "it's here"
-    else
-        echo "not here"
+    if  [ "${var#*$value}" != "$var" ]; then
+            value_in_varname=0
     fi
 
-    if eval "[ \"\${${varname}}\" == \"$value\" ] ||
-        [ \"\${${varname}}\" == ^\"$value$sep\"* ] ||
-        [ \"\${${varname}}\" == *\"$sep$value$sep\"* ] ||
-        [ \"\${${varname}}\" == *\"$sep$value\" ]"; then
-            echo "1"
-            false
-    fi
-    echo "0"
-    true
+    return $value_in_varname
 }
 
 # _spack_env_varname_is_empty varname
@@ -73,15 +63,13 @@ _spack_env_append() {
     value="$2"
     sep="$3"
 
-    $(separator_exists $sep)
+    $(_separator_exists $sep)
 
-    if _spack_env_varname_is_empty "$varname"; then
+    if _spack_env_var_empty "$varname"; then
         eval "$varname=\"\${value}\""
     else
-        echo "in else"
-        echo "$(_value_not_in_varname $varname $value $sep)"
-        if [ "$(_value_not_in_varname $varname $value $sep)" ] ; then
-            echo "setting"
+        $(_value_in_varname $varname $value $sep)
+        if [ $? -eq 1 ] ; then
             eval "export $varname=\${${varname}}$sep$value"
         fi
     fi
@@ -96,7 +84,7 @@ _spack_env_prepend() { # if not exporting then use lowercase
     value="$2"
     sep="$3"
 
-    $(separator_exists $sep)
+    $(_separator_exists $sep)
 
    if _spack_env_varname_is_empty "$varname"; then
         eval "$varname=\"\${value}\""
@@ -116,7 +104,7 @@ _spack_env_remove() { # look into sed
     value="$2"
     sep="$3"
 
-    $(separator_exists $sep)
+    $(_separator_exists $sep)
 
     eval "varname_value=\"\${${varname}}\""
 
@@ -131,6 +119,7 @@ _spack_env_remove() { # look into sed
         # if value is at the end of the string
         elif [ "$varname_value" == *"$sep$value" ]; then
             eval "export $varname=\"${varname_value[@]/$sep$value/}\""
+        fi
     fi
 }
 
