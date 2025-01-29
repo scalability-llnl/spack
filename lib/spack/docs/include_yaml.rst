@@ -36,3 +36,10 @@ path is only applied when the operating system (``os``) is ``ventura``.
 The same conditions and variables in `Spec List References 
 <https://spack.readthedocs.io/en/latest/environments.html#spec-list-references>`_
 can be used for conditional activation in the ``when`` clauses.
+
+Files are listed using paths to individual files or directories containing
+them. Path entries may be absolute, relative to the entry, or specified as
+URLs. URLs to individual files need to link to the *raw* form of the file's
+contents. Only the ``file``, ``ftp``, ``http`` and ``https`` protocols (or
+schemes) are supported. Spack-specific, environment and user path variables
+can be used. (See :ref:`config-file-variables` for more information.)
