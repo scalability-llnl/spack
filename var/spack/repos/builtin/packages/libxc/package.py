@@ -17,7 +17,7 @@ class Libxc(AutotoolsPackage, CudaPackage, CMakePackage):
 
     maintainers("RMeli")
 
-    build_system(conditional("cmake", when="@7.0.0"), "autotools", default="cmake")
+    build_system(conditional("cmake", when="@7.0.0:"), "autotools", default="cmake")
 
     version("7.0.0", sha256="8d4e343041c9cd869833822f57744872076ae709a613c118d70605539fb13a77")
     version("6.2.2", sha256="d1b65ef74615a1e539d87a0e6662f04baf3a2316706b4e2e686da3193b26b20f")
