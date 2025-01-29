@@ -7,7 +7,6 @@ from spack.package import *
 
 
 class Maxima(AutotoolsPackage):
-
     """
     Maxima is a system for the manipulation of symbolic and numerical expressions,
     including differentiation, integration, Taylor series, Laplace transforms,
@@ -31,7 +30,6 @@ class Maxima(AutotoolsPackage):
 
     def configure_args(self):
         args = ["--disable-build-docs"]
-
         return args
 
     def install(self, spec, prefix):
