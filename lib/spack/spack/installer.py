@@ -273,21 +273,21 @@ def _do_fake_install(pkg: "spack.package_base.PackageBase") -> None:
     dso_suffix = ".dylib" if sys.platform == "darwin" else plat_shared
 
     # Install fake command
-    prefix_bin = PurePath(pkg.prefix.bin)
-    fs.mkdirp(str(prefix_bin))
+    prefix_bin = Path(pkg.prefix.bin)
+    fs.mkdirp(prefix_bin)
     fs.touch(prefix_bin / command)
     if sys.platform != "win32":
         chmod = which("chmod", required=True)
         chmod("+x", os.fspath(prefix_bin / command))
 
     # Install fake header file
-    prefix_include = PurePath(pkg.prefix.include)
-    fs.mkdirp(str(prefix_include))
+    prefix_include = Path(pkg.prefix.include)
+    fs.mkdirp(prefix_include)
     fs.touch(prefix_include / (header + ".h"))
 
     # Install fake shared and static libraries
-    prefix_lib = PurePath(pkg.prefix.lib)
-    fs.mkdirp(str(prefix_lib))
+    prefix_lib = Path(pkg.prefix.lib)
+    fs.mkdirp(prefix_lib)
     for suffix in [dso_suffix, plat_static]:
         fs.touch(prefix_lib / (library + suffix))
 
@@ -538,7 +538,7 @@ def dump_packages(spec: "spack.spec.Spec", path: str) -> None:
         path: the path to the build packages directory
     """
     path = Path(path)
-    fs.mkdirp(str(path))
+    fs.mkdirp(path)
 
     # Copy in package.py files from any dependencies.
     # Note that we copy them in as they are in the *install* directory
@@ -681,7 +681,7 @@ def log(pkg: "spack.package_base.PackageBase") -> None:
                     target = target_dir / f
                     # We must ensure that the directory exists before
                     # copying a file in
-                    fs.mkdirp(str(target.parent))
+                    fs.mkdirp(target.parent)
                     fs.install(f, target)
                 except Exception as e:
                     tty.debug(e)
@@ -693,7 +693,7 @@ def log(pkg: "spack.package_base.PackageBase") -> None:
 
         if errors.getvalue():
             error_file = target_dir / "errors.txt"
-            fs.mkdirp(str(target_dir))
+            fs.mkdirp(target_dir)
             with open(error_file, "w", encoding="utf-8") as err:
                 err.write(errors.getvalue())
             tty.warn(f"Errors occurred when archiving files.\n\tSee: {error_file}")
@@ -2522,7 +2522,7 @@ def deprecate(spec: "spack.spec.Spec", deprecator: "spack.spec.Spec", link_fn) -
 
     # copy spec metadata to "deprecated" dir of deprecator
     depr_specfile = Path(spack.store.STORE.layout.deprecated_file_path(spec, deprecator))
-    fs.mkdirp(str(depr_specfile.parent))
+    fs.mkdirp(depr_specfile.parent)
     shutil.copy2(specfile, depr_specfile)
 
     # Any specs deprecated in favor of this spec are re-deprecated in favor of its new deprecator

@@ -894,7 +894,7 @@ def chgrp_if_not_world_writable(path, group):
 
 
 def mkdirp(
-    *paths: str,
+    *paths,
     mode: Optional[int] = None,
     group: Optional[Union[str, int]] = None,
     default_perms: Optional[str] = None,
