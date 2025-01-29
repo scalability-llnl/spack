@@ -702,9 +702,6 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
     #: Verbosity level, preserved across installs.
     _verbose = None
 
-    #: index of patches by sha256 sum, built lazily
-    _patches_by_hash = None
-
     #: Package homepage where users can find more information about the package
     homepage: Optional[str] = None
 
