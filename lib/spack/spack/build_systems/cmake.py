@@ -462,8 +462,8 @@ class CMakeBuilder(BuilderWithDefaults):
         # These are the files that will re-run CMake that are generated from a successful
         # configure step
         if spec.is_develop and (
-            os.path.isfile(os.path.join(self.build_directory, "Makefile") or
-            os.path.isfile(os.path.join(self.build_directory, "ninja.build")
+            os.path.isfile(os.path.join(self.build_directory, "Makefile"))
+            or os.path.isfile(os.path.join(self.build_directory, "ninja.build"))
         ):
             return
 
