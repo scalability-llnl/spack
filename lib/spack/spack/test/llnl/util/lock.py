@@ -1339,7 +1339,7 @@ def test_poll_lock_exception(tmpdir, monkeypatch, err_num, err_msg):
     """Test poll lock exception handling."""
 
     def _lockf(fd, cmd, len, start, whence):
-        raise IOError(err_num, err_msg)
+        raise OSError(err_num, err_msg)
 
     with tmpdir.as_cwd():
         lockfile = "lockfile"
@@ -1351,7 +1351,7 @@ def test_poll_lock_exception(tmpdir, monkeypatch, err_num, err_msg):
         if err_num in [errno.EAGAIN, errno.EACCES]:
             assert not lock._poll_lock(fcntl.LOCK_EX)
         else:
-            with pytest.raises(IOError, match=err_msg):
+            with pytest.raises(OSError, match=err_msg):
                 lock._poll_lock(fcntl.LOCK_EX)
 
         monkeypatch.undo()

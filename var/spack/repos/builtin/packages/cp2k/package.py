@@ -763,8 +763,8 @@ class MakefileBuilder(makefile.MakefileBuilder):
                     "Point environment variable LIBSMM_PATH to "
                     "the absolute path of the libsmm.a file"
                 )
-            except IOError:
-                raise IOError(
+            except OSError:
+                raise OSError(
                     "The file LIBSMM_PATH pointed to does not "
                     "exist. Note that it must be absolute path."
                 )

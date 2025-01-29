@@ -489,7 +489,7 @@ def test_log_install_without_build_files(install_mockery):
     spec = spack.concretize.concretize_one("trivial-install-test-package")
 
     # Attempt installing log without the build log file
-    with pytest.raises(IOError, match="No such file or directory"):
+    with pytest.raises(OSError, match="No such file or directory"):
         spack.installer.log(spec.package)
 
 
