@@ -15,6 +15,8 @@ class Libxc(AutotoolsPackage, CudaPackage, CMakePackage):
 
     license("MPL-2.0-no-copyleft-exception")
 
+    maintainer("RMeli")
+
     build_system(conditional("cmake", when="@7.0.0"), "autotools", default="cmake")
 
     version("7.0.0", sha256="8d4e343041c9cd869833822f57744872076ae709a613c118d70605539fb13a77")
