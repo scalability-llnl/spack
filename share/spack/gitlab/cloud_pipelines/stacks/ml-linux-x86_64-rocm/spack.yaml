@@ -80,10 +80,6 @@ spack:
     # Does not yet support Spack-installed ROCm
     # - py-xgboost
 
-    # ROCm
-    - hip
-    - miopen-hip
-
   ci:
     pipeline-gen:
     - build-job:
