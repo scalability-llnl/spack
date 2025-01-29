@@ -25,6 +25,7 @@ class Rocalution(CMakePackage):
     libraries = ["librocalution_hip"]
 
     license("MIT")
+    version("6.3.1", sha256="94b78b34ac750c09831aa70a3d7f8cd220c540a75e4f91c391ba435de420c536")
     version("6.3.0", sha256="a7476e1ce79915cb8e01917de372ae6b15d7e51b1a25e15cde346dadf2391068")
     version("6.2.4", sha256="993c55e732d0ee390746890639486649f36ae806110cf7490b9bb5d49b0663c0")
     version("6.2.1", sha256="94f15add5316c81529ce84ae8bf2701e9a4df57d08eda04a2f70147d31b12632")
@@ -84,6 +85,7 @@ class Rocalution(CMakePackage):
         "6.2.1",
         "6.2.4",
         "6.3.0",
+        "6.3.1",
     ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"rocprim@{ver}", when=f"@{ver}")

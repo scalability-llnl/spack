@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import json
-import os.path
+import os
 
 import jsonschema
 import pytest
