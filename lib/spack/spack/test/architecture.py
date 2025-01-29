@@ -60,8 +60,7 @@ def test_user_input_combination(config, target_str, os_str):
     """Test for all the valid user input combinations that both the target and
     the operating system match.
     """
-    spec_str = "libelf os={} target={}".format(os_str, target_str)
-    spec = Spec(spec_str)
+    spec = Spec(f"libelf os={os_str} target={target_str}")
     assert spec.architecture.os == str(TEST_PLATFORM.operating_system(os_str))
     assert spec.architecture.target == TEST_PLATFORM.target(target_str)
 
@@ -71,8 +70,8 @@ def test_default_os_and_target(default_mock_concretization):
     after concretization.
     """
     spec = default_mock_concretization("libelf")
-    assert spec.architecture.os == str(TEST_PLATFORM.operating_system("default_os"))
-    assert spec.architecture.target == TEST_PLATFORM.target("default_target")
+    assert spec.architecture.os == str(TEST_PLATFORM.default_operating_system())
+    assert spec.architecture.target == TEST_PLATFORM.default_target()
 
 
 def test_operating_system_conversion_to_dict():

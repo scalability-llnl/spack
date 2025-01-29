@@ -2614,7 +2614,7 @@ spack:
     - packages:
         - matrix:
             - [mpileaks, callpath]
-            - [target=be]
+            - [target=default_target]
   specs:
     - $packages
 """
@@ -2639,7 +2639,7 @@ spack:
     - packages:
         - matrix:
             - [mpileaks, callpath]
-            - [target=be]
+            - [target=default_target]
   specs:
     - $packages
 """
@@ -2659,7 +2659,7 @@ spack:
 
             assert before_user == after_user
 
-            mpileaks_spec = Spec("mpileaks target=be")
+            mpileaks_spec = Spec("mpileaks target=default_target")
             assert mpileaks_spec in before_conc
             assert mpileaks_spec not in after_conc
 
