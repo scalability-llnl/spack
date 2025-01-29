@@ -462,9 +462,9 @@ class CMakeBuilder(BuilderWithDefaults):
         # These are the files that will re-run CMake that are generated from a successful
         # configure step
         if self.generator == "Unix Makefiles":
-           configure_artifact = "Makefile" 
+            configure_artifact = "Makefile"
         elif self.generator == "Ninja":
-           configure_artifact = "ninja.build" 
+            configure_artifact = "ninja.build"
 
         if spec.is_develop and os.path.isfile(
             os.path.join(self.build_directory, configure_artifact)
