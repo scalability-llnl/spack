@@ -7,6 +7,7 @@ from spack.package import *
 
 
 class Maxima(AutotoolsPackage):
+    license("BSD-3-Clause", checked_by="adaell")
     """
     Maxima is a system for the manipulation of symbolic and numerical expressions,
     including differentiation, integration, Taylor series, Laplace transforms,
@@ -16,11 +17,9 @@ class Maxima(AutotoolsPackage):
     variable-precision floating-point numbers. Maxima can plot functions and
     data in two and three dimensions.
     """
-
     homepage = "https://maxima.sourceforge.io/"
     url = "https://sourceforge.net/projects/maxima/files/Maxima-source/5.47.0-source/maxima-5.47.0.tar.gz/download"
     maintainers("adaell")
-    license("BSD-3-Clause", checked_by="adaell")
     version(
         "5.47.0",
         sha512="953b98336eb086069edaa917981372450ce165dedd7a7b39b181d3f2d8b089551eea943e0084148eaa3ded395dcba9135509d3d11d9132ab7a3ad8bb800d3a11",
