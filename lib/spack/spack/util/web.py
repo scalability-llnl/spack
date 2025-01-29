@@ -326,7 +326,7 @@ def check_curl_code(returncode: int) -> None:
         returncode: curl return code
 
     Raises:
-        spack.error.FetchError if the curl returncode indicates failure
+        spack.error.FetchError: if the curl returncode indicates failure
     """
     if returncode == 0:
         return
@@ -378,7 +378,7 @@ def fetch_url_text(
     Returns: path to the fetched file
 
     Raises:
-        spack.error.FetchError if the curl returncode indicates failure
+        spack.error.FetchError: if the curl returncode indicates failure
     """
     if not url:
         raise spack.error.FetchError("A URL is required to fetch its text")
