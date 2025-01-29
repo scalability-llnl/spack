@@ -30,7 +30,6 @@ from typing_extensions import Literal
 import llnl.util.filesystem as fsys
 import llnl.util.tty as tty
 from llnl.util.lang import classproperty, memoized
-from llnl.util.link_tree import LinkTree
 
 import spack.compilers
 import spack.config
@@ -767,6 +766,9 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         self.win_rpath = fsys.WindowsSimulatedRPath(self)
         super().__init__()
 
+    def __getitem__(self, key: str) -> "PackageBase":
+        return self.spec[key].package
+
     @classmethod
     def dependency_names(cls):
         return _subkeys(cls.dependencies)
@@ -1096,14 +1098,14 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         """
         pass
 
-    def detect_dev_src_change(self):
+    def detect_dev_src_change(self) -> bool:
         """
         Method for checking for source code changes to trigger rebuild/reinstall
         """
         dev_path_var = self.spec.variants.get("dev_path", None)
         _, record = spack.store.STORE.db.query_by_spec_hash(self.spec.dag_hash())
-        mtime = fsys.last_modification_time_recursive(dev_path_var.value)
-        return mtime > record.installation_time
+        assert dev_path_var and record, "dev_path variant and record must be present"
+        return fsys.recursive_mtime_greater_than(dev_path_var.value, record.installation_time)
 
     def all_urls_for_version(self, version: StandardVersion) -> List[str]:
         """Return all URLs derived from version_urls(), url, urls, and
@@ -1816,12 +1818,6 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         Returns:
             bool: True if 'target' is found, else False
         """
-        # Prevent altering LC_ALL for 'make' outside this function
-        make = copy.deepcopy(self.module.make)
-
-        # Use English locale for missing target message comparison
-        make.add_default_env("LC_ALL", "C")
-
         # Check if we have a Makefile
         for makefile in ["GNUmakefile", "Makefile", "makefile"]:
             if os.path.exists(makefile):
@@ -1829,6 +1825,12 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         else:
             tty.debug("No Makefile found in the build directory")
             return False
+
+        # Prevent altering LC_ALL for 'make' outside this function
+        make = copy.deepcopy(self.module.make)
+
+        # Use English locale for missing target message comparison
+        make.add_default_env("LC_ALL", "C")
 
         # Check if 'target' is a valid target.
         #
@@ -2289,42 +2291,12 @@ env_flags = PackageBase.env_flags
 build_system_flags = PackageBase.build_system_flags
 
 
-def install_dependency_symlinks(pkg, spec, prefix):
-    """
-    Execute a dummy install and flatten dependencies.
-
-    This routine can be used in a ``package.py`` definition by setting
-    ``install = install_dependency_symlinks``.
-
-    This feature comes in handy for creating a common location for the
-    the installation of third-party libraries.
-    """
-    flatten_dependencies(spec, prefix)
-
-
 def use_cray_compiler_names():
     """Compiler names for builds that rely on cray compiler names."""
     os.environ["CC"] = "cc"
     os.environ["CXX"] = "CC"
     os.environ["FC"] = "ftn"
     os.environ["F77"] = "ftn"
-
-
-def flatten_dependencies(spec, flat_dir):
-    """Make each dependency of spec present in dir via symlink."""
-    for dep in spec.traverse(root=False):
-        name = dep.name
-
-        dep_path = spack.store.STORE.layout.path_for_spec(dep)
-        dep_files = LinkTree(dep_path)
-
-        os.mkdir(flat_dir + "/" + name)
-
-        conflict = dep_files.find_conflict(flat_dir + "/" + name)
-        if conflict:
-            raise DependencyConflictError(conflict)
-
-        dep_files.merge(flat_dir + "/" + name)
 
 
 def possible_dependencies(

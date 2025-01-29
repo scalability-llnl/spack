@@ -17,6 +17,7 @@ class Ape(Package):
     depends_on("gsl")
     depends_on("libxc@:4", when="@2.3.0:")
     depends_on("libxc@:2.2.2", when="@:2.2.1")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         args = []

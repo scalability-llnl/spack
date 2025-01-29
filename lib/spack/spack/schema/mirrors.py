@@ -9,6 +9,8 @@
 """
 from typing import Any, Dict
 
+import jsonschema
+
 #: Common properties for connection specification
 connection = {
     "url": {"type": "string"},
@@ -102,8 +104,6 @@ schema = {
 
 
 def update(data):
-    import jsonschema
-
     errors = []
 
     def check_access_pair(name, section):

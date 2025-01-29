@@ -31,6 +31,7 @@ class Gslib(Package):
     depends_on("mpi", when="+mpi")
     depends_on("mpi", when="+mpiio")
     depends_on("blas", when="+blas")
+    depends_on("gmake", type="build")
 
     conflicts("~mpi", when="+mpiio")
 

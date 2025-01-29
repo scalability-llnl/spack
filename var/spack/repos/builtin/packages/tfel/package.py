@@ -26,7 +26,7 @@ class Tfel(CMakePackage):
     constraints on each component of the strain or the stress.
     """
 
-    homepage = "https://tfel.sourceforge.net"
+    homepage = "https://thelfer.github.io/tfel/web/index.html"
     url = "https://github.com/thelfer/tfel/archive/TFEL-4.0.tar.gz"
     git = "https://github.com/thelfer/tfel.git"
     maintainers("thelfer")
@@ -155,12 +155,22 @@ class Tfel(CMakePackage):
     depends_on("python", when="+python_bindings", type=("build", "link", "run"))
     depends_on("py-numpy", when="+python_bindings", type=("build", "link", "run"))
 
-    # As boost+py has py runtime dependency, boost+py needs types link and run as well:
-    depends_on(
-        "boost+python+numpy+exception+container",
-        when="+python_bindings",
-        type=("build", "link", "run"),
-    )
+    with when("@5.1:"):
+        depends_on("py-pybind11", when="+python_bindings", type=("build", "link", "run"))
+
+    with when("@2.0.4:5.0.99"):
+        depends_on(
+            "boost+python+numpy+exception+container",
+            when="+python_bindings",
+            type=("build", "link", "run"),
+        )
+
+    with when("@rliv1.2:rliv5.0"):
+        depends_on(
+            "boost+python+numpy+exception+container",
+            when="+python_bindings",
+            type=("build", "link", "run"),
+        )
 
     extends("python", when="+python_bindings")
 
@@ -209,9 +219,14 @@ class Tfel(CMakePackage):
             args.append("-DPython_ADDITIONAL_VERSIONS={0}".format(python.version.up_to(2)))
 
         if "+python_bindings" in self.spec:
-            args.append("-DBOOST_ROOT={0}".format(self.spec["boost"].prefix))
-            args.append("-DBoost_NO_SYSTEM_PATHS=ON")
-            args.append("-DBoost_NO_BOOST_CMAKE=ON")
+
+            if "py-pybind11" in self.spec:
+                args.append("-Dpybind11_DIR={0}".format(self.spec["py-pybind11"].prefix))
+
+            if "boost" in self.spec:
+                args.append("-DBOOST_ROOT={0}".format(self.spec["boost"].prefix))
+                args.append("-DBoost_NO_SYSTEM_PATHS=ON")
+                args.append("-DBoost_NO_BOOST_CMAKE=ON")
 
         return args
 

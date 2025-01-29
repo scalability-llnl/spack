@@ -140,6 +140,7 @@ class Amber(Package, CudaPackage):
     depends_on("cuda@:11.1", when="@20:+cuda")  # when='AmberTools@21:'
     depends_on("cuda@:10.2.89", when="@18+cuda")
     depends_on("cuda@7.5.18", when="@:16+cuda")
+    depends_on("gmake", type="build")
 
     # conflicts
     conflicts("+x11", when="platform=cray", msg="x11 amber applications not available for cray")

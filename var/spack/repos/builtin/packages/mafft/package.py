@@ -24,6 +24,7 @@ class Mafft(Package):
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         with working_dir("core"):

@@ -7,9 +7,9 @@ import sys
 
 from llnl.path import convert_to_posix_path
 
+import spack.concretize
 import spack.paths
 import spack.util.executable
-from spack.spec import Spec
 
 description = "generate Windows installer"
 section = "admin"
@@ -65,8 +65,7 @@ def make_installer(parser, args):
     """
     if sys.platform == "win32":
         output_dir = args.output_dir
-        cmake_spec = Spec("cmake")
-        cmake_spec.concretize()
+        cmake_spec = spack.concretize.concretize_one("cmake")
         cmake_path = os.path.join(cmake_spec.prefix, "bin", "cmake.exe")
         cpack_path = os.path.join(cmake_spec.prefix, "bin", "cpack.exe")
         spack_source = args.spack_source

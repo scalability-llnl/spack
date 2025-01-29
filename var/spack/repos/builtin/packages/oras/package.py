@@ -22,6 +22,7 @@ class Oras(Package):
     version("0.12.0", sha256="5e19d61683a57b414efd75bd1b0290c941b8faace5fcc9d488f5e4aa674bf03e")
 
     depends_on("go", type="build")
+    depends_on("gmake", type="build")
 
     def setup_build_environment(self, env):
         # Point GOPATH at the top of the staging dir for the build step.

@@ -9,6 +9,8 @@ import shlex
 from collections import namedtuple
 from typing import Optional
 
+import jsonschema
+
 import spack.environment as ev
 import spack.error
 import spack.schema.env
@@ -188,8 +190,6 @@ class PathContext(tengine.Context):
     @tengine.context_property
     def manifest(self):
         """The spack.yaml file that should be used in the image"""
-        import jsonschema
-
         # Copy in the part of spack.yaml prescribed in the configuration file
         manifest = copy.deepcopy(self.config)
         manifest.pop("container")
