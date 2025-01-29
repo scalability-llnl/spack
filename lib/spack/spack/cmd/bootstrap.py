@@ -29,7 +29,7 @@ level = "long"
 
 
 # Tarball to be downloaded if binary packages are requested in a local mirror
-BINARY_TARBALL = "https://github.com/spack/spack-bootstrap-mirrors/releases/download/v0.4/bootstrap-buildcache.tar.gz"
+BINARY_TARBALL = "https://github.com/spack/spack-bootstrap-mirrors/releases/download/v0.5/bootstrap-buildcache.tar.gz"
 
 #: Subdirectory where to create the mirror
 LOCAL_MIRROR_DIR = "bootstrap_cache"
@@ -51,9 +51,9 @@ BINARY_METADATA = {
     },
 }
 
-CLINGO_JSON = "$spack/share/spack/bootstrap/github-actions-v0.4/clingo.json"
-GNUPG_JSON = "$spack/share/spack/bootstrap/github-actions-v0.4/gnupg.json"
-PATCHELF_JSON = "$spack/share/spack/bootstrap/github-actions-v0.4/patchelf.json"
+CLINGO_JSON = "$spack/share/spack/bootstrap/github-actions-v0.5/clingo.json"
+GNUPG_JSON = "$spack/share/spack/bootstrap/github-actions-v0.5/gnupg.json"
+PATCHELF_JSON = "$spack/share/spack/bootstrap/github-actions-v0.5/patchelf.json"
 
 # Metadata for a generated source mirror
 SOURCE_METADATA = {
@@ -437,6 +437,7 @@ def _mirror(args):
         shutil.copy(spack.util.path.canonicalize_path(GNUPG_JSON), abs_directory)
         shutil.copy(spack.util.path.canonicalize_path(PATCHELF_JSON), abs_directory)
         instructions += cmd.format("local-binaries", rel_directory)
+        instructions += " % spack buildcache update-index <final-path>/bootstrap_cache\n"
     print(instructions)
 
 
