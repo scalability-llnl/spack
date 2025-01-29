@@ -59,11 +59,6 @@ default:
     SPACK_TARGET_PLATFORM: "linux"
     SPACK_TARGET_ARCH: "aarch64"
 
-.linux_power:
-  variables:
-    SPACK_TARGET_PLATFORM: "linux"
-    SPACK_TARGET_ARCH: "ppc64le"
-
 .win64-msvc2019:
   variables:
     SPACK_TARGET_PLATFORM: "win64"
@@ -351,35 +346,6 @@ e4s-oneapi-build:
   needs:
     - artifacts: True
       job: e4s-oneapi-generate
-
-########################################
-# E4S on Power
-########################################
-.e4s-power-generate-tags-and-image:
-  image: { "name": "ghcr.io/spack/ubuntu20.04-runner-ppc64-gcc-11.4:2023.08.01", "entrypoint": [""] }
-  tags: ["spack", "public", "large", "ppc64le"]
-
-.e4s-power:
-  extends: [".linux_power"]
-  variables:
-    SPACK_CI_STACK_NAME: e4s-power
-
-e4s-power-generate:
-  extends: [ ".e4s-power", ".generate-x86_64", ".e4s-power-generate-tags-and-image"]
-  variables:
-    # Override concretization pool for metal runners
-    SPACK_CONCRETIZE_JOBS: 16
-
-e4s-power-build:
-  extends: [ ".e4s-power", ".build" ]
-  trigger:
-    include:
-      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
-        job: e4s-power-generate
-    strategy: depend
-  needs:
-    - artifacts: True
-      job: e4s-power-generate
 
 #########################################
 # Build tests for different build-systems
