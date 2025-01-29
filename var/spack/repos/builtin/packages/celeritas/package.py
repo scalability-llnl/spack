@@ -125,8 +125,10 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
         for pkg in ["CUDA", "Geant4", "HepMC3", "OpenMP", "ROOT", "SWIG", "VecGeom"]:
             args.append(from_variant("CELERITAS_USE_" + pkg, pkg.lower()))
 
-        if self.spec.satisfies("+cuda"):
-            args.append("CMAKE_CUDA_ARCHITECTURES", self.spec.variants["cuda_arch"].value)
+        if spec.satisfies("+cuda"):
+            args.append(CMakeBuilder.define_cuda_architectures(self))
+        if spec.satisfies("+rocm"):
+            args.append(CMakeBuilder.define_hip_architectures(self))
 
         if self.version < Version("0.5"):
             # JSON is required for 0.5 and later
