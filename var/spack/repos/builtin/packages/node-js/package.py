@@ -141,7 +141,7 @@ class NodeJs(Package):
     # This patch is not sufficient, however, therefore
     # add a conflict with this particular version of gcc
     # until https://github.com/spack/spack/issues/48492 is resolved
-    patch("wasm-compiler-gcc11p2.patch", when="@21: %gcc@11.2")
+    patch("wasm-compiler-gcc11p2.patch", when="@21:22 %gcc@11.2")
     conflicts("%gcc@11.2", when="@21:")
 
     def setup_build_environment(self, env):
