@@ -5,6 +5,7 @@
 
 from spack.package import *
 
+
 class Maxima(AutotoolsPackage):
     """
     Maxima is a system for the manipulation of symbolic and numerical expressions,
@@ -15,6 +16,7 @@ class Maxima(AutotoolsPackage):
     variable-precision floating-point numbers. Maxima can plot functions and
     data in two and three dimensions.
     """
+    
     homepage = "https://maxima.sourceforge.io/"
     url = "https://sourceforge.net/projects/maxima/files/Maxima-source/5.47.0-source/maxima-5.47.0.tar.gz/download"
     license("BSD-3-Clause", checked_by="adaell")
