@@ -7,6 +7,7 @@ import filecmp
 import os
 import shutil
 import sys
+from pathlib import Path, PurePath
 
 import pytest
 
@@ -72,7 +73,7 @@ def mock_patch_stage(tmpdir_factory, monkeypatch):
     return mock_path
 
 
-data_path = os.path.join(spack.paths.test_path, "data", "patch")
+data_path = Path(spack.paths.test_path, "data", "patch")
 
 
 @pytest.mark.not_on_windows("Line ending conflict on Windows")
@@ -81,12 +82,12 @@ data_path = os.path.join(spack.paths.test_path, "data", "patch")
     [
         # compressed patch -- needs sha256 and archive_256
         (
-            os.path.join(data_path, "foo.tgz"),
+            data_path / "foo.tgz",
             "252c0af58be3d90e5dc5e0d16658434c9efa5d20a5df6c10bf72c2d77f780866",
             "4e8092a161ec6c3a1b5253176fcf33ce7ba23ee2ff27c75dbced589dabacd06e",
         ),
         # uncompressed patch -- needs only sha256
-        (os.path.join(data_path, "foo.patch"), platform_url_sha, None),
+        (data_path / "foo.patch", platform_url_sha, None),
     ],
 )
 def test_url_patch(mock_patch_stage, filename, sha256, archive_sha256, config):
@@ -258,9 +259,10 @@ def test_patched_dependency(mock_packages, install_mockery, mock_fetch):
 
 
 def trigger_bad_patch(pkg):
-    if not os.path.isdir(pkg.stage.source_path):
-        os.makedirs(pkg.stage.source_path)
-    bad_file = os.path.join(pkg.stage.source_path, ".spack_patch_failed")
+    source_path = Path(pkg.stage.source_path)
+    if not os.path.isdir(source_path):
+        source_path.mkdir(parents=True)
+    bad_file = source_path / ".spack_patch_failed"
     touch(bad_file)
     return bad_file
 
@@ -276,7 +278,7 @@ def test_patch_failure_develop_spec_exits_gracefully(
     pkg = libelf.package
     with pkg.stage:
         bad_patch_indicator = trigger_bad_patch(pkg)
-        assert os.path.isfile(bad_patch_indicator)
+        assert bad_patch_indicator.is_file()
         pkg.do_patch()
     # success if no exceptions raised
 
@@ -290,9 +292,9 @@ def test_patch_failure_restages(mock_packages, install_mockery, mock_fetch):
     pkg = spec["libelf"].package
     with pkg.stage:
         bad_patch_indicator = trigger_bad_patch(pkg)
-        assert os.path.isfile(bad_patch_indicator)
+        assert bad_patch_indicator.is_file()
         pkg.do_patch()
-        assert not os.path.isfile(bad_patch_indicator)
+        assert not bad_patch_indicator.is_file()
 
 
 def test_multiple_patched_dependencies(mock_packages, config):
@@ -356,16 +358,17 @@ def check_multi_dependency_patch_specs(
     bar_patch = get_patch(libdwarf, "bar.patch")
     baz_patch = get_patch(libdwarf, "baz.patch")
 
+    package_dir = PurePath(package_dir)
     assert foo_patch.owner == owner
-    assert foo_patch.path == os.path.join(package_dir, "foo.patch")
+    assert foo_patch.path == str(package_dir / "foo.patch")
     assert foo_patch.sha256 == foo_sha256
 
     assert bar_patch.owner == "builtin.mock.patch-several-dependencies"
-    assert bar_patch.path == os.path.join(package_dir, "bar.patch")
+    assert bar_patch.path == str(package_dir / "bar.patch")
     assert bar_patch.sha256 == bar_sha256
 
     assert baz_patch.owner == "builtin.mock.patch-several-dependencies"
-    assert baz_patch.path == os.path.join(package_dir, "baz.patch")
+    assert baz_patch.path == str(package_dir / "baz.patch")
     assert baz_patch.sha256 == baz_sha256
 
     # URL patches
@@ -467,7 +470,7 @@ def test_equality():
 
 
 def test_sha256_setter(mock_patch_stage, config):
-    path = os.path.join(data_path, "foo.patch")
+    path = str(data_path / "foo.patch")
     s = spack.concretize.concretize_one("patch")
     patch = spack.patch.FilePatch(s.package, path, level=1, working_dir=".")
     patch.sha256 = "abc"
