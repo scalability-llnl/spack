@@ -9,7 +9,6 @@ import llnl.util.tty as tty
 
 import spack.pkg.builtin.openfoam as openfoam
 from spack.package import *
-from spack.version import Version
 
 
 class Additivefoam(Package):
