@@ -7,6 +7,7 @@ from spack.package import *
 
 class Salt(CMakePackage):
     """SALT: A next generation LLVM-based Source Analysis Toolkit for performance instrumentation of HPC applications"""
+
     homepage = "https://github.com/ParaToolsInc/salt"
     url = "https://github.com/ParaToolsInc/salt/archive/refs/tags/v0.2.0.tar.gz"
     git = "https://github.com/ParaToolsInc/salt.git"
