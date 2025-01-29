@@ -26,7 +26,7 @@ class _IndexBase:
     #: Calling providers_for(spec) will find specs that provide a
     #: matching implementation of MPI. Derived class need to construct
     #: this attribute according to the semantics above.
-    providers: Dict[str, Dict[str, Set[str]]]
+    providers: Dict[str, Dict["spack.spec.Spec", Set["spack.spec.Spec"]]]
 
     def providers_for(self, virtual_spec):
         """Return a list of specs of all packages that provide virtual
