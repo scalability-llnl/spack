@@ -130,7 +130,7 @@ class Sirius(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("fftw-api@3")
     depends_on("libxc@3.0.0:")
     depends_on("libxc@4.0.0:", when="@7.2.0:")
-    depends_on("libxc@:6", when="@:7.6.1")
+    depends_on("libxc@:7", when="@:7.5")
     depends_on("spglib")
     depends_on("hdf5+hl")
     depends_on("pkgconfig", type="build")
@@ -163,6 +163,8 @@ class Sirius(CMakePackage, CudaPackage, ROCmPackage):
         depends_on("spla+rocm", when="+rocm")
         # spla removed the openmp option in 1.6.0
         conflicts("^spla@:1.5~openmp", when="+openmp")
+
+    patch("libxc7.patch", when="@7.6:")
 
     depends_on("nlcglib", when="+nlcglib")
     depends_on("nlcglib+rocm", when="+nlcglib+rocm")

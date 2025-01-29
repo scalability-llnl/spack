@@ -108,7 +108,9 @@ class ClingoBootstrap(Clingo):
         # Run spack solve --fresh hdf5 with instrumented clingo.
         python_runtime_env = EnvironmentModifications()
         python_runtime_env.extend(
-            spack.user_environment.environment_modifications_for_specs(self.spec)
+            spack.user_environment.environment_modifications_for_specs(
+                self.spec, set_package_py_globals=False
+            )
         )
         python_runtime_env.unset("SPACK_ENV")
         python_runtime_env.unset("SPACK_PYTHON")

@@ -99,6 +99,7 @@ spack:
   - lammps +amoeba +asphere +bocs +body +bpm +brownian +cg-dna +cg-spica +class2 +colloid +colvars +compress +coreshell +dielectric +diffraction +dipole +dpd-basic +dpd-meso +dpd-react +dpd-smooth +drude +eff +electrode +extra-compute +extra-dump +extra-fix +extra-molecule +extra-pair +fep +granular +interlayer +kspace +lepton +machdyn +manybody +mc +meam +mesont +misc +ml-iap +ml-pod +ml-snap +mofff +molecule +openmp-package +opt +orient +peri +phonon +plugin +poems +qeq +reaction +reaxff +replica +rigid +shock +sph +spin +srd +tally +uef +voronoi +yaff
   - lbann
   - legion
+  - libceed
   - libnrm
   - libpressio +bitgrooming +bzip2 ~cuda ~cusz +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp
   - libquo
@@ -236,6 +237,7 @@ spack:
   - hypre +cuda cuda_arch=80
   - kokkos +wrapper +cuda cuda_arch=80
   - kokkos-kernels +cuda cuda_arch=80 ^kokkos +wrapper +cuda cuda_arch=80
+  - libceed +cuda cuda_arch=80
   - libpressio +bitgrooming +bzip2 +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp +json +remote +netcdf +cusz +mgard +cuda cuda_arch=80 ^cusz +cuda cuda_arch=80
   - magma +cuda cuda_arch=80
   - mfem +cuda cuda_arch=80
@@ -283,6 +285,7 @@ spack:
   - hypre +cuda cuda_arch=90
   - kokkos +wrapper +cuda cuda_arch=90
   - kokkos-kernels +cuda cuda_arch=90 ^kokkos +wrapper +cuda cuda_arch=90
+  - libceed +cuda cuda_arch=90
   - libpressio +bitgrooming +bzip2 +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp +json +remote +netcdf +cusz +mgard +cuda cuda_arch=90 ^cusz +cuda cuda_arch=90
   - magma +cuda cuda_arch=90
   - mfem +cuda cuda_arch=90
@@ -332,6 +335,7 @@ spack:
   - kokkos +rocm amdgpu_target=gfx90a
   - lammps +rocm amdgpu_target=gfx90a
   - legion +rocm amdgpu_target=gfx90a
+  - libceed +rocm amdgpu_target=gfx90a
   - magma ~cuda +rocm amdgpu_target=gfx90a
   - mfem +rocm amdgpu_target=gfx90a
   - raja ~openmp +rocm amdgpu_target=gfx90a

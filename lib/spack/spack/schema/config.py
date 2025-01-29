@@ -106,8 +106,15 @@ properties: Dict[str, Any] = {
             {
                 "names": ["install_missing_compilers"],
                 "message": "The config:install_missing_compilers option has been deprecated in "
-                "Spack v0.23, and is currently ignored. It will be removed from config after "
+                "Spack v0.23, and is currently ignored. It will be removed from config in "
                 "Spack v1.0.",
+                "error": False,
+            },
+            {
+                "names": ["install_path_scheme"],
+                "message": "The config:install_path_scheme option was deprecated in Spack v0.16 "
+                "in favor of config:install_tree:projections:all. It will be removed in Spack "
+                "v1.0.",
                 "error": False,
             },
         ],

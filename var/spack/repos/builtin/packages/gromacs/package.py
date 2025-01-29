@@ -585,7 +585,7 @@ class Gromacs(CMakePackage, CudaPackage):
             )
 
         if self.spec.satisfies("+plumed"):
-            self.spec["plumed"].package.apply_patch(self)
+            self["plumed"].apply_patch(self)
 
         if self.spec.satisfies("%nvhpc"):
             # Disable obsolete workaround

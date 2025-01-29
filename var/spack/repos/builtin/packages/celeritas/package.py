@@ -18,12 +18,9 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
 
     license("Apache-2.0")
 
+    version("0.5.1", sha256="182d5466fbd98ba9400b343b55f6a06e03b77daed4de1dd16f632ac0a3620249")
     version("0.5.0", sha256="4a8834224d96fd01897e5872ac109f60d91ef0bd7b63fac05a73dcdb61a5530e")
-    version(
-        "0.4.4",
-        sha256="8b5ae63aa2d50c2ecf48d752424e4a33c50c07d9f0f5ca5448246de3286fd836",
-        deprecated=True,
-    )
+    version("0.4.4", sha256="8b5ae63aa2d50c2ecf48d752424e4a33c50c07d9f0f5ca5448246de3286fd836")
     version(
         "0.4.3",
         sha256="b4f603dce1dc9c4894ea4c86f6574026ea8536714982e7dc6dff7472c925c892",
@@ -116,11 +113,14 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
             define("CELERITAS_BUILD_TESTS", False),
             from_variant("Celeritas_USE_HIP", "rocm"),
             define("CELERITAS_USE_MPI", False),
-            define("CELERITAS_USE_JSON", True),
             define("CELERITAS_USE_Python", True),
         ]
 
         for pkg in ["CUDA", "Geant4", "HepMC3", "OpenMP", "ROOT", "SWIG", "VecGeom"]:
             args.append(from_variant("CELERITAS_USE_" + pkg, pkg.lower()))
+
+        if self.version < Version("0.5"):
+            # JSON is required for 0.5 and later
+            args.append(define("CELERITAS_USE_JSON", True))
 
         return args

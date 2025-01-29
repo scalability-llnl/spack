@@ -123,6 +123,15 @@ DEFAULT_INSTALL_RECORD_FIELDS = (
     "deprecated_for",
 )
 
+#: File where the database is written
+INDEX_JSON_FILE = "index.json"
+
+# Verifier file to check last modification of the DB
+_INDEX_VERIFIER_FILE = "index_verifier"
+
+# Lockfile for the database
+_LOCK_FILE = "lock"
+
 
 @llnl.util.lang.memoized
 def _getfqdn():
@@ -260,7 +269,7 @@ class ForbiddenLockError(SpackError):
 
 class ForbiddenLock:
     def __getattr__(self, name):
-        raise ForbiddenLockError("Cannot access attribute '{0}' of lock".format(name))
+        raise ForbiddenLockError(f"Cannot access attribute '{name}' of lock")
 
     def __reduce__(self):
         return ForbiddenLock, tuple()
@@ -419,13 +428,24 @@ class FailureTracker:
     the likelihood of collision very low with no cleanup required.
     """
 
+    #: root directory of the failure tracker
+    dir: pathlib.Path
+
+    #: File for locking particular concrete spec hashes
+    locker: SpecLocker
+
     def __init__(self, root_dir: Union[str, pathlib.Path], default_timeout: Optional[float]):
         #: Ensure a persistent location for dealing with parallel installation
         #: failures (e.g., across near-concurrent processes).
         self.dir = pathlib.Path(root_dir) / _DB_DIRNAME / "failures"
-        self.dir.mkdir(parents=True, exist_ok=True)
-
         self.locker = SpecLocker(failures_lock_path(root_dir), default_timeout=default_timeout)
+
+    def _ensure_parent_directories(self) -> None:
+        """Ensure that parent directories of the FailureTracker exist.
+
+        Accesses the filesystem only once, the first time it's called on a given FailureTracker.
+        """
+        self.dir.mkdir(parents=True, exist_ok=True)
 
     def clear(self, spec: "spack.spec.Spec", force: bool = False) -> None:
         """Removes any persistent and cached failure tracking for the spec.
@@ -469,13 +489,18 @@ class FailureTracker:
 
         tty.debug("Removing prefix failure tracking files")
         try:
-            for fail_mark in os.listdir(str(self.dir)):
-                try:
-                    (self.dir / fail_mark).unlink()
-                except OSError as exc:
-                    tty.warn(f"Unable to remove failure marking file {fail_mark}: {str(exc)}")
+            marks = os.listdir(str(self.dir))
+        except FileNotFoundError:
+            return  # directory doesn't exist yet
         except OSError as exc:
             tty.warn(f"Unable to remove failure marking files: {str(exc)}")
+            return
+
+        for fail_mark in marks:
+            try:
+                (self.dir / fail_mark).unlink()
+            except OSError as exc:
+                tty.warn(f"Unable to remove failure marking file {fail_mark}: {str(exc)}")
 
     def mark(self, spec: "spack.spec.Spec") -> lk.Lock:
         """Marks a spec as failing to install.
@@ -483,6 +508,8 @@ class FailureTracker:
         Args:
             spec: spec that failed to install
         """
+        self._ensure_parent_directories()
+
         # Dump the spec to the failure file for (manual) debugging purposes
         path = self._path(spec)
         path.write_text(spec.to_json())
@@ -567,17 +594,13 @@ class Database:
                 Relevant only if the repository is not an upstream.
         """
         self.root = root
-        self.database_directory = os.path.join(self.root, _DB_DIRNAME)
+        self.database_directory = pathlib.Path(self.root) / _DB_DIRNAME
         self.layout = layout
 
         # Set up layout of database files within the db dir
-        self._index_path = os.path.join(self.database_directory, "index.json")
-        self._verifier_path = os.path.join(self.database_directory, "index_verifier")
-        self._lock_path = os.path.join(self.database_directory, "lock")
-
-        # Create needed directories and files
-        if not is_upstream and not os.path.exists(self.database_directory):
-            fs.mkdirp(self.database_directory)
+        self._index_path = self.database_directory / INDEX_JSON_FILE
+        self._verifier_path = self.database_directory / _INDEX_VERIFIER_FILE
+        self._lock_path = self.database_directory / _LOCK_FILE
 
         self.is_upstream = is_upstream
         self.last_seen_verifier = ""
@@ -592,14 +615,14 @@ class Database:
 
         # initialize rest of state.
         self.db_lock_timeout = lock_cfg.database_timeout
-        tty.debug("DATABASE LOCK TIMEOUT: {0}s".format(str(self.db_lock_timeout)))
+        tty.debug(f"DATABASE LOCK TIMEOUT: {str(self.db_lock_timeout)}s")
 
         self.lock: Union[ForbiddenLock, lk.Lock]
         if self.is_upstream:
             self.lock = ForbiddenLock()
         else:
             self.lock = lk.Lock(
-                self._lock_path,
+                str(self._lock_path),
                 default_timeout=self.db_lock_timeout,
                 desc="database",
                 enable=lock_cfg.enable,
@@ -616,6 +639,11 @@ class Database:
         self._write_transaction_impl = lk.WriteTransaction
         self._read_transaction_impl = lk.ReadTransaction
 
+    def _ensure_parent_directories(self):
+        """Create the parent directory for the DB, if necessary."""
+        if not self.is_upstream:
+            self.database_directory.mkdir(parents=True, exist_ok=True)
+
     def write_transaction(self):
         """Get a write lock context manager for use in a `with` block."""
         return self._write_transaction_impl(self.lock, acquire=self._read, release=self._write)
@@ -630,6 +658,8 @@ class Database:
 
         This function does not do any locking or transactions.
         """
+        self._ensure_parent_directories()
+
         # map from per-spec hash code to installation record.
         installs = dict(
             (k, v.to_dict(include_fields=self.record_fields)) for k, v in self._data.items()
@@ -759,7 +789,7 @@ class Database:
         Does not do any locking.
         """
         try:
-            with open(filename, "r", encoding="utf-8") as f:
+            with open(str(filename), "r", encoding="utf-8") as f:
                 # In the future we may use a stream of JSON objects, hence `raw_decode` for compat.
                 fdata, _ = JSONDecoder().raw_decode(f.read())
         except Exception as e:
@@ -860,11 +890,13 @@ class Database:
         if self.is_upstream:
             raise UpstreamDatabaseLockingError("Cannot reindex an upstream database")
 
+        self._ensure_parent_directories()
+
         # Special transaction to avoid recursive reindex calls and to
         # ignore errors if we need to rebuild a corrupt database.
         def _read_suppress_error():
             try:
-                if os.path.isfile(self._index_path):
+                if self._index_path.is_file():
                     self._read_from_file(self._index_path)
             except CorruptDatabaseError as e:
                 tty.warn(f"Reindexing corrupt database, error was: {e}")
@@ -1007,7 +1039,7 @@ class Database:
                     % (key, found, expected, self._index_path)
                 )
 
-    def _write(self, type, value, traceback):
+    def _write(self, type=None, value=None, traceback=None):
         """Write the in-memory database index to its file path.
 
         This is a helper function called by the WriteTransaction context
@@ -1018,6 +1050,8 @@ class Database:
 
         This routine does no locking.
         """
+        self._ensure_parent_directories()
+
         # Do not write if exceptions were raised
         if type is not None:
             # A failure interrupted a transaction, so we should record that
@@ -1026,16 +1060,16 @@ class Database:
             self._state_is_inconsistent = True
             return
 
-        temp_file = self._index_path + (".%s.%s.temp" % (_getfqdn(), os.getpid()))
+        temp_file = str(self._index_path) + (".%s.%s.temp" % (_getfqdn(), os.getpid()))
 
         # Write a temporary database file them move it into place
         try:
             with open(temp_file, "w", encoding="utf-8") as f:
                 self._write_to_file(f)
-            fs.rename(temp_file, self._index_path)
+            fs.rename(temp_file, str(self._index_path))
 
             if _use_uuid:
-                with open(self._verifier_path, "w", encoding="utf-8") as f:
+                with self._verifier_path.open("w", encoding="utf-8") as f:
                     new_verifier = str(uuid.uuid4())
                     f.write(new_verifier)
                     self.last_seen_verifier = new_verifier
@@ -1048,11 +1082,11 @@ class Database:
 
     def _read(self):
         """Re-read Database from the data in the set location. This does no locking."""
-        if os.path.isfile(self._index_path):
+        if self._index_path.is_file():
             current_verifier = ""
             if _use_uuid:
                 try:
-                    with open(self._verifier_path, "r", encoding="utf-8") as f:
+                    with self._verifier_path.open("r", encoding="utf-8") as f:
                         current_verifier = f.read()
                 except BaseException:
                     pass
@@ -1065,7 +1099,7 @@ class Database:
                 self._state_is_inconsistent = False
             return
         elif self.is_upstream:
-            tty.warn("upstream not found: {0}".format(self._index_path))
+            tty.warn(f"upstream not found: {self._index_path}")
 
     def _add(
         self,
@@ -1330,7 +1364,7 @@ class Database:
     def installed_relatives(
         self,
         spec: "spack.spec.Spec",
-        direction: str = "children",
+        direction: tr.DirectionType = "children",
         transitive: bool = True,
         deptype: Union[dt.DepFlag, dt.DepTypes] = dt.ALL,
     ) -> Set["spack.spec.Spec"]:
@@ -1681,7 +1715,7 @@ class Database:
             )
 
         results = list(local_results) + list(x for x in upstream_results if x not in local_results)
-        results.sort()
+        results.sort()  # type: ignore[call-overload]
         return results
 
     def query_one(

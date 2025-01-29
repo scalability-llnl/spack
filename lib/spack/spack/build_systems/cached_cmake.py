@@ -10,6 +10,8 @@ import llnl.util.filesystem as fs
 import llnl.util.tty as tty
 
 import spack.phase_callbacks
+import spack.spec
+import spack.util.prefix
 
 from .cmake import CMakeBuilder, CMakePackage
 
@@ -293,12 +295,26 @@ class CachedCMakeBuilder(CMakeBuilder):
                 entries.append(cmake_cache_string("AMDGPU_TARGETS", arch_str))
                 entries.append(cmake_cache_string("GPU_TARGETS", arch_str))
 
+            if spec.satisfies("%gcc"):
+                entries.append(
+                    cmake_cache_string(
+                        "CMAKE_HIP_FLAGS", f"--gcc-toolchain={self.pkg.compiler.prefix}"
+                    )
+                )
+
         return entries
 
     def std_initconfig_entries(self):
         cmake_prefix_path_env = os.environ["CMAKE_PREFIX_PATH"]
         cmake_prefix_path = cmake_prefix_path_env.replace(os.pathsep, ";")
-
+        complete_rpath_list = ";".join(
+            [
+                self.pkg.spec.prefix.lib,
+                self.pkg.spec.prefix.lib64,
+                *os.environ.get("SPACK_COMPILER_EXTRA_RPATHS", "").split(":"),
+                *os.environ.get("SPACK_COMPILER_IMPLICIT_RPATHS", "").split(":"),
+            ]
+        )
         return [
             "#------------------{0}".format("-" * 60),
             "# !!!! This is a generated file, edit at own risk !!!!",
@@ -307,6 +323,8 @@ class CachedCMakeBuilder(CMakeBuilder):
             "#------------------{0}\n".format("-" * 60),
             cmake_cache_string("CMAKE_PREFIX_PATH", cmake_prefix_path),
             cmake_cache_string("CMAKE_INSTALL_RPATH_USE_LINK_PATH", "ON"),
+            cmake_cache_string("CMAKE_BUILD_RPATH", complete_rpath_list),
+            cmake_cache_string("CMAKE_INSTALL_RPATH", complete_rpath_list),
             self.define_cmake_cache_from_variant("CMAKE_BUILD_TYPE", "build_type"),
         ]
 
@@ -314,7 +332,9 @@ class CachedCMakeBuilder(CMakeBuilder):
         """This method is to be overwritten by the package"""
         return []
 
-    def initconfig(self, pkg, spec, prefix):
+    def initconfig(
+        self, pkg: "CachedCMakePackage", spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         cache_entries = (
             self.std_initconfig_entries()
             + self.initconfig_compiler_entries()

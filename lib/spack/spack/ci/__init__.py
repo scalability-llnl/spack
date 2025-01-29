@@ -14,7 +14,6 @@ import tempfile
 import zipfile
 from collections import namedtuple
 from typing import Callable, Dict, List, Set
-from urllib.error import HTTPError, URLError
 from urllib.request import HTTPHandler, Request, build_opener
 
 import llnl.util.filesystem as fs
@@ -472,12 +471,9 @@ def generate_pipeline(env: ev.Environment, args) -> None:
     # Use all unpruned specs to populate the build group for this set
     cdash_config = cfg.get("cdash")
     if options.cdash_handler and options.cdash_handler.auth_token:
-        try:
-            options.cdash_handler.populate_buildgroup(
-                [options.cdash_handler.build_name(s) for s in pipeline_specs]
-            )
-        except (SpackError, HTTPError, URLError, TimeoutError) as err:
-            tty.warn(f"Problem populating buildgroup: {err}")
+        options.cdash_handler.populate_buildgroup(
+            [options.cdash_handler.build_name(s) for s in pipeline_specs]
+        )
     elif cdash_config:
         # warn only if there was actually a CDash configuration.
         tty.warn("Unable to populate buildgroup without CDash credentials")

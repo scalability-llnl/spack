@@ -6,7 +6,9 @@ import os
 import llnl.util.filesystem as fs
 
 import spack.directives
+import spack.spec
 import spack.util.executable
+import spack.util.prefix
 
 from .autotools import AutotoolsBuilder, AutotoolsPackage
 
@@ -17,19 +19,18 @@ class AspellBuilder(AutotoolsBuilder):
     to the Aspell extensions.
     """
 
-    def configure(self, pkg, spec, prefix):
+    def configure(
+        self,
+        pkg: "AspellDictPackage",  # type: ignore[override]
+        spec: spack.spec.Spec,
+        prefix: spack.util.prefix.Prefix,
+    ):
         aspell = spec["aspell"].prefix.bin.aspell
         prezip = spec["aspell"].prefix.bin.prezip
         destdir = prefix
 
-        sh = spack.util.executable.which("sh")
-        sh(
-            "./configure",
-            "--vars",
-            "ASPELL={0}".format(aspell),
-            "PREZIP={0}".format(prezip),
-            "DESTDIR={0}".format(destdir),
-        )
+        sh = spack.util.executable.Executable("/bin/sh")
+        sh("./configure", "--vars", f"ASPELL={aspell}", f"PREZIP={prezip}", f"DESTDIR={destdir}")
 
 
 # Aspell dictionaries install their bits into their prefix.lib

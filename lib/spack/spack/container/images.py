@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Manages the details on the images used in the various stages."""
 import json
-import os.path
+import os
 import shlex
 import sys
 

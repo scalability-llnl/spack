@@ -35,6 +35,7 @@ class Ompss(Package):
     # depends_on("openmp")
     depends_on("hwloc")
     depends_on("extrae")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         if "openmpi" in spec:

@@ -16,6 +16,7 @@ class Armadillo(CMakePackage):
 
     license("Apache-2.0")
 
+    version("14.2.2", sha256="3054c8e63db3abdf1a5c8f9fdb7e6b4ad833f9bcfb58324c0ff86de0784c70e0")
     version("14.0.3", sha256="ebd6215eeb01ee412fed078c8a9f7f87d4e1f6187ebcdc1bc09f46095a4f4003")
     version("14.0.2", sha256="248e2535fc092add6cb7dea94fc86ae1c463bda39e46fd82d2a7165c1c197dff")
     version("12.8.4", sha256="558fe526b990a1663678eff3af6ec93f79ee128c81a4c8aef27ad328fae61138")
@@ -33,14 +34,14 @@ class Armadillo(CMakePackage):
     depends_on("c", type="build")
     depends_on("cxx", type="build")
 
-    variant("hdf5", default=False, description="Include HDF5 support")
+    variant("hdf5", default=False, description="Include HDF5 support", when="@:10")
 
     depends_on("cmake@2.8.12:", type="build")
     depends_on("cmake@3.5:", type="build", when="@14:")
     depends_on("arpack-ng")  # old arpack causes undefined symbols
     depends_on("blas")
     depends_on("lapack")
-    depends_on("superlu@5.2:")
+    depends_on("superlu@5.2:5")  # only superlu@5 is supported
     depends_on("hdf5", when="+hdf5")
 
     # Adds an `#undef linux` to prevent preprocessor expansion of include
