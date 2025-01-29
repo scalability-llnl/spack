@@ -2775,8 +2775,17 @@ Conflicts and requirements
 --------------------------
 
 Sometimes packages have known bugs, or limitations, that would prevent them
-from building e.g. against other dependencies or with certain compilers. Spack
-makes it possible to express such constraints with the ``conflicts`` directive.
+from building a spec e.g. against other dependencies or with certain compilers.
+Spack makes it possible to express such constraints with the ``conflicts`` directive.
+
+The directive supports the optional ``when`` clause, which means the conflict
+applies only to the spec indicated by the value of the clause's argument. The
+syntax and spec options for the argument are consistent with those of other
+directives.
+
+An optional custom error message can be added via the ``msg=`` parameter, and
+will be printed by Spack in case the conflict cannot be avoided and leads to a
+concretization error.
 
 Adding the following to a package:
 
@@ -2789,13 +2798,15 @@ Adding the following to a package:
              "please use a newer release."
     )
 
-we express the fact that the current package *cannot be built* with the Intel
-compiler when we are trying to install a version "<=1.2".
+expresses the fact that the current package *cannot be built* with the Intel
+compiler when we are trying to install a version "<=1.2". 
 
-The ``when`` argument can be omitted, in which case the conflict will always be active.
+If the ``when`` argument is omitted then conflict will always be active.
 
-An optional custom error message can be added via the ``msg=`` parameter, and will be printed
-by Spack in case the conflict cannot be avoided and leads to a concretization error.
+.. note::
+
+    More examples of conflicts using the ``when`` clause can be found in
+    :ref:`group_when_spec`.
 
 Sometimes, packages allow only very specific choices and they can't use the rest. In those cases
 the ``requires`` directive can be used:
@@ -2809,8 +2820,8 @@ the ``requires`` directive can be used:
     )
 
 In the example above, our package can only be built with Apple-Clang on Darwin.
-The ``requires`` directive is effectively the opposite of the ``conflicts`` directive, and takes
-the same optional ``when`` and ``msg`` arguments.
+The ``requires`` directive is effectively the opposite of the ``conflicts`` 
+directive, and takes the same optional ``when`` and ``msg`` arguments.
 
 If a package needs to express more complex requirements, involving more than a single spec,
 that can also be done using the ``requires`` directive. To express that a package can be built
