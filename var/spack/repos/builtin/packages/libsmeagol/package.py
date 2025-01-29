@@ -21,16 +21,37 @@ class Libsmeagol(MakefilePackage):
     depends_on("mpi")
     depends_on("blas")
 
-    def setup_build_environment(self, env):
-        env.set("FCFLAGS", "-DMPI " + self.compiler.openmp_flag)
+    unsupported_compilers = (
+        "aocc",
+        "apple_clang",
+        "cce",
+        "clang",
+        "fj",
+        "msvc",
+        "nag",
+        "nvhpc",
+        "oneapi",
+    )
+    for uc in unsupported_compilers:
+        conflicts(f"%{uc}")
 
     @property
     def build_targets(self):
         spec = self.spec
 
-        fcflags = "-DMPI -fopenmp -march=native -O3 -g -std=gnu -fallow-argument-mismatch -fexternal-blas -fblas-matmul-limit=0 -fno-omit-frame-pointer -funroll-loops"
-        fixedform = "-ffixed-form"
-        freeform = "-ffree-form -ffree-line-length-none"
+        if spec.satisfies("%gcc"):
+            fcflags = (
+                "-DMPI -fopenmp -march=native -O3 -g -std=gnu -fallow-argument-mismatch "
+                "-fexternal-blas -fblas-matmul-limit=0 -fno-omit-frame-pointer -funroll-loops"
+            )
+            fixedform = "-ffixed-form"
+            freeform = "-ffree-form -ffree-line-length-none"
+        elif spec.satisfies("%intel"):
+            fcflags = "-DMPI -qopenmp -xHost -O2 -g -fno-moit-frame-pointer"
+            fixedform = "-fixed"
+            freeform = "-free"
+        else:
+            raise InstallError("Unsupported compiler.")
 
         return [
             f"FC={spec['mpi'].mpifc}",
