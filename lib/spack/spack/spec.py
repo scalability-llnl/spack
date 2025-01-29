@@ -153,7 +153,7 @@ SPEC_FORMAT_RE = re.compile(
     r"(})?"  # finish format string with non-escaped close brace }, or missing if not present
     r"|"
     # OPTION 3: mismatched close brace (option 2 would consume a matched open brace)
-    r"(})" r")",  # brace
+    r"(})"  # brace
     r")",
     re.IGNORECASE,
 )
