@@ -119,7 +119,6 @@ class Fmt(CMakePackage):
         if spec.satisfies("+pic"):
             args.extend(
                 [
-                    "-DCMAKE_C_FLAGS={0}".format(self.compiler.cc_pic_flag),
                     "-DCMAKE_CXX_FLAGS={0}".format(self.compiler.cxx_pic_flag),
                 ]
             )
