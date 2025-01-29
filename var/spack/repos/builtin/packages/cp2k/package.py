@@ -116,7 +116,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     variant("pytorch", default=False, description="Enable libtorch support")
     variant("quip", default=False, description="Enable quip support")
     variant("mpi_f08", default=False, description="Use MPI F08 module")
-    variant("smeagol", default=False, description="Enable libsmeagol support")
+    variant("smeagol", default=False, description="Enable libsmeagol support", when="@2025.2:")
 
     variant(
         "enable_regtests",
@@ -623,7 +623,7 @@ class MakefileBuilder(makefile.MakefileBuilder):
             spglib = spec["spglib"].libs
             ldflags += [spglib.search_flags]
             libs.append(spglib.ld_flags)
-        
+
         if spec.satisfies("+smeagol"):
             cppflags += ["-D__SMEAGOL"]
             smeagol = spec["libsmeagol"].libs
@@ -1004,6 +1004,7 @@ class CMakeBuilder(cmake.CMakeBuilder):
             self.define_from_variant("CP2K_USE_SPLA", "spla"),
             self.define_from_variant("CP2K_USE_QUIP", "quip"),
             self.define_from_variant("CP2K_USE_MPI_F08", "mpi_f08"),
+            self.define_from_variant("CP2K_USE_LIBSMEAGOL", "smeagol"),
         ]
 
         # we force the use elpa openmp threading support. might need to be revisited though
