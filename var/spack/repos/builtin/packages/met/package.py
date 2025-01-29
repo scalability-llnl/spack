@@ -43,6 +43,7 @@ class Met(AutotoolsPackage):
 
     depends_on("gsl")
     depends_on("bufr")
+    depends_on("proj", when="@12")
     depends_on("zlib-api")
     depends_on("netcdf-c")
     depends_on("netcdf-cxx4")
