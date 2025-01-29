@@ -25,8 +25,8 @@ class Platform:
     #: binary formats used on this platform; used by relocation logic
     binary_formats = ["elf"]
 
-    default: Optional[str] = None
-    default_os: Optional[str] = None
+    default: str
+    default_os: str
 
     reserved_targets = ["default_target", "frontend", "fe", "backend", "be"]
     reserved_oss = ["default_os", "frontend", "fe", "backend", "be"]
