@@ -2920,9 +2920,11 @@ class EnvironmentManifestFile(collections.abc.Mapping):
         if not includes:
             return []
 
+        # Load config scopes added via environment 'include:' in reverse so
+        # that highest-precedence scopes are last.
         name_prefix = f"env:{self.name}"
         scopes: List[spack.config.ConfigScope] = []
-        for entry in includes:
+        for entry in reversed(includes):
             included_scope = spack.config.include_path_scope(
                 spack.config.included_path(entry),
                 name_prefix,
