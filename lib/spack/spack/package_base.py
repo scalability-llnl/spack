@@ -30,7 +30,6 @@ from typing_extensions import Literal
 import llnl.util.filesystem as fsys
 import llnl.util.tty as tty
 from llnl.util.lang import classproperty, memoized
-from llnl.util.link_tree import LinkTree
 
 import spack.compilers
 import spack.config
@@ -2292,42 +2291,12 @@ env_flags = PackageBase.env_flags
 build_system_flags = PackageBase.build_system_flags
 
 
-def install_dependency_symlinks(pkg, spec, prefix):
-    """
-    Execute a dummy install and flatten dependencies.
-
-    This routine can be used in a ``package.py`` definition by setting
-    ``install = install_dependency_symlinks``.
-
-    This feature comes in handy for creating a common location for the
-    the installation of third-party libraries.
-    """
-    flatten_dependencies(spec, prefix)
-
-
 def use_cray_compiler_names():
     """Compiler names for builds that rely on cray compiler names."""
     os.environ["CC"] = "cc"
     os.environ["CXX"] = "CC"
     os.environ["FC"] = "ftn"
     os.environ["F77"] = "ftn"
-
-
-def flatten_dependencies(spec, flat_dir):
-    """Make each dependency of spec present in dir via symlink."""
-    for dep in spec.traverse(root=False):
-        name = dep.name
-
-        dep_path = spack.store.STORE.layout.path_for_spec(dep)
-        dep_files = LinkTree(dep_path)
-
-        os.mkdir(flat_dir + "/" + name)
-
-        conflict = dep_files.find_conflict(flat_dir + "/" + name)
-        if conflict:
-            raise DependencyConflictError(conflict)
-
-        dep_files.merge(flat_dir + "/" + name)
 
 
 def possible_dependencies(

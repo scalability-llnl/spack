@@ -26,6 +26,7 @@ class Rdc(CMakePackage):
         return url.format(version)
 
     license("MIT")
+    version("6.3.1", sha256="88a96f13c0010a7f9e63f7a5a5531ae1d57ef1a722bac232c8544cde6245e120")
     version("6.3.0", sha256="419afd9c8e50a872fb0a922e29c8578664ed88e0b79bf558db0a1e864aa8fecf")
     version("6.2.4", sha256="cdebbc0c1a49f067fb8ff17bd91cd92f6f83b2aee142e5b576e5eb1742983a7f")
     version("6.2.1", sha256="63c0cffd772a43d0984505646023485ca2bc8512f5a87ece016f1d381cded075")
@@ -78,6 +79,7 @@ class Rdc(CMakePackage):
         "6.2.1",
         "6.2.4",
         "6.3.0",
+        "6.3.1",
     ]:
         depends_on(f"rocm-smi-lib@{ver}", type=("build", "link"), when=f"@{ver}")
         depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")
@@ -98,9 +100,10 @@ class Rdc(CMakePackage):
         "6.2.1",
         "6.2.4",
         "6.3.0",
+        "6.3.1",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
-    for ver in ["6.2.0", "6.2.1", "6.2.4", "6.3.0"]:
+    for ver in ["6.2.0", "6.2.1", "6.2.4", "6.3.0", "6.3.1"]:
         depends_on(f"amdsmi@{ver}", when=f"@{ver}")
 
     def patch(self):

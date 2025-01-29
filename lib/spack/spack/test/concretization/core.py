@@ -148,7 +148,6 @@ def current_host(request, monkeypatch):
     cpu, _, is_preference = request.param.partition("-")
 
     monkeypatch.setattr(spack.platforms.Test, "default", cpu)
-    monkeypatch.setattr(spack.platforms.Test, "front_end", cpu)
     if not is_preference:
         target = archspec.cpu.TARGETS[cpu]
         monkeypatch.setattr(archspec.cpu, "host", lambda: target)
@@ -385,10 +384,11 @@ class TestConcretize:
     ):
         """Tests that nodes get the flags of the associated compiler."""
         mutable_config.set("compilers", [clang12_with_flags, gcc11_with_flags])
+        t = archspec.cpu.host().family
         client = spack.concretize.concretize_one(
             Spec(
-                "cmake-client %gcc@11.1.0 platform=test os=fe target=fe"
-                " ^cmake %clang@12.2.0 platform=test os=fe target=fe"
+                f"cmake-client %gcc@11.1.0 platform=test os=redhat6 target={t}"
+                f" ^cmake %clang@12.2.0 platform=test os=redhat6 target={t}"
             )
         )
         cmake = client["cmake"]
@@ -413,7 +413,8 @@ class TestConcretize:
     def test_compiler_flags_differ_identical_compilers(self, mutable_config, clang12_with_flags):
         mutable_config.set("compilers", [clang12_with_flags])
         # Correct arch to use test compiler that has flags
-        spec = Spec("pkg-a %clang@12.2.0 platform=test os=fe target=fe")
+        t = archspec.cpu.host().family
+        spec = Spec(f"pkg-a %clang@12.2.0 platform=test os=redhat6 target={t}")
 
         # Get the compiler that matches the spec (
         compiler = spack.compilers.compiler_for_spec("clang@=12.2.0", spec.architecture)
@@ -720,7 +721,7 @@ class TestConcretize:
         assert spec.satisfies("^second-dependency-foo-bar-fee +fee")
         assert not spec.satisfies("parent-foo-bar +fee")
 
-    def test_no_matching_compiler_specs(self, mock_low_high_config):
+    def test_no_matching_compiler_specs(self):
         # only relevant when not building compilers as needed
         with spack.concretize.enable_compiler_existence_check():
             s = Spec("pkg-a %gcc@=0.0.0")
@@ -2111,14 +2112,15 @@ class TestConcretize:
     def test_require_targets_are_allowed(self, mutable_database):
         """Test that users can set target constraints under the require attribute."""
         # Configuration to be added to packages.yaml
-        external_conf = {"all": {"require": "target=%s" % spack.platforms.test.Test.front_end}}
+        required_target = archspec.cpu.TARGETS[spack.platforms.test.Test.default].family
+        external_conf = {"all": {"require": f"target={required_target}"}}
         spack.config.set("packages", external_conf)
 
         with spack.config.override("concretizer:reuse", False):
             spec = spack.concretize.concretize_one("mpich")
 
         for s in spec.traverse():
-            assert s.satisfies("target=%s" % spack.platforms.test.Test.front_end)
+            assert s.satisfies(f"target={required_target}")
 
     def test_external_python_extensions_have_dependency(self):
         """Test that python extensions have access to a python dependency

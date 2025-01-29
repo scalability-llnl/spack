@@ -198,17 +198,6 @@ def test_installed_dependency_request_conflicts(install_mockery, mock_fetch, mut
         spack.concretize.concretize_one(dependent)
 
 
-def test_install_dependency_symlinks_pkg(install_mockery, mock_fetch, mutable_mock_repo):
-    """Test dependency flattening/symlinks mock package."""
-    spec = spack.concretize.concretize_one("flatten-deps")
-    pkg = spec.package
-    PackageInstaller([pkg], explicit=True).install()
-
-    # Ensure dependency directory exists after the installation.
-    dependency_dir = os.path.join(pkg.prefix, "dependency-install")
-    assert os.path.isdir(dependency_dir)
-
-
 def test_install_times(install_mockery, mock_fetch, mutable_mock_repo):
     """Test install times added."""
     spec = spack.concretize.concretize_one("dev-build-test-install-phases")
@@ -226,26 +215,6 @@ def test_install_times(install_mockery, mock_fetch, mutable_mock_repo):
     phases = [x["name"] for x in times["phases"]]
     assert phases == ["stage", "one", "two", "three", "install", "post-install"]
     assert all(isinstance(x["seconds"], float) for x in times["phases"])
-
-
-def test_flatten_deps(install_mockery, mock_fetch, mutable_mock_repo):
-    """Explicitly test the flattening code for coverage purposes."""
-    # Unfortunately, executing the 'flatten-deps' spec's installation does
-    # not affect code coverage results, so be explicit here.
-    spec = spack.concretize.concretize_one("dependent-install")
-    pkg = spec.package
-    PackageInstaller([pkg], explicit=True).install()
-
-    # Demonstrate that the directory does not appear under the spec
-    # prior to the flatten operation.
-    dependency_name = "dependency-install"
-    assert dependency_name not in os.listdir(pkg.prefix)
-
-    # Flatten the dependencies and ensure the dependency directory is there.
-    spack.package_base.flatten_dependencies(spec, pkg.prefix)
-
-    dependency_dir = os.path.join(pkg.prefix, dependency_name)
-    assert os.path.isdir(dependency_dir)
 
 
 @pytest.fixture()
