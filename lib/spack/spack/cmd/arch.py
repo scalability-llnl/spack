@@ -100,9 +100,9 @@ def arch(parser, args):
         return
 
     if args.frontend:
-        warnings.warn("the argument --frontend is deprecated, and will be removed in Spack v0.25")
+        warnings.warn("the argument --frontend is deprecated, and will be removed in Spack v1.0")
     elif args.backend:
-        warnings.warn("the argument --backend is deprecated, and will be removed in Spack v0.25")
+        warnings.warn("the argument --backend is deprecated, and will be removed in Spack v1.0")
 
     host_platform = spack.platforms.host()
     host_os = host_platform.default_operating_system()
