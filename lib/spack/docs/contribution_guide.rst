@@ -361,7 +361,6 @@ and the tags associated with the class of runners to build on.
     * ``.linux_neoverse_n1``
     * ``.linux_neoverse_v1``
     * ``.linux_neoverse_v2``
-    * ``.linux_power``
     * ``.linux_skylake``
     * ``.linux_x86_64``
     * ``.linux_x86_64_v4``
