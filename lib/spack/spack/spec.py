@@ -154,6 +154,7 @@ SPEC_FORMAT_RE = re.compile(
     r"|"
     # OPTION 3: mismatched close brace (option 2 would consume a matched open brace)
     r"(})" r")",  # brace
+    r")",
     re.IGNORECASE,
 )
 
