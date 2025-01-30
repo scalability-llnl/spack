@@ -6,8 +6,6 @@ import glob
 import os
 import sys
 
-import llnl.util.filesystem as fs
-
 import spack.util.environment
 from spack.package import *
 
@@ -211,7 +209,7 @@ class Papi(AutotoolsPackage, ROCmPackage):
                 join_path(self.prefix.lib, "libpapi.so"),
                 join_path(self.prefix.lib, "libpapi.dylib"),
             )
-            fs.fix_darwin_install_name(self.prefix.lib)
+            fix_darwin_install_name(self.prefix.lib)
 
     test_src_dir = "src/smoke_tests"
     test_requires_compiler = True

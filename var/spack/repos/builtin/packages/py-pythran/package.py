@@ -4,8 +4,6 @@
 
 import sys
 
-import llnl.util.filesystem as fs
-
 from spack.package import *
 
 
@@ -88,7 +86,7 @@ class PyPythran(PythonPackage):
         # Pythran is mainly meant to be used as a compiler, so return no headers to
         # avoid issue https://github.com/spack/spack/issues/33237 This can be refined
         # later to allow using pythran also as a library.
-        return fs.HeaderList([])
+        return HeaderList([])
 
     def patch(self):
         # Compiler is used at run-time to determine name of OpenMP library to search for
