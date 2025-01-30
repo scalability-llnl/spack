@@ -118,7 +118,7 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
             from_variant("CELERITAS_BUILD_DOCS", "doc"),
             define("CELERITAS_BUILD_DEMOS", False),
             define("CELERITAS_BUILD_TESTS", False),
-            from_variant("Celeritas_USE_HIP", "rocm"),
+            from_variant("CELERITAS_USE_HIP", "rocm"),
             define("CELERITAS_USE_MPI", False),
             define("CELERITAS_USE_Python", True),
         ]
