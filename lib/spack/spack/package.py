@@ -140,6 +140,7 @@ from spack.spec import Spec
 from spack.util.environment import EnvironmentModifications
 from spack.util.executable import Executable, ProcessError, which, which_string
 from spack.util.filesystem import fix_darwin_install_name
+from spack.util.prefix import Prefix
 from spack.variant import any_combination_of, auto_or_any_combination_of, disjoint_sets
 from spack.version import Version, ver
 
