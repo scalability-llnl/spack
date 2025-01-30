@@ -86,7 +86,7 @@ _DB_VERSION = vn.Version("8")
 
 #: For any version combinations here, skip reindex when upgrading.
 #: Reindexing can take considerable time and is not always necessary.
-_SKIP_REINDEX = [
+_REINDEX_NOT_NEEDED_ON_READ = [
     # reindexing takes a significant amount of time, and there's
     # no reason to do it from DB version 0.9.3 to version 5. The
     # only difference is that v5 can contain "deprecated_for"
@@ -149,7 +149,7 @@ def _getfqdn():
     return socket.getfqdn()
 
 
-def reader(version: vn.StandardVersion) -> Type["spack.spec.SpecfileReaderBase"]:
+def reader(version: vn.ConcreteVersion) -> Type["spack.spec.SpecfileReaderBase"]:
     reader_cls = {
         vn.Version("5"): spack.spec.SpecfileV1,
         vn.Version("6"): spack.spec.SpecfileV3,
@@ -644,6 +644,17 @@ class Database:
 
         self._write_transaction_impl = lk.WriteTransaction
         self._read_transaction_impl = lk.ReadTransaction
+        self._db_version: Optional[vn.ConcreteVersion] = None
+
+    @property
+    def db_version(self) -> vn.ConcreteVersion:
+        if self._db_version is None:
+            raise AttributeError("db version is not yet set")
+        return self._db_version
+
+    @db_version.setter
+    def db_version(self, value: vn.ConcreteVersion):
+        self._db_version = value
 
     def _ensure_parent_directories(self):
         """Create the parent directory for the DB, if necessary."""
@@ -788,16 +799,15 @@ class Database:
 
                 spec._add_dependency(child, depflag=dt.canonicalize(dtypes), virtuals=virtuals)
 
-    def _read_from_file(self, filename):
+    def _read_from_file(self, filename: pathlib.Path, *, reindex: bool = False) -> None:
         """Fill database from file, do not maintain old data.
         Translate the spec portions from node-dict form to spec form.
 
         Does not do any locking.
         """
         try:
-            with open(str(filename), "r", encoding="utf-8") as f:
-                # In the future we may use a stream of JSON objects, hence `raw_decode` for compat.
-                fdata, _ = JSONDecoder().raw_decode(f.read())
+            # In the future we may use a stream of JSON objects, hence `raw_decode` for compat.
+            fdata, _ = JSONDecoder().raw_decode(filename.read_text(encoding="utf-8"))
         except Exception as e:
             raise CorruptDatabaseError("error parsing database:", str(e)) from e
 
@@ -806,7 +816,7 @@ class Database:
 
         def check(cond, msg):
             if not cond:
-                raise CorruptDatabaseError("Spack database is corrupt: %s" % msg, self._index_path)
+                raise CorruptDatabaseError(f"Spack database is corrupt: {msg}", self._index_path)
 
         check("database" in fdata, "no 'database' attribute in JSON DB.")
 
@@ -814,24 +824,15 @@ class Database:
         db = fdata["database"]
         check("version" in db, "no 'version' in JSON DB.")
 
-        # TODO: better version checking semantics.
-        version = vn.Version(db["version"])
-        if version > _DB_VERSION:
-            raise InvalidDatabaseVersionError(self, _DB_VERSION, version)
-        elif version < _DB_VERSION and not any(
-            old == version and new == _DB_VERSION for old, new in _SKIP_REINDEX
-        ):
-            tty.warn(f"Spack database version changed from {version} to {_DB_VERSION}. Upgrading.")
-
-            self.reindex()
-            installs = dict(
-                (k, v.to_dict(include_fields=self._record_fields)) for k, v in self._data.items()
-            )
+        self.db_version = vn.Version(db["version"])
+        if self.db_version > _DB_VERSION:
+            raise InvalidDatabaseVersionError(self, _DB_VERSION, self.db_version)
+        elif self.db_version < _DB_VERSION:
+            installs = self._handle_old_db_versions_read(check, db, reindex=reindex)
         else:
-            check("installs" in db, "no 'installs' in JSON DB.")
-            installs = db["installs"]
+            installs = self._handle_current_version_read(check, db)
 
-        spec_reader = reader(version)
+        spec_reader = reader(self.db_version)
 
         def invalid_record(hash_key, error):
             return CorruptDatabaseError(
@@ -888,6 +889,36 @@ class Database:
         self._data = data
         self._installed_prefixes = installed_prefixes
 
+    def _handle_current_version_read(self, check, db):
+        check("installs" in db, "no 'installs' in JSON DB.")
+        installs = db["installs"]
+        return installs
+
+    def _handle_old_db_versions_read(self, check, db, *, reindex: bool):
+        if reindex is False and not self.is_upstream:
+            self.raise_explicit_database_upgrade()
+
+        if not self.is_readable():
+            raise DatabaseNotReadableError(
+                f"cannot read database v{self.db_version} at {self.root}"
+            )
+
+        return self._handle_current_version_read(check, db)
+
+    def is_readable(self) -> bool:
+        """Returns true if this DB can be read without reindexing"""
+        return (self.db_version, _DB_VERSION) in _REINDEX_NOT_NEEDED_ON_READ
+
+    def raise_explicit_database_upgrade(self):
+        """Raises an ExplicitDatabaseUpgradeError with an appropriate message"""
+        raise ExplicitDatabaseUpgradeError(
+            f"database is v{self.db_version}, but Spack v{spack.__version__} needs v{_DB_VERSION}",
+            long_message=(
+                f"\nUse `spack reindex` to upgrade the store at {self.root} to version "
+                f"{_DB_VERSION}, or change config:install_tree:root to use a different store"
+            ),
+        )
+
     def reindex(self):
         """Build database index from scratch based on a directory layout.
 
@@ -903,9 +934,8 @@ class Database:
         def _read_suppress_error():
             try:
                 if self._index_path.is_file():
-                    self._read_from_file(self._index_path)
-            except CorruptDatabaseError as e:
-                tty.warn(f"Reindexing corrupt database, error was: {e}")
+                    self._read_from_file(self._index_path, reindex=True)
+            except (CorruptDatabaseError, DatabaseNotReadableError):
                 self._data = {}
                 self._installed_prefixes = set()
 
@@ -1848,6 +1878,14 @@ class InvalidDatabaseVersionError(SpackError):
     @property
     def database_version_message(self):
         return f"The expected DB version is '{self.expected}', but '{self.found}' was found."
+
+
+class ExplicitDatabaseUpgradeError(SpackError):
+    """Raised to request an explicit DB upgrade to the user"""
+
+
+class DatabaseNotReadableError(SpackError):
+    """Raised to signal Database.reindex that the reindex should happen via spec.json"""
 
 
 class NoSuchSpecError(KeyError):
