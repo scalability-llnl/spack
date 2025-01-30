@@ -130,6 +130,7 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
             args.append(CMakeBuilder.define_cuda_architectures(self))
         if self.spec.satisfies("+rocm"):
             args.append(CMakeBuilder.define_hip_architectures(self))
+            args.append(define("Thrust_ROOT", self.spec["rocthrust"].prefix))
 
         if self.version < Version("0.5"):
             # JSON is required for 0.5 and later
