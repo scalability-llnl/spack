@@ -350,6 +350,9 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     # https://github.com/pytorch/pytorch/pull/35607
     # https://github.com/pytorch/pytorch/pull/37865
     patch("xnnpack.patch", when="@1.5")
+    # https://github.com/pytorch/pytorch/issues/141083
+    # https://github.com/google/XNNPACK/commit/5f23827e66cca435fa400b6e221892ac95af0079
+    patch("xnnpack2.patch", when="@2.6", working_dir="third_party/XNNPACK")
 
     # Fixes build error when ROCm is enabled for pytorch-1.5 release
     patch("rocm.patch", when="@1.5+rocm")
