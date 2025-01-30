@@ -129,7 +129,7 @@ class PyTorchaudio(PythonPackage):
     patch(
         "https://github.com/pytorch/audio/pull/3811.patch?full_index=1",
         sha256="34dce3403abb03f62827e8a1efcdb2bf7742477a01f155ebb9c7fefe9588b132",
-        when="@2.2:",
+        when="@2.2:2.5",
     )
     conflicts("^cuda@12.5:", when="@:2.1")
 
