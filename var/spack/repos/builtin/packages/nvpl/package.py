@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,13 +21,13 @@ class Nvpl(Package):
     skip_version_audit = ["platform=darwin", "platform=windows"]
 
     redistribute(source=False, binary=False)
-
+    
+    version("25.1", sha256="4c50305538a333b80bc1eec86af9a0e567d14201d516077c68e163c5995e686b")
     version("24.7", sha256="25362d64629fcf85fcb4b2ad59f7d492dc5f14dca2c9e35e822063a9b39507fc")
 
-    # TODO: add "fftw" when Fortran FFTW API completed
     provides("blas")
     provides("lapack")
-    #provides("fftw-api@3")
+    provides("fftw-api@3")
 
     variant("ilp64", default=False, description="Force 64-bit Fortran native integers")
     variant(
@@ -44,8 +43,6 @@ class Nvpl(Package):
     conflicts("target=x86:", msg="Only available on Aarch64")
     conflicts("target=ppc64:", msg="Only available on Aarch64")
     conflicts("target=ppc64le:", msg="Only available on Aarch64")
-
-    requires("target=armv8.2a:", msg="Any CPU with Arm-v8.2a+ microarch")
 
     conflicts("%gcc@:7")
     conflicts("%clang@:13")
@@ -77,7 +74,7 @@ class Nvpl(Package):
         name = ["libnvpl_blas_core", f"libnvpl_blas_{int_type}_{threading_type}"]
 
         return find_libraries(name, spec.prefix.lib, shared=True, recursive=True)
-
+    
     @property
     def lapack_headers(self):
         return find_all_headers(self.spec.prefix.include)
@@ -103,4 +100,3 @@ class Nvpl(Package):
 
     def install(self, spec, prefix):
         install_tree(".", prefix)
-
