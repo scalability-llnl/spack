@@ -41,6 +41,7 @@ class Crtm(CMakePackage):
     depends_on("crtm-fix@2.3.0_emc", when="@2.3.0 +fix")
     depends_on("crtm-fix@2.4.0_emc", when="@=2.4.0 +fix")
     depends_on("crtm-fix@2.4.0.1_emc", when="@2.4.0.1 +fix")
+    depends_on("crtm-fix@3.1.1", when="@3.1.1 +fix")
 
     depends_on("ecbuild", type=("build"), when="@v2.3-jedi.4")
     depends_on("ecbuild", type=("build"), when="@v2.4-jedi.1")
