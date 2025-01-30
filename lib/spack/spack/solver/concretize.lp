@@ -1403,6 +1403,14 @@ compiler_mismatch(PackageNode, DependencyNode)
      not attr("node_compiler_set", DependencyNode, _),
      not compiler_match(PackageNode, DependencyNode).
 
+:- not allow_mismatch(1),
+  attr("depends_on", ParentNode, node(ID, DepName), "link"),
+  not compiler_mismatch_allowed(DepName),
+  not compiler_match(ParentNode, node(ID, DepName)).
+
+#defined allow_mismatch/1.
+#defined compiler_mismatch_allowed/1.
+
 compiler_mismatch_required(PackageNode, DependencyNode)
   :- depends_on(PackageNode, DependencyNode),
      attr("node_compiler_set", DependencyNode, _),
