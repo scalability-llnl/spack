@@ -4,6 +4,7 @@
 
 from spack.package import *
 
+
 class RocprofilerCompute(Package):
     """Advanced Profiling and Analytics for AMD Hardware"""
 
@@ -42,4 +43,3 @@ class RocprofilerCompute(Package):
     @run_before("cmake")
     def before_cmake(self):
         touch(join_path(self.stage.source_path, "VERSION.sha"))
-
