@@ -24,6 +24,7 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     maintainers("adamjstewart")
 
     version("main", branch="main")
+    version("2.6.0", tag="v2.6.0", commit="1eba9b3aa3c43f86f4a2c807ac8e12c4a7767340")
     version("2.5.1", tag="v2.5.1", commit="a8d6afb511a69687bbb2b7e88a3cf67917e1697e")
     version("2.5.0", tag="v2.5.0", commit="32f585d9346e316e554c8d9bf7548af9f62141fc")
     version("2.4.1", tag="v2.4.1", commit="ee1b6804381c57161c477caa380a840a84167676")
@@ -164,17 +165,18 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     with default_args(type=("build", "run")):
         # setup.py
         depends_on("py-filelock", when="@2:")
+        depends_on("py-typing-extensions@4.10:", when="@2.6:")
         depends_on("py-typing-extensions@4.8:", when="@2.2:")
         depends_on("py-typing-extensions@3.6.2.1:", when="@1.7:")
+        depends_on("py-setuptools")
         depends_on("py-sympy", when="@2:")
         depends_on("py-networkx", when="@2:")
         depends_on("py-jinja2", when="@2:")
         depends_on("py-fsspec", when="@2.1:")
 
         # pyproject.toml
-        depends_on("py-setuptools")
         depends_on("py-astunparse", when="@1.13:")
-        depends_on("py-numpy@1.16.6:")
+        depends_on("py-numpy")
         # https://github.com/pytorch/pytorch/issues/107302
         depends_on("py-numpy@:1", when="@:2.2")
         depends_on("py-pyyaml")
@@ -188,15 +190,18 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     # Third party dependencies
     depends_on("fp16@2020-05-14", when="@1.6:")
     depends_on("fxdiv@2020-04-17", when="@1.6:")
+    depends_on("nvtx@3.1.0", when="@2.6:")
     # https://github.com/pytorch/pytorch/issues/60332
-    # depends_on("xnnpack@2024-02-29", when="@2.3:+xnnpack")
+    # depends_on("xnnpack@2024-11-08", when="@2.6:+xnnpack")
+    # depends_on("xnnpack@2024-02-29", when="@2.3:2.5+xnnpack")
     # depends_on("xnnpack@2022-12-21", when="@2.0:2.2+xnnpack")
     # depends_on("xnnpack@2022-02-16", when="@1.12:1+xnnpack")
     # depends_on("xnnpack@2021-06-21", when="@1.10:1.11+xnnpack")
     # depends_on("xnnpack@2021-02-22", when="@1.8:1.9+xnnpack")
     # depends_on("xnnpack@2020-03-23", when="@1.6:1.7+xnnpack")
     depends_on("benchmark", when="@1.6:+test")
-    depends_on("cpuinfo@2024-09-06", when="@2.5.1:")
+    depends_on("cpuinfo@2024-09-26", when="@2.6:")
+    depends_on("cpuinfo@2024-09-06", when="@2.5.1")
     depends_on("cpuinfo@2024-08-30", when="@2.5.0")
     depends_on("cpuinfo@2023-11-04", when="@2.3:2.4")
     depends_on("cpuinfo@2023-01-13", when="@2.1:2.2")
@@ -216,7 +221,8 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     depends_on("gloo+libuv", when="@1.6: platform=darwin")
     depends_on("nccl", when="+nccl+cuda")
     # https://github.com/pytorch/pytorch/issues/60331
-    # depends_on("onnx@1.16.0", when="@2.3:")
+    # depends_on("onnx@1.17.0", when="@2.6:")
+    # depends_on("onnx@1.16.0", when="@2.3:2.5")
     # depends_on("onnx@1.15.0", when="@2.2")
     # depends_on("onnx@1.14.1", when="@2.1")
     # depends_on("onnx@1.13.1", when="@2.0")
@@ -242,7 +248,8 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     depends_on("pthreadpool@2020-10-05", when="@1.8")
     depends_on("pthreadpool@2020-06-15", when="@1.6:1.7")
     with default_args(type=("build", "link", "run")):
-        depends_on("py-pybind11@2.13.5:", when="@2.5:")
+        depends_on("py-pybind11@2.13.6:", when="@2.6:")
+        depends_on("py-pybind11@2.13.5:", when="@2.5")
         depends_on("py-pybind11@2.12.0:", when="@2.3:2.4")
         depends_on("py-pybind11@2.11.0:", when="@2.1:2.2")
         depends_on("py-pybind11@2.10.1:", when="@2.0")
@@ -672,6 +679,7 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
         env.set("USE_SYSTEM_FXDIV", "ON")
         env.set("USE_SYSTEM_GLOO", "ON")
         env.set("USE_SYSTEM_NCCL", "ON")
+        env.set("USE_SYSTEM_NVTX", "ON")
         # https://github.com/pytorch/pytorch/issues/60331
         # env.set("USE_SYSTEM_ONNX", "ON")
         env.set("USE_SYSTEM_PSIMD", "ON")
