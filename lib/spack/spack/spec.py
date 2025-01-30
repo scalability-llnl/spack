@@ -4726,7 +4726,10 @@ class VariantMap(lang.HashableMap):
         bool_keys = []
         kv_keys = []
         for key in sorted_keys:
-            bool_keys.append(key) if isinstance(self[key].value, bool) else kv_keys.append(key)
+            if isinstance(self[key].value, bool):
+                bool_keys.append(key)
+            else:
+                kv_keys.append(key)
 
         # add spaces before and after key/value variants.
         string = io.StringIO()
