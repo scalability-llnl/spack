@@ -12,7 +12,6 @@ import sys
 from shutil import copy
 from typing import Dict, List
 
-import llnl.util.tty as tty
 from llnl.util.lang import dedupe
 
 import spack.paths

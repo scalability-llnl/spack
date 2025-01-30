@@ -43,8 +43,6 @@ import glob
 import os
 import re
 
-import llnl.util.tty as tty
-
 from spack.package import *
 from spack.pkg.builtin.boost import Boost
 from spack.util.environment import EnvironmentModifications

@@ -13,6 +13,17 @@ from shutil import move, rmtree
 # import most common types used in packages
 from typing import Dict, List, Optional
 
+
+class tty:
+    import llnl.util.tty as __tty
+
+    debug = __tty.debug
+    error = __tty.error
+    info = __tty.info
+    msg = __tty.msg
+    warn = __tty.warn
+
+
 from llnl.util.filesystem import (
     FileFilter,
     FileList,
