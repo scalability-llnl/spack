@@ -2407,7 +2407,16 @@ class SpackSolverSetup:
         host_compatible = self.context.configuration.get("concretizer:targets:host_compatible")
 
         # Add targets explicitly requested from specs
-        candidate_targets = self.context.candidate_targets()
+        candidate_targets = []
+        for x in self.context.candidate_targets():
+            if all(
+                self.context.unreachable(pkg_name=pkg_name, when_spec=f"target={x}")
+                for pkg_name in self.pkgs
+            ):
+                # print(f"excluding target={x}, cause no package can use it")
+                continue
+            candidate_targets.append(x)
+
         for spec in specs:
             if not spec.architecture or not spec.architecture.target:
                 continue
