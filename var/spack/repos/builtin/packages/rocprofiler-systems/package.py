@@ -18,6 +18,7 @@ class RocprofilerSystems(CMakePackage):
 
     version("amd-mainline", branch="amd-mainline", submodules=True)
     version("amd-staging", branch="amd-staging", submodules=True)
+    version("6.3.2", sha256="cb304cbfc1913ae8ab91c0cae7ee1c239d762801aac6760a45fa1be2abe84ea9")
     version(
         "6.3.1",
         git="https://github.com/ROCm/rocprofiler-systems",

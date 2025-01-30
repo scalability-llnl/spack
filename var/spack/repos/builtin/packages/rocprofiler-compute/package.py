@@ -4,13 +4,12 @@
 
 from spack.package import *
 
-
-class Omniperf(CMakePackage):
+class RocprofilerCompute(Package):
     """Advanced Profiling and Analytics for AMD Hardware"""
 
-    homepage = "https://github.com/ROCm/omniperf"
-    git = "https://github.com/ROCm/omniperf.git"
-    url = "https://github.com/ROCm/omniperf/archive/refs/tags/rocm-6.2.1.tar.gz"
+    homepage = "https://github.com/ROCm/rocprofiler-compute"
+    git = "https://github.com/ROCm/rocprofiler-compute.git"
+    url = "https://github.com/ROCm/rocprofiler-compute/archive/refs/tags/rocm-6.3.2.tar.gz"
 
     tags = ["rocm"]
 
@@ -18,11 +17,6 @@ class Omniperf(CMakePackage):
 
     license("MIT")
     version("6.3.2", sha256="317f19acfa6e6780923e6c8144c3c223b523c382588df528b6df001fae38d13d")
-    version("6.3.1", sha256="2b79cb3ecced9a40f6871286967d00b1ab87f9cdff8283819fd7ae44b230d4bf")
-    version("6.3.0", sha256="f8e9703b5f78abba6f4a61f69ffc73225d1bb47b591cf33a26ed98060efd65d1")
-    version("6.2.4", sha256="2230260fce0838583899f4969b936ca047b30985a0fffad276ea353232538770")
-    version("6.2.1", sha256="56b795d471adad8ee9d7025544269e23929da31524d73db6f54396d3aca1445a")
-    version("6.2.0", sha256="febe9011e0628ad62367fdc6c81bdb0ad4ed45803f79c794757ecea8bcfab58c")
 
     depends_on("python@3.8:")
     depends_on("py-pip", type="run")
@@ -48,3 +42,4 @@ class Omniperf(CMakePackage):
     @run_before("cmake")
     def before_cmake(self):
         touch(join_path(self.stage.source_path, "VERSION.sha"))
+
