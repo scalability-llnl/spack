@@ -2467,13 +2467,22 @@ class WindowsSimulatedRPath:
         self._addl_rpaths = set()
         self.link_install_prefix = link_install_prefix
         self._additional_library_dependents = set()
+        if not self.link_install_prefix:
+            tty.debug(
+                "Generating rpath for non install context, \
+install prefixes will be omitted as rpath targets"
+            )
 
     @property
     def library_dependents(self):
         """
         Set of directories where package binaries/libraries are located.
         """
-        return set([pathlib.Path(self.pkg.prefix.bin)]) | self._additional_library_dependents
+        base_pths = set()
+        if self.link_install_prefix:
+            base_pths.add(pathlib.Path(self.pkg.prefix.bin))
+        base_pths |= self._additional_library_dependents
+        return base_pths
 
     def add_library_dependent(self, *dest):
         """
@@ -2489,7 +2498,23 @@ class WindowsSimulatedRPath:
                 new_pth = pathlib.Path(pth).parent
             else:
                 new_pth = pathlib.Path(pth)
-            self._additional_library_dependents.add(new_pth)
+            path_is_in_prefix = new_pth.is_relative_to(self.pkg.prefix)
+            add_lib = False
+            if self.link_install_prefix:
+                # We're creating RPath's post install, accept rpath targets anywhere but warn if
+                # out of install prefix
+                if not path_is_in_prefix:
+                    tty.warn(
+                        f"Generating rpath in {new_pth} which is \
+not rooted in target package ({self.pkg}) prefix"
+                    )
+                add_lib = True
+            elif not path_is_in_prefix:
+                # We're creating an RPath for anywhere not in the install prefix, only add rpath
+                # target if it's not in the install prefix
+                add_lib = True
+            if add_lib:
+                self._additional_library_dependents.add(new_pth)
 
     @property
     def rpaths(self):
@@ -2575,6 +2600,28 @@ class WindowsSimulatedRPath:
         if "windows-system" not in getattr(self.pkg, "tags", []):
             for library, lib_dir in itertools.product(self.rpaths, self.library_dependents):
                 self._link(library, lib_dir)
+
+
+def make_package_test_rpath(pkg, test_dir):
+    """Establishes a temp Windows simulated rpath for the pkg in the testing directory
+    so an executable can test the libraries/executables with proper access
+    to dependent dlls
+
+    Note: this is a no-op on all other platforms besides Windows
+
+    Args:
+        pkg (spack.package_base.PackageBase): the package for which the rpath should be computed
+        test_dir (StrPath): the testing directory in which we should construct an rpath
+    """
+    # link_install_prefix as false ensures we're not linking into the install prefix
+    mini_rpath = WindowsSimulatedRPath(pkg, link_install_prefix=False)
+    # add the testing directory as a location to install rpath symlinks
+    mini_rpath.add_library_dependent(test_dir)
+    # add the build dir & build dir bin
+    mini_rpath.add_rpath(os.path.join(pkg.build_directory, "bin"))
+    mini_rpath.add_rpath(os.path.join(pkg.build_directory))
+    # construct rpath
+    mini_rpath.establish_link()
 
 
 @system_path_filter
