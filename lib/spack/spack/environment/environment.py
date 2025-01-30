@@ -581,7 +581,7 @@ def _error_on_nonempty_view_dir(new_root):
     # Check if the target path lexists
     try:
         st = os.lstat(new_root)
-    except (IOError, OSError):
+    except OSError:
         return
 
     # Empty directories are fine
@@ -861,7 +861,7 @@ class ViewDescriptor:
         ):
             try:
                 shutil.rmtree(old_root)
-            except (IOError, OSError) as e:
+            except OSError as e:
                 msg = "Failed to remove old view at %s\n" % old_root
                 msg += str(e)
                 tty.warn(msg)
@@ -2554,7 +2554,7 @@ def is_latest_format(manifest):
     try:
         with open(manifest, encoding="utf-8") as f:
             data = syaml.load(f)
-    except (OSError, IOError):
+    except OSError:
         return True
     top_level_key = _top_level_key(data)
     changed = spack.schema.env.update(data[top_level_key])
