@@ -599,8 +599,10 @@ class RocmOpenmpExtras(Package):
                 "-DNUMACTL_DIR={0}".format(numactl_prefix),
             ]
         if self.spec.satisfies("@:6.2"):
-            "-DHSAKMT_LIB={0}/lib".format(hsakmt_prefix)
-            "-DHSAKMT_LIB64={0}/lib64".format(hsakmt_prefix)
+            openmp_common_args += [
+                "-DHSAKMT_LIB={0}/lib".format(hsakmt_prefix),
+                "-DHSAKMT_LIB64={0}/lib64".format(hsakmt_prefix),
+            ]
 
         components["openmp"] = ["../rocm-openmp-extras/llvm-project/openmp"]
         components["openmp"] += openmp_common_args
