@@ -264,16 +264,17 @@ class PythonExtension(spack.package_base.PackageBase):
                     # Ensure architecture information is present
                     if not python.architecture:
                         host_platform = spack.platforms.host()
-                        host_os = host_platform.operating_system("default_os")
-                        host_target = host_platform.target("default_target")
+                        host_os = host_platform.default_operating_system()
+                        host_target = host_platform.default_target()
                         python.architecture = spack.spec.ArchSpec(
                             (str(host_platform), str(host_os), str(host_target))
                         )
                     else:
                         if not python.architecture.platform:
                             python.architecture.platform = spack.platforms.host()
+                        platform = spack.platforms.by_name(python.architecture.platform)
                         if not python.architecture.os:
-                            python.architecture.os = "default_os"
+                            python.architecture.os = platform.default_operating_system()
                         if not python.architecture.target:
                             python.architecture.target = archspec.cpu.host().family.name
 

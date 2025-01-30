@@ -329,14 +329,14 @@ def test_ci_generate_pkg_with_deps(ci_generate_test, tmp_path, ci_base_environme
         f"""\
 spack:
   specs:
-    - flatten-deps
+    - dependent-install
   mirrors:
     buildcache-destination: {tmp_path / 'ci-mirror'}
   ci:
     pipeline-gen:
     - submapping:
       - match:
-          - flatten-deps
+          - dependent-install
         build-job:
           tags:
             - donotcare
@@ -355,12 +355,12 @@ spack:
             assert "stage" in ci_obj
             assert ci_obj["stage"] == "stage-0"
             found.append("dependency-install")
-        if "flatten-deps" in ci_key:
+        if "dependent-install" in ci_key:
             assert "stage" in ci_obj
             assert ci_obj["stage"] == "stage-1"
-            found.append("flatten-deps")
+            found.append("dependent-install")
 
-    assert "flatten-deps" in found
+    assert "dependent-install" in found
     assert "dependency-install" in found
 
 
@@ -372,14 +372,14 @@ def test_ci_generate_for_pr_pipeline(ci_generate_test, tmp_path, monkeypatch):
         f"""\
 spack:
   specs:
-    - flatten-deps
+    - dependent-install
   mirrors:
     buildcache-destination: {tmp_path / 'ci-mirror'}
   ci:
     pipeline-gen:
     - submapping:
       - match:
-          - flatten-deps
+          - dependent-install
         build-job:
           tags:
             - donotcare
@@ -899,7 +899,7 @@ def test_ci_generate_override_runner_attrs(
         f"""\
 spack:
   specs:
-    - flatten-deps
+    - dependent-install
     - pkg-a
   mirrors:
     buildcache-destination: {tmp_path / "ci-mirror"}
@@ -908,7 +908,7 @@ spack:
     - match_behavior: {match_behavior}
       submapping:
         - match:
-            - flatten-deps
+            - dependent-install
           build-job:
             tags:
               - specific-one
@@ -1006,8 +1006,8 @@ spack:
             assert the_elt["script"][0] == "main step"
             assert len(the_elt["after_script"]) == 1
             assert the_elt["after_script"][0] == "post step one"
-        if "flatten-deps" in ci_key:
-            # The flatten-deps match specifies that we keep the two
+        if "dependent-install" in ci_key:
+            # The dependent-install match specifies that we keep the two
             # top level variables, but add a third specifc one.  It
             # also adds a custom tag which should be combined with
             # the top-level tag.
@@ -1182,12 +1182,12 @@ def test_ci_generate_read_broken_specs_url(
     spec_a = spack.concretize.concretize_one("pkg-a")
     a_dag_hash = spec_a.dag_hash()
 
-    spec_flattendeps = spack.concretize.concretize_one("flatten-deps")
+    spec_flattendeps = spack.concretize.concretize_one("dependent-install")
     flattendeps_dag_hash = spec_flattendeps.dag_hash()
 
     broken_specs_url = tmp_path.as_uri()
 
-    # Mark 'a' as broken (but not 'flatten-deps')
+    # Mark 'a' as broken (but not 'dependent-install')
     broken_spec_a_url = "{0}/{1}".format(broken_specs_url, a_dag_hash)
     job_stack = "job_stack"
     a_job_url = "a_job_url"
@@ -1201,7 +1201,7 @@ def test_ci_generate_read_broken_specs_url(
             f"""\
 spack:
   specs:
-    - flatten-deps
+    - dependent-install
     - pkg-a
   mirrors:
     buildcache-destination: {(tmp_path / "ci-mirror").as_uri()}
@@ -1211,7 +1211,7 @@ spack:
     - submapping:
       - match:
           - pkg-a
-          - flatten-deps
+          - dependent-install
           - pkg-b
           - dependency-install
         build-job:
@@ -1234,7 +1234,7 @@ spack:
             )
             assert expected in output
 
-            not_expected = f"flatten-deps/{flattendeps_dag_hash[:7]} (in stack"
+            not_expected = f"dependent-install/{flattendeps_dag_hash[:7]} (in stack"
             assert not_expected not in output
 
 
@@ -1447,7 +1447,7 @@ spack:
   include: [{configs_path}]
   view: false
   specs:
-    - flatten-deps
+    - dependent-install
   mirrors:
     buildcache-destination: {tmp_path / "ci-mirror"}
   ci:

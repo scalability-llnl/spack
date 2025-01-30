@@ -106,7 +106,7 @@ class CDash(Reporter):
         self.site = configuration.site or socket.gethostname()
         self.osname = platform.system()
         self.osrelease = platform.release()
-        self.target = spack.platforms.host().target("default_target")
+        self.target = spack.platforms.host().default_target()
         self.starttime = int(time.time())
         self.endtime = self.starttime
         self.buildstamp = (
