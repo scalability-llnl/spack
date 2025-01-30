@@ -68,7 +68,7 @@ class Jsoncpp(CMakePackage, MesonPackage):
     def patch(self):
         filter_file(
             "return d >= min && d <= max;",
-            "return d >= static_cast<double>(min) && " "d <= static_cast<double>(max);",
+            "return d >= static_cast<double>(min) && d <= static_cast<double>(max);",
             "src/lib_json/json_value.cpp",
         )
 

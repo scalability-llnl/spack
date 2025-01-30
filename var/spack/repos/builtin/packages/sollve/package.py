@@ -42,7 +42,7 @@ class Sollve(CMakePackage):
     variant(
         "link_dylib",
         default=False,
-        description="Build and link the libLLVM shared library rather " "than static",
+        description="Build and link the libLLVM shared library rather than static",
     )
     variant(
         "all_targets",

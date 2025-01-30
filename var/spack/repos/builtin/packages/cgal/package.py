@@ -131,7 +131,7 @@ class Cgal(CMakePackage):
     conflicts(
         "~header_only",
         when="@:4.9",
-        msg="Header only builds became optional in 4.9," " default thereafter",
+        msg="Header only builds became optional in 4.9, default thereafter",
     )
 
     def url_for_version(self, version):

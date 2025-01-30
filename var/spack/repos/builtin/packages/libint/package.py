@@ -59,7 +59,7 @@ class Libint(AutotoolsPackage):
         "fma",
         default=False,
         description=(
-            "Generate code utilizing FMA" " (requires capable CPU and recent enough compiler)"
+            "Generate code utilizing FMA (requires capable CPU and recent enough compiler)"
         ),
     )
 

@@ -81,7 +81,7 @@ class NcbiToolkit(AutotoolsPackage):
         if self.spec.satisfies("@:22_0_0 ^boost@1.70:"):
             with working_dir(join_path("include", "corelib")):
                 filter_file(
-                    ("unit_test::ut_detail::" "ignore_unused_variable_warning"),
+                    ("unit_test::ut_detail::ignore_unused_variable_warning"),
                     "ignore_unused",
                     "test_boost.hpp",
                     string=True,

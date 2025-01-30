@@ -44,7 +44,7 @@ class Subread(MakefilePackage):
             elif plat.startswith("darwin"):
                 make("-f", "Makefile.MacOS")
             else:
-                raise InstallError("The communication mechanism %s is not" "supported" % plat)
+                raise InstallError("The communication mechanism %s is not supported" % plat)
 
     def install(self, spec, prefix):
         install_tree("bin", prefix.bin)

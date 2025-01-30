@@ -55,7 +55,7 @@ class LlvmDoe(CMakePackage, CudaPackage):
     variant(
         "polly",
         default=True,
-        description="Build the LLVM polyhedral optimization plugin, " "only builds for 3.7.0+",
+        description="Build the LLVM polyhedral optimization plugin, only builds for 3.7.0+",
     )
     variant("libcxx", default=True, description="Build the LLVM C++ standard library")
     variant(
@@ -288,9 +288,7 @@ class LlvmDoe(CMakePackage, CudaPackage):
     @classmethod
     def validate_detected_spec(cls, spec, extra_attributes):
         # For LLVM 'compilers' is a mandatory attribute
-        msg = 'the extra attribute "compilers" must be set for ' 'the detected spec "{0}"'.format(
-            spec
-        )
+        msg = f"the extra attribute 'compilers' must be set for the detected spec '{spec}'"
         assert "compilers" in extra_attributes, msg
         compilers = extra_attributes["compilers"]
         for key in ("c", "cxx"):

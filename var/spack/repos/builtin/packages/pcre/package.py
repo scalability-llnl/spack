@@ -41,7 +41,7 @@ class Pcre(AutotoolsPackage, CMakePackage):
     variant(
         "utf",
         default=True,
-        description="Enable support for UTF-8/16/32, " "incompatible with EBCDIC.",
+        description="Enable support for UTF-8/16/32, incompatible with EBCDIC.",
     )
 
     variant("shared", default=True, description="Build shared libraries")

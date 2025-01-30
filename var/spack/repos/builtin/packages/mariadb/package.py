@@ -41,7 +41,7 @@ class Mariadb(CMakePackage):
     variant(
         "nonblocking",
         default=True,
-        description="Allow non blocking " "operations in the mariadb client library.",
+        description="Allow non blocking operations in the mariadb client library.",
     )
 
     provides("mariadb-client")

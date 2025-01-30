@@ -58,7 +58,7 @@ class Sprng(AutotoolsPackage):
                 raise RuntimeError(msg)
             if "+fortran" in self.spec:
                 if "fmpi" not in self.spec["fortran"].libs.names:
-                    msg = "SPRNG requires fortran mpi " "libraries with mpi enabled"
+                    msg = "SPRNG requires fortran mpi libraries with mpi enabled"
                     raise RuntimeError(msg)
         # raise RuntimeError("test")
 

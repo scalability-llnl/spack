@@ -12,7 +12,7 @@ class GhostscriptFonts(Package, SourceforgePackage):
 
     homepage = "https://ghostscript.com/"
     sourceforge_mirror_path = (
-        "gs-fonts/gs-fonts/8.11%20%28base%2035%2C%20GPL%29/" "ghostscript-fonts-std-8.11.tar.gz"
+        "gs-fonts/gs-fonts/8.11%20%28base%2035%2C%20GPL%29/ghostscript-fonts-std-8.11.tar.gz"
     )
 
     license("GPL-2.0-or-later")

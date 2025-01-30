@@ -149,7 +149,7 @@ class Rocksdb(MakefilePackage):
             f.write("\n")
             f.write("Name: rocksdb\n")
             f.write(
-                "Description: RocksDB: A Persistent Key-Value Store for" " Flash and RAM Storage\n"
+                "Description: RocksDB: A Persistent Key-Value Store for Flash and RAM Storage\n"
             )
             f.write("Version: {0}\n".format(self.spec.version))
             f.write("Cflags: -I${includedir}\n")

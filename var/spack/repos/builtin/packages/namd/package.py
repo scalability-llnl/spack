@@ -241,7 +241,7 @@ class Namd(MakefilePackage, CudaPackage, ROCmPackage):
                     tty.info("Building binaries with AVX512-tile optimization")
                     copy("Linux-AVX512-icc.arch", arch_filename)
                 elif spec.version >= Version("2.14") and os.path.exists("Linux-SKX-icc.arch"):
-                    tty.info("Building binaries with Skylake-X" "AVX512 optimization")
+                    tty.info("Building binaries with Skylake-X AVX512 optimization")
                     copy("Linux-SKX-icc.arch", arch_filename)
                 else:
                     return False

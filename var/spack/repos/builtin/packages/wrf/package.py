@@ -456,7 +456,7 @@ class Wrf(Package):
                     break
                 if stallcounter > 300:
                     raise InstallError(
-                        "Output stalled for 30s, presumably an " "undetected question."
+                        "Output stalled for 30s, presumably an undetected question."
                     )
                 time.sleep(0.1)  # Try to do a bit of rate limiting
                 stallcounter += 1
@@ -509,7 +509,7 @@ class Wrf(Package):
         result = self.run_compile_script()
 
         if not result:
-            tty.warn("Compilation failed first time (WRF idiosyncrasies?) " "- trying again...")
+            tty.warn("Compilation failed first time (WRF idiosyncrasies?) - trying again...")
             result = self.run_compile_script()
 
         if not result:

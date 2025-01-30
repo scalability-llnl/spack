@@ -132,15 +132,13 @@ class Qmcpack(CMakePackage, CudaPackage):
     conflicts("%gcc@:8", when="@3.15.0:")
 
     # QMCPACK 3.10.0 increased the minimum requirements for compiler versions
-    newer_compiler_warning = (
-        "QMCPACK v3.10.0 or later requires a newer " "version of this compiler"
-    )
+    newer_compiler_warning = "QMCPACK v3.10.0 or later requires a newer version of this compiler"
     conflicts("%gcc@:6", when="@3.10.0:", msg=newer_compiler_warning)
     conflicts("%intel@:18", when="@3.10.0:", msg=newer_compiler_warning)
     conflicts("%clang@:6", when="@3.10.0:", msg=newer_compiler_warning)
 
     # QMCPACK 3.6.0 or later requires support for C++14
-    cpp14_warning = "QMCPACK v3.6.0 or later requires a " "compiler with support for C++14"
+    cpp14_warning = "QMCPACK v3.6.0 or later requires a compiler with support for C++14"
     conflicts("%gcc@:4", when="@3.6.0:", msg=cpp14_warning)
     conflicts("%intel@:17", when="@3.6.0:", msg=cpp14_warning)
     conflicts("%clang@:3.4", when="@3.6.0:", msg=cpp14_warning)
@@ -330,7 +328,7 @@ class Qmcpack(CMakePackage, CudaPackage):
             cuda_arch = cuda_arch_list[0]
             if len(cuda_arch_list) > 1:
                 raise InstallError(
-                    "QMCPACK only supports compilation for a single " "GPU architecture at a time"
+                    "QMCPACK only supports compilation for a single GPU architecture at a time"
                 )
             if "@3.14.0:" in self.spec:
                 args.append("-DCMAKE_CUDA_ARCHITECTURES={0}".format(cuda_arch))

@@ -102,7 +102,7 @@ class Scr(CMakePackage):
         "dtcmp",
         default=True,
         when="@:2",
-        description="Build with DTCMP. " "Necessary to enable user directory naming at runtime",
+        description="Build with DTCMP. Necessary to enable user directory naming at runtime",
     )
     depends_on("dtcmp", when="+dtcmp")
     depends_on("dtcmp", when="@3:")

@@ -64,7 +64,7 @@ class Relion(CMakePackage, CudaPackage):
         "allow_ctf_in_sagd",
         default=True,
         description=(
-            "Allow CTF-modulation in SAGD, " "as specified in Claim 1 of patent US10,282,513B2"
+            "Allow CTF-modulation in SAGD, as specified in Claim 1 of patent US10,282,513B2"
         ),
     )
     variant("altcpu", default=False, description="Use CPU acceleration", when="~cuda")
@@ -72,7 +72,7 @@ class Relion(CMakePackage, CudaPackage):
     variant(
         "external_motioncor2",
         default=False,
-        description="Have external motioncor2 available in addition to " "Relion builtin",
+        description="Have external motioncor2 available in addition to Relion builtin",
     )
 
     depends_on("mpi")

@@ -56,7 +56,7 @@ class Dyninst(CMakePackage):
     variant(
         "openmp",
         default=True,
-        description="Enable OpenMP support for ParseAPI " "(version 10.0.0 or later)",
+        description="Enable OpenMP support for ParseAPI (version 10.0.0 or later)",
     )
 
     variant("static", default=False, description="Build static libraries")

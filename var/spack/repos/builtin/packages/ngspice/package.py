@@ -53,7 +53,7 @@ class Ngspice(AutotoolsPackage):
     variant(
         "debug",
         default="auto",
-        description="Enable debugging features: " "auto is yes for build=lib, no for build=bin",
+        description="Enable debugging features: auto is yes for build=lib, no for build=bin",
         values=("auto", "yes", "no"),
         multi=False,
     )

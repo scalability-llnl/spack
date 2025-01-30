@@ -26,7 +26,7 @@ class Paradiseo(CMakePackage):
     variant(
         "mpi",
         default=True,
-        description="Compile with parallel and distributed " "metaheuristics module",
+        description="Compile with parallel and distributed metaheuristics module",
     )
     variant("smp", default=True, description="Compile with symmetric multi-processing module ")
     variant("edo", default=True, description="Compile with (Experimental) EDO module")

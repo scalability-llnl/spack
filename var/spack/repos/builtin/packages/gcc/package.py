@@ -599,9 +599,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
     @classmethod
     def validate_detected_spec(cls, spec, extra_attributes):
         # For GCC 'compilers' is a mandatory attribute
-        msg = 'the extra attribute "compilers" must be set for ' 'the detected spec "{0}"'.format(
-            spec
-        )
+        msg = f"the extra attribute 'compilers' must be set for the detected spec '{spec}'"
         assert "compilers" in extra_attributes, msg
 
         compilers = extra_attributes["compilers"]
@@ -1090,8 +1088,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
                 return candidate_gdc
             else:
                 raise InstallError(
-                    "Cannot resolve ambiguity when detecting GDC that belongs to "
-                    "%{0}".format(self.compiler.spec),
+                    f"Can't resolve ambiguity when detecting GDC for %{self.compiler.spec}",
                     long_msg="The candidates are:{0}{0}{1}{0}".format(
                         error_nl,
                         error_nl.join(

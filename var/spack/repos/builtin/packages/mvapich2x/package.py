@@ -182,7 +182,7 @@ class Mvapich2x(MpichEnvironmentModifications, AutotoolsPackage):
         spec = self.spec
         xpmem_ldflags = ""
         if "feature=basic-xpmem" in spec or "feature=advanced-xpmem" in spec:
-            xpmem_ldflags = " -Wl,-rpath,/opt/xpmem/lib " "-L/opt/xpmem/lib -lxpmem"
+            xpmem_ldflags = " -Wl,-rpath,/opt/xpmem/lib -L/opt/xpmem/lib -lxpmem"
 
         # Add default LDFLAGS and combine together
         LDFLAGS = "LDFLAGS=-Wl,-rpath,XORIGIN/placeholder"

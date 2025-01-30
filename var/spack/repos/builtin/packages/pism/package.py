@@ -34,7 +34,7 @@ class Pism(CMakePackage):
     variant(
         "proj",
         default=True,
-        description="Use Proj to compute cell areas, " "longitudes, and latitudes.",
+        description="Use Proj to compute cell areas, longitudes, and latitudes.",
     )
     variant("parallel-netcdf4", default=False, description="Enables parallel NetCDF-4 I/O.")
     variant(

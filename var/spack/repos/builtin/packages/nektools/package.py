@@ -151,9 +151,7 @@ class Nektools(Package):
                 filter_file(r"\$\(OLAGS\)", "-qextname $(OLAGS)", join_path("postnek", "makefile"))
             # Define 'rename_' function that calls 'rename'
             with open(join_path("postnek", "xdriver.c"), "a") as xdriver:
-                xdriver.write(
-                    "\nvoid rename_(char *from, char *to)\n{\n" "   rename(from, to);\n}\n"
-                )
+                xdriver.write("\nvoid rename_(char *from, char *to)\n{\n   rename(from, to);\n}\n")
 
             maxnel = self.spec.variants["MAXNEL"].value
             filter_file(r"^#MAXNEL\s*=.*", "MAXNEL=" + maxnel, "maketools")

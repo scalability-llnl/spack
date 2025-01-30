@@ -51,15 +51,13 @@ class PyUproot(PythonPackage):
 
     variant("xrootd", default=True, description="Build with xrootd support ")
     variant(
-        "lz4",
-        default=True,
-        description="Build with support for reading " "lz4-compressed rootfiles ",
+        "lz4", default=True, description="Build with support for reading lz4-compressed rootfiles "
     )
 
     variant(
         "zstd",
         default=True,
-        description="Build with support for reading " "zstd-compressed rootfiles ",
+        description="Build with support for reading zstd-compressed rootfiles ",
     )
 
     depends_on("python@2.6:2,3.5:", type=("build", "run"))

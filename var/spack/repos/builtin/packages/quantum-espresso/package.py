@@ -191,7 +191,7 @@ class QuantumEspresso(CMakePackage, Package):
         )
         conflicts(
             "@6.3:6.4.0 hdf5=serial",
-            msg="QE-to-QMCPACK wave function converter only " "supported with parallel HDF5",
+            msg="QE-to-QMCPACK wave function converter only supported with parallel HDF5",
         )
         conflicts("@:7.0 hdf5=none", msg="QE-to-QMCPACK wave function converter requires HDF5")
         # QE > 7.0, the converter for QMCPACK can be built without hdf5 enabled in QE.

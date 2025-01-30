@@ -8,9 +8,9 @@ from spack.package import *
 
 def async_api_validator(pkg_name, variant_name, values):
     if "none" in values and len(values) != 1:
-        raise SpackError("The value 'none' is not usable" " with other async_api values.")
+        raise SpackError("The value 'none' is not usable with other async_api values.")
     if "intel_cppr" in values and "cray_dw" in values:
-        raise SpackError("The 'intel_cppr' and 'cray_dw' asynchronous" " APIs are incompatible.")
+        raise SpackError("The 'intel_cppr' and 'cray_dw' asynchronous APIs are incompatible.")
 
 
 class Axl(CMakePackage):

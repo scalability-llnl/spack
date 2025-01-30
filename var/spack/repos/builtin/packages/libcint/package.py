@@ -45,7 +45,7 @@ class Libcint(CMakePackage):
     variant(
         "pypzpx",
         default=False,
-        description="Enforce PYPZPX ordering of p-orbitals " "instead of PXPYPZ.",
+        description="Enforce PYPZPX ordering of p-orbitals instead of PXPYPZ.",
     )
     variant("test", default=False, description="Build test programs")
     variant("shared", default=True, description="Build the shared library")
