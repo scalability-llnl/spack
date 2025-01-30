@@ -105,7 +105,8 @@ class Tau(Package):
         "rocprofv2", default=False, description="Activates ROCm rocprofiler support", when="@2.34:"
     )
     variant("salt", default=False, description="Activates SALT source instrumentation",
-        when="@2.34:")
+        when="@2.34:"
+    )
     variant("opencl", default=False, description="Activates OpenCL support")
     variant("fortran", default=darwin_default, description="Activates Fortran support")
     variant("io", default=True, description="Activates POSIX I/O support")
