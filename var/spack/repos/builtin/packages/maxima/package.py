@@ -23,7 +23,7 @@ class Maxima(AutotoolsPackage):
     maintainers("adaell")
     version(
         "5.47.0",
-        sha512="953b98336eb086069edaa917981372450ce165dedd7a7b39b181d3f2d8b089551eea943e0084148eaa3ded395dcba9135509d3d11d9132ab7a3ad8bb800d3a11",
+        sha256="https://sourceforge.net/projects/maxima/files/Maxima-source/5.47.0-source/maxima-5.47.0.tar.gz/download",
     )
 
     depends_on("sbcl")
