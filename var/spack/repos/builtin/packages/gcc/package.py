@@ -579,6 +579,13 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
         when="@13.2.0 target=aarch64:",
     )
 
+    # see https://gcc.gnu.org/gcc-11/changes.html 11.5 Caveats
+    patch(
+        "https://github.com/gcc-mirror/gcc/commit/5522dec054cb940fe83661b96249aa12c54c1d77.patch?full_index=1",
+        sha256="3bbd2c29a2c80d3a698feaf72ffcd787120e954da174d3561a043c7b30aaa77c",
+        when="@11.5.0 target=aarch64:",
+    )
+
     build_directory = "spack-build"
 
     compiler_languages = ["c", "cxx", "fortran", "d", "go"]
