@@ -136,7 +136,6 @@ from spack.package_completions import (
 from spack.phase_callbacks import run_after, run_before
 from spack.spec import Spec
 
-# These props will be overridden when the build env is set up.
 from spack.util.environment import EnvironmentModifications
 from spack.util.executable import Executable, ProcessError, which, which_string
 from spack.util.filesystem import fix_darwin_install_name
