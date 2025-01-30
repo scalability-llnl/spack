@@ -2,10 +2,16 @@ spack:
   view: false
   packages:
     all:
-      require: target=x86_64_v3
+      require:
+      - target=x86_64_v3
+      - ~cuda
+      - ~rocm
+
   concretizer:
     unify: true
     reuse: false
+    preferred_providers_only: true
+
   definitions:
   - default_specs:
       # editors
