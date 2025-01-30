@@ -81,8 +81,8 @@ def test_load_recursive(install_mockery, mock_fetch, mock_archive, mock_packages
 
         # Finally, do we list them in topo order?
         for i, pkg in enumerate(pkgs):
-            assert set(s.name for s in mpileaks_spec[pkg].traverse(direction="parents")) in set(
-                pkgs[:i]
+            assert {s.name for s in mpileaks_spec[pkg].traverse(direction="parents")}.issubset(
+                pkgs[: i + 1]
             )
 
         # Lastly, do we keep track that mpileaks was loaded?
