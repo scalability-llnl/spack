@@ -8,7 +8,7 @@ from spack.package import *
 
 class Maxima(AutotoolsPackage):
     """
-    Maxima is a fairly complete computer algebra system written in Lisp 
+    Maxima is a fairly complete computer algebra system written in Lisp
     with an emphasis on symbolic computation.
     """
 
