@@ -15,13 +15,13 @@ from typing import Dict, List, Optional
 
 
 class tty:
-    import llnl.util.tty as __tty
+    import llnl.util.tty as _tty
 
-    debug = __tty.debug
-    error = __tty.error
-    info = __tty.info
-    msg = __tty.msg
-    warn = __tty.warn
+    debug = _tty.debug
+    error = _tty.error
+    info = _tty.info
+    msg = _tty.msg
+    warn = _tty.warn
 
 
 from llnl.util.filesystem import (
