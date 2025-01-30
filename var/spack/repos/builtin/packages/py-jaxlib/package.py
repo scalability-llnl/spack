@@ -144,6 +144,9 @@ class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
     # https://github.com/google/jax/issues/19992
     conflicts("@0.4.4:", when="target=ppc64le:")
 
+    # Fails to build with freshly released CUDA (#48708).
+    conflicts("^cuda@12.8:", when="@:0.4.31")
+
     def patch(self):
         self.tmp_path = tempfile.mkdtemp(prefix="spack")
         self.buildtmp = tempfile.mkdtemp(prefix="spack")
