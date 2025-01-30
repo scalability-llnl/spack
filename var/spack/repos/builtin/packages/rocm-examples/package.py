@@ -29,15 +29,16 @@ class RocmExamples(CMakePackage):
     depends_on("glfw", type="build")
 
     for ver in ["6.3.1", "6.3.0", "6.2.4", "6.2.1", "6.2.0"]:
-        depends_on("hip@" + ver, when="@" + ver)
-        depends_on("hipcub@" + ver, when="@" + ver)
-        depends_on("hiprand@" + ver, when="@" + ver)
-        depends_on("hipsolver@" + ver, when="@" + ver)
-        depends_on("rocblas@" + ver, when="@" + ver)
-        depends_on("rocthrust@" + ver, when="@" + ver)
-        depends_on("hipblas@" + ver, when="@" + ver)
-        depends_on("rocsparse@" + ver, when="@" + ver)
-        depends_on("rocsolver@" + ver, when="@" + ver)
+        depends_on(f"hip@{ver}", when=f"@{ver}")
+        depends_on(f"hipify-clang@{ver}", when=f"@{ver}")
+        depends_on(f"hipcub@{ver}", when=f"@{ver}")
+        depends_on(f"hiprand@{ver}", when=f"@{ver}")
+        depends_on(f"hipsolver@{ver}", when=f"@{ver}")
+        depends_on(f"rocblas@{ver}", when=f"@{ver}")
+        depends_on(f"rocthrust@{ver}", when=f"@{ver}")
+        depends_on(f"hipblas@{ver}", when=f"@{ver}")
+        depends_on(f"rocsparse@{ver}", when=f"@{ver}")
+        depends_on(f"rocsolver@{ver}", when=f"@{ver}")
 
     def patch(self):
         filter_file(
