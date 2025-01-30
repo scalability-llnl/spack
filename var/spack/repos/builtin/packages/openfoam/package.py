@@ -47,7 +47,6 @@ import llnl.util.tty as tty
 
 from spack.package import *
 from spack.pkg.builtin.boost import Boost
-from spack.util.environment import EnvironmentModifications
 
 # Not the nice way of doing things, but is a start for refactoring
 __all__ = [

@@ -49,7 +49,6 @@ from llnl.util.filesystem import (
 )
 from llnl.util.symlink import symlink
 
-# These props will be overridden when the build env is set up.
 from spack.build_environment import MakeExecutable
 from spack.build_systems.aspell_dict import AspellDictPackage
 from spack.build_systems.autotools import AutotoolsPackage
@@ -136,6 +135,9 @@ from spack.package_completions import (
 )
 from spack.phase_callbacks import run_after, run_before
 from spack.spec import Spec
+
+# These props will be overridden when the build env is set up.
+from spack.util.environment import EnvironmentModifications
 from spack.util.executable import Executable, ProcessError, which, which_string
 from spack.util.filesystem import fix_darwin_install_name
 from spack.variant import any_combination_of, auto_or_any_combination_of, disjoint_sets
