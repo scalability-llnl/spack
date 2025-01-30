@@ -6,7 +6,6 @@ import glob
 import os
 
 from spack.package import *
-from spack.version import ver
 
 
 def get_best_target(microarch, compiler_name, compiler_version):

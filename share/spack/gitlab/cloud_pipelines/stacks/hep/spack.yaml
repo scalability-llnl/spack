@@ -31,26 +31,43 @@ spack:
   specs:
   # CPU
   - acts +analysis +dd4hep +edm4hep +examples +fatras +geant4 +hepmc3 +podio +pythia8 +python +tgeo cxxstd=20
+  #- agile  # fails on c++>11 compiler
+  - alpgen
+  - ampt
+  - apfel +lhapdf +python
   - celeritas +geant4 +hepmc3 +openmp +root +shared +vecgeom cxxstd=20
+  - cepgen
+  - cernlib +shared
+  - collier
   - dd4hep +ddalign +ddcad +ddcond +dddetectors +dddigi +ddeve +ddg4 +ddrec +edm4hep +hepmc3 +lcio +utilityapps +xercesc
   - delphes +pythia8
   - dpmjet
   - edm4hep
-  - fastjet
+  - evtgen +hepmc3 +photos +pythia8 +sherpa +tauola
+  - fastjet plugins=all
+  - feynhiggs
   - fjcontrib
+  #- garfieldpp
   - gaudi +aida +examples +heppdt +xercesc ^gdb +debuginfod +python
   - geant4 +opengl +qt +threads ~vtk ^[virtuals=qmake] qt
+  #- genie +atmo
   - hepmc
   - hepmc3 +interfaces +protobuf +python +rootio
   #- herwig3 +njet +vbfnlo  # Note: herwig3 fails to find evtgen
+  - hztool
   - lcio -examples ~jar +rootdict  # Note: lcio +examples ^ncurses -termlib, which leads to conflicts
   - lhapdf +python
+  - lhapdfsets sets=default
   - madgraph5amc
+  - njet
   - opendatadetector
+  - openloops
   - pandoramonitoring
   - pandorapfa
   - pandorasdk
+  - photos +hepmc3
   - podio +rntuple +sio
+  #- professor
   - py-awkward
   - py-boost-histogram
   - py-hepunits
@@ -67,9 +84,12 @@ spack:
   - rivet hepmc=3
   - root +davix +dcache +examples +fftw +fits +fortran +gdml +graphviz +gsl +http +math +minuit +mlp +mysql +opengl +postgres +pythia8 +python +r +roofit +root7 +rpath ~shadow +spectrum +sqlite +ssl +tbb +threads +tmva +unuran +vc +vdt +veccore +webgui +x +xml +xrootd
   - sherpa +analysis ~blackhat +gzip +hepmc3 +hepmc3root +lhapdf +lhole +openloops +pythia ~python ~recola ~rivet +root +ufo
-  - thepeg ~rivet
+  - tauola +hepmc3 +lhapdf cxxstd=20
+  - thepeg hepmc=3 ~rivet
   - vecgeom +gdml +geant4 +root
+  - whizard +fastjet +gosam hepmc=3 +lcio +lhapdf +openloops +openmp +pythia8
   - xrootd +davix +http +krb5 +python +readline +scitokens-cpp
+  - yoda +root
 
   ci:
     pipeline-gen:

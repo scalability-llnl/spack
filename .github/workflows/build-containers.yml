@@ -40,17 +40,17 @@ jobs:
         # 1: Platforms to build for
         # 2: Base image (e.g. ubuntu:22.04)
         dockerfile: [[amazon-linux, 'linux/amd64,linux/arm64', 'amazonlinux:2'],
-                     [centos-stream9, 'linux/amd64,linux/arm64,linux/ppc64le', 'centos:stream9'],
-                     [leap15, 'linux/amd64,linux/arm64,linux/ppc64le', 'opensuse/leap:15'],
-                     [ubuntu-focal, 'linux/amd64,linux/arm64,linux/ppc64le', 'ubuntu:20.04'],
-                     [ubuntu-jammy, 'linux/amd64,linux/arm64,linux/ppc64le', 'ubuntu:22.04'],
-                     [ubuntu-noble, 'linux/amd64,linux/arm64,linux/ppc64le', 'ubuntu:24.04'],
-                     [almalinux8, 'linux/amd64,linux/arm64,linux/ppc64le', 'almalinux:8'],
-                     [almalinux9, 'linux/amd64,linux/arm64,linux/ppc64le', 'almalinux:9'],
+                     [centos-stream9, 'linux/amd64,linux/arm64', 'centos:stream9'],
+                     [leap15, 'linux/amd64,linux/arm64', 'opensuse/leap:15'],
+                     [ubuntu-focal, 'linux/amd64,linux/arm64', 'ubuntu:20.04'],
+                     [ubuntu-jammy, 'linux/amd64,linux/arm64', 'ubuntu:22.04'],
+                     [ubuntu-noble, 'linux/amd64,linux/arm64', 'ubuntu:24.04'],
+                     [almalinux8, 'linux/amd64,linux/arm64', 'almalinux:8'],
+                     [almalinux9, 'linux/amd64,linux/arm64', 'almalinux:9'],
                      [rockylinux8, 'linux/amd64,linux/arm64', 'rockylinux:8'],
                      [rockylinux9, 'linux/amd64,linux/arm64', 'rockylinux:9'],
-                     [fedora39, 'linux/amd64,linux/arm64,linux/ppc64le', 'fedora:39'],
-                     [fedora40, 'linux/amd64,linux/arm64,linux/ppc64le', 'fedora:40']]
+                     [fedora39, 'linux/amd64,linux/arm64', 'fedora:39'],
+                     [fedora40, 'linux/amd64,linux/arm64', 'fedora:40']]
     name: Build ${{ matrix.dockerfile[0] }}
     if: github.repository == 'spack/spack'
     steps:
