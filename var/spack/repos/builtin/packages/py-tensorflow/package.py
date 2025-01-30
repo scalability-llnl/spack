@@ -404,7 +404,6 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
     with when("+rocm"):
         for pkg_dep in rocm_dependencies:
             depends_on(f"{pkg_dep}@6.0:", when="@2.14:")
-            depends_on(f"{pkg_dep}@6.3.1", when="@2.18:")
             depends_on(pkg_dep)
 
     # Check configure and configure.py to see when these variants are supported
