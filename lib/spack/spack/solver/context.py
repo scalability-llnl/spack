@@ -130,13 +130,13 @@ class Context:
 
         return False
 
-    def candidate_targets(self):
+    def candidate_targets(self) -> List[archspec.cpu.Microarchitecture]:
         """Returns a list of targets that are candidate for concretization"""
         platform = spack.platforms.host()
-        uarch = archspec.cpu.TARGETS.get(platform.default)
+        default_target = archspec.cpu.TARGETS[platform.default]
 
         # Construct the list of targets which are compatible with the host
-        candidate_targets = [uarch] + uarch.ancestors
+        candidate_targets = [default_target] + default_target.ancestors
         granularity = self.configuration.get("concretizer:targets:granularity")
         host_compatible = self.configuration.get("concretizer:targets:host_compatible")
 
@@ -146,7 +146,7 @@ class Context:
                 [
                     t
                     for t in archspec.cpu.TARGETS.values()
-                    if (t.family.name == uarch.family.name and t not in candidate_targets)
+                    if (t.family.name == default_target.family.name and t not in candidate_targets)
                 ],
                 key=lambda x: len(x.ancestors),
                 reverse=True,
