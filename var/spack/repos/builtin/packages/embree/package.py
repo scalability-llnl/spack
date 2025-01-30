@@ -80,7 +80,7 @@ class Embree(CMakePackage):
             avx512_suffix = ""
             if spec.satisfies("@:3.12"):
                 avx512_suffix = "SKX"
-            args.append(self.define("EMBREE_ISA_AVX512" + avx512_suffix, True)),
+            args.append(self.define("EMBREE_ISA_AVX512" + avx512_suffix, True))
             if spec.satisfies("%gcc@:7"):
                 # remove unsupported -mprefer-vector-width=256, otherwise copied
                 # from common/cmake/gnu.cmake
