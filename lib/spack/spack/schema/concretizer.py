@@ -49,6 +49,7 @@ properties: Dict[str, Any] = {
                     },
                 ]
             },
+            "prefer_older": {"type": "boolean"},
             "enable_node_namespace": {"type": "boolean"},
             "targets": {
                 "type": "object",
