@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from typing import List  # novm
@@ -8,9 +7,11 @@ import llnl.util.filesystem as fs
 
 import spack.builder
 import spack.package_base
+import spack.spec
+import spack.util.prefix
 from spack.directives import build_system, conflicts
 
-from ._checks import BaseBuilder
+from ._checks import BuilderWithDefaults
 
 
 class NMakePackage(spack.package_base.PackageBase):
@@ -26,7 +27,7 @@ class NMakePackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("nmake")
-class NMakeBuilder(BaseBuilder):
+class NMakeBuilder(BuilderWithDefaults):
     """The NMake builder encodes the most common way of building software with
     Mircosoft's NMake tool. It has two phases that can be overridden, if need be:
 
@@ -124,7 +125,9 @@ class NMakeBuilder(BaseBuilder):
         Individual packages should override to specify NMake args to command line"""
         return []
 
-    def build(self, pkg, spec, prefix):
+    def build(
+        self, pkg: NMakePackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Run "nmake" on the build targets specified by the builder."""
         opts = self.std_nmake_args
         opts += self.nmake_args()
@@ -133,7 +136,9 @@ class NMakeBuilder(BaseBuilder):
         with fs.working_dir(self.build_directory):
             pkg.module.nmake(*opts, *self.build_targets, ignore_quotes=self.ignore_quotes)
 
-    def install(self, pkg, spec, prefix):
+    def install(
+        self, pkg: NMakePackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Run "nmake" on the install targets specified by the builder.
         This is INSTALL by default"""
         opts = self.std_nmake_args

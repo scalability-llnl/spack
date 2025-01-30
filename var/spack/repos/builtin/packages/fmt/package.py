@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,9 @@ class Fmt(CMakePackage):
 
     license("MIT")
 
+    version("11.1.3", sha256="7df2fd3426b18d552840c071c977dc891efe274051d2e7c47e2c83c3918ba6df")
+    version("11.1.2", sha256="ef54df1d4ba28519e31bf179f6a4fb5851d684c328ca051ce5da1b52bf8b1641")
+    version("11.1.1", sha256="a25124e41c15c290b214c4dec588385153c91b47198dbacda6babce27edc4b45")
     version("11.0.2", sha256="40fc58bebcf38c759e11a7bd8fdc163507d2423ef5058bba7f26280c5b9c5465")
     version("11.0.1", sha256="62ca45531814109b5d6cef0cf2fd17db92c32a30dd23012976e768c685534814")
     version("11.0.0", sha256="583ce480ef07fad76ef86e1e2a639fc231c3daa86c4aa6bcba524ce908f30699")
@@ -47,6 +49,7 @@ class Fmt(CMakePackage):
     version("3.0.0", sha256="1b050b66fa31b74f1d75a14f15e99e728ab79572f176a53b2f8ad7c201c30ceb")
     version("master", branch="master")
 
+    depends_on("c", type="build")
     depends_on("cxx", type="build")
 
     variant(
@@ -115,12 +118,7 @@ class Fmt(CMakePackage):
             args.append("-DBUILD_SHARED_LIBS=ON")
 
         if spec.satisfies("+pic"):
-            args.extend(
-                [
-                    "-DCMAKE_C_FLAGS={0}".format(self.compiler.cc_pic_flag),
-                    "-DCMAKE_CXX_FLAGS={0}".format(self.compiler.cxx_pic_flag),
-                ]
-            )
+            args.append(self.define("CMAKE_POSITION_INDEPENDENT_CODE", True))
 
         args.append("-DCMAKE_CXX_STANDARD={0}".format(spec.variants["cxxstd"].value))
         # Require standard at configure time to guarantee the

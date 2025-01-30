@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import spack.build_systems.cmake
@@ -52,6 +51,7 @@ class QuantumEspresso(CMakePackage, Package):
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
     depends_on("fortran", type="build")  # generated
+    depends_on("gmake", type="build")
 
     resource(
         name="environ",
@@ -225,11 +225,6 @@ class QuantumEspresso(CMakePackage, Package):
 
         # EPW doesn't gets along well with OpenMPI 2.x.x
         conflicts("^openmpi@2.0.0:2", msg="OpenMPI version incompatible with EPW")
-
-        # EPW also doesn't gets along well with PGI 17.x + OpenMPI 1.10.7
-        conflicts(
-            "^openmpi@1.10.7%pgi@17.0:17.12", msg="PGI+OpenMPI version combo incompatible with EPW"
-        )
 
     variant(
         "environ",
@@ -504,18 +499,6 @@ class GenericBuilder(spack.build_systems.generic.GenericBuilder):
     def install(self, pkg, spec, prefix):
         prefix_path = prefix.bin if "@:5.4.0" in spec else prefix
         options = ["-prefix={0}".format(prefix_path)]
-
-        # This additional flag is needed anytime the target architecture
-        # does not match the host architecture, which results in a binary that
-        # configure cannot execute on the login node. This is how we detect
-        # cross compilation: If the platform is NOT either Linux or Darwin
-        # and the target=backend, that we are in the cross-compile scenario
-        # scenario. This should cover Cray, BG/Q, and other custom platforms.
-        # The other option is to list out all the platform where you would be
-        # cross compiling explicitly.
-        if not (spec.satisfies("platform=linux") or spec.satisfies("platform=darwin")):
-            if spec.satisfies("target=backend"):
-                options.append("--host")
 
         # QE autoconf compiler variables has some limitations:
         # 1. There is no explicit MPICC variable so we must re-purpose

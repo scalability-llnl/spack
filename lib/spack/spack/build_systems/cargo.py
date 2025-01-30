@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -7,10 +6,13 @@ import llnl.util.filesystem as fs
 
 import spack.builder
 import spack.package_base
+import spack.phase_callbacks
+import spack.spec
+import spack.util.prefix
 from spack.directives import build_system, depends_on
 from spack.multimethod import when
 
-from ._checks import BaseBuilder, execute_install_time_tests
+from ._checks import BuilderWithDefaults, execute_install_time_tests
 
 
 class CargoPackage(spack.package_base.PackageBase):
@@ -27,7 +29,7 @@ class CargoPackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("cargo")
-class CargoBuilder(BaseBuilder):
+class CargoBuilder(BuilderWithDefaults):
     """The Cargo builder encodes the most common way of building software with
     a rust Cargo.toml file. It has two phases that can be overridden, if need be:
 
@@ -49,6 +51,17 @@ class CargoBuilder(BaseBuilder):
 
     phases = ("build", "install")
 
+    #: Names associated with package methods in the old build-system format
+    legacy_methods = ("check", "installcheck")
+
+    #: Names associated with package attributes in the old build-system format
+    legacy_attributes = (
+        "build_args",
+        "check_args",
+        "build_directory",
+        "install_time_test_callbacks",
+    )
+
     #: Callback names for install-time test
     install_time_test_callbacks = ["check"]
 
@@ -60,24 +73,31 @@ class CargoBuilder(BaseBuilder):
     @property
     def build_args(self):
         """Arguments for ``cargo build``."""
-        return []
+        return ["-j", str(self.pkg.module.make_jobs)]
 
     @property
     def check_args(self):
         """Argument for ``cargo test`` during check phase"""
         return []
 
-    def build(self, pkg, spec, prefix):
+    def setup_build_environment(self, env):
+        env.set("CARGO_HOME", self.stage.path)
+
+    def build(
+        self, pkg: CargoPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Runs ``cargo install`` in the source directory"""
         with fs.working_dir(self.build_directory):
             pkg.module.cargo("install", "--root", "out", "--path", ".", *self.build_args)
 
-    def install(self, pkg, spec, prefix):
+    def install(
+        self, pkg: CargoPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Copy build files into package prefix."""
         with fs.working_dir(self.build_directory):
             fs.install_tree("out", prefix)
 
-    spack.builder.run_after("install")(execute_install_time_tests)
+    spack.phase_callbacks.run_after("install")(execute_install_time_tests)
 
     def check(self):
         """Run "cargo test"."""

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,7 @@ class Fairmq(CMakePackage):
         # depends on the git metadata, see also
         # https://github.com/spack/spack/issues/19972
         # https://github.com/spack/spack/issues/14344
+        version("1.9.1", tag="v1.9.1", commit="c11506e95878a39837c5af92dc99b4a1248c13ac")
         version("1.8.1", tag="v1.8.1", commit="961eca52761a31a0200c567b44e2b2d6d6e50df3")
         version("1.7.0", tag="v1.7.0", commit="d1c99f7e150c1177dc1cab1b2adc16475cade24e")
         version("1.6.0", tag="v1.6.0", commit="42d27af20fb5cbbbc0b0fdfef1c981d51a8baf87")

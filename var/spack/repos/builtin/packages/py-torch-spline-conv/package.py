@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,7 +17,8 @@ class PyTorchSplineConv(PythonPackage):
 
     version("1.2.2", sha256="ed45a81da29f774665dbdd4709d7e534cdf16d2e7006dbd06957f35bd09661b2")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     depends_on("python", type=("build", "link", "run"))
     depends_on("py-setuptools", type="build")

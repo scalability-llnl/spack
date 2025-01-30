@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -45,7 +44,19 @@ from collections import defaultdict
 from enum import Flag, auto
 from itertools import chain
 from multiprocessing.connection import Connection
-from typing import Callable, Dict, List, Optional, Set, Tuple
+from typing import (
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    TextIO,
+    Tuple,
+    Type,
+    Union,
+    overload,
+)
 
 import archspec.cpu
 
@@ -56,7 +67,6 @@ from llnl.util.lang import dedupe, stable_partition
 from llnl.util.symlink import symlink
 from llnl.util.tty.color import cescape, colorize
 
-import spack.build_systems._checks
 import spack.build_systems.cmake
 import spack.build_systems.meson
 import spack.build_systems.python
@@ -148,46 +158,126 @@ def get_effective_jobs(jobs, parallel=True, supports_jobserver=False):
 
 
 class MakeExecutable(Executable):
-    """Special callable executable object for make so the user can specify
-    parallelism options on a per-invocation basis.  Specifying
-    'parallel' to the call will override whatever the package's
-    global setting is, so you can either default to true or false and
-    override particular calls. Specifying 'jobs_env' to a particular
-    call will name an environment variable which will be set to the
-    parallelism level (without affecting the normal invocation with
-    -j).
+    """Special callable executable object for make so the user can specify parallelism options
+    on a per-invocation basis.
     """
 
-    def __init__(self, name, jobs, **kwargs):
-        supports_jobserver = kwargs.pop("supports_jobserver", True)
-        super().__init__(name, **kwargs)
+    def __init__(self, name: str, *, jobs: int, supports_jobserver: bool = True) -> None:
+        super().__init__(name)
         self.supports_jobserver = supports_jobserver
         self.jobs = jobs
 
-    def __call__(self, *args, **kwargs):
-        """parallel, and jobs_env from kwargs are swallowed and used here;
-        remaining arguments are passed through to the superclass.
-        """
-        parallel = kwargs.pop("parallel", True)
-        jobs_env = kwargs.pop("jobs_env", None)
-        jobs_env_supports_jobserver = kwargs.pop("jobs_env_supports_jobserver", False)
+    @overload
+    def __call__(
+        self,
+        *args: str,
+        parallel: bool = ...,
+        jobs_env: Optional[str] = ...,
+        jobs_env_supports_jobserver: bool = ...,
+        fail_on_error: bool = ...,
+        ignore_errors: Union[int, Sequence[int]] = ...,
+        ignore_quotes: Optional[bool] = ...,
+        timeout: Optional[int] = ...,
+        env: Optional[Union[Dict[str, str], EnvironmentModifications]] = ...,
+        extra_env: Optional[Union[Dict[str, str], EnvironmentModifications]] = ...,
+        input: Optional[TextIO] = ...,
+        output: Union[Optional[TextIO], str] = ...,
+        error: Union[Optional[TextIO], str] = ...,
+        _dump_env: Optional[Dict[str, str]] = ...,
+    ) -> None: ...
 
+    @overload
+    def __call__(
+        self,
+        *args: str,
+        parallel: bool = ...,
+        jobs_env: Optional[str] = ...,
+        jobs_env_supports_jobserver: bool = ...,
+        fail_on_error: bool = ...,
+        ignore_errors: Union[int, Sequence[int]] = ...,
+        ignore_quotes: Optional[bool] = ...,
+        timeout: Optional[int] = ...,
+        env: Optional[Union[Dict[str, str], EnvironmentModifications]] = ...,
+        extra_env: Optional[Union[Dict[str, str], EnvironmentModifications]] = ...,
+        input: Optional[TextIO] = ...,
+        output: Union[Type[str], Callable] = ...,
+        error: Union[Optional[TextIO], str, Type[str], Callable] = ...,
+        _dump_env: Optional[Dict[str, str]] = ...,
+    ) -> str: ...
+
+    @overload
+    def __call__(
+        self,
+        *args: str,
+        parallel: bool = ...,
+        jobs_env: Optional[str] = ...,
+        jobs_env_supports_jobserver: bool = ...,
+        fail_on_error: bool = ...,
+        ignore_errors: Union[int, Sequence[int]] = ...,
+        ignore_quotes: Optional[bool] = ...,
+        timeout: Optional[int] = ...,
+        env: Optional[Union[Dict[str, str], EnvironmentModifications]] = ...,
+        extra_env: Optional[Union[Dict[str, str], EnvironmentModifications]] = ...,
+        input: Optional[TextIO] = ...,
+        output: Union[Optional[TextIO], str, Type[str], Callable] = ...,
+        error: Union[Type[str], Callable] = ...,
+        _dump_env: Optional[Dict[str, str]] = ...,
+    ) -> str: ...
+
+    def __call__(
+        self,
+        *args: str,
+        parallel: bool = True,
+        jobs_env: Optional[str] = None,
+        jobs_env_supports_jobserver: bool = False,
+        **kwargs,
+    ) -> Optional[str]:
+        """Runs this "make" executable in a subprocess.
+
+        Args:
+            parallel: if False, parallelism is disabled
+            jobs_env: environment variable that will be set to the current level of parallelism
+            jobs_env_supports_jobserver: whether the jobs env supports a job server
+
+        For all the other **kwargs, refer to the base class.
+        """
         jobs = get_effective_jobs(
             self.jobs, parallel=parallel, supports_jobserver=self.supports_jobserver
         )
         if jobs is not None:
-            args = ("-j{0}".format(jobs),) + args
+            args = (f"-j{jobs}",) + args
 
         if jobs_env:
-            # Caller wants us to set an environment variable to
-            # control the parallelism.
+            # Caller wants us to set an environment variable to control the parallelism
             jobs_env_jobs = get_effective_jobs(
                 self.jobs, parallel=parallel, supports_jobserver=jobs_env_supports_jobserver
             )
             if jobs_env_jobs is not None:
-                kwargs["extra_env"] = {jobs_env: str(jobs_env_jobs)}
+                extra_env = kwargs.setdefault("extra_env", {})
+                extra_env.update({jobs_env: str(jobs_env_jobs)})
 
         return super().__call__(*args, **kwargs)
+
+
+class UndeclaredDependencyError(spack.error.SpackError):
+    """Raised if a dependency is invoking an executable through a module global, without
+    declaring a dependency on it.
+    """
+
+
+class DeprecatedExecutable:
+    def __init__(self, pkg: str, exe: str, exe_pkg: str) -> None:
+        self.pkg = pkg
+        self.exe = exe
+        self.exe_pkg = exe_pkg
+
+    def __call__(self, *args, **kwargs):
+        raise UndeclaredDependencyError(
+            f"{self.pkg} is using {self.exe} without declaring a dependency on {self.exe_pkg}"
+        )
+
+    def add_default_env(self, key: str, value: str):
+        self.__call__()
 
 
 def clean_environment():
@@ -211,11 +301,13 @@ def clean_environment():
     env.unset("CPLUS_INCLUDE_PATH")
     env.unset("OBJC_INCLUDE_PATH")
 
+    # prevent configure scripts from sourcing variables from config site file (AC_SITE_LOAD).
+    env.set("CONFIG_SITE", os.devnull)
     env.unset("CMAKE_PREFIX_PATH")
+
     env.unset("PYTHONPATH")
     env.unset("R_HOME")
     env.unset("R_ENVIRON")
-
     env.unset("LUA_PATH")
     env.unset("LUA_CPATH")
 
@@ -623,10 +715,9 @@ def set_package_py_globals(pkg, context: Context = Context.BUILD):
         module.std_meson_args = spack.build_systems.meson.MesonBuilder.std_args(pkg)
         module.std_pip_args = spack.build_systems.python.PythonPipBuilder.std_args(pkg)
 
-    # TODO: make these build deps that can be installed if not found.
-    module.make = MakeExecutable("make", jobs)
-    module.gmake = MakeExecutable("gmake", jobs)
-    module.ninja = MakeExecutable("ninja", jobs, supports_jobserver=False)
+    module.make = DeprecatedExecutable(pkg.name, "make", "gmake")
+    module.gmake = DeprecatedExecutable(pkg.name, "gmake", "gmake")
+    module.ninja = DeprecatedExecutable(pkg.name, "ninja", "ninja")
     # TODO: johnwparent: add package or builder support to define these build tools
     # for now there is no entrypoint for builders to define these on their
     # own
@@ -883,6 +974,9 @@ class EnvironmentVisitor:
         elif context == Context.RUN:
             self.root_depflag = dt.RUN | dt.LINK
 
+    def accept(self, item):
+        return True
+
     def neighbors(self, item):
         spec = item.edge.spec
         if spec.dag_hash() in self.root_hashes:
@@ -920,19 +1014,21 @@ def effective_deptypes(
     a flag specifying in what way they do so. The list is ordered topologically
     from root to leaf, meaning that environment modifications should be applied
     in reverse so that dependents override dependencies, not the other way around."""
-    visitor = traverse.TopoVisitor(
-        EnvironmentVisitor(*specs, context=context),
-        key=lambda x: x.dag_hash(),
+    topo_sorted_edges = traverse.traverse_topo_edges_generator(
+        traverse.with_artificial_edges(specs),
+        visitor=traverse.CoverEdgesVisitor(
+            EnvironmentVisitor(*specs, context=context), key=traverse.by_dag_hash
+        ),
+        key=traverse.by_dag_hash,
         root=True,
         all_edges=True,
     )
-    traverse.traverse_depth_first_with_visitor(traverse.with_artificial_edges(specs), visitor)
 
     # Dictionary with "no mode" as default value, so it's easy to write modes[x] |= flag.
     use_modes = defaultdict(lambda: UseMode(0))
     nodes_with_type = []
 
-    for edge in visitor.edges:
+    for edge in topo_sorted_edges:
         parent, child, depflag = edge.parent, edge.spec, edge.depflag
 
         # Mark the starting point
@@ -1375,7 +1471,7 @@ def start_build_process(pkg, function, kwargs):
     return child_result
 
 
-CONTEXT_BASES = (spack.package_base.PackageBase, spack.build_systems._checks.BaseBuilder)
+CONTEXT_BASES = (spack.package_base.PackageBase, spack.builder.Builder)
 
 
 def get_package_context(traceback, context=3):
@@ -1424,27 +1520,20 @@ def get_package_context(traceback, context=3):
     # We found obj, the Package implementation we care about.
     # Point out the location in the install method where we failed.
     filename = inspect.getfile(frame.f_code)
-    lineno = frame.f_lineno
-    if os.path.basename(filename) == "package.py":
-        # subtract 1 because we inject a magic import at the top of package files.
-        # TODO: get rid of the magic import.
-        lineno -= 1
-
-    lines = ["{0}:{1:d}, in {2}:".format(filename, lineno, frame.f_code.co_name)]
+    lines = [f"{filename}:{frame.f_lineno}, in {frame.f_code.co_name}:"]
 
     # Build a message showing context in the install method.
     sourcelines, start = inspect.getsourcelines(frame)
 
     # Calculate lineno of the error relative to the start of the function.
-    fun_lineno = lineno - start
+    fun_lineno = frame.f_lineno - start
     start_ctx = max(0, fun_lineno - context)
     sourcelines = sourcelines[start_ctx : fun_lineno + context + 1]
 
     for i, line in enumerate(sourcelines):
         is_error = start_ctx + i == fun_lineno
-        mark = ">> " if is_error else "   "
         # Add start to get lineno relative to start of file, not function.
-        marked = "  {0}{1:-6d}{2}".format(mark, start + start_ctx + i, line.rstrip())
+        marked = f"  {'>> ' if is_error else '   '}{start + start_ctx + i:-6d}{line.rstrip()}"
         if is_error:
             marked = colorize("@R{%s}" % cescape(marked))
         lines.append(marked)

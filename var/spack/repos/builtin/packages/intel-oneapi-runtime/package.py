@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -66,3 +65,9 @@ class IntelOneapiRuntime(Package):
     @property
     def headers(self):
         return HeaderList([])
+
+    # We expect dependencies between runtime libraries themselves to be resolved by rpaths in the
+    # dependent binaries. This means RUNPATH is currently unsupported. Supporting this is hard,
+    # because the only way to register the rpath is through patchelf, which itself depends on C++
+    # runtime libraries.
+    unresolved_libraries = ["libimf.so*", "libintlc.so*", "libsvml.so*"]

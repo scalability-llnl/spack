@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -649,17 +648,17 @@ def test_upgrade_read_to_write(private_lock_path):
     lock.acquire_read()
     assert lock._reads == 1
     assert lock._writes == 0
-    assert lock._file.mode == "r+"
+    assert lock._file.mode == "rb+"
 
     lock.acquire_write()
     assert lock._reads == 1
     assert lock._writes == 1
-    assert lock._file.mode == "r+"
+    assert lock._file.mode == "rb+"
 
     lock.release_write()
     assert lock._reads == 1
     assert lock._writes == 0
-    assert lock._file.mode == "r+"
+    assert lock._file.mode == "rb+"
 
     lock.release_read()
     assert lock._reads == 0
@@ -681,7 +680,7 @@ def test_upgrade_read_to_write_fails_with_readonly_file(private_lock_path):
         lock.acquire_read()
         assert lock._reads == 1
         assert lock._writes == 0
-        assert lock._file.mode == "r"
+        assert lock._file.mode == "rb"
 
         # upgrade to write here
         with pytest.raises(lk.LockROFileError):
@@ -1340,7 +1339,7 @@ def test_poll_lock_exception(tmpdir, monkeypatch, err_num, err_msg):
     """Test poll lock exception handling."""
 
     def _lockf(fd, cmd, len, start, whence):
-        raise IOError(err_num, err_msg)
+        raise OSError(err_num, err_msg)
 
     with tmpdir.as_cwd():
         lockfile = "lockfile"
@@ -1352,7 +1351,7 @@ def test_poll_lock_exception(tmpdir, monkeypatch, err_num, err_msg):
         if err_num in [errno.EAGAIN, errno.EACCES]:
             assert not lock._poll_lock(fcntl.LOCK_EX)
         else:
-            with pytest.raises(IOError, match=err_msg):
+            with pytest.raises(OSError, match=err_msg):
                 lock._poll_lock(fcntl.LOCK_EX)
 
         monkeypatch.undo()

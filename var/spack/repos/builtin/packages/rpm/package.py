@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -60,8 +59,8 @@ class Rpm(AutotoolsPackage):
     # Always required
     depends_on("popt")
 
-    # Without this file patch, we don't detect lua
-    depends_on("lua+pcfile@5.3.5:", when="+lua")
+    # support for embedded Lua interpreter
+    depends_on("lua@5.3.5:", when="+lua")
 
     # Enable POSIX.1e draft 15 file capabilities support
     depends_on("libcap", when="+posix")
@@ -94,7 +93,6 @@ class Rpm(AutotoolsPackage):
     depends_on("bzip2")
     depends_on("gzip")
     depends_on("xz")
-    depends_on("lzma")
     with when("+zstd"):
         depends_on("zstd")
         depends_on("zstd@1.3.8:", when="@4.17:")

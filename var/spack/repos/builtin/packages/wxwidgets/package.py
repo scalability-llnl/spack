@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,7 @@ class Wxwidgets(AutotoolsPackage):
     git = "https://github.com/wxWidgets/wxWidgets.git"
 
     version("develop", branch="master")
+    version("3.2.6", sha256="939e5b77ddc5b6092d1d7d29491fe67010a2433cf9b9c0d841ee4d04acb9dce7")
     version("3.2.5", sha256="0ad86a3ad3e2e519b6a705248fc9226e3a09bbf069c6c692a02acf7c2d1c6b51")
     version("3.2.4", sha256="0640e1ab716db5af2ecb7389dbef6138d7679261fbff730d23845ba838ca133e")
     version("3.2.2.1", sha256="dffcb6be71296fff4b7f8840eb1b510178f57aa2eb236b20da41182009242c02")
@@ -35,11 +35,12 @@ class Wxwidgets(AutotoolsPackage):
     depends_on("cxx", type="build")  # generated
 
     variant("opengl", default=False, description="Enable OpenGL support")
+    variant("gui", default=True, description="Enable GUI support.")
 
     patch("math_include.patch", when="@3.0.1:3.0.2")
 
     depends_on("pkgconfig", type="build")
-    depends_on("gtkplus")
+    depends_on("gtkplus", when="+gui")
     depends_on("mesa-glu", when="+opengl")
 
     @when("@:3.0.2")
@@ -52,6 +53,8 @@ class Wxwidgets(AutotoolsPackage):
 
         if self.spec.satisfies("+opengl"):
             options.append("--with-opengl")
+        if not self.spec.satisfies("+gui"):
+            options.append("--disable-gui")
 
         # see https://trac.wxwidgets.org/ticket/17639
         if spec.satisfies("@:3.1.0") and sys.platform == "darwin":

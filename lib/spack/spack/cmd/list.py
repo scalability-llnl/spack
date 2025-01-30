@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -340,7 +339,7 @@ def list(parser, args):
                 return
 
         tty.msg("Updating file: %s" % args.update)
-        with open(args.update, "w") as f:
+        with open(args.update, "w", encoding="utf-8") as f:
             formatter(sorted_packages, f)
 
     elif args.count:

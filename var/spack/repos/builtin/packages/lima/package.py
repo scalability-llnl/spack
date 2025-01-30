@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,7 @@ class Lima(Package):
 
     depends_on("qemu@9:")
     depends_on("go@1.22.0:")
+    depends_on("gmake", type="build")
 
     # NOTE: in truth this is a go build, it fetches many go packages during this build
     # process, but at least uses the built qemu and local vz on macos

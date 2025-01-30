@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -46,11 +45,21 @@ class PyTorchaudio(PythonPackage):
     version("0.8.1", tag="v0.8.1", commit="e4e171a51714b2b2bd79e1aea199c3f658eddf9a")
     version("0.8.0", tag="v0.8.0", commit="099d7883c6b7af1d1c3b416191e5f3edf492e104")
     version("0.7.2", tag="v0.7.2", commit="a853dff25de36cc637b1f02029343790d2dd0199")
-    version("0.7.0", tag="v0.7.0", commit="ac17b64f4daedd45d0495e2512e22eaa6e5b7eeb")
-    version("0.6.0", tag="v0.6.0", commit="f17ae39ff9da0df8f795fef2fcc192f298f81268")
-    version("0.5.1", tag="v0.5.1", commit="71434798460a4ceca9d42004567ef419c62a612e")
-    version("0.5.0", tag="v0.5.0", commit="09494ea545738538f9db2dceeffe10d421060ee5")
-    version("0.4.0", tag="v0.4.0", commit="8afed303af3de41f3586007079c0534543c8f663")
+    version(
+        "0.7.0", tag="v0.7.0", commit="ac17b64f4daedd45d0495e2512e22eaa6e5b7eeb", deprecated=True
+    )
+    version(
+        "0.6.0", tag="v0.6.0", commit="f17ae39ff9da0df8f795fef2fcc192f298f81268", deprecated=True
+    )
+    version(
+        "0.5.1", tag="v0.5.1", commit="71434798460a4ceca9d42004567ef419c62a612e", deprecated=True
+    )
+    version(
+        "0.5.0", tag="v0.5.0", commit="09494ea545738538f9db2dceeffe10d421060ee5", deprecated=True
+    )
+    version(
+        "0.4.0", tag="v0.4.0", commit="8afed303af3de41f3586007079c0534543c8f663", deprecated=True
+    )
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
@@ -104,6 +113,9 @@ class PyTorchaudio(PythonPackage):
     depends_on("cmake@3.5:", when="@0.8:", type="build")
     depends_on("ninja", when="@0.8:", type="build")
 
+    # prior to 2.1 ffmpeg was vendored
+    depends_on("ffmpeg@:6", when="@2.1:")
+
     # setup.py
     depends_on("py-setuptools", type="build")
     depends_on("py-pybind11", when="@0.12:", type=("build", "link"))
@@ -118,6 +130,22 @@ class PyTorchaudio(PythonPackage):
     )
     conflicts("^cuda@12.5:", when="@:2.1")
 
+    def patch(self):
+        # Add missing rpaths, which requires patching due to hardcoded cmake_args
+        if self.spec.satisfies("@0.8:"):
+            rpaths = [f"{python_platlib}/torchaudio/lib", f"{python_platlib}/torio/lib"]
+            cmake_args = [
+                f"-DCMAKE_INSTALL_RPATH={';'.join(rpaths)}",
+                "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON",
+            ]
+            cmake_str = ", ".join(f"'{arg}'" for arg in cmake_args)
+            filter_file(
+                "cmake_args = [",
+                f"cmake_args = [{cmake_str},",
+                "tools/setup_helpers/extension.py",
+                string=True,
+            )
+
     def flag_handler(self, name, flags):
         # https://github.com/pytorch/vision/issues/8653
         if name == "ldflags":
@@ -128,6 +156,12 @@ class PyTorchaudio(PythonPackage):
     def setup_build_environment(self, env):
         # tools/setup_helpers/extension.py
         env.set("BUILD_SOX", 0)
+
+        if self.spec.satisfies("@2.1:"):
+            env.set("FFMPEG_ROOT", self.spec["ffmpeg"].prefix)
+        else:
+            # a specific ffmpeg is built but not installed, so just disable
+            env.set("USE_FFMPEG", "0")
 
         if "+cuda" in self.spec["py-torch"]:
             env.set("USE_CUDA", 1)

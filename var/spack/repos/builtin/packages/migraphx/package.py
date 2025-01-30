@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,10 +15,13 @@ class Migraphx(CMakePackage):
     url = "https://github.com/ROCm/AMDMIGraphX/archive/rocm-6.1.2.tar.gz"
     tags = ["rocm"]
 
-    maintainers("srekolam", "renjithravindrankannath")
+    maintainers("srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["libmigraphx"]
 
     license("MIT")
+    version("6.3.1", sha256="c60df20b3c890c469265ae6f273fb5d43cc13c8c514f76dd7b4d195d9e44ba85")
+    version("6.3.0", sha256="21550e5cecf1b26c02e1c4633c7c4c6eb5e37be8758d7a2641f10cfdf4203636")
+    version("6.2.4", sha256="849cca3c7c98dc437e42ac17013f86ef0a5fd202cb87b7822778bd9a8f93d293")
     version("6.2.1", sha256="a9479fd6846bae4a888f712c2fecee6a252951ae8979d9990b100450e4cd6c30")
     version("6.2.0", sha256="7b36c1a0c44dd21f31ce6c9c4e7472923281aa7fdc693e75edd2670b101a6d48")
     version("6.1.2", sha256="829f4a2bd9fe3dee130dfcca103ddc7691da18382f5b683aaca8f3ceceaef355")
@@ -74,7 +76,9 @@ class Migraphx(CMakePackage):
     depends_on("nlohmann-json", type="link")
     depends_on("msgpack-c", type="link")
     depends_on("half@1.12.0", type="link", when="@:5.5")
-    depends_on("half@2:", when="@5.6:")
+    # miopen-hip@6.3 requires half@1
+    depends_on("half@2:", when="@5.6:6.2")
+    depends_on("half")
     depends_on("python@3.5:", type="build")
     depends_on("py-pybind11@2.6:", type="build", when="@4.1.0:")
     depends_on("pkgconfig", type="build", when="@5.3.0:")
@@ -98,14 +102,27 @@ class Migraphx(CMakePackage):
         "6.1.2",
         "6.2.0",
         "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
     ]:
         depends_on(f"rocm-cmake@{ver}:", type="build", when=f"@{ver}")
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"llvm-amdgpu@{ver}", when=f"@{ver}")
         depends_on(f"rocblas@{ver}", when=f"@{ver}")
         depends_on(f"miopen-hip@{ver}", when=f"@{ver}")
-
-    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1"]:
+    for ver in [
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
+    ]:
         depends_on(f"rocmlir@{ver}", when=f"@{ver}")
 
     @property
@@ -159,6 +176,7 @@ class Migraphx(CMakePackage):
                     "CMAKE_CXX_FLAGS", "-fsanitize=address -shared-libasan -I{0}".format(abspath)
                 )
             )
+        args.append(self.define("BUILD_TESTING", self.run_tests))
         return args
 
     def test_unit_tests(self):

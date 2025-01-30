@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,7 +15,6 @@ f77_mapping = [
     ("gfortran", os.path.join("clang", "gfortran")),
     ("xlf_r", os.path.join("xl_r", "xlf_r")),
     ("xlf", os.path.join("xl", "xlf")),
-    ("pgfortran", os.path.join("pgi", "pgfortran")),
     ("ifort", os.path.join("intel", "ifort")),
 ]
 
@@ -25,7 +23,6 @@ fc_mapping = [
     ("gfortran", os.path.join("clang", "gfortran")),
     ("xlf90_r", os.path.join("xl_r", "xlf90_r")),
     ("xlf90", os.path.join("xl", "xlf90")),
-    ("pgfortran", os.path.join("pgi", "pgfortran")),
     ("ifort", os.path.join("intel", "ifort")),
 ]
 

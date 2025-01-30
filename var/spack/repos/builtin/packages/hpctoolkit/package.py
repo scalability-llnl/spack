@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,6 +8,8 @@ import tempfile
 
 import llnl.util.tty as tty
 
+import spack.build_systems.autotools
+import spack.build_systems.meson
 from spack.package import *
 
 
@@ -117,6 +118,12 @@ class Hpctoolkit(AutotoolsPackage, MesonPackage):
         when="build_system=autotools",
     )
     variant("viewer", default=True, description="Include hpcviewer.")
+    variant(
+        "docs",
+        default=False,
+        description="Include extra documentation (user's manual)",
+        when="@develop",
+    )
 
     variant(
         "python", default=False, description="Support unwinding Python source.", when="@2023.03:"
@@ -184,6 +191,10 @@ class Hpctoolkit(AutotoolsPackage, MesonPackage):
     depends_on("zlib-api")
     depends_on("zlib+shared", when="^[virtuals=zlib-api] zlib")
 
+    depends_on("py-docutils", type="build", when="@develop")
+    depends_on("py-sphinx", type="build", when="+docs")
+    depends_on("py-myst-parser@0.19:", type="build", when="+docs")
+
     depends_on("cuda", when="+cuda")
     depends_on("oneapi-level-zero", when="+level_zero")
     depends_on("oneapi-igc", when="+gtpin")
@@ -197,7 +208,8 @@ class Hpctoolkit(AutotoolsPackage, MesonPackage):
     depends_on("mpi", when="+mpi")
     depends_on("hpcviewer@2022.10:", type="run", when="@2022.10: +viewer")
     depends_on("hpcviewer", type="run", when="+viewer")
-    depends_on("python@3.10:", type=("build", "run"), when="+python")
+    depends_on("python@3.10:", type=("build", "run"), when="@:2023.08 +python")
+    depends_on("python@3.8:", type=("build", "run"), when="@2024.01: +python")
 
     with when("target=x86_64:"):
         depends_on("intel-xed+pic")
@@ -400,6 +412,8 @@ class MesonBuilder(spack.build_systems.meson.MesonBuilder):
         spec = self.spec
 
         args = [
+            "-Dmanpages=enabled",
+            "-Dmanual=" + ("enabled" if spec.satisfies("+docs") else "disabled"),
             "-Dhpcprof_mpi=" + ("enabled" if spec.satisfies("+mpi") else "disabled"),
             "-Dpython=" + ("enabled" if spec.satisfies("+python") else "disabled"),
             "-Dpapi=" + ("enabled" if spec.satisfies("+papi") else "disabled"),

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,7 +15,7 @@ class Icon(AutotoolsPackage):
     homepage = "https://www.icon-model.org"
     url = "https://gitlab.dkrz.de/icon/icon-model/-/archive/icon-2024.01-public/icon-model-icon-2024.01-public.tar.gz"
 
-    maintainers("skosukhin")
+    maintainers("skosukhin", "Try2Code")
 
     license("BSD-3-Clause", checked_by="skosukhin")
 
@@ -130,6 +129,7 @@ class Icon(AutotoolsPackage):
             "atmo",
             "les",
             "upatmo",
+            "ocean",
             "jsbach",
             "waves",
             "aes",

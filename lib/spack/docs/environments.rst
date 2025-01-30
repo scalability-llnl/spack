@@ -1,5 +1,4 @@
-.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-   Spack Project Developers. See the top-level COPYRIGHT file for details.
+.. Copyright Spack Project Developers. See COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -1049,7 +1048,7 @@ file snippet we define a view named ``mpis``, rooted at
 ``/path/to/view`` in which all projections use the package name,
 version, and compiler name to determine the path for a given
 package. This view selects all packages that depend on MPI, and
-excludes those built with the PGI compiler at version 18.5.
+excludes those built with the GCC compiler at version 18.5.
 The root specs with their (transitive) link and run type dependencies
 will be put in the view due to the  ``link: all`` option,
 and the files in the view will be symlinks to the spack install
@@ -1063,7 +1062,7 @@ directories.
        mpis:
          root: /path/to/view
          select: [^mpi]
-         exclude: ['%pgi@18.5']
+         exclude: ['%gcc@18.5']
          projections:
            all: '{name}/{version}-{compiler.name}'
          link: all

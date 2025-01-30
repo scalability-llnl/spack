@@ -1,10 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import pytest
 
+import spack.concretize
 from spack.spec import Spec
 
 
@@ -73,14 +73,11 @@ def spec_and_expected(request):
 
 
 def test_default_variant(config, mock_packages):
-    spec = Spec("optional-dep-test-3")
-    spec.concretize()
+    spec = spack.concretize.concretize_one("optional-dep-test-3")
     assert "pkg-a" in spec
 
-    spec = Spec("optional-dep-test-3~var")
-    spec.concretize()
+    spec = spack.concretize.concretize_one("optional-dep-test-3~var")
     assert "pkg-a" in spec
 
-    spec = Spec("optional-dep-test-3+var")
-    spec.concretize()
+    spec = spack.concretize.concretize_one("optional-dep-test-3+var")
     assert "pkg-b" in spec
