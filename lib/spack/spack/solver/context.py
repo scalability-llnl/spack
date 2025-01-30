@@ -129,3 +129,32 @@ class Context:
             return True
 
         return False
+
+    def candidate_targets(self):
+        """Returns a list of targets that are candidate for concretization"""
+        platform = spack.platforms.host()
+        uarch = archspec.cpu.TARGETS.get(platform.default)
+
+        # Construct the list of targets which are compatible with the host
+        candidate_targets = [uarch] + uarch.ancestors
+        granularity = self.configuration.get("concretizer:targets:granularity")
+        host_compatible = self.configuration.get("concretizer:targets:host_compatible")
+
+        # Add targets which are not compatible with the current host
+        if not host_compatible:
+            additional_targets_in_family = sorted(
+                [
+                    t
+                    for t in archspec.cpu.TARGETS.values()
+                    if (t.family.name == uarch.family.name and t not in candidate_targets)
+                ],
+                key=lambda x: len(x.ancestors),
+                reverse=True,
+            )
+            candidate_targets += additional_targets_in_family
+
+        # Check if we want only generic architecture
+        if granularity == "generic":
+            candidate_targets = [t for t in candidate_targets if t.vendor == "generic"]
+
+        return candidate_targets

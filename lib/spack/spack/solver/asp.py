@@ -49,6 +49,7 @@ import spack.version as vn
 import spack.version.git_ref_lookup
 from spack import traverse
 
+from .context import Context
 from .core import (
     AspFunction,
     AspVar,
@@ -1121,6 +1122,8 @@ class SpackSolverSetup:
     """Class to set up and run a Spack concretization solve."""
 
     def __init__(self, tests: bool = False):
+        self.context = Context(configuration=spack.config.CONFIG)
+
         # these are all initialized in setup()
         self.gen: "ProblemInstanceBuilder" = ProblemInstanceBuilder()
         self.requirement_parser = RequirementParser(spack.config.CONFIG)
@@ -2397,38 +2400,14 @@ class SpackSolverSetup:
 
     def target_defaults(self, specs):
         """Add facts about targets and target compatibility."""
-        self.gen.h2("Default target")
+        self.gen.h2("Target compatibility")
 
         platform = spack.platforms.host()
         uarch = archspec.cpu.TARGETS.get(platform.default)
-
-        self.gen.h2("Target compatibility")
-
-        # Construct the list of targets which are compatible with the host
-        candidate_targets = [uarch] + uarch.ancestors
-
-        # Get configuration options
-        granularity = spack.config.get("concretizer:targets:granularity")
-        host_compatible = spack.config.get("concretizer:targets:host_compatible")
-
-        # Add targets which are not compatible with the current host
-        if not host_compatible:
-            additional_targets_in_family = sorted(
-                [
-                    t
-                    for t in archspec.cpu.TARGETS.values()
-                    if (t.family.name == uarch.family.name and t not in candidate_targets)
-                ],
-                key=lambda x: len(x.ancestors),
-                reverse=True,
-            )
-            candidate_targets += additional_targets_in_family
-
-        # Check if we want only generic architecture
-        if granularity == "generic":
-            candidate_targets = [t for t in candidate_targets if t.vendor == "generic"]
+        host_compatible = self.context.configuration.get("concretizer:targets:host_compatible")
 
         # Add targets explicitly requested from specs
+        candidate_targets = self.context.candidate_targets()
         for spec in specs:
             if not spec.architecture or not spec.architecture.target:
                 continue
@@ -2501,7 +2480,6 @@ class SpackSolverSetup:
             self.gen.newline()
 
         self.default_targets = list(sorted(set(self.default_targets)))
-
         self.target_preferences()
 
     def virtual_providers(self):
