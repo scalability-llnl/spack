@@ -133,8 +133,7 @@ def test_reporters_extract_skipped(state):
 
     assert len(parts) == 1
 
-    # TODO: Fix this broken assertion
-    # assert parts[0]["completed"] == expected
+    assert parts[0]["completed"] == spack.reporters.extract.completed["skipped"]
 
 
 def test_reporters_skip_new():
