@@ -594,7 +594,7 @@ def update_config_with_includes():
         return
 
     # TODO: Does this properly handle precedence?
-    for entry in includes:
+    for entry in reversed(includes):
         optional_path = spack.config.included_path(entry)
         scope = spack.config.include_path_scope(
             optional_path,
