@@ -647,13 +647,14 @@ class ConcretizationCache:
             )
         self.root = pathlib.Path(spack.util.path.canonicalize_path(root))
         self._cache_manifest = self.root / ".cache_manifest"
-        self._lock = lk.Lock(str(self.root / "manifest_lock"))
 
     def cleanup(self):
         # TODO: determine a better default
         entry_limit = spack.config.get("config:concretization_cache:entry_limit", 1000)
         bytes_limit = spack.config.get("config:concretization_cache:size_limit", 3e8)
-        with lk.WriteTransaction(self._lock):
+        # lock the entire buildcache as we're removing a lot of data from the
+        # manifest and cache itself
+        with lk.WriteTransaction(lk.Lock(str(self._cache_manifest))):
             with open(self._cache_manifest, "r+", encoding="utf-8") as f:
                 count, cache_bytes = self._extract_cache_metadata(f)
                 if not count or not cache_bytes:
@@ -810,10 +811,11 @@ class ConcretizationCache:
         return False
 
     def _safe_read(self, cache_path: pathlib.Path):
-        try:
-            return cache_path.read_text()
-        except FileNotFoundError:
-            tty.debug(f"Unable to read cache entry, {str(cache_path)} does not exist")
+        with lk.ReadTransaction(lk.Lock(str(self._cache_manifest), start=, length=1)):
+            try:
+                return cache_path.read_text()
+            except FileNotFoundError:
+                tty.debug(f"Unable to read cache entry, {str(cache_path)} does not exist")
 
     def _safe_write(self, cache_path: pathlib.Path, output: str):
         try:
