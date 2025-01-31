@@ -17,6 +17,8 @@ spack:
       require: +analysis +dd4hep +edm4hep +examples +fatras +geant4 +hepmc3 +podio +pythia8 +python ~svg +tgeo cxxstd=20
     celeritas:
       require: +geant4 +hepmc3 +openmp +root +shared cxxstd=20
+    hip:
+      require: '@5.7.1 +rocm'
     root:
       require: +davix +dcache +examples +fftw +fits +fortran +gdml +graphviz +gsl +http +math +minuit +mlp +mysql +opengl +postgres +pythia8 +python +r +roofit +root7 +rpath ~shadow +spectrum +sqlite +ssl +tbb +threads +tmva +tmva-cpu +unuran +vc +vdt +veccore +webgui +x +xml +xrootd # cxxstd=20
       # note: root cxxstd=20 not concretizable within sherpa
