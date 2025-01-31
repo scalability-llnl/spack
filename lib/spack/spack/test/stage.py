@@ -863,6 +863,22 @@ class TestDevelopStage:
         srctree2 = _create_tree_from_dir_recursive(srcdir)
         assert srctree2 == devtree
 
+    def test_develop_stage_the_reference_has_changed(self, develop_path, tmp_build_stage_dir):
+        """Reinstantiate a stage pointing to the same dev_path, with
+        a different reference (e.g. when a reconcretization occurs):
+        check that the old reference is removed.
+        """
+        devtree, srcdir = develop_path
+        stage1 = DevelopStage("test-stage", srcdir, reference_link="link-to-stage1")
+        stage1.create()
+        old_ref = stage1.reference_link
+        assert os.path.exists(old_ref)
+
+        stage2 = DevelopStage("test-stage", srcdir, reference_link="link-to-stage2")
+        stage2.restage()
+        assert not os.path.exists(old_ref)
+        assert os.path.exists(stage2.reference_link)
+
     def test_develop_stage_destroy_link_fallback(self, develop_path, tmp_build_stage_dir):
         """A develop stage that predates #48814 will not have a
         ._link_breadcrumb. If we haven't reconcretized, check
