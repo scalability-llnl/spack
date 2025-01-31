@@ -61,8 +61,16 @@ class Wgrib2(MakefilePackage, CMakePackage):
     version("3.4.0", sha256="ecbce2209c09bd63f1bca824f58a60aa89db6762603bda7d7d3fa2148b4a0536")
     version("3.3.0", sha256="010827fba9c31f05807e02375240950927e9e51379e1444388153284f08f58e2")
     version("3.2.0", sha256="ac3ace77a32c2809cbc4538608ad64aabda2c9c1e44e7851da79764a6eb3c369")
-    version("3.1.1", sha256="9236f6afddad76d868c2cfdf5c4227f5bdda5e85ae40c18bafb37218e49bc04a")
-    version("3.1.0", sha256="5757ef9016b19ae87491918e0853dce2d3616b14f8c42efe3b2f41219c16b78f")
+    version(
+        "3.1.1",
+        sha256="9236f6afddad76d868c2cfdf5c4227f5bdda5e85ae40c18bafb37218e49bc04a",
+        extension="tar.gz",
+    )
+    version(
+        "3.1.0",
+        sha256="5757ef9016b19ae87491918e0853dce2d3616b14f8c42efe3b2f41219c16b78f",
+        extension="tar.gz",
+    )
     version(
         "2.0.8",
         sha256="5e6a0d6807591aa2a190d35401606f7e903d5485719655aea1c4866cc2828160",
