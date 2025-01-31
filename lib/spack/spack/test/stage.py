@@ -864,6 +864,11 @@ class TestDevelopStage:
         assert srctree2 == devtree
 
     def test_develop_stage_destroy_link_fallback(self, develop_path, tmp_build_stage_dir):
+        """A develop stage that predates #48814 will not have a
+        ._link_breadcrumb. If we haven't reconcretized, check
+        that we can still remove the .reference_link even if the
+        breadcrumb is not available
+        """
         devtree, srcdir = develop_path
         stage = DevelopStage("test-stage", srcdir, reference_link="link-to-stage")
         stage.create()
@@ -874,6 +879,10 @@ class TestDevelopStage:
         assert not os.path.exists(stage.reference_link)
 
     def test_develop_stage_link_path_in_use(self, develop_path, tmp_build_stage_dir):
+        """We try to put a symlink in dev_path, but if the path where
+        we want to write it already exists, we don't want to overwite
+        or delete it.
+        """
         devtree, srcdir = develop_path
         collision = "link-to-stage"
         stage = DevelopStage("test-stage", srcdir, reference_link=collision)
