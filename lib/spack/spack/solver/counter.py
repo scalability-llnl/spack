@@ -199,16 +199,15 @@ class _PossibleDependenciesAnalyzer:
             packages.append(current_spec.name)
 
         visited: Dict[str, Set[str]] = {}
-        for pkg_name in packages:
-            self._possible_dependencies(
-                pkg_name,
-                visited=visited,
-                transitive=transitive,
-                expand_virtuals=True,
-                depflag=allowed_deps,
-                virtuals=virtuals,
-                strict_depflag=strict_depflag,
-            )
+        self._possible_dependencies(
+            packages,
+            visited=visited,
+            transitive=transitive,
+            expand_virtuals=True,
+            depflag=allowed_deps,
+            virtuals=virtuals,
+            strict_depflag=strict_depflag,
+        )
 
         virtuals.update(self.runtime_virtuals)
         real_packages = set(visited) | self.runtime_pkgs
@@ -216,92 +215,90 @@ class _PossibleDependenciesAnalyzer:
 
     def _possible_dependencies(
         self,
-        pkg_name: str,
+        packages: List[str],
         *,
         transitive: bool,
         expand_virtuals: bool = True,
         depflag: dt.DepFlag,
         strict_depflag: bool = False,
         visited: Optional[dict] = None,
-        missing: Optional[dict] = None,
         virtuals: set,
     ) -> Dict[str, Set[str]]:
+
+        stack = packages[:]
         visited = {} if visited is None else visited
-        missing = {} if missing is None else missing
 
-        visited.setdefault(pkg_name, set())
+        while stack:
+            pkg_name = stack.pop()
 
-        # At the moment exit early. Since libc is not buildable, there is no
-        # need to extend the search space with libc dependencies.
-        if pkg_name in self.context.libc_pkgs():
-            return visited
+            visited.setdefault(pkg_name, set())
 
-        pkg_cls = self.context.repo.get_pkg_class(pkg_name=pkg_name)
-        for name, conditions in pkg_cls.dependencies_by_name(when=True).items():
-            if all(
-                self.context.unreachable(pkg_name=pkg_cls.name, when_spec=x) for x in conditions
-            ):
-                tty.debug(
-                    f"[{__name__}] Not adding {name} as a dep of {pkg_cls.name}, because "
-                    f"conditions cannot be met"
-                )
+            # Since libc is not buildable, there is no need to extend the
+            # search space with libc dependencies.
+            if pkg_name in self.context.libc_pkgs():
                 continue
 
-            # check whether this dependency could be of the type asked for
-            if strict_depflag is False:
-                depflag_union = 0
-                for deplist in conditions.values():
-                    for dep in deplist:
-                        depflag_union |= dep.depflag
-                if not (depflag & depflag_union):
-                    continue
-            else:
+            pkg_cls = self.context.repo.get_pkg_class(pkg_name=pkg_name)
+            for name, conditions in pkg_cls.dependencies_by_name(when=True).items():
                 if all(
-                    dep.depflag != depflag for deplist in conditions.values() for dep in deplist
+                    self.context.unreachable(pkg_name=pkg_cls.name, when_spec=x)
+                    for x in conditions
                 ):
+                    tty.debug(
+                        f"[{__name__}] Not adding {name} as a dep of {pkg_cls.name}, because "
+                        f"conditions cannot be met"
+                    )
                     continue
 
-            if self.context.is_virtual(name) and name in virtuals:
-                continue
-
-            # expand virtuals if enabled, otherwise just stop at virtuals
-            if self.context.is_virtual(name):
-                virtuals.add(name)
-                if expand_virtuals:
-                    providers = self.context.providers_for(name)
-                    dep_names = {spec.name for spec in providers}
+                # check whether this dependency could be of the type asked for
+                if strict_depflag is False:
+                    depflag_union = 0
+                    for deplist in conditions.values():
+                        for dep in deplist:
+                            depflag_union |= dep.depflag
+                    if not (depflag & depflag_union):
+                        continue
                 else:
-                    visited.setdefault(pkg_cls.name, set()).add(name)
-                    visited.setdefault(name, set())
-                    continue
-            else:
-                dep_names = {name}
+                    if all(
+                        dep.depflag != depflag
+                        for deplist in conditions.values()
+                        for dep in deplist
+                    ):
+                        continue
 
-            visited.setdefault(pkg_cls.name, set()).update(dep_names)
-
-            for dep_name in dep_names:
-                if dep_name in visited:
+                if self.context.is_virtual(name) and name in virtuals:
                     continue
 
-                visited.setdefault(dep_name, set())
+                # expand virtuals if enabled, otherwise just stop at virtuals
+                if self.context.is_virtual(name):
+                    virtuals.add(name)
+                    if expand_virtuals:
+                        providers = self.context.providers_for(name)
+                        dep_names = {spec.name for spec in providers}
+                    else:
+                        visited.setdefault(pkg_cls.name, set()).add(name)
+                        visited.setdefault(name, set())
+                        continue
+                else:
+                    dep_names = {name}
 
-                if not self.context.is_allowed_on_this_platform(pkg_name=dep_name):
-                    continue
+                visited.setdefault(pkg_cls.name, set()).update(dep_names)
 
-                if not self.context.can_be_installed(pkg_name=dep_name):
-                    continue
+                for dep_name in dep_names:
+                    if dep_name in visited:
+                        continue
 
-                if not transitive:
-                    continue
+                    visited.setdefault(dep_name, set())
 
-                self._possible_dependencies(
-                    dep_name,
-                    transitive=transitive,
-                    expand_virtuals=expand_virtuals,
-                    depflag=depflag,
-                    visited=visited,
-                    missing=missing,
-                    virtuals=virtuals,
-                )
+                    if not self.context.is_allowed_on_this_platform(pkg_name=dep_name):
+                        continue
+
+                    if not self.context.can_be_installed(pkg_name=dep_name):
+                        continue
+
+                    if not transitive:
+                        continue
+
+                    stack.append(dep_name)
 
         return visited
