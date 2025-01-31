@@ -867,20 +867,20 @@ class DevelopStage(LockableStagingDir):
             return f.read()
 
     def destroy(self):
-        # Destroy all files, but do not follow symlinks
+        if os.path.exists(self.path):
+            link_path = self._read_link_breadcrumb()
+        else:
+            link_path = None
         try:
+            # Destroy all files, but do not follow symlinks
             shutil.rmtree(self.path)
         except FileNotFoundError:
             pass
-        try:
-            link_path = self._read_link_breadcrumb()
-            if llnl.util.symlink.islink(link_path):
-                target = llnl.util.symlink.readlink(link_path)
-                if target == self.path:
-                    os.unlink(link_path)
+        if link_path and llnl.util.symlink.islink(link_path):
+            target = llnl.util.symlink.readlink(link_path)
+            if target == self.path:
+                os.unlink(link_path)
 
-        except FileNotFoundError:
-            pass
         self.created = False
 
     def restage(self):
