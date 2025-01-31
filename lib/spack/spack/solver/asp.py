@@ -26,6 +26,7 @@ from typing import Callable, Dict, Iterator, List, NamedTuple, Optional, Set, Tu
 
 import archspec.cpu
 
+from llnl.util.filesystem import temporary_file_position, current_file_position
 import llnl.util.lang
 import llnl.util.tty as tty
 from llnl.util.lang import elide_list
@@ -654,14 +655,11 @@ class ConcretizationCache:
         bytes_limit = spack.config.get("config:concretization_cache_byte_limit", 3e8)
         with lk.WriteTransaction(self._lock):
             with open(self._cache_manifest, "r+", encoding="utf-8") as f:
-                if len(f.readline()) == 0:
-                    # if the manifest is empty, done bother
-                    # with cleanup, there's nothing in the cache
+                count, cache_bytes = self._extract_cache_metadata(f)
+                if not count:
                     return
-                f.seek(0)
-                count, bytes = self._sanitize_read(f.readline())
                 entry_count = int(count)
-                manifest_bytes = int(bytes)
+                manifest_bytes = int(cache_bytes)
                 pruned = False
                 if entry_count > entry_limit:
                     pruned = True
@@ -710,8 +708,9 @@ class ConcretizationCache:
                             "within the concretization cache."
                         )
 
-    def _sanitize_read(self, line):
-        return line.strip("\n").split(" ")
+    def _sanitize_read(self, line) -> Union[List[str], None]:
+        if line:
+            return line.strip("\n").split(" ")
 
     def _write_manifest(self, manifest_file, entry_count, entry_bytes):
         persisted_entries = manifest_file.readlines()
@@ -745,6 +744,20 @@ class ConcretizationCache:
             return json.loads(cache_str)["statistics"]
         return None
 
+    def _extract_cache_metadata(self, cache_stream: io.IOBase):
+        cache_info = ""
+        # make sure we're always reading from the beginning of the stream
+        # concretization cache manifest data lives at the top of the file
+        with current_file_position(cache_stream, 0):
+            cache_info = self._sanitize_read(cache_stream.readline())
+        # if we have no info at this point, our manifest is empty
+        # or corrupted
+        if not cache_info:
+            count, cache_bytes = 0, 0
+        else:
+            count, cache_bytes = cache_info
+        return count, cache_bytes
+
     def _prefix_digest(self, problem: str) -> Tuple[str, str]:
         """Return the first two characters of, and the full, sha256 of the given asp problem"""
         prob_digest = hashlib.sha256(problem.encode()).hexdigest()
@@ -766,12 +779,7 @@ class ConcretizationCache:
         self._cache_manifest.touch(exist_ok=True)
         with open(self._cache_manifest, "r+", encoding="utf-8") as f:
             # check if manifest is empty
-            if len(f.readline()) == 0:
-                count, cache_bytes = 0, 0
-            else:
-                f.seek(0)
-                count, cache_bytes = self._sanitize_read(f.readline())
-                f.seek(0)
+            count, cache_bytes = self._extract_cache_metadata(f)
             new_stats = f"{int(count)+1} {int(cache_bytes)+bytes_written}\n"
             f.write(new_stats)
             f.seek(0, io.SEEK_END)
