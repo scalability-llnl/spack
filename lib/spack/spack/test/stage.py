@@ -902,7 +902,7 @@ class TestDevelopStage:
         devtree, srcdir = develop_path
         collision = "link-to-stage"
         stage = DevelopStage("test-stage", srcdir, reference_link=collision)
-        with open(os.path.join(srcdir, collision), "wb") as f:
+        with open(os.path.join(srcdir, collision), "wb"):
             # Touch this file, which is where spack wants to put the symlink
             pass
         stage.create()
