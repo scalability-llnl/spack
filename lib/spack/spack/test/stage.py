@@ -863,6 +863,13 @@ class TestDevelopStage:
         srctree2 = _create_tree_from_dir_recursive(srcdir)
         assert srctree2 == devtree
 
+        stage.create()
+        assert os.path.exists(stage.reference_link)
+        os.remove(stage._link_breadcrumb)
+        # Test fallback that just removes reference_link directly
+        stage.destroy()
+        assert not os.path.exists(stage.reference_link)
+
 
 def test_stage_create_replace_path(tmp_build_stage_dir):
     """Ensure stage creation replaces a non-directory path."""
