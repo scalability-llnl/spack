@@ -643,7 +643,7 @@ class ConcretizationCache:
     def __init__(self, root: Union[str, None] = None):
         if not root:
             root = spack.config.get(
-                "config:concretization_cache", spack.paths.default_conc_cache_path
+                "config:concretization_cache:path", spack.paths.default_conc_cache_path
             )
         self.root = pathlib.Path(spack.util.path.canonicalize_path(root))
         self._cache_manifest = self.root / ".cache_manifest"
@@ -651,8 +651,8 @@ class ConcretizationCache:
 
     def cleanup(self):
         # TODO: determine a better default
-        entry_limit = spack.config.get("config:concretization_cache_entry_limit", 1000)
-        bytes_limit = spack.config.get("config:concretization_cache_byte_limit", 3e8)
+        entry_limit = spack.config.get("config:concretization_cache:entry_limit", 1000)
+        bytes_limit = spack.config.get("config:concretization_cache:size_limit", 3e8)
         with lk.WriteTransaction(self._lock):
             with open(self._cache_manifest, "r+", encoding="utf-8") as f:
                 count, cache_bytes = self._extract_cache_metadata(f)
@@ -1183,7 +1183,8 @@ class PyclingoDriver:
                 problem_repr += "\n" + f.read()
 
         result = None
-        if spack.config.get("config:enable_concretization_cache", True):
+        conc_cache_enabled = spack.config.get("config:concretization_cache:enable", True)
+        if conc_cache_enabled:
             result, concretization_stats = CONC_CACHE.fetch(problem_repr)
 
         timer.stop("cache-check")
@@ -1285,8 +1286,8 @@ class PyclingoDriver:
                     " that do not satisfy the request. Please report a bug at "
                     f"https://github.com/spack/spack/issues\n\t{unsolved_str}"
                 )
-
-            CONC_CACHE.store(problem_repr, result, self.control.statistics, test=setup.tests)
+            if conc_cache_enabled:
+                CONC_CACHE.store(problem_repr, result, self.control.statistics, test=setup.tests)
             concretization_stats = self.control.statistics
         if output.timers:
             timer.write_tty()

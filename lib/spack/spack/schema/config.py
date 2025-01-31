@@ -58,6 +58,15 @@ properties: Dict[str, Any] = {
                     {"type": "string"},  # deprecated
                 ]
             },
+            "concretization_cache": {
+                "type": "object",
+                "properties": {
+                    "enable": {"type": "boolean"},
+                    "path": {"type": "string"},
+                    "entry_limit": {"type": "integer", "minimum": 1},
+                    "size_limit": {"type": "integer", "minimum": 800},
+                }
+            },
             "install_hash_length": {"type": "integer", "minimum": 1},
             "install_path_scheme": {"type": "string"},  # deprecated
             "build_stage": {
@@ -71,10 +80,6 @@ properties: Dict[str, Any] = {
             "license_dir": {"type": "string"},
             "source_cache": {"type": "string"},
             "misc_cache": {"type": "string"},
-            "enable_concretization_cache": {"type": "boolean"},
-            "concretization_cache_path": {"type": "string"},
-            "concretization_cache_entry_limit": {"type": "integer", "minimum": 1},
-            "concretization_cache_byte_limit": {"type": "integer", "minimum": 800},
             "environments_root": {"type": "string"},
             "connect_timeout": {"type": "integer", "minimum": 0},
             "verify_ssl": {"type": "boolean"},
