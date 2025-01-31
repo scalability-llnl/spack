@@ -873,6 +873,17 @@ class TestDevelopStage:
         stage.destroy()
         assert not os.path.exists(stage.reference_link)
 
+    def test_develop_stage_link_path_in_use(self, develop_path, tmp_build_stage_dir):
+        devtree, srcdir = develop_path
+        collision = "link-to-stage"
+        stage = DevelopStage("test-stage", srcdir, reference_link=collision)
+        with open(os.path.join(srcdir, collision), "wb") as f:
+            # Touch this file, which is where spack wants to put the symlink
+            pass
+        stage.create()
+        stage.destroy()
+        assert os.path.exists(stage.reference_link)
+
 
 def test_stage_create_replace_path(tmp_build_stage_dir):
     """Ensure stage creation replaces a non-directory path."""
