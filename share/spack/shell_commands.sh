@@ -19,7 +19,6 @@ _value_in_varname () {
     sep="$3"
 
     eval "var=\"\${${varname}}\""
-    value_in_varname=1
 
     if  [ "${var#*$value}" != "$var" ]; then
             value_in_varname=0
@@ -99,7 +98,7 @@ _spack_env_prepend() { # if not exporting then use lowercase
 #
 # Remove value from the flag list in variable varname.
 # The list in varname is separated by the sep character.
-_spack_env_remove() { # look into sed
+_spack_env_remove() {
     varname="$1"
     value="$2"
     sep="$3"
@@ -108,18 +107,14 @@ _spack_env_remove() { # look into sed
 
     eval "varname_value=\"\${${varname}}\""
 
-    # if varname's only value is $value
-    if eval "[ \"$varname_value\" == \"$value\" ]"; then
+    if [ "$varname_value" == "$value" ]; then
         export $varname=""
+    elif [ "${varname_value##$value$sep}" != "${varname_value}" ]; then
+        export $varname=${varname_value##$value$sep}
+    elif [ "${varname_value%%$sep$value}" != "${varname_value}" ]; then
+        export $varname=${varname_value%%$sep$value}
     else
-        # if value is at the beginning or middle  of the string
-        if [ "$varname_value" == ^"$value$sep"* ] ||
-            [ "$varname_value" == *"$sep$value$sep"* ]; then
-            eval "export $varname=\"${varname_value[@]/$value$sep/}\""
-        # if value is at the end of the string
-        elif [ "$varname_value" == *"$sep$value" ]; then
-            eval "export $varname=\"${varname_value[@]/$sep$value/}\""
-        fi
+        eval "export $varname=\"${varname_value[@]/$value$sep/}\""
     fi
 }
 
