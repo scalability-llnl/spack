@@ -7,6 +7,7 @@ import archspec.cpu
 
 from llnl.util import lang, tty
 
+import spack.binary_distribution
 import spack.config
 import spack.platforms
 import spack.repo
@@ -24,6 +25,10 @@ class Context:
         self.configuration = configuration
         self.repo = spack.repo.create(configuration)
         self.store = spack.store.create(configuration)
+
+    @lang.memoized
+    def buildcache_specs(self) -> List[spack.spec.Spec]:
+        return spack.binary_distribution.update_cache_and_get_specs()
 
     def runtime_pkgs(self) -> Tuple[Set[str], Set[str]]:
         """Returns the runtime packages for this context, and the virtuals they may provide"""
@@ -78,10 +83,13 @@ class Context:
         if self.configuration.get(f"packages:{pkg_name}:externals", []):
             return True
 
-        if self.store.db.query(pkg_name):
+        reuse = self.configuration.get("concretizer:reuse")
+        if reuse is not False and self.store.db.query(pkg_name):
             return True
 
-        # TODO: query buildcaches
+        if reuse is not False and any(x.name == pkg_name for x in self.buildcache_specs()):
+            return True
+
         tty.debug(f"[{__name__}] {pkg_name} cannot be installed")
         return False
 

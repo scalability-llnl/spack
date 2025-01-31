@@ -2595,7 +2595,9 @@ class SpackSolverSetup:
             try:
                 vid = self.variant_ids_by_def_id[variant_def_id]
             except KeyError:
-                tty.debug(f"[{__name__}] cannot retrieve id of the {value} variant from {pkg_name}")
+                tty.debug(
+                    f"[{__name__}] cannot retrieve id of the {value} variant from {pkg_name}"
+                )
                 continue
 
             self.gen.fact(fn.pkg_fact(pkg_name, fn.variant_possible_value(vid, value)))
