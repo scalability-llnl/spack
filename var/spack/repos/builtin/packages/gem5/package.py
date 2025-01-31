@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
-import spack.config
 from spack.package import *
 
 
@@ -64,7 +63,7 @@ class Gem5(SConsPackage):
     def build_args(self, spec, prefix):
         args = []
         args.append("build/ALL/gem5.opt")
-        args.append(f"-j{spack.config.determine_number_of_jobs(parallel=True)}")
+        args.append(f"-j{determine_number_of_jobs(parallel=True)}")
         args.append("--ignore-style")
 
         return args

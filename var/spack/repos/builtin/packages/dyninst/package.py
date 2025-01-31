@@ -63,8 +63,9 @@ class Dyninst(CMakePackage):
 
     variant("stat_dysect", default=False, description="Patch for STAT's DySectAPI")
 
-    boost_libs = "+atomic+chrono+date_time+filesystem+system+thread+timer"
-    "+container+random+exception"
+    boost_libs = (
+        "+atomic+chrono+date_time+filesystem+system+thread+timer+container+random+exception"
+    )
 
     depends_on("boost@1.61.0:" + boost_libs, when="@10.1.0:")
     depends_on("boost@1.61.0:1.69" + boost_libs, when="@:10.0")

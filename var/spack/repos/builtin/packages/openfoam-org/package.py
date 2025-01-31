@@ -38,8 +38,6 @@ import glob
 import os
 import re
 
-import llnl.util.tty as tty
-
 from spack.package import *
 from spack.pkg.builtin.openfoam import (
     OpenfoamArch,
@@ -48,7 +46,6 @@ from spack.pkg.builtin.openfoam import (
     rewrite_environ_files,
     write_environ,
 )
-from spack.util.environment import EnvironmentModifications
 
 
 class OpenfoamOrg(Package):
