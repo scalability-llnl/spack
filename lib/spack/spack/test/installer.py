@@ -721,7 +721,7 @@ def test_installing_task_use_cache(install_mockery, monkeypatch):
     task = create_build_task(request.pkg)
 
     monkeypatch.setattr(inst, "_install_from_cache", _true)
-    installer._complete_task(task, None)
+    installer.install()
     assert request.pkg_id in installer.installed
 
 
@@ -901,14 +901,16 @@ def test_update_failed_no_dependent_task(install_mockery):
 
 def test_install_uninstalled_deps(install_mockery, monkeypatch, capsys):
     """Test install with uninstalled dependencies."""
-    installer = create_installer(["dependent-install"], {})
+    installer = create_installer(["parallel-package-a"], {})
 
-    # Skip the actual installation and any status updates
-    monkeypatch.setattr(inst.PackageInstaller, "_complete_task", _noop)
+    # Skip the actual installation and any status updates 
+    monkeypatch.setattr(inst.Task, "start", _noop)
+    monkeypatch.setattr(inst.Task, "poll", _noop)
+    monkeypatch.setattr(inst.Task, "complete", _noop)
     monkeypatch.setattr(inst.PackageInstaller, "_update_installed", _noop)
     monkeypatch.setattr(inst.PackageInstaller, "_update_failed", _noop)
 
-    msg = "Cannot proceed with dependency-install"
+    msg = "Cannot proceed with parallel-package-a"
     with pytest.raises(spack.error.InstallError, match=msg):
         installer.install()
 
@@ -918,7 +920,7 @@ def test_install_uninstalled_deps(install_mockery, monkeypatch, capsys):
 
 def test_install_failed(install_mockery, monkeypatch, capsys):
     """Test install with failed install."""
-    installer = create_installer(["pkg-b"], {})
+    installer = create_installer(["parallel-package-a"], {})
 
     # Make sure the package is identified as failed
     monkeypatch.setattr(spack.database.FailureTracker, "has_failed", _true)
@@ -933,7 +935,7 @@ def test_install_failed(install_mockery, monkeypatch, capsys):
 
 def test_install_failed_not_fast(install_mockery, monkeypatch, capsys):
     """Test install with failed install."""
-    installer = create_installer(["pkg-a"], {"fail_fast": False})
+    installer = create_installer(["parallel-package-a"], {"fail_fast": False})
 
     # Make sure the package is identified as failed
     monkeypatch.setattr(spack.database.FailureTracker, "has_failed", _true)
@@ -943,7 +945,7 @@ def test_install_failed_not_fast(install_mockery, monkeypatch, capsys):
 
     out = str(capsys.readouterr())
     assert "failed to install" in out
-    assert "Skipping build of pkg-a" in out
+    assert "Skipping build of parallel-package-a" in out
 
 
 def _interrupt(installer, task, install_status, **kwargs):
@@ -1025,21 +1027,27 @@ def test_install_fail_multi(install_mockery, mock_fetch, monkeypatch):
 
 def test_install_fail_fast_on_detect(install_mockery, monkeypatch, capsys):
     """Test fail_fast install when an install failure is detected."""
-    b = spack.concretize.concretize_one("pkg-b")
-    c = spack.concretize.concretize_one("pkg-c")
-    b_id, c_id = inst.package_id(b), inst.package_id(c)
+    a = spack.concretize.concretize_one("parallel-package-a")
+    
+    a_id = inst.package_id(a)
+    b_id = inst.package_id(a["parallel-package-b"])
+    c_id = inst.package_id(a["parallel-package-c"])
 
-    installer = create_installer([b, c], {"fail_fast": True})
-
+    installer = create_installer([a], {"fail_fast": True})
     # Make sure all packages are identified as failed
-    # This will prevent b from installing, which will cause the build of c to be skipped.
+    # This will prevent a and b from installing, which will cause the build of c to be skipped
+    # and the active processes to be killed.
     monkeypatch.setattr(spack.database.FailureTracker, "has_failed", _true)
 
+    installer.max_active_tasks = 2
     with pytest.raises(spack.error.InstallError, match="after first install failure"):
         installer.install()
 
     assert b_id in installer.failed, "Expected b to be marked as failed"
-    assert c_id not in installer.failed, "Expected no attempt to install pkg-c"
+    assert c_id in installer.failed, "Exepected c to be marked as failed"
+    assert a_id not in installer.installed, "Package a cannot install due to its dependencies failing"
+    # check that b's active process got killed when c failed
+
     assert f"{b_id} failed to install" in capsys.readouterr().err
 
 
@@ -1187,15 +1195,14 @@ def test_overwrite_install_backup_success(temporary_store, config, mock_packages
     # Get a build task. TODO: refactor this to avoid calling internal methods
     installer = create_installer(["pkg-b"])
     installer._init_queue()
-    task = installer._pop_task()
+    task = installer._pop_ready_task()
 
     # Make sure the install prefix exists with some trivial file
     installed_file = os.path.join(task.pkg.prefix, "some_file")
     fs.touchp(installed_file)
 
     class InstallerThatWipesThePrefixDir:
-        # def install():
-        def _start_task(self, task, install_status):
+        def install(self):
             shutil.rmtree(task.pkg.prefix, ignore_errors=True)
             fs.mkdirp(task.pkg.prefix)
             raise Exception("Some fatal install error")
@@ -1229,7 +1236,7 @@ def test_overwrite_install_backup_failure(temporary_store, config, mock_packages
     """
 
     class InstallerThatAccidentallyDeletesTheBackupDir:
-        def _complete_task(self, task, install_status):
+        def install(self):
             # Remove the backup directory, which is at the same level as the prefix,
             # starting with .backup
             backup_glob = os.path.join(
