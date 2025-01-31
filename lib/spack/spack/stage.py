@@ -856,6 +856,10 @@ class DevelopStage(LockableStagingDir):
 
     @property
     def _link_breadcrumb(self):
+        # This will store the location of the `reference_link` that
+        # points into the `path`, the location of this link is customizable
+        # with config:develop_stage_link, so can be difficult to retrieve
+        # unless we track it in this way
         return os.path.join(self.path, DevelopStage.breadcrumb)
 
     def _write_link_breadcrumb(self):
