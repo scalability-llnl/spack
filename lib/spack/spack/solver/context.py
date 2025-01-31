@@ -5,7 +5,7 @@ from typing import List, Set, Tuple
 
 import archspec.cpu
 
-from llnl.util import lang
+from llnl.util import lang, tty
 
 import spack.config
 import spack.platforms
@@ -66,7 +66,7 @@ class Context:
                 continue
             for requirements, _, _ in conditions:
                 if not any(x.intersects(platform_condition) for x in requirements):
-                    # print(f"{pkg_name} is not for this platform")
+                    tty.debug(f"[{__name__}] {pkg_name} is not for this platform")
                     return False
         return True
 
@@ -82,7 +82,7 @@ class Context:
             return True
 
         # TODO: query buildcaches
-        # print(f"{pkg_name} cannot be installed")
+        tty.debug(f"[{__name__}] {pkg_name} cannot be installed")
         return False
 
     @lang.memoized
@@ -94,7 +94,7 @@ class Context:
             )
             preferred_providers = [spack.spec.Spec(x) for x in preferred_providers]
             if not any(x.intersects(pkg_name) for x in preferred_providers):
-                # print(f"{pkg_name} is not among preferred providers for {virtual}")
+                tty.debug(f"[{__name__}] {pkg_name} is not among preferred {virtual} providers")
                 return False
 
         if not self.is_allowed_on_this_platform(pkg_name=pkg_name):

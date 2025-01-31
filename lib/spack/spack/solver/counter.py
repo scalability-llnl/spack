@@ -2,7 +2,9 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple, Union
+
+from llnl.util import tty
 
 import spack.config
 import spack.deptypes as dt
@@ -25,7 +27,7 @@ class Counter:
 
     def __init__(self, specs: List["spack.spec.Spec"], tests: bool) -> None:
         self.context = Context(configuration=spack.config.CONFIG)
-        self.analyzer = PossibleDependenciesAnalyzer(self.context)
+        self.analyzer = _PossibleDependenciesAnalyzer(self.context)
         self.specs = specs
         self.link_run_types: dt.DepFlag = dt.LINK | dt.RUN | dt.TEST
         self.all_types: dt.DepFlag = dt.ALL
@@ -52,22 +54,22 @@ class Counter:
             return
         self._compute_cache_values()
 
-    def possible_packages_facts(self, gen: "spack.solver.asp.PyclingoDriver", fn) -> None:
+    def possible_packages_facts(self, gen: "spack.solver.asp.ProblemInstanceBuilder", fn) -> None:
         """Emit facts associated with the possible packages"""
         raise NotImplementedError("must be implemented by derived classes")
 
-    def _compute_cache_values(self):
+    def _compute_cache_values(self) -> None:
         raise NotImplementedError("must be implemented by derived classes")
 
 
 class NoDuplicatesCounter(Counter):
-    def _compute_cache_values(self):
+    def _compute_cache_values(self) -> None:
         self._possible_dependencies, virtuals = self.analyzer.possible_dependencies(
             *self.specs, allowed_deps=self.all_types
         )
         self._possible_virtuals.update(virtuals)
 
-    def possible_packages_facts(self, gen, fn):
+    def possible_packages_facts(self, gen: "spack.solver.asp.ProblemInstanceBuilder", fn) -> None:
         gen.h2("Maximum number of nodes (packages)")
         for package_name in sorted(self.possible_dependencies()):
             gen.fact(fn.max_dupes(package_name, 1))
@@ -83,14 +85,14 @@ class NoDuplicatesCounter(Counter):
 
 
 class MinimalDuplicatesCounter(NoDuplicatesCounter):
-    def __init__(self, specs, tests):
+    def __init__(self, specs: List["spack.spec.Spec"], tests: bool) -> None:
         super().__init__(specs, tests)
         self._link_run: PossibleDependencies = set()
         self._direct_build: PossibleDependencies = set()
         self._total_build: PossibleDependencies = set()
         self._link_run_virtuals: Set[str] = set()
 
-    def _compute_cache_values(self):
+    def _compute_cache_values(self) -> None:
         self._link_run, virtuals = self.analyzer.possible_dependencies(
             *self.specs, allowed_deps=self.link_run_types
         )
@@ -164,22 +166,26 @@ class FullDuplicatesCounter(MinimalDuplicatesCounter):
         gen.newline()
 
 
-class PossibleDependenciesAnalyzer:
-    @staticmethod
-    def from_config(configuration: spack.config.Configuration) -> "PossibleDependenciesAnalyzer":
-        return PossibleDependenciesAnalyzer(Context(configuration=configuration))
-
+class _PossibleDependenciesAnalyzer:
     def __init__(self, context: Context) -> None:
         self.context = context
         self.runtime_pkgs, self.runtime_virtuals = self.context.runtime_pkgs()
 
     def possible_dependencies(
         self,
-        *specs: spack.spec.Spec,
+        *specs: Union[spack.spec.Spec, str],
         allowed_deps: dt.DepFlag,
         transitive: bool = True,
         strict_depflag: bool = False,
     ) -> Tuple[Set[str], Set[str]]:
+        """Returns the set of possible dependencies, and the set of possible virtuals.
+
+        Args:
+            transitive: return transitive dependencies if True, only direct dependencies if False
+            allowed_deps: dependency types to consider
+            strict_depflag: if True, only the specific dep type is considered, if False any
+                deptype that intersects with allowed deptype is considered
+        """
         virtuals: Set[str] = set()
         packages = []
         for current_spec in specs:
@@ -187,19 +193,15 @@ class PossibleDependenciesAnalyzer:
                 current_spec = spack.spec.Spec(current_spec)
 
             if self.context.repo.is_virtual(current_spec.name):
-                packages.extend(
-                    [
-                        (current_spec, p.package_class)
-                        for p in self.context.providers_for(current_spec.name)
-                    ]
-                )
+                packages.extend([p.name for p in self.context.providers_for(current_spec.name)])
                 continue
-            packages.append((current_spec, current_spec.package_class))
+
+            packages.append(current_spec.name)
 
         visited: Dict[str, Set[str]] = {}
-        for input_spec, pkg_cls in packages:
+        for pkg_name in packages:
             self._possible_dependencies(
-                pkg_cls,
+                pkg_name,
                 visited=visited,
                 transitive=transitive,
                 expand_virtuals=True,
@@ -214,7 +216,7 @@ class PossibleDependenciesAnalyzer:
 
     def _possible_dependencies(
         self,
-        pkg_cls,
+        pkg_name: str,
         *,
         transitive: bool,
         expand_virtuals: bool = True,
@@ -224,57 +226,25 @@ class PossibleDependenciesAnalyzer:
         missing: Optional[dict] = None,
         virtuals: set,
     ) -> Dict[str, Set[str]]:
-        """Return dict of possible dependencies of this package.
-
-        Args:
-            transitive (bool or None): return all transitive dependencies if
-                True, only direct dependencies if False (default True)..
-            expand_virtuals (bool or None): expand virtual dependencies into
-                all possible implementations (default True)
-            depflag: dependency types to consider
-            visited (dict or None): dict of names of dependencies visited so
-                far, mapped to their immediate dependencies' names.
-            missing (dict or None): dict to populate with packages and their
-                *missing* dependencies.
-            virtuals (set): if provided, populate with virtuals seen so far.
-
-        Returns:
-            (dict): dictionary mapping dependency names to *their*
-                immediate dependencies
-
-        Each item in the returned dictionary maps a (potentially
-        transitive) dependency of this package to its possible
-        *immediate* dependencies. If ``expand_virtuals`` is ``False``,
-        virtual package names wil be inserted as keys mapped to empty
-        sets of dependencies.  Virtuals, if not expanded, are treated as
-        though they have no immediate dependencies.
-
-        Missing dependencies by default are ignored, but if a
-        missing dict is provided, it will be populated with package names
-        mapped to any dependencies they have that are in no
-        repositories. This is only populated if transitive is True.
-
-        Note: the returned dict *includes* the package itself.
-
-        """
         visited = {} if visited is None else visited
         missing = {} if missing is None else missing
 
-        visited.setdefault(pkg_cls.name, set())
+        visited.setdefault(pkg_name, set())
 
         # At the moment exit early. Since libc is not buildable, there is no
         # need to extend the search space with libc dependencies.
-        if pkg_cls.name in self.context.libc_pkgs():
+        if pkg_name in self.context.libc_pkgs():
             return visited
 
+        pkg_cls = self.context.repo.get_pkg_class(pkg_name=pkg_name)
         for name, conditions in pkg_cls.dependencies_by_name(when=True).items():
             if all(
                 self.context.unreachable(pkg_name=pkg_cls.name, when_spec=x) for x in conditions
             ):
-                # print(
-                #     f"Not adding {name} as a dep of {pkg_cls.name}, "
-                #     f"because conditions cannot be met"
-                # )
+                tty.debug(
+                    f"[{__name__}] Not adding {name} as a dep of {pkg_cls.name}, because "
+                    f"conditions cannot be met"
+                )
                 continue
 
             # check whether this dependency could be of the type asked for
@@ -307,10 +277,8 @@ class PossibleDependenciesAnalyzer:
             else:
                 dep_names = {name}
 
-            # add the dependency names to the visited dict
             visited.setdefault(pkg_cls.name, set()).update(dep_names)
 
-            # recursively traverse dependencies
             for dep_name in dep_names:
                 if dep_name in visited:
                     continue
@@ -323,19 +291,11 @@ class PossibleDependenciesAnalyzer:
                 if not self.context.can_be_installed(pkg_name=dep_name):
                     continue
 
-                # skip the rest if not transitive
                 if not transitive:
                     continue
 
-                try:
-                    dep_cls = self.context.repo.get_pkg_class(dep_name)
-                except spack.repo.UnknownPackageError:
-                    # log unknown packages
-                    missing.setdefault(pkg_cls.name, set()).add(dep_name)
-                    continue
-
                 self._possible_dependencies(
-                    dep_cls,
+                    dep_name,
                     transitive=transitive,
                     expand_virtuals=expand_virtuals,
                     depflag=depflag,
