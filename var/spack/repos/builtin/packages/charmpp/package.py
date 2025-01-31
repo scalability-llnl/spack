@@ -396,7 +396,7 @@ class Charmpp(Package):
                         copy(filepath, tmppath)
                         os.remove(filepath)
                         os.rename(tmppath, filepath)
-                    except (IOError, OSError):
+                    except OSError:
                         pass
 
         tmp_path = join_path(builddir, "tmp")
