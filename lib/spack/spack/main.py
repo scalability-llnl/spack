@@ -26,7 +26,6 @@ from typing import List, Tuple
 
 import archspec.cpu
 
-import llnl.util.filesystem as fs
 import llnl.util.lang
 import llnl.util.tty as tty
 import llnl.util.tty.colify
@@ -48,7 +47,6 @@ import spack.util.debug
 import spack.util.environment
 import spack.util.lock
 import spack.util.web_config as web_config
-from spack.caches import misc_cache_location
 
 from .enums import ConfigScopePriority
 
@@ -584,38 +582,10 @@ def allows_unknown_args(command):
     return argcount == 3 and varnames[2] == "unknown_args"
 
 
-def update_config_with_includes():
-    """The "config:" section of a Configuration can specify other
-    configurations to include. This does not handle recursive includes
-    (i.e. if an included config defines an "include:" section).
-    """
-    includes = spack.config.CONFIG.get("include")
-    if not includes:
-        return
-
-    # TODO: Does this properly handle precedence?
-    for entry in reversed(includes):
-        optional_path = spack.config.included_path(entry)
-        scope = spack.config.include_path_scope(
-            optional_path,
-            "include",
-            fs.join_path(misc_cache_location(), "includes"),
-            spack.config.CONFIG.includes_source_root(optional_path.path),
-        )
-
-        if scope is not None:
-            spack.config.CONFIG.push_scope(scope)
-
-    # Make sure any includes that might affect web options are picked up
-    web_config.update(spack.config.CONFIG)
-
-
 def _invoke_command(command, parser, args, unknown_args):
     """Run a spack command *without* setting spack global options."""
     # Ensure basic configuration options are reflected in web_config
     web_config.update(spack.config.CONFIG)
-
-    update_config_with_includes()
 
     if allows_unknown_args(command):
         return_val = command(parser, args, unknown_args)

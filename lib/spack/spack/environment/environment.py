@@ -29,6 +29,7 @@ import spack.filesystem_view as fsv
 import spack.hash_types as ht
 import spack.paths
 import spack.repo
+import spack.schema.env
 import spack.spec
 import spack.spec_list
 import spack.store
@@ -41,7 +42,7 @@ import spack.util.spack_json as sjson
 import spack.util.spack_yaml as syaml
 from spack import traverse
 from spack.installer import PackageInstaller
-from spack.schema.env import TOP_LEVEL_KEY, schema, update
+from spack.schema.env import TOP_LEVEL_KEY
 from spack.spec import Spec
 from spack.spec_list import SpecList
 from spack.util.path import substitute_path_variables
@@ -532,14 +533,14 @@ def _read_yaml(str_or_file):
         )
 
     filename = getattr(str_or_file, "name", None)
-    spack.config.validate(data, schema, filename)
+    spack.config.validate(data, spack.schema.env.schema, filename)
     return data
 
 
 def _write_yaml(data, str_or_file):
     """Write YAML to a file preserving comments and dict order."""
     filename = getattr(str_or_file, "name", None)
-    spack.config.validate(data, schema, filename)
+    spack.config.validate(data, spack.schema.env.schema, filename)
     syaml.dump_config(data, str_or_file, default_flow_style=False)
 
 
@@ -2499,7 +2500,7 @@ def update_yaml(manifest, backup_file):
         data = syaml.load(f)
 
     top_level_key = _top_level_key(data)
-    needs_update = update(data[top_level_key])
+    needs_update = spack.schema.env.update(data[top_level_key])
     if not needs_update:
         msg = "No update needed [manifest={0}]".format(manifest)
         tty.debug(msg)
@@ -2546,7 +2547,7 @@ def is_latest_format(manifest):
     except OSError:
         return True
     top_level_key = _top_level_key(data)
-    changed = update(data[top_level_key])
+    changed = spack.schema.env.update(data[top_level_key])
     return not changed
 
 
@@ -2928,56 +2929,19 @@ class EnvironmentManifestFile(collections.abc.Mapping):
         return str(self.manifest_file)
 
     @property
-    def included_config_scopes(self) -> List[spack.config.ConfigScope]:
-        """List of included configuration scopes from the manifest.
-
-        Scopes are listed in the YAML file in order from highest to
-        lowest precedence, so configuration from earlier scope will take
-        precedence over later ones.
-
-        This routine returns them in the order they should be pushed onto
-        the internal scope stack (so, in reverse, from lowest to highest).
-
-        Returns: Configuration scopes associated with the environment manifest
-
-        Raises:
-            SpackEnvironmentError: if the manifest includes a remote file but
-                no configuration stage directory has been identified
-        """
-        # Retrieve and process the includes explicitly listed in the
-        # environment's manifest.
-        includes = self[TOP_LEVEL_KEY].get("include", [])
-        if not includes:
-            return []
-
-        # Load config scopes added via environment 'include:' in reverse so
-        # that highest-precedence scopes are last.
-        name_prefix = f"env:{self.name}"
-        scopes: List[spack.config.ConfigScope] = []
-        for entry in reversed(includes):
-            included_scope = spack.config.include_path_scope(
-                spack.config.included_path(entry),
-                name_prefix,
-                self.config_stage_dir,
-                self.manifest_dir,
-            )
-            if included_scope is not None:
-                scopes.append(included_scope)
-
-        return scopes
-
-    @property
     def env_config_scopes(self) -> List[spack.config.ConfigScope]:
         """A list of all configuration scopes for the environment manifest. On the first call this
         instantiates all the scopes, on subsequent calls it returns the cached list."""
         if self._config_scopes is not None:
             return self._config_scopes
 
-        scopes: List[Union[spack.config.ConfigScope, spack.config.SingleFileScope]] = [
-            *self.included_config_scopes,
+        scopes: List[spack.config.ConfigScope] = [
             spack.config.SingleFileScope(
-                self.scope_name, str(self.manifest_file), schema, yaml_path=[TOP_LEVEL_KEY]
-            ),
+                self.scope_name,
+                str(self.manifest_file),
+                spack.schema.env.schema,
+                yaml_path=[TOP_LEVEL_KEY],
+            )
         ]
         ensure_no_disallowed_env_config_mods(scopes)
         self._config_scopes = scopes

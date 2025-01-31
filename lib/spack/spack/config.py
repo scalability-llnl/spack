@@ -33,7 +33,6 @@ import copy
 import functools
 import os
 import os.path
-import pathlib
 import re
 import sys
 from typing import Any, Callable, Dict, Generator, List, NamedTuple, Optional, Tuple, Union
@@ -63,9 +62,8 @@ import spack.schema.packages
 import spack.schema.repos
 import spack.schema.upstreams
 import spack.schema.view
+import spack.util.path
 import spack.util.remote_file_cache as rfc_util
-
-# Hacked yaml for configuration files preserves line numbers.
 import spack.util.spack_yaml as syaml
 import spack.util.web_config as web_config
 from spack.util.cpus import cpus_available
@@ -126,12 +124,26 @@ _OVERRIDES_BASE_NAME = "overrides-"
 #: Type used for raw YAML configuration
 YamlConfigDict = Dict[str, Any]
 
+#: prefix for name of included configuration scopes
+INCLUDE_SCOPE_PREFIX = "include"
+
+#: safeguard for recursive includes -- raise an error after this many layers.
+MAX_RECURSIVE_INCLUDES = 100
+
+
+def _include_cache_location():
+    """Location to cache included configuration files."""
+    return os.path.join(spack.paths.user_cache_path, "includes")
+
 
 class ConfigScope:
     def __init__(self, name: str) -> None:
         self.name = name
         self.writable = False
         self.sections = syaml.syaml_dict()
+
+        #: names of any included scopes
+        self.included_scopes: List[str] = []
 
     def get_section_filename(self, section: str) -> str:
         raise NotImplementedError
@@ -174,12 +186,6 @@ class DirectoryConfigScope(ConfigScope):
             schema = SECTION_SCHEMAS[section]
             data = read_config_file(path, schema)
             self.sections[section] = data
-
-            if section == "include" and data is not None:
-                # Save the sources of included configuration files to support
-                # relative paths.
-                CONFIG.add_include_source(path, data["include"], self.name)
-
         return self.sections[section]
 
     def _write_section(self, section: str) -> None:
@@ -292,13 +298,7 @@ class SingleFileScope(ConfigScope):
             for section_key, data in section_data.items():
                 self.sections[section_key] = {section_key: data}
 
-        data = self.sections.get(section, None)
-        if section == "include" and data is not None:
-            # Save the source of included configuration files to support
-            # relative paths.
-            CONFIG.add_include_source(self.path, data["include"], self.name)
-
-        return data
+        return self.sections.get(section, None)
 
     def _write_section(self, section: str) -> None:
         if not self.writable:
@@ -441,10 +441,6 @@ class Configuration:
         self.scopes = lang.PriorityOrderedMapping()
         self.format_updates: Dict[str, List[ConfigScope]] = collections.defaultdict(list)
 
-        # Track configuration file source paths since not otherwise available
-        # once includes are processed.
-        self.includes_source: Dict[str, List[Tuple[str, str]]] = collections.defaultdict(list)
-
     def ensure_unwrapped(self) -> "Configuration":
         """Ensure we unwrap this object from any dynamic wrapper (like Singleton)"""
         return self
@@ -454,7 +450,9 @@ class Configuration:
         return next(self.scopes.reversed_values())  # type: ignore
 
     @_config_mutator
-    def push_scope(self, scope: ConfigScope, priority: Optional[int] = None) -> None:
+    def push_scope(
+        self, scope: ConfigScope, priority: Optional[int] = None, _depth: int = 0
+    ) -> None:
         """Adds a scope to the Configuration, at a given priority.
 
         If a priority is not given, it is assumed to be the current highest priority.
@@ -464,6 +462,26 @@ class Configuration:
             priority: priority of the scope
         """
         tty.debug(f"[CONFIGURATION: PUSH SCOPE]: {str(scope)}, priority={priority}", level=2)
+
+        # before pushing the scope itself, push any included scopes recurisvely, at same priority
+        includes = scope.get_section("include")
+        if includes:
+            include_paths = [included_path(data) for data in includes["include"]]
+            for path in reversed(include_paths):
+                included_scope = include_path_scope(path)
+                if not included_scope:
+                    continue
+
+                if _depth + 1 > MAX_RECURSIVE_INCLUDES:  # make sure we're not recursing endlessly
+                    mark = path.path._start_mark if syaml.marked(path.path) else ""  # type: ignore
+                    raise RecursiveIncludeError(
+                        f"Maximum include recursion exceeded in {path.path}", str(mark)
+                    )
+
+                # record this inclusion so that remove_scope() can use it
+                scope.included_scopes.append(included_scope.name)
+                self.push_scope(included_scope, priority=priority, _depth=_depth + 1)
+
         self.scopes.add(scope.name, value=scope, priority=priority)
 
     @_config_mutator
@@ -471,10 +489,17 @@ class Configuration:
         """Removes a scope by name, and returns it. If the scope does not exist, returns None."""
         try:
             scope = self.scopes.remove(scope_name)
-            tty.debug(f"[CONFIGURATION: POP SCOPE]: {str(scope)}", level=2)
+            tty.debug(f"[CONFIGURATION: REMOVE SCOPE]: {str(scope)}", level=2)
         except KeyError as e:
-            tty.debug(f"[CONFIGURATION: POP SCOPE]: {e}", level=2)
+            tty.debug(f"[CONFIGURATION: REMOVE SCOPE]: {e}", level=2)
             return None
+
+        # transitively remove included scopes
+        for inc in scope.included_scopes:
+            assert inc in self.scopes, f"Included scope '{inc}' was never added to configuration!"
+            self.remove_scope(inc)
+        scope.included_scopes.clear()  # clean up includes for bookkeeping
+
         return scope
 
     @property
@@ -750,53 +775,6 @@ class Configuration:
         except (syaml.SpackYAMLError, OSError) as e:
             raise spack.error.ConfigError(f"cannot read '{section}' configuration") from e
 
-    def add_include_source(
-        self, source_path: Union[pathlib.Path, str], include_data: List[str], scope: Optional[str]
-    ) -> None:
-        """Save the path to the source for each include path
-
-        Args:
-            source_path: path to the source configuration file
-            include_data: includes list
-            scope: name of associated scope
-        """
-        source_str = str(source_path)
-        for include_path in include_data:
-            include_str = str(include_path)
-            # TODO: Should changes to scope affect this?
-            # TODO: When would the scope be empty?
-            if scope == "":
-                tty.warn(f"No scope name given for {source_path}, {include_data}")
-            entry = (scope or "", source_str)
-            self.includes_source[include_str].append(entry)
-
-    def includes_source_root(self, include_path: Union[pathlib.Path, str]) -> Optional[str]:
-        """Return root directory for the included path
-
-        Args:
-            include_path: path as it appears under the includes configuration
-
-        Returns: root directory of the source file containing the include or ``None``
-        """
-        include_str = str(include_path)
-        sources = self.includes_source.get(include_str)
-
-        if sources is None:
-            return None
-
-        if len(sources) > 1:
-            tty.debug(f"Detected multiple sources for {include_str}: {sources}")
-
-        # TODO: Is it sufficient to make sure the scope exists?
-        # TODO: Is this the way to handle precedence if/when multiple sources
-        # TODO:   for an include path exist?
-        for scope_name, source_path in sources:
-            scope = self.scopes.get(scope_name)
-            if scope is not None:
-                return os.path.dirname(source_path)
-
-        return None
-
 
 @contextlib.contextmanager
 def override(
@@ -852,15 +830,15 @@ def _add_platform_scope(
     cfg.push_scope(scope, priority=priority)
 
 
-#: Data class for the relevance of an optional path conditioned on either
+#: Class for the relevance of an optional path conditioned on either
 #: a spec and or explicitly specified as optional.
-class OptionalPath(NamedTuple):
+class IncludePath(NamedTuple):
     path: str
     when: str
     optional: bool
 
 
-def included_path(entry: Union[str, dict]) -> OptionalPath:
+def included_path(entry: Union[str, dict]) -> IncludePath:
     """Convert the included path entry into a standard form.
 
     Args:
@@ -870,62 +848,46 @@ def included_path(entry: Union[str, dict]) -> OptionalPath:
         not conditionally included
     """
     if isinstance(entry, str):
-        return OptionalPath(path=entry, when="", optional=False)
+        return IncludePath(path=entry, when="", optional=False)
 
     path = entry["path"]
     when = entry.get("when", "")
     optional = entry.get("optional", False)
-    return OptionalPath(path=path, when=when, optional=optional)
+    return IncludePath(path=path, when=when, optional=optional)
 
 
-def include_path_scope(
-    include: OptionalPath,
-    name_prefix: str,
-    config_stage_dir: str,
-    relative_root: Optional[Union[pathlib.Path, str]] = None,
-) -> Optional[ConfigScope]:
+def include_path_scope(include: IncludePath) -> Optional[ConfigScope]:
     """Instantiate an appropriate configuration scope for the given path.
 
     Args:
         include: optional include path
-        name_prefix: configuration scope name prefix
-        config_stage_dir: path to directory to be used to stage remote paths
-        relative_root: path to root directory for relative paths or ``None``
-            if relative include paths not allowed
 
     Returns: configuration scope
 
     Raises:
         ValueError: included path has an unsupported URL scheme, is required
-            but does not exist, or does not have a relative root; configuration
-            stage directory argument is missing
+            but does not exist; configuration stage directory argument is missing
         ConfigFileError: unable to access remote configuration file(s)
     """
     import spack.spec
 
     if (not include.when) or spack.spec.eval_conditional(include.when):
-        config_path = rfc_util.local_path(include.path, config_stage_dir)
+        # canonicalize_path does variable expansion and resolves relative paths
+        include_path = spack.util.path.canonicalize_path(include.path)
+        config_path = rfc_util.local_path(include_path, _include_cache_location())
+
         if not config_path:
             raise ConfigFileError(f"Unable to fetch remote configuration {config_path}")
 
-        # Treat relative paths as relative to relative_root. If not provided,
-        # try to get the root from the included file.
-        if not os.path.isabs(config_path):
-            if relative_root is None:
-                raise ValueError(f"include: no relative root is available for {config_path}")
-
-            cfg_path = os.path.join(relative_root, config_path)
-            config_path = os.path.normpath(os.path.realpath(cfg_path))
-
         if os.path.isdir(config_path):
             # directories are treated as regular ConfigScopes
-            config_name = f"{name_prefix}:{os.path.basename(config_path)}"
+            config_name = f"{INCLUDE_SCOPE_PREFIX}:{os.path.basename(config_path)}"
             tty.debug(f"Creating DirectoryConfigScope {config_name} for '{config_path}'")
             return DirectoryConfigScope(config_name, config_path)
 
         if os.path.exists(config_path):
             # files are assumed to be SingleFileScopes
-            config_name = f"{name_prefix}:{config_path}"
+            config_name = f"{INCLUDE_SCOPE_PREFIX}:{config_path}"
             tty.debug(f"Creating SingleFileScope {config_name} for '{config_path}'")
             return SingleFileScope(config_name, config_path, spack.schema.merged.schema)
 
@@ -1042,11 +1004,6 @@ def add_from_file(filename: str, scope: Optional[str] = None) -> None:
 
             # We cannot call config.set directly (set is a type)
             CONFIG.set(section, new, scope)
-
-            if section == "include":
-                # Save the source of included configuration files to support
-                # relative paths.
-                CONFIG.add_include_source(filename, value, scope)
 
 
 def add(fullpath: str, scope: Optional[str] = None) -> None:
@@ -1759,3 +1716,7 @@ class ConfigFormatError(spack.error.ConfigError):
 
         # give up and return None if nothing worked
         return None
+
+
+class RecursiveIncludeError(spack.error.SpackError):
+    """Too many levels of recursive includes."""
