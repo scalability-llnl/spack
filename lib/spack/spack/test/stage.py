@@ -863,6 +863,9 @@ class TestDevelopStage:
         srctree2 = _create_tree_from_dir_recursive(srcdir)
         assert srctree2 == devtree
 
+    def test_develop_stage_destroy_link_fallback(self, develop_path, tmp_build_stage_dir):
+        devtree, srcdir = develop_path
+        stage = DevelopStage("test-stage", srcdir, reference_link="link-to-stage")
         stage.create()
         assert os.path.exists(stage.reference_link)
         os.remove(stage._link_breadcrumb)
