@@ -38,7 +38,8 @@ exclude_directories = [os.path.relpath(spack.paths.external_path, spack.paths.pr
 #: double-check the results of other tools (if, e.g., --fix was provided)
 #: The list maps an executable name to a method to ensure the tool is
 #: bootstrapped or present in the environment.
-tool_names = ["import", "isort", "black", "flake8", "mypy"]
+default_tool_names = ["import", "isort", "black", "flake8", "mypy"]
+tool_names = default_tool_names + ["ruff"]
 
 #: warnings to ignore in mypy
 mypy_ignores = [
@@ -189,7 +190,7 @@ def setup_parser(subparser):
         "-t",
         "--tool",
         action="append",
-        help="specify which tools to run (default: %s)" % ", ".join(tool_names),
+        help="specify which tools to run (default: %s)" % ", ".join(default_tool_names),
     )
     tool_group.add_argument(
         "-s",
@@ -530,7 +531,7 @@ def style(parser, args):
         file_list = [prefix_relative(p) for p in file_list]
 
     # process --tool and --skip arguments
-    selected = set(tool_names)
+    selected = set(default_tool_names)
     if args.tool is not None:
         selected = validate_toolset(args.tool)
     if args.skip is not None:
