@@ -877,8 +877,12 @@ class DevelopStage(LockableStagingDir):
                 link_path = self._read_link_breadcrumb()
         except FileNotFoundError:
             # If this stage predates #48814, it won't have file to
-            # track the link that is stored in dev_path
-            link_path = self.reference_link
+            # track the link that is stored in dev_path, in that case
+            # the best we can do is attempt to retrieve what we
+            # currently consider the reference link, which would change
+            # if the hash of the developed package has changed.
+            if os.path.exists(self.reference_link):
+                link_path = self.reference_link
 
         try:
             # Destroy all files, but do not follow symlinks
