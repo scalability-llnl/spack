@@ -808,14 +808,12 @@ def _create_files_from_tree(base, tree):
                     f.write(content)
 
 
-def _create_tree_from_dir_recursive(path, ignore=None):
+def _create_tree_from_dir_recursive(path):
     if os.path.islink(path):
         return readlink(path)
     elif os.path.isdir(path):
         tree = {}
         for name in os.listdir(path):
-            if ignore and name in ignore:
-                continue
             sub_path = os.path.join(path, name)
             tree[name] = _create_tree_from_dir_recursive(sub_path)
         return tree
