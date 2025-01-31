@@ -847,9 +847,24 @@ class DevelopStage(LockableStagingDir):
     def create(self):
         super().create()
         try:
+            self._write_link_breadcrumb()
             llnl.util.symlink.symlink(self.path, self.reference_link)
         except (llnl.util.symlink.AlreadyExistsError, FileExistsError):
             pass
+
+    breadcrumb = ".spack-stage-link"
+
+    @property
+    def _link_breadcrumb(self):
+        return os.path.join(self.path, DevelopStage.breadcrumb)
+
+    def _write_link_breadcrumb(self):
+        with open(self._link_breadcrumb, "w", encoding="utf-8") as f:
+            f.write(self.reference_link)
+
+    def _read_link_breadcrumb(self):
+        with open(self._link_breadcrumb, "r", encoding="utf-8") as f:
+            return f.read()
 
     def destroy(self):
         # Destroy all files, but do not follow symlinks
@@ -858,7 +873,12 @@ class DevelopStage(LockableStagingDir):
         except FileNotFoundError:
             pass
         try:
-            os.remove(self.reference_link)
+            link_path = self._read_link_breadcrumb()
+            if llnl.util.symlink.islink(link_path):
+                target = llnl.util.symlink.readlink(link_path)
+                if target == self.path:
+                    os.unlink(link_path)
+
         except FileNotFoundError:
             pass
         self.created = False
