@@ -26,9 +26,9 @@ from typing import Callable, Dict, Iterator, List, NamedTuple, Optional, Set, Tu
 
 import archspec.cpu
 
-from llnl.util.filesystem import temporary_file_position, current_file_position
 import llnl.util.lang
 import llnl.util.tty as tty
+from llnl.util.filesystem import current_file_position
 from llnl.util.lang import elide_list
 
 import spack
@@ -656,11 +656,13 @@ class ConcretizationCache:
         with lk.WriteTransaction(self._lock):
             with open(self._cache_manifest, "r+", encoding="utf-8") as f:
                 count, cache_bytes = self._extract_cache_metadata(f)
-                if not count:
+                if not count or not cache_bytes:
                     return
                 entry_count = int(count)
                 manifest_bytes = int(cache_bytes)
                 pruned = False
+                # move beyond the metadata entry
+                f.seek(1)
                 if entry_count > entry_limit:
                     pruned = True
                     # prune the oldest 10% or until we have removed 10% of
@@ -668,25 +670,35 @@ class ConcretizationCache:
                     # TODO: make this configurable?
                     prune_count = entry_count // 10
                     lines_to_prune = f.readlines(prune_count)
-                    for line in lines_to_prune:
-                        sha, cache_entry_bytes = self._sanitize_read(line)
-                        cache_path = self._cache_path_from_hash(sha)
-                        if self._safe_remove(cache_path):
-                            entry_count -= 1
-                            manifest_bytes -= int(cache_entry_bytes)
+                    for i, line in enumerate(lines_to_prune):
+                        sha, cache_entry_bytes = self._parse_manifest_entry(line)
+                        if sha and cache_entry_bytes:
+                            cache_path = self._cache_path_from_hash(sha)
+                            if self._safe_remove(cache_path):
+                                entry_count -= 1
+                                manifest_bytes -= int(cache_entry_bytes)
+                        else:
+                            tty.warn(
+                                f"Invalid concretization cache entry: '{line}' on line: {i+1}"
+                            )
                 elif manifest_bytes > bytes_limit:
                     pruned = True
                     # take 10% of current size off
                     prune_amount = manifest_bytes // 10
                     total_pruned = 0
+                    i = 0
                     while total_pruned < prune_amount:
-                        sha, manifest_cache_bytes = self._sanitize_read(f.readline())
-                        entry_bytes = int(manifest_cache_bytes)
-                        cache_path = self.root / sha[:2] / sha
-                        if self._safe_remove(cache_path):
-                            entry_count -= 1
-                            entry_bytes -= entry_bytes
-                            total_pruned += entry_bytes
+                        sha, manifest_cache_bytes = self._parse_manifest_entry(f.readline())
+                        if sha and manifest_cache_bytes:
+                            entry_bytes = int(manifest_cache_bytes)
+                            cache_path = self.root / sha[:2] / sha
+                            if self._safe_remove(cache_path):
+                                entry_count -= 1
+                                entry_bytes -= entry_bytes
+                                total_pruned += entry_bytes
+                        else:
+                            tty.warn(f"Invalid concretization cache entry on line: {i}")
+                        i += 1
                 if pruned:
                     self._write_manifest(f, entry_count, manifest_bytes)
         for cache_dir in self.root.iterdir():
@@ -708,9 +720,10 @@ class ConcretizationCache:
                             "within the concretization cache."
                         )
 
-    def _sanitize_read(self, line) -> Union[List[str], None]:
+    def _parse_manifest_entry(self, line):
         if line:
             return line.strip("\n").split(" ")
+        return None, None
 
     def _write_manifest(self, manifest_file, entry_count, entry_bytes):
         persisted_entries = manifest_file.readlines()
@@ -745,18 +758,10 @@ class ConcretizationCache:
         return None
 
     def _extract_cache_metadata(self, cache_stream: io.IOBase):
-        cache_info = ""
         # make sure we're always reading from the beginning of the stream
         # concretization cache manifest data lives at the top of the file
         with current_file_position(cache_stream, 0):
-            cache_info = self._sanitize_read(cache_stream.readline())
-        # if we have no info at this point, our manifest is empty
-        # or corrupted
-        if not cache_info:
-            count, cache_bytes = 0, 0
-        else:
-            count, cache_bytes = cache_info
-        return count, cache_bytes
+            return self._parse_manifest_entry(cache_stream.readline())
 
     def _prefix_digest(self, problem: str) -> Tuple[str, str]:
         """Return the first two characters of, and the full, sha256 of the given asp problem"""

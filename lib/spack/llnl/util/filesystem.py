@@ -2796,7 +2796,9 @@ def temporary_file_position(stream):
 
 
 @contextmanager
-def current_file_position(stream: io.IOBase, loc: int, relative_to: Literal[0,1,2] = io.SEEK_CUR):
+def current_file_position(
+    stream: io.IOBase, loc: int, relative_to: Literal[0, 1, 2] = io.SEEK_CUR
+):
     with temporary_file_position(stream):
         stream.seek(loc, relative_to)
         yield
