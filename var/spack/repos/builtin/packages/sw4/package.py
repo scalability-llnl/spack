@@ -35,7 +35,7 @@ class Sw4(MakefilePackage):
     depends_on("lapack")
     depends_on("python")
     depends_on("proj@9:", when="+proj")
-    depends_on("hdf5@1.12: +mpi", when="+hdf5")
+    depends_on("hdf5@1.14: +mpi", when="+hdf5")
     depends_on("py-h5py", when="+hdf5")
     depends_on("zfp", when="+zfp")
     depends_on("h5z-zfp@develop", when="+zfp")
