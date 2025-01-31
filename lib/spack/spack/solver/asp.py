@@ -2413,7 +2413,7 @@ class SpackSolverSetup:
                 self.context.unreachable(pkg_name=pkg_name, when_spec=f"target={x}")
                 for pkg_name in self.pkgs
             ):
-                # print(f"excluding target={x}, cause no package can use it")
+                tty.debug(f"[{__name__}] excluding target={x}, cause no package can use it")
                 continue
             candidate_targets.append(x)
 

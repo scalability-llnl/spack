@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections
-from typing import Dict, List, Optional, Set, Tuple, Union
+from typing import Dict, List, Set, Tuple, Union
 
 from llnl.util import tty
 
@@ -187,50 +187,20 @@ class _PossibleDependenciesAnalyzer:
                 deptype that intersects with allowed deptype is considered
         """
         virtuals: Set[str] = set()
-        packages = []
+        stack = []
         for current_spec in specs:
             if isinstance(current_spec, str):
                 current_spec = spack.spec.Spec(current_spec)
 
             if self.context.repo.is_virtual(current_spec.name):
-                packages.extend([p.name for p in self.context.providers_for(current_spec.name)])
+                stack.extend([p.name for p in self.context.providers_for(current_spec.name)])
                 continue
 
-            packages.append(current_spec.name)
+            stack.append(current_spec.name)
 
         visited: Dict[str, Set[str]] = {}
-        self._possible_dependencies(
-            packages,
-            visited=visited,
-            transitive=transitive,
-            expand_virtuals=True,
-            depflag=allowed_deps,
-            virtuals=virtuals,
-            strict_depflag=strict_depflag,
-        )
-
-        virtuals.update(self.runtime_virtuals)
-        real_packages = set(visited) | self.runtime_pkgs
-        return real_packages, virtuals
-
-    def _possible_dependencies(
-        self,
-        packages: List[str],
-        *,
-        transitive: bool,
-        expand_virtuals: bool = True,
-        depflag: dt.DepFlag,
-        strict_depflag: bool = False,
-        visited: Optional[dict] = None,
-        virtuals: set,
-    ) -> Dict[str, Set[str]]:
-
-        stack = packages[:]
-        visited = {} if visited is None else visited
-
         while stack:
             pkg_name = stack.pop()
-
             visited.setdefault(pkg_name, set())
 
             # Since libc is not buildable, there is no need to extend the
@@ -256,11 +226,11 @@ class _PossibleDependenciesAnalyzer:
                     for deplist in conditions.values():
                         for dep in deplist:
                             depflag_union |= dep.depflag
-                    if not (depflag & depflag_union):
+                    if not (allowed_deps & depflag_union):
                         continue
                 else:
                     if all(
-                        dep.depflag != depflag
+                        dep.depflag != allowed_deps
                         for deplist in conditions.values()
                         for dep in deplist
                     ):
@@ -269,16 +239,10 @@ class _PossibleDependenciesAnalyzer:
                 if self.context.is_virtual(name) and name in virtuals:
                     continue
 
-                # expand virtuals if enabled, otherwise just stop at virtuals
                 if self.context.is_virtual(name):
                     virtuals.add(name)
-                    if expand_virtuals:
-                        providers = self.context.providers_for(name)
-                        dep_names = {spec.name for spec in providers}
-                    else:
-                        visited.setdefault(pkg_cls.name, set()).add(name)
-                        visited.setdefault(name, set())
-                        continue
+                    providers = self.context.providers_for(name)
+                    dep_names = {spec.name for spec in providers}
                 else:
                     dep_names = {name}
 
@@ -301,4 +265,6 @@ class _PossibleDependenciesAnalyzer:
 
                     stack.append(dep_name)
 
-        return visited
+        virtuals.update(self.runtime_virtuals)
+        real_packages = set(visited) | self.runtime_pkgs
+        return real_packages, virtuals
