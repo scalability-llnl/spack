@@ -171,7 +171,6 @@ class MvapichPlus(AutotoolsPackage):
         if spec.satisfies("process_managers=slurm"):
             opts = [
                 "--with-pm=slurm",
-                #        "--with-pmi=simple",
                 f"--with-slurm={spec['slurm'].prefix}",
                 f"CFLAGS=-I{spec['slurm'].prefix}/include/slurm",
             ]
@@ -219,7 +218,7 @@ class MvapichPlus(AutotoolsPackage):
         # mvapich2 configure fails when F90 and F90FLAGS are set
         env.unset("F90")
         env.unset("F90FLAGS")
-        if "+cuda" in self.spec:
+        if self.spec.satifsfies("+cuda"):
             env.prepend_path("PATH", self.spec["cuda"].prefix + "/bin")
             env.prepend_path("LIBRARY_PATH", self.spec["cuda"].prefix + "/lib")
             env.prepend_path("LD_LIBRARY_PATH", self.spec["cuda"].prefix + "/lib")
@@ -230,7 +229,7 @@ class MvapichPlus(AutotoolsPackage):
             env.prepend_path("CPLUS_INCLUDE_PATH", self.spec["cuda"].prefix + "/include")
             env.set("CUDA_HOME", self.spec["cuda"].prefix)
             env.set("CUDA_ROOT", self.spec["cuda"].prefix)
-        if "+rocm" in self.spec:
+        if self.spec.satisfies("+rocm"):
             env.prepend_path("PATH", self.spec["hip"].prefix + "/bin")
             env.prepend_path("LIBRARY_PATH", self.spec["hip"].prefix + "/lib")
             env.prepend_path("LD_LIBRARY_PATH", self.spec["hip"].prefix + "/lib")
@@ -316,7 +315,7 @@ class MvapichPlus(AutotoolsPackage):
         args.extend(self.enable_or_disable("alloca"))
         # args.append("--with-pmi=" + spec.variants["pmi_version"].value)
 
-        if "+debug" in self.spec:
+        if self.spec.satisfies("+debug"):
             args.extend(
                 [
                     "--disable-fast",
@@ -329,7 +328,7 @@ class MvapichPlus(AutotoolsPackage):
             )
         else:
             args.append("--enable-fast=all")
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             gpu_map = {"Volta": "70", "Ampere": "80", "Hopper": "90"}
             args.extend(
                 [
@@ -342,12 +341,12 @@ class MvapichPlus(AutotoolsPackage):
                     f"CXXFLAGS=-I{spec['cuda'].prefix + '/include'}",
                 ]
             )
-        if "+rocm" in self.spec:
+        if self.spec.satisfies("+rocm"):
             args.extend(
                 ["--enable-rocm", f"--with-rocm={spec['hip'].prefix}", "--enable-hip=basic"]
             )
 
-        if "+regcache" in self.spec:
+        if self.spec.satisfies("+regcache"):
             args.append("--enable-registration-cache")
         else:
             args.append("--disable-registration-cache")
