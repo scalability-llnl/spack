@@ -386,7 +386,7 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
 
     def url_for_version(self, version):
         _urlfmt = "http://www.paraview.org/files/v{0}/ParaView-v{1}{2}.tar.{3}"
-        """Handle ParaView version-based custom URLs."""
+        # Handle ParaView version-based custom URLs
         if version < Version("5.1.0"):
             return _urlfmt.format(version.up_to(2), version, "-source", "gz")
         elif version < Version("5.6.1"):

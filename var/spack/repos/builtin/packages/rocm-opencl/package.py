@@ -210,7 +210,7 @@ class RocmOpencl(CMakePackage):
             env.set("LDFLAGS", "-fuse-ld=lld")
 
     def setup_run_environment(self, env):
-        env.prepend_path("LD_LIBRARY_PATH", self.prefix.lib),
+        env.prepend_path("LD_LIBRARY_PATH", self.prefix.lib)
         env.set("OCL_ICD_VENDORS", self.prefix.vendors + "/")
 
     @run_after("install")

@@ -66,10 +66,6 @@ FLAG_HANDLER_RETURN_TYPE = Tuple[
 ]
 FLAG_HANDLER_TYPE = Callable[[str, Iterable[str]], FLAG_HANDLER_RETURN_TYPE]
 
-"""Allowed URL schemes for spack packages."""
-_ALLOWED_URL_SCHEMES = ["http", "https", "ftp", "file", "git"]
-
-
 #: Filename for the Spack build/install log.
 _spack_build_logfile = "spack-build-out.txt"
 

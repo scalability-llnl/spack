@@ -666,12 +666,12 @@ class Hip(CMakePackage):
         if self.spec.satisfies("@5.6.0:"):
             args.append(self.define("ROCCLR_PATH", self.stage.source_path + "/clr/rocclr"))
             args.append(self.define("AMD_OPENCL_PATH", self.stage.source_path + "/clr/opencl"))
-            args.append(self.define("CLR_BUILD_HIP", True)),
-            args.append(self.define("CLR_BUILD_OCL", False)),
+            args.append(self.define("CLR_BUILD_HIP", True))
+            args.append(self.define("CLR_BUILD_OCL", False))
         if self.spec.satisfies("@5.6:5.7"):
-            args.append(self.define("HIPCC_BIN_DIR", self.stage.source_path + "/hipcc/bin")),
+            args.append(self.define("HIPCC_BIN_DIR", self.stage.source_path + "/hipcc/bin"))
         if self.spec.satisfies("@6.0:"):
-            args.append(self.define("HIPCC_BIN_DIR", self.spec["hipcc"].prefix.bin)),
+            args.append(self.define("HIPCC_BIN_DIR", self.spec["hipcc"].prefix.bin))
         return args
 
     test_src_dir_old = "samples"
