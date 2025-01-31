@@ -3236,3 +3236,58 @@ def test_spec_unification(unify, mutable_config, mock_packages):
     maybe_fails = pytest.raises if unify is True else llnl.util.lang.nullcontext
     with maybe_fails(spack.solver.asp.UnsatisfiableSpecError):
         _ = spack.cmd.parse_specs([a_restricted, b], concretize=True)
+
+
+def test_concretization_cache_roundtrip(use_concretization_cache, monkeypatch, mutable_config):
+    """Tests whether we can write the results of a clingo solve to the cache
+     and load the same spec request from the cache to produce identical specs """
+    # Force determinism:
+    # Solver setup is normally non-deterministic due to non-determinism in
+    # asp solver setup logic generation. The only other inputs to the cache keys are
+    # the .lp files, which are invariant over the course of this test.
+    # This method forces the same setup to be produced for the same specs
+    # which gives us a guarantee of cache hits, as it removes the only
+    # element of non deterministic solver setup for the same spec
+    solver_setup = spack.solver.asp.SpackSolverSetup.setup
+    def _setup(self, specs, *, reuse, allow_deprecated=False):
+        if not getattr(_setup, "cache_setup", None):
+            cache_setup = solver_setup(self, specs, reuse, allow_deprecated)
+            setattr(_setup, "cache_setup", cache_setup)
+        return getattr(_setup, "cache_setup")
+    # monkeypatch our forced determinism setup method into solver setup
+    monkeypatch.setattr(spack.solver.asp.SpackSolverSetup, "setup", _setup)
+
+    # run one standard concretization to populate the cache and the setup method
+    # memoization
+    h = spack.concretize.concretize_one("hdf5")
+
+    # run one concretization with an external to ensure that information is appropriately loaded
+    packages_yaml = {
+        "all": {"compiler": ["clang", "gcc"]},
+        "cmake": {
+            "externals": [{"spec": "cmake@3.4.3", "prefix": "/usr"}],
+            "buildable": False,
+        },
+    }
+    mutable_config.set("packages", packages_yaml)
+    c = spack.concretize.concretize_one("cmake")
+    # sanity check
+    assert c.external
+
+    # due to our forced determinism above, we should not be observing
+    # cache misses, assert that we're not storing any new cache entries
+    def _ensure_no_store(self, problem: str, result, statistics, test = False):
+        # always throw, we never want to reach this code path
+        assert False, "Concretization cache hit expected"
+    monkeypatch(spack.solver.asp.ConcretizationCache, "store", _ensure_no_store)
+
+    # ensure subsequent concretizations of the same spec produce the same spec
+    # object
+    for _ in range(5):
+        assert h == spack.concretize.concretize_one("hdf5")
+
+    # ensure externals loaded from cache are marked appropriately
+    cache_c = spack.concretize.concretize_one("cmake")
+
+    assert cache_c.external
+    assert c == cache_c
