@@ -785,6 +785,10 @@ class ConcretizationCache:
         with open(self._cache_manifest, "r+", encoding="utf-8") as f:
             # check if manifest is empty
             count, cache_bytes = self._extract_cache_metadata(f)
+            if not count or not cache_bytes:
+                # cache is unintialized
+                count = 0
+                cache_bytes = 0
             new_stats = f"{int(count)+1} {int(cache_bytes)+bytes_written}\n"
             f.write(new_stats)
             f.seek(0, io.SEEK_END)
