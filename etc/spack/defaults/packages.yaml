@@ -69,6 +69,11 @@ packages:
       yacc: [bison, byacc]
       ziglang: [zig]
       zlib-api: [zlib-ng+compat, zlib]
+      # Dummy providers for module hierarchy (JCSDA repo only):
+      esmf_virtual: [esmf]
+      hdf5_virtual: [hdf5]
+      netcdf_c_virtual: [netcdf-c]
+      python_virtual: [python]
     permissions:
       read: world
       write: user
