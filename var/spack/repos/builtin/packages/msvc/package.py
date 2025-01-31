@@ -4,6 +4,7 @@
 import re
 
 import spack.compiler
+from spack.platforms import Windows
 from spack.package import *
 
 
@@ -25,6 +26,8 @@ class Msvc(Package, CompilerPackage):
     cxx_names = ["cl"]
     compiler_version_argument = ""
     compiler_version_regex = r"([1-9][0-9]*\.[0-9]*\.[0-9]*)"
+    is_supported_on_platform = lambda x: isinstance(x, Windows)
+
 
     @classmethod
     def determine_version(cls, exe):

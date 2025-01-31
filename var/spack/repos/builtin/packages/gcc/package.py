@@ -553,6 +553,9 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
 
     compiler_languages = ["c", "cxx", "fortran", "d", "go"]
 
+    # gcc works everywhere but Windows
+    is_supported_on_platform = lambda x: not isinstance(x, spack.platforms.Windows)
+
     @property
     def supported_languages(self):
         # This weirdness is because it could be called on an abstract spec
