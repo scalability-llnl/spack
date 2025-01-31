@@ -165,7 +165,7 @@ class Sirius(CMakePackage, CudaPackage, ROCmPackage):
         # spla removed the openmp option in 1.6.0
         conflicts("^spla@:1.5~openmp", when="+openmp")
 
-    patch("libxc7.patch", when="@7.5:7.6.2")
+    patch("libxc7.patch", when="@7.6.0:7.6.1")
 
     depends_on("nlcglib", when="+nlcglib")
     depends_on("nlcglib+rocm", when="+nlcglib+rocm")
