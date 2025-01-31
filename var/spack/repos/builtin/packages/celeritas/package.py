@@ -85,6 +85,8 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
     with when("+cuda"):
         depends_on("thrust")
     with when("+rocm"):
+        depends_on("rocprim")
+        depends_on("rocrand")
         depends_on("rocthrust")
 
     for _std in _cxxstd_values:
@@ -129,8 +131,8 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
         if self.spec.satisfies("+cuda"):
             args.append(CMakeBuilder.define_cuda_architectures(self))
         if self.spec.satisfies("+rocm"):
+            args.append(define("CMAKE_CXX_COMPILER", spec['hip'].prefix.bin.hipcc))
             args.append(CMakeBuilder.define_hip_architectures(self))
-            args.append(define("Thrust_ROOT", self.spec["rocthrust"].prefix))
 
         if self.version < Version("0.5"):
             # JSON is required for 0.5 and later
