@@ -171,6 +171,7 @@ bootstrapping.
    To register the mirror on the platform where it's supposed to be used run the following command(s):
      % spack bootstrap add --trust local-sources /opt/bootstrap/metadata/sources
      % spack bootstrap add --trust local-binaries /opt/bootstrap/metadata/binaries
+     % spack buildcache update-index /opt/bootstrap/bootstrap_cache
 
 
 This command needs to be run on a machine with internet access and the resulting folder
