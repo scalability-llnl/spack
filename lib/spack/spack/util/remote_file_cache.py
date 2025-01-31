@@ -5,6 +5,7 @@
 import os.path
 import urllib.parse
 import urllib.request
+from typing import Callable
 
 import llnl.util.tty as tty
 from llnl.util.filesystem import join_path
@@ -124,12 +125,12 @@ def fetch_remote_files(url: str, extension: str, dest_dir: str, skip_existing: b
     raise spack.error.RemoteFileError(f"Cannot retrieve remote ({extension}) file(s) from {url}")
 
 
-def local_path(raw_path: str, stage_dir: str) -> str:
+def local_path(raw_path: str, make_stage: Callable[[], str]) -> str:
     """Determine the actual path and, if remote, stage its contents locally.
 
     Args:
         raw_path: raw path with possible variables needing substitution
-        stage_dir: local stage directory for remote files
+        make_stage: function to create a stage for remote files, if needed (e.g., `mkdtemp`)
 
     Returns: resolved local path
 
@@ -150,12 +151,11 @@ def local_path(raw_path: str, stage_dir: str) -> str:
 
         # Any other URL should be fetched.
         elif url.scheme in ("http", "https", "ftp"):
-            if stage_dir is None:
+            if make_stage is None:
                 raise ValueError("Local stage directory is required to cache remote files")
 
             # Stage any remote configuration file(s)
-            staged_files = os.listdir(stage_dir) if os.path.exists(stage_dir) else []
-            tty.debug(f"Remote staged files in {stage_dir} are: {staged_files}")
+            stage_dir = make_stage()
             try:
                 staged_path = fetch_remote_files(path, ".yaml", str(stage_dir), skip_existing=True)
             except (spack.error.RemoteFileError, ValueError):
