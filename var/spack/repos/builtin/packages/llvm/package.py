@@ -5,7 +5,6 @@ import os
 import re
 import sys
 
-import llnl.util.tty as tty
 from llnl.util.lang import classproperty
 
 import spack.compilers
