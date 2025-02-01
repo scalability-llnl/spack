@@ -852,7 +852,7 @@ class DevelopStage(LockableStagingDir):
     def create(self):
         super().create()
         try:
-            self._write_link_breadcrumb()
+            DevelopStage._update_link_dict(self.dev_path)
             llnl.util.symlink.symlink(self.path, self.reference_link)
         except (llnl.util.symlink.AlreadyExistsError, FileExistsError):
             pass
@@ -864,21 +864,25 @@ class DevelopStage(LockableStagingDir):
         return os.path.join(path, DevelopStage.breadcrumb)
 
     @staticmethod
-    def _update_link_dict(path):
+    def _update_link_dict(path, updates=None):
         import json
         new_refs = {}
-        with open(path, "r", encoding="utf-8") as f:
-            link_to_stage = json.load(f)
-        for link_path, stage_path in link_to_stage.items():
-            if not llnl.util.symlink.islink(link_path):
-                continue
-            target = llnl.util.symlink.readlink(link_path)
-            if target == stage_path and not os.path.exists(stage_path):
-                os.unlink(link_path)
-            else:
-                new_refs[link_path] = stage_path
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(new_refs, f)
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                link_to_stage = json.load(f)
+            for link_path, stage_path in link_to_stage.items():
+                if not llnl.util.symlink.islink(link_path):
+                    continue
+                target = llnl.util.symlink.readlink(link_path)
+                if target == stage_path and not os.path.exists(stage_path):
+                    os.unlink(link_path)
+                else:
+                    new_refs[link_path] = stage_path
+        if updates:
+            new_refs.update(updates)
+        if new_refs:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(new_refs, f)
 
     def _write_link_breadcrumb(self):
         DevelopStage._update_link_dict
