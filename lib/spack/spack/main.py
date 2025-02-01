@@ -46,7 +46,6 @@ import spack.store
 import spack.util.debug
 import spack.util.environment
 import spack.util.lock
-import spack.util.web_config as web_config
 
 #: names of profile statistics
 stat_names = pstats.Stats.sort_arg_dict_default
@@ -582,9 +581,6 @@ def allows_unknown_args(command):
 
 def _invoke_command(command, parser, args, unknown_args):
     """Run a spack command *without* setting spack global options."""
-    # Ensure basic configuration options are reflected in web_config
-    web_config.update(spack.config.CONFIG)
-
     if allows_unknown_args(command):
         return_val = command(parser, args, unknown_args)
     else:
