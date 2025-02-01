@@ -49,6 +49,7 @@ import spack.repo
 import spack.spec
 import spack.store
 import spack.util.crypto
+import spack.util.hash
 import spack.util.libc
 import spack.util.lock as lk
 import spack.util.path
@@ -702,9 +703,9 @@ class ConcretizationCache:
                         i += 1
                 if pruned:
                     self._write_manifest(f, entry_count, manifest_bytes)
-        for cache_dir in self.root.iterdir():
-            if cache_dir.is_dir() and not any(cache_dir.iterdir()):
-                self._safe_remove(cache_dir)
+            for cache_dir in self.root.iterdir():
+                if cache_dir.is_dir() and not any(cache_dir.iterdir()):
+                    self._safe_remove(cache_dir)
 
     def cache_entries(self):
         for cache_dir in self.root.iterdir():
@@ -781,6 +782,13 @@ class ConcretizationCache:
         corresponding to the given sha256 hash"""
         return self.root / hash[:2] / hash
 
+    def lock_prefix_from_cache_path(self, cache_path):
+        """Returns the bit location corresponding to a given cache entry path
+        for file locking"""
+        return spack.util.hash.base32_prefix_bits(
+            cache_path, spack.util.crypto.bit_length(sys.maxsize)
+        )
+
     def _update_manifest(self, cache_path: pathlib.Path, bytes_written: int):
         self._cache_manifest.touch(exist_ok=True)
         with open(self._cache_manifest, "r+", encoding="utf-8") as f:
@@ -811,11 +819,10 @@ class ConcretizationCache:
         return False
 
     def _safe_read(self, cache_path: pathlib.Path):
-        with lk.ReadTransaction(lk.Lock(str(self._cache_manifest), start=, length=1)):
-            try:
-                return cache_path.read_text()
-            except FileNotFoundError:
-                tty.debug(f"Unable to read cache entry, {str(cache_path)} does not exist")
+        try:
+            return cache_path.read_text()
+        except FileNotFoundError:
+            tty.debug(f"Unable to read cache entry, {str(cache_path)} does not exist")
 
     def _safe_write(self, cache_path: pathlib.Path, output: str):
         try:
@@ -823,14 +830,15 @@ class ConcretizationCache:
                 bytes_out = tf.write(output)
                 tf.close()
                 shutil.move(tf.name, cache_path)
-            with lk.WriteTransaction(self._lock):
-                self._update_manifest(cache_path, bytes_out)
+            # the line above will cause this logic to short circuit if
+            # there's an existing entry for this hash, preventing
+            # a duplicate write to the manifest
+            self._update_manifest(cache_path, bytes_out)
             return bytes_out
         except FileExistsError:
             tty.debug(
                 f"Cache entry {str(cache_path)} exists already, created by another Spack process"
             )
-        return 0
 
     @contextmanager
     def _create_cache_entry(self, entry: pathlib.Path):
@@ -860,9 +868,13 @@ class ConcretizationCache:
         problem.
         """
         cache_path = self._cache_path_from_problem(problem)
-        with self._create_cache_entry(cache_path):
-            cache_dict = {"results": result.to_dict(test=test), "statistics": statistics}
-            self._safe_write(cache_path, json.dumps(cache_dict))
+        lock_prefix = self.lock_prefix_from_cache_path(cache_path)
+        with lk.WriteTransaction(lk.Lock(str(self._cache_manifest), start=lock_prefix, length=1)):
+            with self._create_cache_entry(cache_path):
+                cache_dict = {"results": result.to_dict(test=test), "statistics": statistics}
+                self._safe_write(cache_path, json.dumps(cache_dict))
+        # dismiss the lock for cleanup, allow other processes to add to the cache
+        # before cleanup, which takes its own lock
         self.cleanup()
 
     def fetch(self, problem: str) -> Union[Tuple[Result, List], Tuple[None, None]]:
@@ -873,24 +885,30 @@ class ConcretizationCache:
         or returns none if no cache entry was found.
         """
         cache_path = self._cache_path_from_problem(problem)
-        result = self._results_from_cache(cache_path)
-        statistics = self._stats_from_cache(cache_path)
+        lock_prefix = self.lock_prefix_from_cache_path(cache_path)
+        result, statistics = None, None
+        with lk.ReadTransaction(lk.Lock(str(self._cache_manifest), start=lock_prefix, length=1)):
+            result = self._results_from_cache(cache_path)
+            statistics = self._stats_from_cache(cache_path)
         if result and statistics:
             tty.debug(f"Concretization cache hit at {str(cache_path)}")
             return result, statistics
         tty.debug(f"Concretization cache miss at {str(cache_path)}")
         return None, None
 
-    def remove(self, problem: str) -> bool:
+    def remove(self, problem: str) -> Union[None, bool]:
         """Removes cache entry associated with problem"""
-        cache_path = self._cache_path_from_problem(problem)
-        return self._safe_remove(cache_path)
+        with lk.WriteTransaction(lk.Lock(str(self._cache_manifest))):
+            cache_path = self._cache_path_from_problem(problem)
+            return self._safe_remove(cache_path)
+        return None
 
     def destroy(self) -> None:
-        for cache_entry in self.cache_entries():
-            self._safe_remove(cache_entry)
-        for cache_dir in self.root.iterdir():
-            self._safe_remove(cache_dir)
+        with lk.WriteTransaction(lk.Lock(str(self._cache_manifest))):
+            for cache_entry in self.cache_entries():
+                self._safe_remove(cache_entry)
+            for cache_dir in self.root.iterdir():
+                self._safe_remove(cache_dir)
 
 
 CONC_CACHE = llnl.util.lang.Singleton(lambda: ConcretizationCache())
