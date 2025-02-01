@@ -7,6 +7,7 @@ and running executables.
 import collections
 import concurrent.futures
 import os
+import pathlib
 import re
 import sys
 import traceback
@@ -15,6 +16,7 @@ from typing import Dict, Iterable, List, Optional, Set, Tuple, Type
 
 import llnl.util.filesystem
 import llnl.util.lang
+import llnl.util.symlink
 import llnl.util.tty
 
 import spack.error
@@ -70,13 +72,23 @@ def dedupe_paths(paths: List[str]) -> List[str]:
     """Deduplicate paths based on inode and device number. In case the list contains first a
     symlink and then the directory it points to, the symlink is replaced with the directory path.
     This ensures that we pick for example ``/usr/bin`` over ``/bin`` if the latter is a symlink to
-    the former`."""
+    the former."""
     seen: Dict[Tuple[int, int], str] = {}
     for path in paths:
         identifier = file_identifier(path)
         if identifier not in seen:
             seen[identifier] = path
-        elif not os.path.islink(path):
+        # OneAPI symlinks a "latest" directory to a versioned directory
+        # where the layout is something like:
+        # latest -> 2025.0
+        # 2025.0  /
+        #         | - bin
+        #         | - lib
+        #         etc
+        # checking if latest/bin is a symlink will return false because the bin directory
+        # is not a symlink, and will cause the "latest/bin" dir to override the "2025.0/bin"
+        # checking for all parent paths of our detected binaries will prevent this case 
+        elif not any([llnl.util.symlink.islink(str(x)) for x in pathlib.Path(path).parents]):
             seen[identifier] = path
     return list(seen.values())
 
@@ -260,6 +272,8 @@ class Finder:
             return []
 
         result = []
+        # we cannot group by prefix here, not all the paths for a given package are in the same prefix
+        # oneAPI + MSVC integration
         for candidate_path, items_in_prefix in _group_by_prefix(
             llnl.util.lang.dedupe(paths)
         ).items():
@@ -339,6 +353,8 @@ class Finder:
         if initial_guess is None:
             initial_guess = self.default_path_hints()
             initial_guess.extend(common_windows_package_paths(pkg_cls))
+        if pkg_name == "builtin.msvc":
+            import pdb; pdb.set_trace()
         candidates = self.candidate_files(patterns=patterns, paths=initial_guess)
         result = self.detect_specs(pkg=pkg_cls, paths=candidates)
         return result
@@ -428,19 +444,20 @@ def by_path(
     repository = spack.repo.PATH.ensure_unwrapped()
     with spack.util.parallel.make_concurrent_executor(max_workers, require_fork=False) as executor:
         for pkg in packages_to_search:
-            executable_future = executor.submit(
-                executables_finder.find,
-                pkg_name=pkg,
-                initial_guess=path_hints,
-                repository=repository,
-            )
-            library_future = executor.submit(
-                libraries_finder.find,
-                pkg_name=pkg,
-                initial_guess=path_hints,
-                repository=repository,
-            )
-            detected_specs_by_package[pkg] = executable_future, library_future
+            # executable_future = executor.submit(
+            #     executables_finder.find,
+            #     pkg_name=pkg,
+            #     initial_guess=path_hints,
+            #     repository=repository,
+            # )
+            # library_future = executor.submit(
+            #     libraries_finder.find,
+            #     pkg_name=pkg,
+            #     initial_guess=path_hints,
+            #     repository=repository,
+            # )
+            # detected_specs_by_package[pkg] = executable_future, library_future
+            executables_finder.find(pkg_name=pkg, initial_guess=path_hints, repository=repository)
 
         for pkg_name, futures in detected_specs_by_package.items():
             for future in futures:

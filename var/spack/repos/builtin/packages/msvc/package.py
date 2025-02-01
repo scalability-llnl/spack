@@ -31,7 +31,7 @@ class Msvc(Package, CompilerPackage):
             "detected on a system where they are externally installed"
         )
 
-    compiler_languages = ["c", "cxx"]
+    compiler_languages = ["c", "cxx", "fortran"]
     c_names = ["cl"]
     cxx_names = ["cl"]
     fortran_names = ["ifx", "ifort"]
