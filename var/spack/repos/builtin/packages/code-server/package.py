@@ -12,6 +12,7 @@ class CodeServer(Package):
     homepage = "https://coder.com/docs/code-server/latest"
     url = "https://github.com/coder/code-server/releases/download/v4.4.0/code-server-4.4.0-linux-amd64.tar.gz"
 
+    version("4.96.4", sha256="b3f9025d00f2cdf61caf83945ef7225d4a3eb576c4c007e45868f45713e39c8e")
     version("4.12.0", sha256="d50ee947c4144a6ff2656e664ecbb3f70b75168b8a6e8c3eef47787f3c240c26")
     version("4.11.0", sha256="4eb233054941ec298caec6fc84dfba0a72c1bc5fadc0fe4896b10f3f4a291d51")
     version("4.10.1", sha256="f34ce611a9c058982a5e9d200fdf009788e3a564e970b053f4145574bce21b09")
