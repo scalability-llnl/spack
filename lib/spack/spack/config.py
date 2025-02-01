@@ -922,7 +922,7 @@ def config_paths_from_entry_points() -> List[Tuple[str, str]]:
     return config_paths
 
 
-def create() -> Configuration:
+def create_incremental() -> Generator[Configuration, None, None]:
     """Singleton Configuration instance.
 
     This constructs one instance associated with this module and returns
@@ -966,11 +966,25 @@ def create() -> Configuration:
         # Each scope can have per-platform overrides in subdirectories
         _add_platform_scope(cfg, name, path, priority=ConfigScopePriority.CONFIG_FILES)
 
-    return cfg
+        # yield the config incrementally so that each config level's init code can get
+        # data from the one below. This can be tricky, but it enables us to have a
+        # single unified config system.
+        #
+        # TODO: think about whether we want to restrict what types of config can be used
+        #     at each level. e.g., we may want to just more forcibly disallow remote
+        #     config (which uses ssl and other config options) for some of the scopes,
+        #     to make the bootstrap issues more explicit, even if allowing config scope
+        #     init to reference lower scopes is more flexible.
+        yield cfg
+
+
+def create() -> Configuration:
+    """Create a configuration using create_incremental(), return the last yielded result."""
+    return list(create_incremental())[-1]
 
 
 #: This is the singleton configuration instance for Spack.
-CONFIG: Configuration = lang.Singleton(create)  # type: ignore
+CONFIG: Configuration = lang.Singleton(create_incremental)  # type: ignore
 
 
 def add_from_file(filename: str, scope: Optional[str] = None) -> None:
