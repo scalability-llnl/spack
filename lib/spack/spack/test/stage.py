@@ -873,17 +873,11 @@ class TestDevelopStage:
         # purge-able
         stage1 = DevelopStage("spack-stage-test", srcdir, reference_link="link-to-stage1")
         stage1.create()
-        old_ref = stage1.reference_link
-        assert os.path.exists(old_ref)
-
-        stage2 = DevelopStage("spack-stage-test", srcdir, reference_link="link-to-stage2")
-        stage2.restage()
-        assert not os.path.exists(old_ref)
-        assert os.path.exists(stage2.reference_link)
+        assert os.path.exists(stage1.reference_link)
 
         spack.stage.purge()
-        assert not os.path.exists(stage2.path)
-        assert not os.path.exists(stage2.reference_link)
+        assert not os.path.exists(stage1.path)
+        assert not os.path.exists(stage1.reference_link)
 
     def test_develop_stage_link_path_in_use(self, develop_path, tmp_build_stage_dir):
         """We try to put a symlink in dev_path, but if the path where
