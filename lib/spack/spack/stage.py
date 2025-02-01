@@ -852,48 +852,47 @@ class DevelopStage(LockableStagingDir):
         except (llnl.util.symlink.AlreadyExistsError, FileExistsError):
             pass
 
-    breadcrumb = ".spack-stage-link"
+    breadcrumb = ".spack-develop-stage-link"
 
-    @property
-    def _link_breadcrumb(self):
+    @staticmethod
+    def _link_breadcrumb(stage_path):
         # This will store the location of the `reference_link` that
         # points into the `path`, the location of this link is customizable
         # with config:develop_stage_link, so can be difficult to retrieve
         # unless we track it in this way
-        return os.path.join(self.path, DevelopStage.breadcrumb)
+        return os.path.join(stage_path, DevelopStage.breadcrumb)
 
     def _write_link_breadcrumb(self):
-        with open(self._link_breadcrumb, "w", encoding="utf-8") as f:
+        with open(DevelopStage._link_breadcrumb(self.path), "w", encoding="utf-8") as f:
             f.write(self.reference_link)
 
-    def _read_link_breadcrumb(self):
-        with open(self._link_breadcrumb, "r", encoding="utf-8") as f:
+    @staticmethod
+    def _read_link_breadcrumb(stage_path):
+        with open(DevelopStage._link_breadcrumb(stage_path), "r", encoding="utf-8") as f:
             return f.read()
 
-    def destroy(self):
+    @staticmethod
+    def _delete_reference_link(stage_path):
         link_path = None
         try:
-            if os.path.exists(self.path):
-                link_path = self._read_link_breadcrumb()
+            if os.path.exists(stage_path):
+                link_path = DevelopStage._read_link_breadcrumb(stage_path)
         except FileNotFoundError:
-            # If this stage predates #48814, it won't have file to
-            # track the link that is stored in dev_path, in that case
-            # the best we can do is attempt to retrieve what we
-            # currently consider the reference link, which would change
-            # if the hash of the developed package has changed.
-            if os.path.exists(self.reference_link):
-                link_path = self.reference_link
+            pass
+
+        if link_path and llnl.util.symlink.islink(link_path):
+            target = llnl.util.symlink.readlink(link_path)
+            if target == stage_path:
+                os.unlink(link_path)
+
+    def destroy(self):
+        DevelopStage._delete_reference_link(self.path)
 
         try:
             # Destroy all files, but do not follow symlinks
             shutil.rmtree(self.path)
         except FileNotFoundError:
             pass
-
-        if link_path and llnl.util.symlink.islink(link_path):
-            target = llnl.util.symlink.readlink(link_path)
-            if target == self.path:
-                os.unlink(link_path)
 
         self.created = False
 
@@ -918,6 +917,9 @@ def purge():
         for stage_dir in os.listdir(root):
             if stage_dir.startswith(stage_prefix) or stage_dir == ".lock":
                 stage_path = os.path.join(root, stage_dir)
+
+                DevelopStage._delete_reference_link(stage_path)
+
                 if os.path.isdir(stage_path):
                     remove_linked_tree(stage_path)
                 else:
