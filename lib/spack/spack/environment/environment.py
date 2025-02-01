@@ -2631,6 +2631,7 @@ def initialize_environment_dir(
         # error handling for bad manifests is handled on other code paths
         return
 
+    # TODO: make this recursive
     includes = manifest[TOP_LEVEL_KEY].get("include", [])
     for include in includes:
         if os.path.isabs(include):
