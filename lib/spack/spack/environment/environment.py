@@ -2634,6 +2634,32 @@ def initialize_environment_dir(
 
     shutil.copy(envfile, target_manifest)
 
+    # Copy relative path includes that live inside the environment dir
+    try:
+        manifest = EnvironmentManifestFile(environment_dir)
+    except Exception:
+        # error handling for bad manifests is handled on other code paths
+        return
+
+    includes = manifest[TOP_LEVEL_KEY].get("include", [])
+    for include in includes:
+        if os.path.isabs(include):
+            continue
+
+        abspath = pathlib.Path(os.path.normpath(environment_dir / include))
+        common_path = pathlib.Path(os.path.commonpath([environment_dir, abspath]))
+        if common_path != environment_dir:
+            tty.debug(f"Will not copy relative include from outside environment: {include}")
+            continue
+
+        orig_abspath = os.path.normpath(envfile.parent / include)
+        if not os.path.exists(orig_abspath):
+            tty.warn(f"Included file does not exist; will not copy: '{include}'")
+            continue
+
+        fs.touchp(abspath)
+        shutil.copy(orig_abspath, abspath)
+
 
 class EnvironmentManifestFile(collections.abc.Mapping):
     """Manages the in-memory representation of a manifest file, and its synchronization
