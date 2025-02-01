@@ -2,10 +2,11 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems import autotools, meson
 from spack.package import *
 
 
-class Cairo(AutotoolsPackage):
+class Cairo(AutotoolsPackage, MesonPackage):
     """Cairo is a 2D graphics library with support for multiple output
     devices."""
 
@@ -14,6 +15,7 @@ class Cairo(AutotoolsPackage):
 
     license("LGPL-2.1-or-later OR MPL-1.1", checked_by="tgamblin")
 
+    version("1.18.2", sha256="a62b9bb42425e844cc3d6ddde043ff39dbabedd1542eba57a2eb79f85889d45a")
     version("1.18.0", sha256="243a0736b978a33dee29f9cca7521733b78a65b5418206fef7bd1c3d4cf10b64")
     version(
         "1.17.4",
@@ -25,11 +27,7 @@ class Cairo(AutotoolsPackage):
         sha256="6b70d4655e2a47a22b101c666f4b29ba746eda4aa8a0f7255b32b2e9408801df",
         url="https://cairographics.org/snapshots/cairo-1.17.2.tar.xz",
     )  # Snapshot
-    version(
-        "1.16.0",
-        sha256="5e7b29b3f113ef870d1e3ecf8adf21f923396401604bda16d44be45e66052331",
-        preferred=True,
-    )
+    version("1.16.0", sha256="5e7b29b3f113ef870d1e3ecf8adf21f923396401604bda16d44be45e66052331")
     version("1.14.12", sha256="8c90f00c500b2299c0a323dd9beead2a00353752b2092ead558139bd67f7bf16")
     version("1.14.8", sha256="d1f2d98ae9a4111564f6de4e013d639cf77155baf2556582295a0f00a9bc5e20")
     version("1.14.0", sha256="2cf5f81432e77ea4359af9dcd0f4faf37d015934501391c311bfd2d19a0134b7")
@@ -37,43 +35,191 @@ class Cairo(AutotoolsPackage):
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
 
+    build_system(
+        conditional("meson", when="@1.17.6:"),
+        conditional("autotools", when="@:1.17.4"),
+        default="meson",
+    )
+
     variant("X", default=False, description="Build with X11 support")
-    variant("pdf", default=False, description="Enable cairo's PDF surface backend feature")
     variant("gobject", default=False, description="Enable cairo's gobject functions feature")
-    variant("ft", default=False, description="Enable cairo's FreeType font backend feature")
-    variant("fc", default=False, description="Enable cairo's Fontconfig font backend feature")
-    variant("png", default=False, description="Enable cairo's PNG functions feature")
-    variant("svg", default=False, description="Enable cairo's SVG functions feature")
-    variant("shared", default=True, description="Build shared libraries")
-    variant("pic", default=True, description="Enable position-independent code (PIC)")
 
-    depends_on("libx11", when="+X")
-    depends_on("libxext", when="+X")
-    depends_on("libxrender", when="+X")
-    depends_on("libxcb", when="+X")
-    depends_on("python", when="+X", type="build")
-    depends_on("libpng", when="+png")
-    depends_on("glib")
-    depends_on("pixman@0.36.0:", when="@1.17.2:")
-    depends_on("pixman")
-    depends_on("automake", type="build")
-    depends_on("autoconf", type="build")
-    depends_on("libtool", type="build")
-    depends_on("m4", type="build")
-    depends_on("freetype build_system=autotools", when="+ft")
+
+    with when("@:1.17.6"):
+        variant("png", default=False, description="Enable cairo's PNG functions feature")
+        variant("svg", default=False, description="Enable cairo's SVG functions feature")
+        variant("shared", default=True, description="Build shared libraries")
+        variant("pic", default=True, description="Enable position-independent code (PIC)")
+        variant("pdf", default=False, description="Enable cairo's PDF surface backend feature")
+        variant("ft", default=False, description="Enable cairo's FreeType font backend feature")
+        variant("fc", default=False, description="Enable cairo's Fontconfig font backend feature")
+
+        # seems to be an older cairo limitation as cairo@1.18.2 seems to build fine against libpng
+        conflicts("+png", when="platform=darwin")
+        conflicts("+svg", when="platform=darwin")
+
+        conflicts("+shared~pic")
+
+    # meson is the only build system from now
+    # these names follow those listed here
+    # https://gitlab.freedesktop.org/cairo/cairo/-/blob/1.18.2/meson_options.txt
+    with when("@1.17.8:"):
+        variant("dwrite", default=False, description="Microsoft Windows DWrite font backend")
+
+        # doesn't exist @1.17.8: but kept as compatibility
+        variant(
+            "pdf",
+            default=False,
+            description="+pdf implies +zlib now. ~pdf does nothing",
+        )
+        # svg is combined into png now, kept seperate for compatibility
+        variant(
+            "svg",
+            default=False,
+            description="+svg implies +png now. ~svg does nothing",
+        )
+
+        # meson seems to have assumptions about what is enabled/disabled
+        # these four compile best if +variant in unison, otherwise various errors happen if these aren't in sync
+        # easier to have a sane default. conflicts below try to protect known incompatibilities 
+        variant("png", default=True, description="Enable cairo's PNG and SVG functions feature.")
+        variant("ft", default=True, description="Enable cairo's FreeType font backend feature.")
+        variant("fc", default=True, description="Enable cairo's Fontconfig font backend feature.")
+        variant(
+            "zlib",
+            default=True,
+            description="Enable cairo's script, ps, pdf, xml functions feature. +ft,+fc, +zlib, +png must be in sync.",
+        )
+
+        variant("quartz", default=False, description="Enable cairo's Quartz functions feature")
+        variant("tee", default=False, description="Enable cairo's tee functions feature")
+
+
+        # not in spack
+        variant(
+            "spectre",
+            default=False,
+            description="Not available. Enable cairo's spectre functions feature",
+        )
+
+        # (bfd might be too old) with binutils 2.43.1 on macos
+        #  so not sure how this is supposed to work
+        variant(
+            "symbol-lookup",
+            default=False,
+            description="Not available. Enable cairo's symbol lookup functions feature",
+        )
+
+        # not currently supported variants
+        conflicts("+spectre", msg="Not currently supported")
+        conflicts("+symbol-lookup", msg="Not currently supported")
+
+        # these must be unified now
+        # conflicts("+png~svg", msg="+png implies +svg")
+        # conflicts("~png+svg", msg="~png implies ~svg")
+
+        # these must be unified now
+        conflicts("~pdf+zlib", msg="+zlib implies +pdf")
+        conflicts("+pdf~zlib", msg="+pdf implies +zlib")
+
+        # meson seems to have assumptions about what is enabled/disabled
+        # so this protects against incompatible combinations
+        conflicts("~zlib+png", msg="+png requires +zlib")
+        conflicts("~ft+fc", msg="+fc requires +ft")
+        conflicts("+ft+fc~zlib", msg="+fc+ft requires +zlib")
+        conflicts("+fc+ft~png+zlib", msg="+ft+fc+zlib requires +png")
+
+    # meson also needs this for auto discovery of depends
     depends_on("pkgconfig", type="build")
-    depends_on("fontconfig@2.10.91:", when="+fc")  # Require newer version of fontconfig.
-    depends_on("which", type="build")
 
-    conflicts("+png", when="platform=darwin")
-    conflicts("+svg", when="platform=darwin")
-    conflicts("+shared~pic")
+    with when("@:1.17.6"):
+        depends_on("automake", type="build")
+        depends_on("autoconf", type="build")
+        depends_on("libtool", type="build")
+
+        depends_on("m4", type="build")
+
+        depends_on("pixman@0.36.0:", when="@1.17.2:")
+        depends_on("freetype build_system=autotools", when="+ft")
+        depends_on("fontconfig@2.10.91:", when="+fc")  # Require newer version of fontconfig.
+        depends_on("libpng", when="+png")
+        depends_on("glib")
+        depends_on("which", type="build")
+
+    with when("@1.17.8:"):
+        depends_on("meson@1.3.0:")
+        depends_on("freetype@2.13.0:", when="+ft")
+        depends_on("libpng@1.4.0:", when="+png")
+
+        depends_on("glib@2.14:", when="+gobject")
+        depends_on("pixman@0.40.0:")
+        depends_on("fontconfig@2.13.0:", when="+fc")
+        depends_on("binutils", when="+symbol-lookup")
+
+
+    with when("+X"):
+        depends_on("libx11")
+        depends_on("libxext")
+
+        depends_on("libxrender")
+        depends_on("libxrender@0.6:", when="@1.17.8:")
+
+        depends_on("libxcb")
+        depends_on("libxcb@1.6:", when="@1.17.8:")
+
+        depends_on("python", type="build")
 
     # patch from https://gitlab.freedesktop.org/cairo/cairo/issues/346
     patch("fontconfig.patch", when="@1.16.0:1.17.2")
     # Don't regenerate docs to avoid a dependency on gtk-doc
-    patch("disable-gtk-docs.patch", when="^autoconf@2.70:")
+    patch("disable-gtk-docs.patch", when="@:1.17.6^autoconf@2.70:")
 
+
+
+class MesonBuilder(meson.MesonBuilder):
+    def enable_or_disable(self, feature_name, variant=None):
+        if variant is None:
+            variant = feature_name
+        return (
+            f"-D{feature_name}=enabled"
+            if self.spec.satisfies(f"+{variant}")
+            else f"-D{feature_name}=disabled"
+        )
+
+    def meson_args(self):
+        args = []
+
+        args.append(self.enable_or_disable("dwrite"))
+        args.append(self.enable_or_disable("fontconfig", variant="ft"))
+        args.append(self.enable_or_disable("freetype", variant="fc"))
+
+        # +svg implies png now
+        if self.spec.satisfies("+svg"):
+            self.spec.variants["png"].value = True
+
+        args.append(self.enable_or_disable("png"))
+
+        args.append(self.enable_or_disable("quartz"))
+        args.append(self.enable_or_disable("tee"))
+        args.append(self.enable_or_disable("xcb"))
+
+        args.append(self.enable_or_disable("xlib", variant="X"))
+        args.append(self.enable_or_disable("xlib-xcb", variant="X"))
+
+        # +pdf implies zlib now
+        if self.spec.satisfies("+pdf"):
+            self.spec.variants["zlib"].value = True
+
+        args.append(self.enable_or_disable("zlib"))
+
+        args.append(self.enable_or_disable("glib", variant="gobject"))
+        args.append(self.enable_or_disable("spectre"))
+        args.append(self.enable_or_disable("symbol-lookup"))
+
+        return args
+
+
+class AutotoolsBuilder(autotools.AutotoolsBuilder):
     def autoreconf(self, spec, prefix):
         # Regenerate, directing the script *not* to call configure before Spack
         # does
