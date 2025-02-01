@@ -62,8 +62,6 @@ import spack.schema.packages
 import spack.schema.repos
 import spack.schema.upstreams
 import spack.schema.view
-import spack.util.path
-import spack.util.remote_file_cache as rfc_util
 import spack.util.spack_yaml as syaml
 from spack.util.cpus import cpus_available
 
@@ -856,7 +854,10 @@ def include_path_scope(include: IncludePath) -> Optional[ConfigScope]:
             but does not exist; configuration stage directory argument is missing
         ConfigFileError: unable to access remote configuration file(s)
     """
+    # circular dependencies
     import spack.spec
+    import spack.util.path
+    import spack.util.remote_file_cache as rfc_util
 
     if (not include.when) or spack.spec.eval_conditional(include.when):
         # canonicalize_path does variable expansion and resolves relative paths
