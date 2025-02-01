@@ -809,6 +809,11 @@ class StageComposite(pattern.Composite):
             item.keep = value
 
 
+def _read_property_file(path):
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()
+
+
 class DevelopStage(LockableStagingDir):
     requires_patch_success = False
 
@@ -855,21 +860,33 @@ class DevelopStage(LockableStagingDir):
     breadcrumb = ".spack-develop-stage-link"
 
     @staticmethod
-    def _link_breadcrumb(stage_path):
-        # This will store the location of the `reference_link` that
-        # points into the `path`, the location of this link is customizable
-        # with config:develop_stage_link, so can be difficult to retrieve
-        # unless we track it in this way
-        return os.path.join(stage_path, DevelopStage.breadcrumb)
+    def _path_breadcrumb(path):
+        return os.path.join(path, DevelopStage.breadcrumb)
 
     def _write_link_breadcrumb(self):
-        with open(DevelopStage._link_breadcrumb(self.path), "w", encoding="utf-8") as f:
+        with open(DevelopStage._path_breadcrumb(self.dev_path), "w", encoding="utf-8") as f:
+            f.write(self.path)
+        with open(DevelopStage._path_breadcrumb(self.path), "w", encoding="utf-8") as f:
             f.write(self.reference_link)
 
     @staticmethod
-    def _read_link_breadcrumb(stage_path):
-        with open(DevelopStage._link_breadcrumb(stage_path), "r", encoding="utf-8") as f:
-            return f.read()
+    def _read_link_breadcrumb(path):
+        return _read_property_file(DevelopStage._path_breadcrumb(path))
+
+    @staticmethod
+    def _destroy1(stage_path):
+        src_to_stage = DevelopStage._read_link_breadcrumb(stage_path)
+
+    def _clear_dev_path_link(self):
+        the_link = DevelopStage._path_breadcrumb(self.dev_path)
+        target = DevelopStage._read_link_breadcrumb(self.dev_path)
+        if target == self.path:
+            os.unlink(the_link)
+
+    def _destroy2(self):
+
+
+        DevelopStage._path_breadcrumb(self.path)
 
     @staticmethod
     def _delete_reference_link(stage_path):
