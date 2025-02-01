@@ -295,13 +295,20 @@ def libc_is_compatible(lhs: spack.spec.Spec, rhs: spack.spec.Spec) -> bool:
     )
 
 
+def msvc_is_compatible(lhs: spack.spec.Spec, rhs: spack.spec.Spec) -> List
+
 def using_libc_compatibility() -> bool:
     """Returns True if we are currently using libc compatibility"""
     return spack.platforms.host().name == "linux"
 
 
-def c_compiler_runs(compiler) -> bool:
-    return CompilerPropertyDetector(compiler).compiler_verbose_output() is not None
+def using_msvc_compatibility() -> bool:
+    """Returns True if we're using MSVC to determine binary compatibility"""
+    return spack.platforms.host().name == "windows"
+
+
+def c_compiler_runs(compiler: spack.compiler.Compiler) -> bool:
+    return compiler.compiler_verbose_output is not None
 
 
 def extend_flag_list(flag_list, new_flags):
