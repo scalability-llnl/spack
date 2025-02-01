@@ -782,11 +782,11 @@ class ConcretizationCache:
         corresponding to the given sha256 hash"""
         return self.root / hash[:2] / hash
 
-    def lock_prefix_from_cache_path(self, cache_path):
+    def _lock_prefix_from_cache_path(self, cache_path: str):
         """Returns the bit location corresponding to a given cache entry path
         for file locking"""
         return spack.util.hash.base32_prefix_bits(
-            cache_path, spack.util.crypto.bit_length(sys.maxsize)
+            spack.util.hash.b32_hash(cache_path), spack.util.crypto.bit_length(sys.maxsize)
         )
 
     def _update_manifest(self, cache_path: pathlib.Path, bytes_written: int):
@@ -868,7 +868,7 @@ class ConcretizationCache:
         problem.
         """
         cache_path = self._cache_path_from_problem(problem)
-        lock_prefix = self.lock_prefix_from_cache_path(cache_path)
+        lock_prefix = self._lock_prefix_from_cache_path(str(cache_path))
         with lk.WriteTransaction(lk.Lock(str(self._cache_manifest), start=lock_prefix, length=1)):
             with self._create_cache_entry(cache_path):
                 cache_dict = {"results": result.to_dict(test=test), "statistics": statistics}
@@ -885,7 +885,7 @@ class ConcretizationCache:
         or returns none if no cache entry was found.
         """
         cache_path = self._cache_path_from_problem(problem)
-        lock_prefix = self.lock_prefix_from_cache_path(cache_path)
+        lock_prefix = self._lock_prefix_from_cache_path(str(cache_path))
         result, statistics = None, None
         with lk.ReadTransaction(lk.Lock(str(self._cache_manifest), start=lock_prefix, length=1)):
             result = self._results_from_cache(cache_path)

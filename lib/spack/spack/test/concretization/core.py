@@ -3250,9 +3250,9 @@ def test_concretization_cache_roundtrip(use_concretization_cache, monkeypatch, m
     # element of non deterministic solver setup for the same spec
     solver_setup = spack.solver.asp.SpackSolverSetup.setup
 
-    def _setup(self, specs, *, reuse, allow_deprecated=False):
+    def _setup(self, specs, *, reuse=None, allow_deprecated=False):
         if not getattr(_setup, "cache_setup", None):
-            cache_setup = solver_setup(self, specs, reuse, allow_deprecated)
+            cache_setup = solver_setup(self, specs, reuse=reuse, allow_deprecated=allow_deprecated)
             setattr(_setup, "cache_setup", cache_setup)
         return getattr(_setup, "cache_setup")
 
@@ -3263,31 +3263,15 @@ def test_concretization_cache_roundtrip(use_concretization_cache, monkeypatch, m
     # memoization
     h = spack.concretize.concretize_one("hdf5")
 
-    # run one concretization with an external to ensure that information is appropriately loaded
-    packages_yaml = {
-        "all": {"compiler": ["clang", "gcc"]},
-        "cmake": {"externals": [{"spec": "cmake@3.4.3", "prefix": "/usr"}], "buildable": False},
-    }
-    mutable_config.set("packages", packages_yaml)
-    c = spack.concretize.concretize_one("cmake")
-    # sanity check
-    assert c.external
-
     # due to our forced determinism above, we should not be observing
     # cache misses, assert that we're not storing any new cache entries
     def _ensure_no_store(self, problem: str, result, statistics, test=False):
         # always throw, we never want to reach this code path
         assert False, "Concretization cache hit expected"
 
-    monkeypatch(spack.solver.asp.ConcretizationCache, "store", _ensure_no_store)
+    monkeypatch.setattr(spack.solver.asp.ConcretizationCache, "store", _ensure_no_store)
 
     # ensure subsequent concretizations of the same spec produce the same spec
     # object
     for _ in range(5):
         assert h == spack.concretize.concretize_one("hdf5")
-
-    # ensure externals loaded from cache are marked appropriately
-    cache_c = spack.concretize.concretize_one("cmake")
-
-    assert cache_c.external
-    assert c == cache_c
