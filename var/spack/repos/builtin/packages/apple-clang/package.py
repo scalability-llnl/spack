@@ -1,9 +1,9 @@
 # Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-from spack.platforms import Darwin
 from spack.package import *
 from spack.pkg.builtin.llvm import LlvmDetection
+from spack.platforms import Darwin
 
 
 class AppleClang(BundlePackage, LlvmDetection, CompilerPackage):
