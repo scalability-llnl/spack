@@ -14,8 +14,22 @@ class PyCwlUtils(PythonPackage):
     homepage = "https://github.com/common-workflow-language/cwl-utils"
     pypi = "cwl-utils/cwl-utils-0.21.tar.gz"
 
+    maintainers("mr-c")
+
     license("Apache-2.0")
 
+    version("0.33", sha256="f42e45bb4e79b48be3fef42e191785e009f477f26eb80502c108558015357924")
+    version("0.32", sha256="2849bd217db1f0ec4e66a80c6646f58a3f72d0d7def28ebe85a362861ae2931b")
+    version("0.31", sha256="6d18b617fec234050f5c45964ba9cd61e351ab2823e9fe31d2bc4d79728d444e")
+    version("0.30", sha256="d9a47a434fceb886ee4e2a3346485e4e3d51dbf661db9d063335aa30eb7f5f6b")
+    version("0.29", sha256="c5fd5816691e77fc4adf0e65c6ad35aec1756ca51b6637a9628b58cb7922d565")
+    version("0.28", sha256="90d86a15a93be810047841aeebe834207b8f13997e940a93e155d1bb06abf68e")
+    version("0.27", sha256="9b7e34665c36804793cbcaeb9fe0f2d70958b60ccc4e20d0666fefe016b5ee5f")
+    version("0.26", sha256="dd308007a4f62639d60057625f6be687dfad1446efda87c71b453a27f66e5735")
+    version("0.25", sha256="26351558a862ec8ccfe2b12c2c08862ada203176f32d8c57aafa5d0627e687d3")
+    version("0.24", sha256="a0e4ea659d16c383c74cc44d882db609efeabb379d896221dc391b898078ba27")
+    version("0.23", sha256="45b9303f5caf246375da2c25df35d580966e9fb33f91dfb93846bd1031aa427b")
+    version("0.22", sha256="a66ff2bb81d19995af9507d6979ffaa0eeb4950ed788c4f9cce127774fc148e4")
     version("0.21", sha256="583f05010f7572f3a69310325472ccb6efc2db7f43dc6428d03552e0ffcbaaf9")
 
     depends_on("python@3.6:", type=("build", "run"))
