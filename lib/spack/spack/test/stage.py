@@ -874,13 +874,13 @@ class TestDevelopStage:
         devtree, srcdir = develop_path
         # Note: the stage name has to start with "spack-stage-" to be
         # purge-able
-        stage1 = DevelopStage("spack-stage-test", srcdir, reference_link="link-to-stage1")
-        stage1.create()
-        assert os.path.exists(stage1.reference_link)
+        stage = DevelopStage("spack-stage-test", srcdir, reference_link="link-to-stage1")
+        stage.create()
+        assert os.path.exists(stage.reference_link)
 
         spack.stage.purge()
-        assert not os.path.exists(stage1.path)
-        assert not os.path.exists(stage1.reference_link)
+        assert not os.path.exists(stage.path)
+        assert not os.path.exists(stage.reference_link)
 
     def test_develop_stage_link_path_in_use(self, develop_path, tmp_build_stage_dir):
         """We try to put a symlink in dev_path, but if the path where
@@ -895,6 +895,7 @@ class TestDevelopStage:
             pass
         stage.create()
         stage.destroy()
+        assert not os.path.exists(stage.path)
         assert os.path.exists(stage.reference_link)
 
 
