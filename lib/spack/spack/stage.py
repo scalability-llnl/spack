@@ -863,9 +863,27 @@ class DevelopStage(LockableStagingDir):
     def _path_breadcrumb(path):
         return os.path.join(path, DevelopStage.breadcrumb)
 
+    @staticmethod
+    def _update_link_dict(path):
+        import json
+        new_refs = {}
+        with open(path, "r", encoding="utf-8") as f:
+            link_to_stage = json.load(f)
+        for link_path, stage_path in link_to_stage.items():
+            if not llnl.util.symlink.islink(link_path):
+                continue
+            target = llnl.util.symlink.readlink(link_path)
+            if target == stage_path and not os.path.exists(stage_path):
+                os.unlink(link_path)
+            else:
+                new_refs[link_path] = stage_path
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(new_refs, f)
+
     def _write_link_breadcrumb(self):
+        DevelopStage._update_link_dict
         with open(DevelopStage._path_breadcrumb(self.dev_path), "w", encoding="utf-8") as f:
-            f.write(self.path)
+            f.write(self.reference_link)
         with open(DevelopStage._path_breadcrumb(self.path), "w", encoding="utf-8") as f:
             f.write(self.reference_link)
 
