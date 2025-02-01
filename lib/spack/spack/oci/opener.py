@@ -397,6 +397,7 @@ def create_opener():
     """Create an opener that can handle OCI authentication."""
     opener = urllib.request.OpenerDirector()
     for handler in [
+        urllib.request.ProxyHandler(),
         urllib.request.UnknownHandler(),
         urllib.request.HTTPSHandler(context=spack.util.web.ssl_create_default_context()),
         spack.util.web.SpackHTTPDefaultErrorHandler(),
