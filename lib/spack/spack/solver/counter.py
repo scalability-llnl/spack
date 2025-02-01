@@ -211,8 +211,7 @@ class _PossibleDependenciesAnalyzer:
             pkg_cls = self.context.repo.get_pkg_class(pkg_name=pkg_name)
             for name, conditions in pkg_cls.dependencies_by_name(when=True).items():
                 if all(
-                    self.context.unreachable(pkg_name=pkg_name, when_spec=x)
-                    for x in conditions
+                    self.context.unreachable(pkg_name=pkg_name, when_spec=x) for x in conditions
                 ):
                     tty.debug(
                         f"[{__name__}] Not adding {name} as a dep of {pkg_name}, because "
@@ -220,21 +219,10 @@ class _PossibleDependenciesAnalyzer:
                     )
                     continue
 
-                # check whether this dependency could be of the type asked for
-                if strict_depflag is False:
-                    depflag_union = 0
-                    for deplist in conditions.values():
-                        for dep in deplist:
-                            depflag_union |= dep.depflag
-                    if not (allowed_deps & depflag_union):
-                        continue
-                else:
-                    if all(
-                        dep.depflag != allowed_deps
-                        for deplist in conditions.values()
-                        for dep in deplist
-                    ):
-                        continue
+                if not self._has_deptypes(
+                    conditions, allowed_deps=allowed_deps, strict=strict_depflag
+                ):
+                    continue
 
                 if self.context.is_virtual(name) and name in virtuals:
                     continue
@@ -268,3 +256,12 @@ class _PossibleDependenciesAnalyzer:
         virtuals.update(self.runtime_virtuals)
         real_packages = set(visited) | self.runtime_pkgs
         return real_packages, virtuals
+
+    def _has_deptypes(self, dependencies, *, allowed_deps: dt.DepFlag, strict: bool) -> bool:
+        if strict is True:
+            return any(
+                dep.depflag == allowed_deps for deplist in dependencies.values() for dep in deplist
+            )
+        return any(
+            dep.depflag & allowed_deps for deplist in dependencies.values() for dep in deplist
+        )
