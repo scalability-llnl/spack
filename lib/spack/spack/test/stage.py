@@ -13,6 +13,7 @@ import sys
 
 import pytest
 
+import llnl.util.symlink
 from llnl.util.filesystem import getuid, mkdirp, partition_path, touch, working_dir
 from llnl.util.symlink import readlink
 
@@ -855,8 +856,6 @@ class TestDevelopStage:
         del srctree1["link-to-stage"]
         del srctree1[".spack-develop-links"]
         assert srctree1 == devtree
-
-        import llnl.util.symlink
 
         stage.destroy()
         assert not os.path.exists(stage.reference_link)
