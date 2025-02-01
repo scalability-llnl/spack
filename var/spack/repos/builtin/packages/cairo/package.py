@@ -44,7 +44,6 @@ class Cairo(AutotoolsPackage, MesonPackage):
     variant("X", default=False, description="Build with X11 support")
     variant("gobject", default=False, description="Enable cairo's gobject functions feature")
 
-
     with when("@:1.17.6"):
         variant("png", default=False, description="Enable cairo's PNG functions feature")
         variant("svg", default=False, description="Enable cairo's SVG functions feature")
@@ -67,33 +66,25 @@ class Cairo(AutotoolsPackage, MesonPackage):
         variant("dwrite", default=False, description="Microsoft Windows DWrite font backend")
 
         # doesn't exist @1.17.8: but kept as compatibility
-        variant(
-            "pdf",
-            default=False,
-            description="+pdf implies +zlib now. ~pdf does nothing",
-        )
+        variant("pdf", default=False, description="+pdf implies +zlib now. ~pdf does nothing")
         # svg is combined into png now, kept seperate for compatibility
-        variant(
-            "svg",
-            default=False,
-            description="+svg implies +png now. ~svg does nothing",
-        )
+        variant("svg", default=False, description="+svg implies +png now. ~svg does nothing")
 
         # meson seems to have assumptions about what is enabled/disabled
-        # these four compile best if +variant in unison, otherwise various errors happen if these aren't in sync
-        # easier to have a sane default. conflicts below try to protect known incompatibilities 
+        # these four compile best if +variant in unison, otherwise various errors happen
+        # if these aren't in sync. It is  easier to have a sane default. conflicts below
+        # to try to protect known incompatibilities
         variant("png", default=True, description="Enable cairo's PNG and SVG functions feature.")
         variant("ft", default=True, description="Enable cairo's FreeType font backend feature.")
         variant("fc", default=True, description="Enable cairo's Fontconfig font backend feature.")
         variant(
             "zlib",
             default=True,
-            description="Enable cairo's script, ps, pdf, xml functions feature. +ft,+fc, +zlib, +png must be in sync.",
+            description="Enable cairo's script, ps, pdf, xml functions feature.",
         )
 
         variant("quartz", default=False, description="Enable cairo's Quartz functions feature")
         variant("tee", default=False, description="Enable cairo's tee functions feature")
-
 
         # not in spack
         variant(
@@ -148,7 +139,6 @@ class Cairo(AutotoolsPackage, MesonPackage):
         depends_on("fontconfig@2.13.0:", when="+fc")
         depends_on("binutils", when="+symbol-lookup")
 
-
     with when("+X"):
         depends_on("libx11")
         depends_on("libxext")
@@ -165,7 +155,6 @@ class Cairo(AutotoolsPackage, MesonPackage):
     patch("fontconfig.patch", when="@1.16.0:1.17.2")
     # Don't regenerate docs to avoid a dependency on gtk-doc
     patch("disable-gtk-docs.patch", when="@:1.17.4^autoconf@2.70:")
-
 
 
 class MesonBuilder(meson.MesonBuilder):
