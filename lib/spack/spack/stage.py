@@ -858,12 +858,6 @@ class DevelopStage(LockableStagingDir):
         except (llnl.util.symlink.AlreadyExistsError, FileExistsError):
             pass
 
-    breadcrumb = ".spack-develop-stage-link"
-
-    @staticmethod
-    def _path_breadcrumb(path):
-        return os.path.join(path, DevelopStage.breadcrumb)
-
     @staticmethod
     def _update_link_dict(dev_path, updates=None):
         path = os.path.join(dev_path, ".spack-develop-links")
@@ -888,23 +882,20 @@ class DevelopStage(LockableStagingDir):
                 json.dump(new_refs, f)
 
     def _write_link_breadcrumb(self):
-        with open(DevelopStage._path_breadcrumb(self.path), "w", encoding="utf-8") as f:
+        dev_path_ptr = os.path.join(self.path, ".dev-path")
+        with open(dev_path_ptr, "w", encoding="utf-8") as f:
             f.write(self.dev_path)
-
-    @staticmethod
-    def _read_link_breadcrumb(path):
-        return _read_property_file(DevelopStage._path_breadcrumb(path))
 
     @staticmethod
     def _delete_reference_link(stage_path):
         try:
             if os.path.exists(stage_path):
-                dev_path = DevelopStage._read_link_breadcrumb(stage_path)
+                dev_path_ptr = os.path.join(stage_path, ".dev-path")
+                dev_path = _read_property_file(dev_path_ptr)
                 DevelopStage._update_link_dict(dev_path)
+                os.remove(dev_path_ptr)
         except FileNotFoundError:
             pass
-
-        os.remove(DevelopStage._path_breadcrumb(stage_path))
 
     def destroy(self):
         DevelopStage._delete_reference_link(self.path)
