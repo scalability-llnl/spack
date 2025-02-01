@@ -211,11 +211,11 @@ class _PossibleDependenciesAnalyzer:
             pkg_cls = self.context.repo.get_pkg_class(pkg_name=pkg_name)
             for name, conditions in pkg_cls.dependencies_by_name(when=True).items():
                 if all(
-                    self.context.unreachable(pkg_name=pkg_cls.name, when_spec=x)
+                    self.context.unreachable(pkg_name=pkg_name, when_spec=x)
                     for x in conditions
                 ):
                     tty.debug(
-                        f"[{__name__}] Not adding {name} as a dep of {pkg_cls.name}, because "
+                        f"[{__name__}] Not adding {name} as a dep of {pkg_name}, because "
                         f"conditions cannot be met"
                     )
                     continue
@@ -246,7 +246,7 @@ class _PossibleDependenciesAnalyzer:
                 else:
                     dep_names = {name}
 
-                visited.setdefault(pkg_cls.name, set()).update(dep_names)
+                visited.setdefault(pkg_name, set()).update(dep_names)
 
                 for dep_name in dep_names:
                     if dep_name in visited:
