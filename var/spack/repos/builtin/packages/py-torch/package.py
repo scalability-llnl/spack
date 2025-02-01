@@ -316,6 +316,14 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
 
     conflicts("%gcc@:9.3", when="@2.2:", msg="C++17 support required")
 
+    # https://github.com/pytorch/pytorch/issues/146239
+    patch(
+        "https://github.com/pytorch/pytorch/pull/140275.patch?full_index=1",
+        sha256="65f56305a27d47d7065711d1131c6ac1611fabcb55b129c27ed6beabe4b94fe0",
+        when="@2.6:",
+        reverse=True,
+    )
+
     # https://github.com/pytorch/pytorch/issues/90448
     patch(
         "https://github.com/pytorch/pytorch/pull/97270.patch?full_index=1",
