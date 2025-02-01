@@ -867,10 +867,9 @@ class TestDevelopStage:
         del srctree2[".spack-develop-links"]
         assert srctree2 == devtree
 
-    def test_develop_stage_the_reference_has_changed(self, develop_path, tmp_build_stage_dir):
-        """Reinstantiate a stage pointing to the same dev_path, with
-        a different reference (e.g. when a reconcretization occurs):
-        check that the old reference is removed.
+    def test_develop_stage_purge_rms_ref_link(self, develop_path, tmp_build_stage_dir):
+        """stage.purge removes all `Stage.path`s. Check that for
+        develop stages, this removes the associated symlink.
         """
         devtree, srcdir = develop_path
         # Note: the stage name has to start with "spack-stage-" to be
