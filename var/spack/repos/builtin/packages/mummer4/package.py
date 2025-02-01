@@ -26,4 +26,5 @@ class Mummer4(AutotoolsPackage):
     depends_on("awk", type="run")
     depends_on("sed", type="run")
 
+    # Adds missing inclusion of <cstdint>
     patch("48bit_index.patch", level=0, when="%gcc@13:")
