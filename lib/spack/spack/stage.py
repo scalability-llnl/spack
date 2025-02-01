@@ -865,7 +865,8 @@ class DevelopStage(LockableStagingDir):
         return os.path.join(path, DevelopStage.breadcrumb)
 
     @staticmethod
-    def _update_link_dict(path, updates=None):
+    def _update_link_dict(dev_path, updates=None):
+        path = os.path.join(dev_path, ".spack-develop-links")
         import json
         new_refs = {}
         if os.path.exists(path):
