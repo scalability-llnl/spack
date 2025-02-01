@@ -853,6 +853,7 @@ class DevelopStage(LockableStagingDir):
         super().create()
         try:
             DevelopStage._update_link_dict(self.dev_path)
+            self._write_link_breadcrumb()
             llnl.util.symlink.symlink(self.path, self.reference_link)
         except (llnl.util.symlink.AlreadyExistsError, FileExistsError):
             pass
@@ -885,46 +886,27 @@ class DevelopStage(LockableStagingDir):
                 json.dump(new_refs, f)
 
     def _write_link_breadcrumb(self):
-        DevelopStage._update_link_dict
-        with open(DevelopStage._path_breadcrumb(self.dev_path), "w", encoding="utf-8") as f:
-            f.write(self.reference_link)
         with open(DevelopStage._path_breadcrumb(self.path), "w", encoding="utf-8") as f:
-            f.write(self.reference_link)
+            f.write(self.dev_path)
 
     @staticmethod
     def _read_link_breadcrumb(path):
         return _read_property_file(DevelopStage._path_breadcrumb(path))
 
     @staticmethod
-    def _destroy1(stage_path):
-        src_to_stage = DevelopStage._read_link_breadcrumb(stage_path)
-
-    def _clear_dev_path_link(self):
-        the_link = DevelopStage._path_breadcrumb(self.dev_path)
-        target = DevelopStage._read_link_breadcrumb(self.dev_path)
-        if target == self.path:
-            os.unlink(the_link)
-
-    def _destroy2(self):
-
-
-        DevelopStage._path_breadcrumb(self.path)
-
-    @staticmethod
     def _delete_reference_link(stage_path):
         link_path = None
         try:
             if os.path.exists(stage_path):
-                link_path = DevelopStage._read_link_breadcrumb(stage_path)
+                dev_path = DevelopStage._read_link_breadcrumb(stage_path)
+                DevelopStage._update_link_dict(dev_path)
         except FileNotFoundError:
             pass
 
-        if link_path and llnl.util.symlink.islink(link_path):
-            target = llnl.util.symlink.readlink(link_path)
-            if target == stage_path:
-                os.unlink(link_path)
+        os.remove(DevelopStage._path_breadcrumb(stage_path))
 
     def destroy(self):
+        DevelopStage._update_link_dict(self.dev_path)
         DevelopStage._delete_reference_link(self.path)
 
         try:
