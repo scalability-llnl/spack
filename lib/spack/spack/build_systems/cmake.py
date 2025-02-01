@@ -460,7 +460,7 @@ class CMakeBuilder(BuilderWithDefaults):
 
         if spec.is_develop:
             # skip cmake phase if it is an incremental develop build
-            
+
             def _configure_artifact():
                 """
                 Determine the files that will re-run CMake that are generated from a successful
@@ -472,9 +472,7 @@ class CMakeBuilder(BuilderWithDefaults):
                 elif primary_generator == "Ninja":
                     return "ninja.build"
 
-            if os.path.isfile(
-                os.path.join(self.build_directory, _configure_artifact())
-            ):
+            if os.path.isfile(os.path.join(self.build_directory, _configure_artifact())):
                 return
 
         options = self.std_cmake_args
