@@ -853,14 +853,19 @@ class TestDevelopStage:
         srctree1 = _create_tree_from_dir_recursive(stage.source_path)
         assert os.path.samefile(srctree1["link-to-stage"], stage.path)
         del srctree1["link-to-stage"]
+        del srctree1[".spack-develop-links"]
         assert srctree1 == devtree
+
+        import llnl.util.symlink
 
         stage.destroy()
         assert not os.path.exists(stage.reference_link)
+        assert not llnl.util.symlink.islink(stage.reference_link)
         # Make sure destroying the stage doesn't change anything
         # about the path
         assert not os.path.exists(stage.path)
         srctree2 = _create_tree_from_dir_recursive(srcdir)
+        del srctree2[".spack-develop-links"]
         assert srctree2 == devtree
 
     def test_develop_stage_the_reference_has_changed(self, develop_path, tmp_build_stage_dir):

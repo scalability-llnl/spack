@@ -852,7 +852,7 @@ class DevelopStage(LockableStagingDir):
     def create(self):
         super().create()
         try:
-            DevelopStage._update_link_dict(self.dev_path)
+            DevelopStage._update_link_dict(self.dev_path, updates={self.reference_link: self.path})
             self._write_link_breadcrumb()
             llnl.util.symlink.symlink(self.path, self.reference_link)
         except (llnl.util.symlink.AlreadyExistsError, FileExistsError):
