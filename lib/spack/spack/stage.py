@@ -868,6 +868,7 @@ class DevelopStage(LockableStagingDir):
     def _update_link_dict(dev_path, updates=None):
         path = os.path.join(dev_path, ".spack-develop-links")
         import json
+
         new_refs = {}
         if os.path.exists(path):
             with open(path, "r", encoding="utf-8") as f:
@@ -896,7 +897,6 @@ class DevelopStage(LockableStagingDir):
 
     @staticmethod
     def _delete_reference_link(stage_path):
-        link_path = None
         try:
             if os.path.exists(stage_path):
                 dev_path = DevelopStage._read_link_breadcrumb(stage_path)
