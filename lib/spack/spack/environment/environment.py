@@ -2649,16 +2649,12 @@ def initialize_environment_dir(
         abspath = pathlib.Path(os.path.normpath(environment_dir / include))
         common_path = pathlib.Path(os.path.commonpath([environment_dir, abspath]))
         if common_path != environment_dir:
-            # Warn that we are not copying relative path
-            msg = "Spack will not copy relative include path from outside environment"
-            msg += f" directory: {include}"
-            tty.warn(msg)
+            tty.debug(f"Will not copy relative include from outside environment: {include}")
             continue
 
         orig_abspath = os.path.normpath(envfile.parent / include)
         if not os.path.exists(orig_abspath):
-            msg = f"Spack will not copy relative include path for nonexistent file: {include}"
-            tty.warn(msg)
+            tty.warn(f"Included file does not exist; will not copy: '{include}'")
             continue
 
         fs.touchp(abspath)
