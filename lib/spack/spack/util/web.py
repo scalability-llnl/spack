@@ -22,15 +22,15 @@ from urllib.request import HTTPSHandler, Request, build_opener
 
 import llnl.url
 from llnl.util import lang, tty
-from llnl.util.filesystem import join_path, mkdirp, rename, working_dir
+from llnl.util.filesystem import mkdirp, rename, working_dir
 
 import spack
+import spack.config
 import spack.error
 import spack.util.executable
 import spack.util.parallel
 import spack.util.path
 import spack.util.url as url_util
-import spack.util.web_config as web_config
 
 from .executable import CommandNotFoundError, Executable
 from .gcs import GCSBlob, GCSBucket, GCSHandler
@@ -64,7 +64,7 @@ class SpackHTTPDefaultErrorHandler(urllib.request.HTTPDefaultErrorHandler):
 
 def custom_ssl_certs() -> Optional[Tuple[bool, str]]:
     """Returns a tuple (is_file, path) if custom SSL certifates are configured and valid."""
-    ssl_certs = web_config.CONFIG.ssl_certs
+    ssl_certs = spack.config.get("config:ssl_certs")
     if not ssl_certs:
         return None
     path = spack.util.path.substitute_path_variables(ssl_certs)
@@ -129,10 +129,10 @@ def _urlopen():
         s3, gcs, HTTPSHandler(context=ssl._create_unverified_context()), error_handler
     )
 
-    # And dynamically dispatch based on the verify_ssl configuration
+    # And dynamically dispatch based on the config:verify_ssl.
     def dispatch_open(fullurl, data=None, timeout=None):
-        opener = with_ssl if web_config.CONFIG.verify_ssl else without_ssl
-        timeout = timeout or web_config.CONFIG.connect_timeout
+        opener = with_ssl if spack.config.get("config:verify_ssl", True) else without_ssl
+        timeout = timeout or spack.config.get("config:connect_timeout", 10)
         return opener.open(fullurl, data, timeout)
 
     return dispatch_open
@@ -301,7 +301,7 @@ def base_curl_fetch_args(url, timeout=0):
         "-L",  # resolve 3xx redirects
         url,
     ]
-    if not web_config.CONFIG.verify_ssl:
+    if not spack.config.get("config:verify_ssl"):
         curl_args.append("-k")
 
     if sys.stdout.isatty() and tty.msg_enabled():
@@ -309,7 +309,7 @@ def base_curl_fetch_args(url, timeout=0):
     else:
         curl_args.append("-sS")  # show errors if fail
 
-    connect_timeout = web_config.CONFIG.connect_timeout
+    connect_timeout = spack.config.get("config:connect_timeout", 10)
     if timeout:
         connect_timeout = max(int(connect_timeout), int(timeout))
     if connect_timeout > 0:
@@ -324,8 +324,7 @@ def check_curl_code(returncode: int) -> None:
     Arguments:
         returncode: curl return code
 
-    Raises:
-        spack.error.FetchError: if the curl returncode indicates failure
+    Raises FetchError if the curl returncode indicates failure
     """
     if returncode == 0:
         return
@@ -356,28 +355,28 @@ def require_curl() -> Executable:
     return curl
 
 
-def fetch_url_text(
-    url: str, curl: Optional[Executable] = None, dest_dir: Optional[str] = "."
-) -> Optional[str]:
-    """
-    Retrieves text-only URL content using the configured fetch method.
-    It determines the fetch method from the configured url_fetch_method.
+def fetch_url_text(url, curl: Optional[Executable] = None, dest_dir="."):
+    """Retrieves text-only URL content using the configured fetch method.
+    It determines the fetch method from:
+
+        * config:url_fetch_method (str): fetch method to use (e.g., 'curl')
 
     If the method is `curl`, it also uses the following configuration
     options:
 
-        * connect_timeout (int): connection time out
-        * verify_ssl (str): Perform SSL verification
+        * config:connect_timeout (int): connection time out
+        * config:verify_ssl (str): Perform SSL verification
 
     Arguments:
-        url: URL whose contents are to be fetched
-        curl: (optional) curl executable if curl is the configured fetch method
-        dest_dir: (optional) destination directory for fetched text file
+        url (str): URL whose contents are to be fetched
+        curl (spack.util.executable.Executable or None): (optional) curl
+            executable if curl is the configured fetch method
+        dest_dir (str): (optional) destination directory for fetched text
+            file
 
-    Returns: path to the fetched file
+    Returns (str or None): path to the fetched file
 
-    Raises:
-        spack.error.FetchError: if the curl returncode indicates failure
+    Raises FetchError if the curl returncode indicates failure
     """
     if not url:
         raise spack.error.FetchError("A URL is required to fetch its text")
@@ -385,9 +384,9 @@ def fetch_url_text(
     tty.debug("Fetching text at {0}".format(url))
 
     filename = os.path.basename(url)
-    path = join_path(dest_dir, filename) if dest_dir is not None else filename
+    path = os.path.join(dest_dir, filename)
 
-    fetch_method = web_config.CONFIG.url_fetch_method
+    fetch_method = spack.config.get("config:url_fetch_method")
     tty.debug("Using '{0}' to fetch {1} into {2}".format(fetch_method, url, path))
     if fetch_method == "curl":
         curl_exe = curl or require_curl()
@@ -437,17 +436,16 @@ def url_exists(url, curl=None):
     url_result = urllib.parse.urlparse(url)
 
     # Use curl if configured to do so
-    use_curl = web_config.CONFIG.url_fetch_method == "curl" and url_result.scheme not in (
-        "gs",
-        "s3",
-    )
+    use_curl = spack.config.get(
+        "config:url_fetch_method", "urllib"
+    ) == "curl" and url_result.scheme not in ("gs", "s3")
     if use_curl:
         curl_exe = curl or require_curl()
 
         # Telling curl to fetch the first byte (-r 0-0) is supposed to be
         # portable.
         curl_args = ["--stderr", "-", "-s", "-f", "-r", "0-0", url]
-        if not web_config.CONFIG.verify_ssl:
+        if not spack.config.get("config:verify_ssl"):
             curl_args.append("-k")
         _ = curl_exe(*curl_args, fail_on_error=False, output=os.devnull)
         return curl_exe.returncode == 0
@@ -456,7 +454,7 @@ def url_exists(url, curl=None):
     try:
         urlopen(
             Request(url, method="HEAD", headers={"User-Agent": SPACK_USER_AGENT}),
-            timeout=web_config.CONFIG.connect_timeout,
+            timeout=spack.config.get("config:connect_timeout", 10),
         )
         return True
     except OSError as e:

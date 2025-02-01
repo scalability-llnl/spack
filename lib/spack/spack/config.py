@@ -65,7 +65,6 @@ import spack.schema.view
 import spack.util.path
 import spack.util.remote_file_cache as rfc_util
 import spack.util.spack_yaml as syaml
-import spack.util.web_config as web_config
 from spack.util.cpus import cpus_available
 
 from .enums import ConfigScopePriority
@@ -749,18 +748,6 @@ class Configuration:
         data[parts[0]] = value
 
         self.update_config(section, section_data, scope=scope)
-
-        # TODO: Is this also needed when removing a scope?
-        #
-        # Ensure web configuration is up-to-date
-        #
-        # spack.util.web_config() needs to be able to update configuration
-        # options without the module having to import this module. The
-        # following leverages fact get) interface is similar enough to the
-        # normal dict get() that we can ignore the type to avoid circular
-        # import issue here.
-        if path.startswith("config:"):
-            web_config.update(CONFIG)  # type: ignore
 
     def __iter__(self):
         """Iterate over scopes in this configuration."""
