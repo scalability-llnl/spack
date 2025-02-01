@@ -9,7 +9,7 @@
 % These rules are used on Windows w/ MSVC
 %=============================================================================
 
-% A package cannot be reused if the libc is not compatible with it
+% A package cannot be reused if the msvcrt is not compatible with it
 error(100, "Cannot reuse {0} since we cannot determine msvcrt compatibility", ReusedPackage)
   :- provider(node(X, MsvcPackage), node(0, "msvcrt")),
      attr("version", node(X, MsvcPackage), MsvcrtVersion),
