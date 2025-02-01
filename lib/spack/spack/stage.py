@@ -907,7 +907,6 @@ class DevelopStage(LockableStagingDir):
         os.remove(DevelopStage._path_breadcrumb(stage_path))
 
     def destroy(self):
-        DevelopStage._update_link_dict(self.dev_path)
         DevelopStage._delete_reference_link(self.path)
 
         try:
@@ -916,6 +915,7 @@ class DevelopStage(LockableStagingDir):
         except FileNotFoundError:
             pass
 
+        DevelopStage._update_link_dict(self.dev_path)
         self.created = False
 
     def restage(self):
