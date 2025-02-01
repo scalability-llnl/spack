@@ -114,14 +114,6 @@ class Cairo(AutotoolsPackage, MesonPackage):
         conflicts("+spectre", msg="Not currently supported")
         conflicts("+symbol-lookup", msg="Not currently supported")
 
-        # these must be unified now
-        # conflicts("+png~svg", msg="+png implies +svg")
-        # conflicts("~png+svg", msg="~png implies ~svg")
-
-        # these must be unified now
-        conflicts("~pdf+zlib", msg="+zlib implies +pdf")
-        conflicts("+pdf~zlib", msg="+pdf implies +zlib")
-
         # meson seems to have assumptions about what is enabled/disabled
         # so this protects against incompatible combinations
         conflicts("~zlib+png", msg="+png requires +zlib")
@@ -172,7 +164,7 @@ class Cairo(AutotoolsPackage, MesonPackage):
     # patch from https://gitlab.freedesktop.org/cairo/cairo/issues/346
     patch("fontconfig.patch", when="@1.16.0:1.17.2")
     # Don't regenerate docs to avoid a dependency on gtk-doc
-    patch("disable-gtk-docs.patch", when="@:1.17.6^autoconf@2.70:")
+    patch("disable-gtk-docs.patch", when="@:1.17.4^autoconf@2.70:")
 
 
 
