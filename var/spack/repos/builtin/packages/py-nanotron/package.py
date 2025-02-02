@@ -17,7 +17,7 @@ class PyNanotron(PythonPackage):
     license("Apache-2.0")
 
     version("main", branch="main")
-    version("0.4", sha256="7ea378eb1b6b16c93a3021fcfd71dd73bd14d826126eae215e2b02e05cd6a120")
+    version("0.4", sha256="30e9cdd07e86166dd9690351d9d995b3560810044fdca64737ed042cd91c792a")
 
     variant("examples", default=True, description="Build with example scripts support")
 
