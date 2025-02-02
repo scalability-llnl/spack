@@ -20,11 +20,16 @@ class PyPartd(PythonPackage):
     version("0.3.10", sha256="33722a228ebcd1fa6f44b1631bdd4cff056376f89eb826d7d880b35b637bcfba")
     version("0.3.8", sha256="67291f1c4827cde3e0148b3be5d69af64b6d6169feb9ba88f0a6cfe77089400f")
 
-    depends_on("python@3.5:", type=("build", "run"), when="@1.1.0:")
-    depends_on("python@3.7:", type=("build", "run"), when="@1.4.0:")
+    # python 3.12+ requires 1.4.2
+    # https://github.com/dask/partd/issues/68
+    depends_on("python@3.5:3.11", type=("build", "run"), when="@1.1.0:")
+    depends_on("python@3.7:3.11", type=("build", "run"), when="@1.4.0:")
     depends_on("python@3.9:", type=("build", "run"), when="@1.4.2:")
+
     depends_on("py-setuptools", type="build")
     depends_on("py-setuptools@61.2:", type="build", when="@1.4.2:")
+
     depends_on("py-versioneer@0.29 +toml", type="build", when="@1.4.2:")
     depends_on("py-locket", type=("build", "run"))
     depends_on("py-toolz", type=("build", "run"))
+
