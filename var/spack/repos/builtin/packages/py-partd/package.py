@@ -22,8 +22,8 @@ class PyPartd(PythonPackage):
 
     # python 3.12+ requires 1.4.2
     # https://github.com/dask/partd/issues/68
-    depends_on("python@3.5:3.11", type=("build", "run"), when="@1.1.0:")
-    depends_on("python@3.7:3.11", type=("build", "run"), when="@1.4.0:")
+    depends_on("python@3.5:3.11", type=("build", "run"), when="@1.1.0:1.3.9")
+    depends_on("python@3.7:3.11", type=("build", "run"), when="@1.4.0:1.4.1")
     depends_on("python@3.9:", type=("build", "run"), when="@1.4.2:")
 
     depends_on("py-setuptools", type="build")
