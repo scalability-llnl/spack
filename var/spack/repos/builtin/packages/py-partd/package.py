@@ -32,4 +32,3 @@ class PyPartd(PythonPackage):
     depends_on("py-versioneer@0.29 +toml", type="build", when="@1.4.2:")
     depends_on("py-locket", type=("build", "run"))
     depends_on("py-toolz", type=("build", "run"))
-
