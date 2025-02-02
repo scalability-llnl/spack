@@ -84,7 +84,7 @@ ignore = ["E731", "E203"]
 split-on-trailing-comma = false
 
 [tool.ruff.lint.per-file-ignores]
-"var/spack/repos/*/package.py" = ["F403", "F405", "F821"]
+"var/spack/repos/*/package.py" = ["F403", "F405", "F811", "F821"]
 "*-ci-package.py" = ["F403", "F405", "F821"]
 
 [tool.black]
