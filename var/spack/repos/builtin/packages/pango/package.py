@@ -54,6 +54,7 @@ class Pango(MesonPackage):
     depends_on("harfbuzz")
     depends_on("harfbuzz+coretext", when="platform=darwin")
     depends_on("cairo+ft+fc")
+    depends_on("cairo+quartz", when="^cairo@1.17.8:")
     depends_on("cairo~X", when="~X")
     depends_on("cairo+X", when="+X")
     depends_on("libxft", when="+X")
