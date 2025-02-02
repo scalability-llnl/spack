@@ -43,11 +43,11 @@ class Cairo(AutotoolsPackage, MesonPackage):
 
     variant("X", default=False, description="Build with X11 support")
     variant("gobject", default=False, description="Enable cairo's gobject functions feature")
+    variant("shared", default=True, description="Build shared libraries")
 
     with when("@:1.17.6"):
         variant("png", default=False, description="Enable cairo's PNG functions feature")
         variant("svg", default=False, description="Enable cairo's SVG functions feature")
-        variant("shared", default=True, description="Build shared libraries")
         variant("pic", default=True, description="Enable position-independent code (PIC)")
         variant("pdf", default=False, description="Enable cairo's PDF surface backend feature")
         variant("ft", default=False, description="Enable cairo's FreeType font backend feature")
@@ -201,6 +201,8 @@ class MesonBuilder(meson.MesonBuilder):
         args.append(self.enable_or_disable("glib", variant="gobject"))
         args.append(self.enable_or_disable("spectre"))
         args.append(self.enable_or_disable("symbol-lookup"))
+
+        args.append(self.enable_or_disable("shared"))
 
         return args
 
