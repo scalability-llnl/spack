@@ -82,6 +82,21 @@ ignore = ["E731", "E203"]
 
 [tool.ruff.lint.isort]
 split-on-trailing-comma = false
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "archspec",
+    "llnl",
+    "spack",
+    "first-party",
+    "local-folder",
+]
+
+[tool.ruff.lint.isort.sections]
+spack = ["spack"]
+archspec = ["archspec"]
+llnl = ["llnl"]
 
 [tool.ruff.lint.per-file-ignores]
 "var/spack/repos/*/package.py" = ["F403", "F405", "F811", "F821"]
