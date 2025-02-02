@@ -322,7 +322,7 @@ class Hypre(AutotoolsPackage, CudaPackage, ROCmPackage):
         if spec.satisfies("+sycl"):
             configure_args.append("--with-sycl")
             sycl_compatible_compilers = ["icpx"]
-            if not (os.path.basename(self.compiler.cxx) in sycl_compatible_compilers):
+            if os.path.basename(self.compiler.cxx) not in sycl_compatible_compilers:
                 raise InstallError(
                     "Hypre's SYCL GPU Backend requires the oneAPI CXX (icpx) compiler."
                 )
