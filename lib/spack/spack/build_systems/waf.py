@@ -6,6 +6,8 @@ from llnl.util.filesystem import working_dir
 import spack.builder
 import spack.package_base
 import spack.phase_callbacks
+import spack.spec
+import spack.util.prefix
 from spack.directives import build_system, depends_on
 
 from ._checks import BuilderWithDefaults, execute_build_time_tests, execute_install_time_tests
@@ -97,7 +99,9 @@ class WafBuilder(BuilderWithDefaults):
         with working_dir(self.build_directory):
             self.python("waf", "-j{0}".format(jobs), *args, **kwargs)
 
-    def configure(self, pkg, spec, prefix):
+    def configure(
+        self, pkg: WafPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Configures the project."""
         args = ["--prefix={0}".format(self.pkg.prefix)]
         args += self.configure_args()
@@ -108,7 +112,9 @@ class WafBuilder(BuilderWithDefaults):
         """Arguments to pass to configure."""
         return []
 
-    def build(self, pkg, spec, prefix):
+    def build(
+        self, pkg: WafPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Executes the build."""
         args = self.build_args()
 
@@ -118,7 +124,9 @@ class WafBuilder(BuilderWithDefaults):
         """Arguments to pass to build."""
         return []
 
-    def install(self, pkg, spec, prefix):
+    def install(
+        self, pkg: WafPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Installs the targets on the system."""
         args = self.install_args()
 

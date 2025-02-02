@@ -2,11 +2,9 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
-import os.path
 import re
 import sys
 
-import llnl.util.tty as tty
 from llnl.util.lang import classproperty
 
 import spack.compilers

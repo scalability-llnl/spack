@@ -8,8 +8,6 @@ import shutil
 import socket
 from os import environ as env
 
-import llnl.util.tty as tty
-
 from spack.package import *
 
 

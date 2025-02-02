@@ -110,10 +110,7 @@ def external_find(args):
             # Note that KeyboardInterrupt does not subclass Exception
             # (so CTRL-C will terminate the program as expected).
             skip_msg = "Skipping manifest and continuing with other external checks"
-            if (isinstance(e, IOError) or isinstance(e, OSError)) and e.errno in [
-                errno.EPERM,
-                errno.EACCES,
-            ]:
+            if isinstance(e, OSError) and e.errno in (errno.EPERM, errno.EACCES):
                 # The manifest file does not have sufficient permissions enabled:
                 # print a warning and keep going
                 tty.warn("Unable to read manifest due to insufficient permissions.", skip_msg)

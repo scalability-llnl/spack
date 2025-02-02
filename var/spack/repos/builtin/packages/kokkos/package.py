@@ -1,7 +1,7 @@
 # Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import os.path
+import os
 
 import llnl.util.lang as lang
 
@@ -513,7 +513,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         cmake_source_path = join_path(self.stage.source_path, self.test_script_relative_path)
         if not os.path.exists(cmake_source_path):
             return
-        """Copy test."""
+        # Copy test
         cmake_out_path = join_path(self.test_script_relative_path, "out")
         cmake_args = [
             cmake_source_path,

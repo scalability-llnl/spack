@@ -7,8 +7,6 @@ import platform
 import re
 from glob import glob
 
-import llnl.util.tty as tty
-
 from spack.package import *
 
 # FIXME Remove hack for polymorphic versions
@@ -741,7 +739,7 @@ class Cuda(Package):
                 os.remove("/tmp/cuda-installer.log")
             except OSError:
                 if spec.satisfies("@10.1:"):
-                    tty.die(
+                    raise InstallError(
                         "The cuda installer will segfault due to the "
                         "presence of /tmp/cuda-installer.log "
                         "please remove the file and try again "

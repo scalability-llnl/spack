@@ -668,7 +668,7 @@ def copy(src, dest, _permissions=False):
         _permissions (bool): for internal use only
 
     Raises:
-        IOError: if *src* does not match any files or directories
+        OSError: if *src* does not match any files or directories
         ValueError: if *src* matches multiple files but *dest* is
             not a directory
     """
@@ -679,7 +679,7 @@ def copy(src, dest, _permissions=False):
 
     files = glob.glob(src)
     if not files:
-        raise IOError("No such file or directory: '{0}'".format(src))
+        raise OSError("No such file or directory: '{0}'".format(src))
     if len(files) > 1 and not os.path.isdir(dest):
         raise ValueError(
             "'{0}' matches multiple files but '{1}' is not a directory".format(src, dest)
@@ -710,7 +710,7 @@ def install(src, dest):
         dest (str): the destination file or directory
 
     Raises:
-        IOError: if *src* does not match any files or directories
+        OSError: if *src* does not match any files or directories
         ValueError: if *src* matches multiple files but *dest* is
             not a directory
     """
@@ -748,7 +748,7 @@ def copy_tree(
         _permissions (bool): for internal use only
 
     Raises:
-        IOError: if *src* does not match any files or directories
+        OSError: if *src* does not match any files or directories
         ValueError: if *src* is a parent directory of *dest*
     """
     if _permissions:
@@ -762,7 +762,7 @@ def copy_tree(
 
     files = glob.glob(src)
     if not files:
-        raise IOError("No such file or directory: '{0}'".format(src))
+        raise OSError("No such file or directory: '{0}'".format(src))
 
     # For Windows hard-links and junctions, the source path must exist to make a symlink. Add
     # all symlinks to this list while traversing the tree, then when finished, make all
@@ -843,7 +843,7 @@ def install_tree(src, dest, symlinks=True, ignore=None):
         ignore (typing.Callable): function indicating which files to ignore
 
     Raises:
-        IOError: if *src* does not match any files or directories
+        OSError: if *src* does not match any files or directories
         ValueError: if *src* is a parent directory of *dest*
     """
     copy_tree(src, dest, symlinks=symlinks, ignore=ignore, _permissions=True)
@@ -1472,7 +1472,7 @@ def set_executable(path):
 def recursive_mtime_greater_than(path: str, time: float) -> bool:
     """Returns true if any file or dir recursively under `path` has mtime greater than `time`."""
     # use bfs order to increase likelihood of early return
-    queue: Deque[str] = collections.deque()
+    queue: Deque[str] = collections.deque([path])
 
     if os.stat(path).st_mtime > time:
         return True
