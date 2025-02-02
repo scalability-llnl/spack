@@ -1,6 +1,7 @@
 [project]
 name="spack"
 description="The spack package manager"
+requires-python=">=3.6"
 dependencies=[
   "clingo",
   "setuptools",
@@ -68,15 +69,19 @@ features = [
 ]
 
 [tool.ruff]
-# smallest version ruff seems to support
 line-length = 99
-target-version = "py37"
-include = ["pyproject.toml", "lib/spack/**/*.py", "var/spack/repos/**/*.py", "bin/spack"]
-exclude = ["lib/spack/external"]
-extend-exclude = ["*.pyi"]
+extend-include = ["pyproject.toml", "lib/spack/**/*.py", "var/spack/repos/**/*.py", "bin/spack"]
+extend-exclude = ["lib/spack/external", "*.pyi"]
+
+[tool.ruff.format]
+skip-magic-trailing-comma = true
 
 [tool.ruff.lint]
+extend-select = ["I"]
 ignore = ["E731", "E203"]
+
+[tool.ruff.lint.isort]
+split-on-trailing-comma = false
 
 [tool.ruff.lint.per-file-ignores]
 "var/spack/repos/*/package.py" = ["F403", "F405", "F821"]
@@ -84,7 +89,6 @@ ignore = ["E731", "E203"]
 
 [tool.black]
 line-length = 99
-target-version = ['py36', 'py37', 'py38', 'py39', 'py310']
 include = '(lib/spack|var/spack/repos)/.*\.pyi?$|bin/spack$'
 extend-exclude = 'lib/spack/external'
 skip_magic_trailing_comma = true
