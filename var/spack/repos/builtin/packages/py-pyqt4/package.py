@@ -43,7 +43,7 @@ class PyPyqt4(SIPPackage):
             "--sip",
             self.spec["py-sip"].prefix.bin.sip,
             "--sip-incdir",
-            join_path(self.spec["py-sip"].prefix, self.spec["python"].package.include),
+            join_path(self.spec["py-sip"].prefix, self["python"].include),
             "--bindir",
             self.prefix.bin,
             "--destdir",

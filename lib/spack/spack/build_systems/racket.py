@@ -9,6 +9,8 @@ import llnl.util.lang as lang
 import llnl.util.tty as tty
 
 import spack.builder
+import spack.spec
+import spack.util.prefix
 from spack.build_environment import SPACK_NO_PARALLEL_MAKE
 from spack.config import determine_number_of_jobs
 from spack.directives import build_system, extends, maintainers
@@ -74,18 +76,22 @@ class RacketBuilder(spack.builder.Builder):
             ret = os.path.join(ret, self.subdirectory)
         return ret
 
-    def install(self, pkg, spec, prefix):
+    def install(
+        self, pkg: RacketPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Install everything from build directory."""
         raco = Executable("raco")
         with fs.working_dir(self.build_directory):
-            parallel = self.pkg.parallel and (not env_flag(SPACK_NO_PARALLEL_MAKE))
+            parallel = pkg.parallel and (not env_flag(SPACK_NO_PARALLEL_MAKE))
+            name = pkg.racket_name
+            assert name is not None, "Racket package name is not set"
             args = [
                 "pkg",
                 "install",
                 "-t",
                 "dir",
                 "-n",
-                self.pkg.racket_name,
+                name,
                 "--deps",
                 "fail",
                 "--ignore-implies",
@@ -101,8 +107,7 @@ class RacketBuilder(spack.builder.Builder):
             except ProcessError:
                 args.insert(-2, "--skip-installed")
                 raco(*args)
-                msg = (
-                    "Racket package {0} was already installed, uninstalling via "
+                tty.warn(
+                    f"Racket package {name} was already installed, uninstalling via "
                     "Spack may make someone unhappy!"
                 )
-                tty.warn(msg.format(self.pkg.racket_name))

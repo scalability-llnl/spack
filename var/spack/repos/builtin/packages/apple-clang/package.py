@@ -16,6 +16,8 @@ class AppleClang(BundlePackage, LlvmDetection, CompilerPackage):
     compiler_languages = ["c", "cxx"]
     compiler_version_regex = r"^Apple (?:LLVM|clang) version ([^ )]+)"
 
+    requires("platform=darwin")
+
     @classmethod
     def validate_detected_spec(cls, spec, extra_attributes):
         msg = f'the extra attribute "compilers" must be set for the detected spec "{spec}"'

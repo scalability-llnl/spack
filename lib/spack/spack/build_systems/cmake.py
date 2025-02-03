@@ -454,16 +454,21 @@ class CMakeBuilder(BuilderWithDefaults):
         return []
 
     def cmake(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: CMakePackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Runs ``cmake`` in the build directory"""
 
         # skip cmake phase if it is an incremental develop build
+        # These are the files that will re-run CMake that are generated from a successful
+        # configure step
+        primary_generator = _extract_primary_generator(self.generator)
+        if primary_generator == "Unix Makefiles":
+            configure_artifact = "Makefile"
+        elif primary_generator == "Ninja":
+            configure_artifact = "ninja.build"
+
         if spec.is_develop and os.path.isfile(
-            os.path.join(self.build_directory, "CMakeCache.txt")
+            os.path.join(self.build_directory, configure_artifact)
         ):
             return
 
@@ -474,10 +479,7 @@ class CMakeBuilder(BuilderWithDefaults):
             pkg.module.cmake(*options)
 
     def build(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: CMakePackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Make the build targets"""
         with fs.working_dir(self.build_directory):
@@ -488,10 +490,7 @@ class CMakeBuilder(BuilderWithDefaults):
                 pkg.module.ninja(*self.build_targets)
 
     def install(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: CMakePackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Make the install targets"""
         with fs.working_dir(self.build_directory):

@@ -8,8 +8,8 @@ from spack.package import *
 class Pism(CMakePackage):
     """Parallel Ice Sheet Model"""
 
-    homepage = "https://pism-docs.org/wiki/doku.php:="
-    url = "https://github.com/pism/pism/archive/v1.1.4.tar.gz"
+    homepage = "https://www.pism.io"
+    url = "https://github.com/pism/pism/archive/v2.1.1.tar.gz"
     git = "https://github.com/pism/pism.git"
 
     maintainers("citibeth")
@@ -17,6 +17,8 @@ class Pism(CMakePackage):
     license("GPL-3.0-only")
 
     version("develop", branch="dev")
+    version("2.1.1", sha256="be4ac3ac42abbcb4d23af5c35284e06333dff0797eb11fa9745a214033857ab0")
+    version("2.0.7", sha256="cd1523fdccd5c261c68cfb1e84a044d014f2e892796b31c490109a5e56cc9edf")
     version("1.1.4", sha256="8ccb867af3b37e8d103351dadc1d7e77512e64379519fe8a2592668deb27bc44")
     version("0.7.x", branch="stable0.7")
     version("icebin", branch="efischer/dev")
@@ -32,7 +34,7 @@ class Pism(CMakePackage):
     variant(
         "proj",
         default=True,
-        description="Use Proj.4 to compute cell areas, " "longitudes, and latitudes.",
+        description="Use Proj to compute cell areas, " "longitudes, and latitudes.",
     )
     variant("parallel-netcdf4", default=False, description="Enables parallel NetCDF-4 I/O.")
     variant(
@@ -79,9 +81,10 @@ class Pism(CMakePackage):
     depends_on("gsl")
     depends_on("mpi")
     depends_on("netcdf-c")  # Only the C interface is used, no netcdf-cxx4
-    depends_on("petsc")
+    depends_on("petsc@3.21:", when="@2.1.1:")
+    depends_on("petsc@:3.20", when="@:2.0.7")
     depends_on("udunits")
-    depends_on("proj@:4")
+    depends_on("proj")
     depends_on("everytrace", when="+everytrace")
 
     extends("python", when="+python")
@@ -101,7 +104,7 @@ class Pism(CMakePackage):
             self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
             self.define_from_variant("Pism_BUILD_PYTHON_BINDINGS", "python"),
             self.define_from_variant("Pism_BUILD_ICEBIN", "icebin"),
-            self.define_from_variant("Pism_USE_PROJ4", "proj"),
+            self.define_from_variant("Pism_USE_PROJ", "proj"),
             self.define_from_variant("Pism_USE_PARALLEL_NETCDF4", "parallel-netcdf4"),
             self.define_from_variant("Pism_USE_PNETCDF", "parallel-netcdf3"),
             self.define_from_variant("Pism_USE_PARALLEL_HDF5", "parallel-hdf5"),
@@ -109,34 +112,3 @@ class Pism(CMakePackage):
             self.define_from_variant("Pism_INSTALL_EXAMPLES", "examples"),
             self.define_from_variant("Pism_USE_EVERYTRACE", "everytrace"),
         ]
-
-    def setup_run_environment(self, env):
-        env.set("PISM_PREFIX", self.prefix)
-        env.set("PISM_BIN", self.prefix.bin)
-
-
-# From email correspondence with Constantine Khroulev:
-#
-# > Do you have handy a table of which versions of PETSc are required
-# > for which versions of PISM?
-#
-# We don't. The installation manual [1] specifies the minimum PETSc
-# version for the latest "stable" release (currently PETSc 3.3). The
-# stable PISM version should support all PETSc versions starting from the
-# one specified in the manual and up to the latest PETSc release.
-#
-# The current development PISM version should be built with the latest
-# PETSc release at the time (the "maint" branch of PETSc).
-#
-# Thanks to Git it is relatively easy to find this info, though:
-#
-# | PISM version | PETSc version |
-# |--------------+---------------|
-# |          0.7 | 3.3 and later |
-# |          0.6 | 3.3           |
-# |       new_bc | 3.4.4         |
-# |          0.5 | 3.2           |
-# |          0.4 | 3.1           |
-# |          0.3 | 2.3.3 to 3.1  |
-# |          0.2 | 2.3.3 to 3.0  |
-# |          0.1 | 2.3.3-p2      |

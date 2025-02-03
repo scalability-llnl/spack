@@ -918,7 +918,7 @@ def _writer_daemon(
                         try:
                             if stdin_file.read(1) == "v":
                                 echo = not echo
-                        except IOError as e:
+                        except OSError as e:
                             # If SIGTTIN is ignored, the system gives EIO
                             # to let the caller know the read failed b/c it
                             # was in the bg. Ignore that too.
@@ -1013,7 +1013,7 @@ def _retry(function):
         while True:
             try:
                 return function(*args, **kwargs)
-            except IOError as e:
+            except OSError as e:
                 if e.errno == errno.EINTR:
                     continue
                 raise

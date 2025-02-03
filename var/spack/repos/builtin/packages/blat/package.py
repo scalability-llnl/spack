@@ -19,6 +19,7 @@ class Blat(Package):
     depends_on("libpng")
     depends_on("uuid", when="@37:")
     depends_on("mysql-client", when="@37:")
+    depends_on("gmake", type="build")
 
     @when("@37")
     def patch(self):

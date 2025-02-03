@@ -8,7 +8,7 @@ from spack.package import *
 class PyMlCollections(PythonPackage):
     """ML Collections is a library of Python collections designed for ML usecases."""
 
-    homepage = "https://https://github.com/google/ml_collections"
+    homepage = "https://github.com/google/ml_collections"
     pypi = "ml_collections/ml_collections-0.1.0.tar.gz"
     git = "https://github.com/google/ml_collections"
 

@@ -188,10 +188,7 @@ class MesonBuilder(BuilderWithDefaults):
         return []
 
     def meson(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: MesonPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Run ``meson`` in the build directory"""
         options = []
@@ -204,10 +201,7 @@ class MesonBuilder(BuilderWithDefaults):
             pkg.module.meson(*options)
 
     def build(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: MesonPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Make the build targets"""
         options = ["-v"]
@@ -216,10 +210,7 @@ class MesonBuilder(BuilderWithDefaults):
             pkg.module.ninja(*options)
 
     def install(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: MesonPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Make the install targets"""
         with fs.working_dir(self.build_directory):

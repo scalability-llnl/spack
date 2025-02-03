@@ -15,6 +15,7 @@ class Spherepack(Package):
     version("3.2", sha256="7f5497e77101a4423cee887294f873048f6ff6bc8d0e908c8a89ece677ee19ea")
 
     depends_on("fortran", type="build")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         if self.compiler.fc is None:

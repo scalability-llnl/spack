@@ -6,8 +6,6 @@ import os
 import platform
 import sys
 
-import llnl.util.tty as tty
-
 from spack.build_environment import optimization_flags
 from spack.package import *
 
@@ -147,11 +145,9 @@ class Namd(MakefilePackage, CudaPackage, ROCmPackage):
     def _append_option(self, opts, lib):
         if lib != "python":
             self._copy_arch_file(lib)
-        spec = self.spec
+        lib_pkg = self[lib]
         lib_prefix = (
-            spec[lib].package.component_prefix
-            if spec[lib].name == "intel-oneapi-mkl"
-            else spec[lib].prefix
+            lib_pkg.component_prefix if lib_pkg.name == "intel-oneapi-mkl" else lib_pkg.prefix
         )
         opts.extend(["--with-{0}".format(lib), "--{0}-prefix".format(lib), lib_prefix])
 

@@ -140,6 +140,7 @@ class Charmpp(Package):
     # Git versions of Charm++ require automake and autoconf
     depends_on("automake", when="@develop")
     depends_on("autoconf", when="@develop")
+    depends_on("gmake", type="build")
 
     conflicts("~tracing", "+papi")
 
@@ -395,7 +396,7 @@ class Charmpp(Package):
                         copy(filepath, tmppath)
                         os.remove(filepath)
                         os.rename(tmppath, filepath)
-                    except (IOError, OSError):
+                    except OSError:
                         pass
 
         tmp_path = join_path(builddir, "tmp")

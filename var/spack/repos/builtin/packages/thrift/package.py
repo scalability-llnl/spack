@@ -72,6 +72,7 @@ class Thrift(Package):
     depends_on("py-zope-interface", type=("build", "run"), when="+python")
     depends_on("py-pure-sasl", type=("build", "run"), when="+python")
     depends_on("scons", type=("build", "run"), when="+python")
+    depends_on("gmake", type="build")
 
     patch(
         "https://github.com/apache/thrift/pull/2511.patch?full_index=1",

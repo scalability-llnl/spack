@@ -25,6 +25,7 @@ class Cgns(CMakePackage):
 
     version("develop", branch="develop")
     version("master", branch="master")
+    version("4.5.0", sha256="c72355219318755ba0a8646a8e56ee1c138cf909c1d738d258d2774fa4b529e9")
     version("4.4.0", sha256="3b0615d1e6b566aa8772616ba5fd9ca4eca1a600720e36eadd914be348925fe2")
     version("4.3.0", sha256="7709eb7d99731dea0dd1eff183f109eaef8d9556624e3fbc34dc5177afc0a032")
     version("4.2.0", sha256="090ec6cb0916d90c16790183fc7c2bd2bd7e9a5e3764b36c8196ba37bf1dc817")
@@ -54,6 +55,7 @@ class Cgns(CMakePackage):
     variant("tools", default=False, description="Enable CGNS tools")
     variant("pic", default=False, description="Produce position-independent code")
 
+    depends_on("cmake@3.20:", when="@4.5:", type="build")
     depends_on("cmake@3.12:", when="@4.3:", type="build")
     depends_on("cmake@3.8:", when="@4.2:", type="build")
     depends_on("cmake@2.8:", when="@:4.1", type="build")

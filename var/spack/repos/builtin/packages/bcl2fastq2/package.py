@@ -5,8 +5,6 @@
 import glob
 import os
 
-import llnl.util.tty as tty
-
 from spack.package import *
 from spack.pkg.builtin.boost import Boost
 
@@ -43,6 +41,7 @@ class Bcl2fastq2(Package):
     depends_on("libxslt@1.1.26~crypto")
     depends_on("libgcrypt")
     depends_on("zlib-api")
+    depends_on("gmake", type="build")
 
     # Their cmake macros don't set the flag when they find a library
     # that makes them happy.

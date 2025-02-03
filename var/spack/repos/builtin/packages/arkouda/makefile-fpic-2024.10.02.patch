@@ -1,0 +1,23 @@
+diff --git a/Makefile b/Makefile
+index 13a9c4be1..099896ec9 100644
+--- a/Makefile
++++ b/Makefile
+@@ -236,15 +236,15 @@ compile-arrow-cpp:
+
+ .PHONY: compile-arrow-write
+ compile-arrow-write:
+-	$(CHPL_CXX) -O3 -std=c++17 -c $(ARROW_WRITE_CPP) -o $(ARROW_WRITE_O) $(INCLUDE_FLAGS) $(ARROW_SANITIZE)
++	$(CHPL_CXX) -O3 -std=c++17 -fPIC -c $(ARROW_WRITE_CPP) -o $(ARROW_WRITE_O) $(INCLUDE_FLAGS) $(ARROW_SANITIZE)
+
+ .PHONY: compile-arrow-read
+ compile-arrow-read:
+-	$(CHPL_CXX) -O3 -std=c++17 -c $(ARROW_READ_CPP) -o $(ARROW_READ_O) $(INCLUDE_FLAGS) $(ARROW_SANITIZE)
++	$(CHPL_CXX) -O3 -std=c++17 -fPIC -c $(ARROW_READ_CPP) -o $(ARROW_READ_O) $(INCLUDE_FLAGS) $(ARROW_SANITIZE)
+
+ .PHONY: compile-arrow-util
+ compile-arrow-util:
+-	$(CHPL_CXX) -O3 -std=c++17 -c $(ARROW_UTIL_CPP) -o $(ARROW_UTIL_O) $(INCLUDE_FLAGS) $(ARROW_SANITIZE)
++	$(CHPL_CXX) -O3 -std=c++17 -fPIC -c $(ARROW_UTIL_CPP) -o $(ARROW_UTIL_O) $(INCLUDE_FLAGS) $(ARROW_SANITIZE)
+
+ $(ARROW_UTIL_O): $(ARROW_UTIL_CPP) $(ARROW_UTIL_H)
+ 	make compile-arrow-util
