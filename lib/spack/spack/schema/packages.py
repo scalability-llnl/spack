@@ -141,8 +141,8 @@ properties: Dict[str, Any] = {
                     {
                         "names": ["compiler"],
                         "message": "The packages:all:compiler preference has been deprecated in "
-                        "Spack v0.24, and is currently ignored. It will be removed from config in "
-                        "Spack v0.26.",
+                        "Spack v1.0, and is currently ignored. It will be removed from config in "
+                        "Spack v1.2.",
                         "error": False,
                     }
                 ],
