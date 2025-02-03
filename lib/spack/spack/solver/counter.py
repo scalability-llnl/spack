@@ -187,17 +187,7 @@ class _PossibleDependenciesAnalyzer:
                 deptype that intersects with allowed deptype is considered
         """
         virtuals: Set[str] = set()
-        stack = []
-        for current_spec in specs:
-            if isinstance(current_spec, str):
-                current_spec = spack.spec.Spec(current_spec)
-
-            if self.context.repo.is_virtual(current_spec.name):
-                stack.extend([p.name for p in self.context.providers_for(current_spec.name)])
-                continue
-
-            stack.append(current_spec.name)
-
+        stack = self._package_list(specs)
         visited: Dict[str, Set[str]] = {}
         while stack:
             pkg_name = stack.pop()
@@ -256,6 +246,19 @@ class _PossibleDependenciesAnalyzer:
         virtuals.update(self.runtime_virtuals)
         real_packages = set(visited) | self.runtime_pkgs
         return real_packages, virtuals
+
+    def _package_list(self, specs: Tuple[Union[spack.spec.Spec, str], ...]) -> List[str]:
+        stack = []
+        for current_spec in specs:
+            if isinstance(current_spec, str):
+                current_spec = spack.spec.Spec(current_spec)
+
+            if self.context.repo.is_virtual(current_spec.name):
+                stack.extend([p.name for p in self.context.providers_for(current_spec.name)])
+                continue
+
+            stack.append(current_spec.name)
+        return sorted(set(stack))
 
     def _has_deptypes(self, dependencies, *, allowed_deps: dt.DepFlag, strict: bool) -> bool:
         if strict is True:
