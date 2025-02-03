@@ -203,12 +203,6 @@ class Amdfftw(FftwBase):
         if not self.compiler.f77 or not self.compiler.fc:
             options.append("--disable-fortran")
 
-        # Cross compilation is supported in amd-fftw by making use of target
-        # variable to set AMD_ARCH configure option.
-        # Spack user can not directly use AMD_ARCH for this purpose but should
-        # use target variable to set appropriate -march option in AMD_ARCH.
-        options.append(f"AMD_ARCH={optimization_flags(self.compiler, spec.target).split('=')[-1]}")
-
         if "avx512" in spec.target:
             options.append("CFLAGS=-mprefer-vector-width=512")
         else:
