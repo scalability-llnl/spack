@@ -68,7 +68,7 @@ class PyLlvmlite(PythonPackage):
         "x86_64:",
     ]:
         depends_on("llvm@10.0", when=f"@0.34:0.36 target={t}")
-    
+
     depends_on("llvm@9.0", when="@0.34:0.36 target=aarch64:")
     depends_on("llvm@9.0", when="@0.33")
     depends_on("llvm@7.0:7.1,8.0", when="@0.29:0.32")
