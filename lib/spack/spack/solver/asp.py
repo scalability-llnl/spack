@@ -729,9 +729,8 @@ class ConcretizationCache:
         """Returns parsed manifest entry lines
         with handling for invalid reads."""
         if line:
-            try:
-                return line.strip("\n").split(" ")
-            except:
+            cache_values = line.strip("\n").split(" ")
+            if len(cache_values) < 2:
                 tty.warn(f"Invalid cache entry at {line}")
                 return None, None
         return None, None
@@ -846,7 +845,8 @@ class ConcretizationCache:
         return False
 
     def _safe_read(self, cache_path: pathlib.Path):
-        """Cache entry read with error handling for cases where the entry has been removed by another process"""
+        """Cache entry read with error handling for cases
+        where the entry has been removed by another process"""
         try:
             return cache_path.read_text()
         except FileNotFoundError:
