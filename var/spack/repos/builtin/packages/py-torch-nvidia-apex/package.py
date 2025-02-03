@@ -79,6 +79,11 @@ class PyTorchNvidiaApex(PythonPackage, CudaPackage):
     # https://github.com/NVIDIA/apex/issues/1498
     # https://github.com/NVIDIA/apex/pull/1499
     patch("1499.patch", when="@2020-10-19")
+    patch(
+        "https://github.com/NVIDIA/apex/pull/1879.patch?full_index=1",
+        sha256="8e2e21aa883d93e6c0ea0fecb812c8de906b2e77bcffeeb716adabd1dd76650e",
+        when="@23.05:2019",
+    )
 
     conflicts(
         "cuda_arch=none",
