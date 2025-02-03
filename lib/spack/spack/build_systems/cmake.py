@@ -461,18 +461,14 @@ class CMakeBuilder(BuilderWithDefaults):
         if spec.is_develop:
             # skip cmake phase if it is an incremental develop build
 
-            def _configure_artifact():
-                """
-                Determine the files that will re-run CMake that are generated from a successful
-                configure step based on state
-                """
-                primary_generator = _extract_primary_generator(self.generator)
-                if primary_generator == "Unix Makefiles":
-                    return "Makefile"
-                elif primary_generator == "Ninja":
-                    return "ninja.build"
+            # Determine the files that will re-run CMake that are generated from a successful
+            # configure step based on state
+            primary_generator = _extract_primary_generator(self.generator)
+            configure_artifact = "Makefile":
+            if primary_generator == "Ninja":
+               configure_artifact = "ninja.build"
 
-            if os.path.isfile(os.path.join(self.build_directory, _configure_artifact())):
+            if os.path.isfile(os.path.join(self.build_directory, configure_artifact)):
                 return
 
         options = self.std_cmake_args
