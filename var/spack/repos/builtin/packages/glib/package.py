@@ -132,22 +132,31 @@ class MesonBuilder(spack.build_systems.meson.MesonBuilder):
     def dtrace_copy_path(self):
         return join_path(self.stage.source_path, "dtrace-copy")
 
-    @run_before("install")
-    def fix_python_path(self):
-        if not self.spec.satisfies("@2.53.4:"):
-            return
-
-        files = ["gobject/glib-genmarshal.in", "gobject/glib-mkenums.in"]
-
+    @run_before("install", when="@:2.80")  # @2.81: uses meson found python abs path.
+    def fix_python_path_before_install(self):
         filter_file(
             "^#!/usr/bin/env @PYTHON@",
-            "#!/usr/bin/env {0}".format(os.path.basename(self.spec["python"].command.path)),
-            *files,
+            f"#!/usr/bin/env {os.path.basename(self.spec['python'].command.path)}",
+            "gobject/glib-genmarshal.in",
+            "gobject/glib-mkenums.in",
+        )
+
+    @run_after("install", when="@:2.80")
+    def fix_python_path_after_install(self):
+        # Revert shebang, so Spack's sbang hook can fix it up (we have to do
+        # this after install because otherwise the install target will try
+        # to rebuild files as filter_file updates the timestamps)
+        python_path = os.path.basename(self.spec["python"].command.path)
+        filter_file(
+            f"^#!/usr/bin/env {os.path.basename(python_path)}",
+            f"#!{self.spec['python'].command.path}",
+            join_path(self.prefix.bin, "glib-genmarshal"),
+            join_path(self.prefix.bin, "glib-mkenums"),
         )
 
     @run_before("install")
     def fix_dtrace_usr_bin_path(self):
-        if "tracing=dtrace" not in self.spec:
+        if not self.spec.satisfies("tracing=dtrace"):
             return
 
         # dtrace may cause glib build to fail because it uses
@@ -161,32 +170,13 @@ class MesonBuilder(spack.build_systems.meson.MesonBuilder):
             copy(dtrace, dtrace_copy)
             filter_file(
                 "^#!/usr/bin/python",
-                "#!/usr/bin/env {0}".format(os.path.basename(self.spec["python"].command.path)),
+                f"#!/usr/bin/env {os.path.basename(self.spec['python'].command.path)}",
                 dtrace_copy,
             )
 
         # To have our own copy of dtrace in PATH, we need to
         # prepend to PATH the temporary folder where it resides
         env["PATH"] = ":".join([self.dtrace_copy_path] + env["PATH"].split(":"))
-
-    @run_after("install")
-    def filter_sbang(self):
-        # Revert sbang, so Spack's sbang hook can fix it up (we have to do
-        # this after install because otherwise the install target will try
-        # to rebuild files as filter_file updates the timestamps)
-        if self.spec.satisfies("@2.53.4:"):
-            pattern = "^#!/usr/bin/env {0}".format(
-                os.path.basename(self.spec["python"].command.path)
-            )
-            repl = "#!{0}".format(self.spec["python"].command.path)
-            files = ["glib-genmarshal", "glib-mkenums"]
-        else:
-            pattern = "^#! /usr/bin/perl"
-            repl = "#!{0}".format(self.spec["perl"].command.path)
-            files = ["glib-mkenums"]
-
-        files = [join_path(self.prefix.bin, file) for file in files]
-        filter_file(pattern, repl, *files, backup=False)
 
     @run_after("install")
     def gettext_libdir(self):
@@ -197,14 +187,15 @@ class MesonBuilder(spack.build_systems.meson.MesonBuilder):
         # appropriate -L path.
         spec = self.spec
         if (
-            spec.satisfies("@2.0:2")
-            and "intl" in self.spec["gettext"].libs.names
+            spec.satisfies("@2")
+            and "intl" in spec["gettext"].libs.names
             and not is_system_path(spec["gettext"].prefix)
         ):
-            pattern = "Libs:"
-            repl = "Libs: -L{0} -Wl,-rpath={0} ".format(spec["gettext"].libs.directories[0])
-            myfile = join_path(self.spec["glib"].libs.directories[0], "pkgconfig", "glib-2.0.pc")
-            filter_file(pattern, repl, myfile, backup=False)
+            filter_file(
+                "Libs:",
+                "Libs: -L{0} -Wl,-rpath={0} ".format(spec["gettext"].libs.directories[0]),
+                join_path(self.spec["glib"].libs.directories[0], "pkgconfig", "glib-2.0.pc"),
+            )
 
     def meson_args(self):
         args = []
