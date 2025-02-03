@@ -159,6 +159,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     )
 
     depends_on("python@3", type="build")
+    depends_on("pkgconfig", type="build", when="build_system=cmake")
 
     depends_on("blas")
     depends_on("lapack")
@@ -196,13 +197,14 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
             )
 
     with when("+libxc"):
-        depends_on("pkgconfig", type="build", when="@7.0:")
+        depends_on("pkgconfig", type="build", when="@7.0: ^libxc@:6")
         depends_on("libxc@4.0.3:4", when="@7.0:8.1")
         depends_on("libxc@5.1.3:5.1", when="@8.2:8")
         depends_on("libxc@5.1.7:5.1", when="@9:2022.2")
         depends_on("libxc@6.1:", when="@2023.1:")
         depends_on("libxc@6.2:", when="@2023.2:")
         depends_on("libxc@:6", when="@:2024.3")
+        depends_on("libxc@7 build_system=cmake", when="@2025.2:")
 
     with when("+spla"):
         depends_on("spla+cuda+fortran", when="+cuda")
