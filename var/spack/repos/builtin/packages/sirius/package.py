@@ -166,7 +166,7 @@ class Sirius(CMakePackage, CudaPackage, ROCmPackage):
 
     patch("libxc7.patch", when="@7.6:")
     patch(
-        "https://patch-diff.githubusercontent.com/raw/electronic-structure/SIRIUS/pull/1050.patch",
+        "https://patch-diff.githubusercontent.com/raw/electronic-structure/SIRIUS/pull/1050.patch?full_index=1",
         sha256="ce222c0c06dac0af8f26afc523cd21191177b2947c64964ebec26fb46a980c4b",
         when="@7.6.0:7.6.1 +pugixml",
     )
