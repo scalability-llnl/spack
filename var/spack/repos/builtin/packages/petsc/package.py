@@ -582,7 +582,7 @@ class Petsc(Package, CudaPackage, ROCmPackage):
 
         if "+sycl" in spec:
             sycl_compatible_compilers = ["icpx"]
-            if not (os.path.basename(self.compiler.cxx) in sycl_compatible_compilers):
+            if os.path.basename(self.compiler.cxx) not in sycl_compatible_compilers:
                 raise InstallError("PETSc's SYCL GPU Backend requires oneAPI CXX (icpx) compiler.")
             options.append("--with-sycl=1")
             options.append("--with-syclc=" + self.compiler.cxx)
