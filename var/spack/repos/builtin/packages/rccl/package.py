@@ -20,7 +20,12 @@ class Rccl(CMakePackage):
 
     maintainers("srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["librccl"]
-    version("6.3.2", sha256="773ae4d3d4c25dcd5856fe9ad2c09f8a37f044f0abb5d6bfc37290aacc4c7e7f")
+    version(
+        "6.3.2",
+        tag="rocm-6.3.2",
+        commit="9a0e6a114c8f7371fa3050b413a350d6945fb7db",
+        submodules=True,
+    )
     version(
         "6.3.1",
         tag="rocm-6.3.1",

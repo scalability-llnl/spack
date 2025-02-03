@@ -17,7 +17,6 @@ class Omniperf(CMakePackage):
     maintainers("afzpatel", "srekolam", "renjithravindrankannath")
 
     license("MIT")
-    version("6.3.2", sha256="317f19acfa6e6780923e6c8144c3c223b523c382588df528b6df001fae38d13d")
     version("6.3.1", sha256="2b79cb3ecced9a40f6871286967d00b1ab87f9cdff8283819fd7ae44b230d4bf")
     version("6.3.0", sha256="f8e9703b5f78abba6f4a61f69ffc73225d1bb47b591cf33a26ed98060efd65d1")
     version("6.2.4", sha256="2230260fce0838583899f4969b936ca047b30985a0fffad276ea353232538770")

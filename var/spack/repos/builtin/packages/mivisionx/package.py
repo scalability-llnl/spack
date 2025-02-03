@@ -173,6 +173,14 @@ class Mivisionx(CMakePackage):
                 "model_compiler/python/nnir_to_clib.py",
                 string=True,
             )
+        if self.spec.satisfies("@6.2:"):
+            filter_file(
+                r"crypto",
+                "{0}".format(self.spec["openssl"].libs),
+                "utilities/runvx/CMakeLists.txt",
+                "utilities/runcl/CMakeLists.txt",
+                string=True,
+            )
 
     depends_on("cmake@3.5:", type="build")
     depends_on("ffmpeg@:4", type="build", when="@:5.3")
@@ -304,9 +312,10 @@ class Mivisionx(CMakePackage):
             env.prepend_path("LD_LIBRARY_PATH", self.spec["hsa-rocr-dev"].prefix.lib)
 
     def setup_build_environment(self, env):
-        if self.spec.satisfies("+asan"):
+        if self.spec.satisfies("@6.1:"):
             env.set("CC", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang")
             env.set("CXX", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang++")
+        if self.spec.satisfies("+asan"):
             env.set("ASAN_OPTIONS", "detect_leaks=0")
             env.set("CFLAGS", "-fsanitize=address -shared-libasan")
             env.set("CXXFLAGS", "-fsanitize=address -shared-libasan")
