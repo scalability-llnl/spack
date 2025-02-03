@@ -13,9 +13,6 @@ class PyXarrayRegrid(PythonPackage):
 
     maintainers("Chrismarsh")
 
-    # FIXME: Add the SPDX identifier of the project's license below.
-    # See https://spdx.org/licenses/ for a list. Upon manually verifying
-    # the license, set checked_by to your Github username.
     license("Apache-2.0", checked_by="Chrismarsh")
 
     version("0.4.0", sha256="f0bef6a346e247c657ed293752b5685f3b559b32de546889ca9e9fca14b81f3a")
