@@ -194,7 +194,7 @@ class Upcxx(Package, CudaPackage, ROCmPackage):
         if env.get("LDLIBS"):
             env["LIBS"] = env["LDLIBS"]
 
-        if self.compiler.name == "oneapi" and self.compiler.version >= Version("2025.0.0"):
+        if spec.satisfies("%oneapi@2025:"):
             env["CXXFLAGS"] = (
                 "-Wno-error=missing-template-arg-list-after-template-kw "
                 "-Wno-missing-template-arg-list-after-template-kw"
