@@ -8,7 +8,6 @@ import shutil
 import sys
 
 import llnl.util.lang
-import llnl.util.tty as tty
 
 from spack.package import *
 

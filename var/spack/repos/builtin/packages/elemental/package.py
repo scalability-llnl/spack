@@ -150,7 +150,7 @@ class Elemental(CMakePackage):
                     ),
                     "-DCUSTOM_BLAS_SUFFIX:BOOL=TRUE",
                 ]
-            ),
+            )
             if spec.satisfies("+scalapack"):
                 args.extend(
                     [
@@ -159,7 +159,7 @@ class Elemental(CMakePackage):
                         ),
                         "-DCUSTOM_LAPACK_SUFFIX:BOOL=TRUE",
                     ]
-                ),
+                )
         else:
             math_libs = spec["lapack"].libs + spec["blas"].libs
 

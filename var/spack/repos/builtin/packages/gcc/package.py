@@ -7,7 +7,6 @@ import sys
 
 import archspec.cpu
 
-import llnl.util.tty as tty
 from llnl.util.symlink import readlink
 
 import spack.compiler
@@ -801,11 +800,6 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
                     "--with-as=" + binutils.join("as"),
                 ]
             )
-        elif spec.satisfies("%apple-clang@15:"):
-            # https://github.com/iains/gcc-darwin-arm64/issues/117
-            # https://github.com/iains/gcc-12-branch/issues/22
-            # https://github.com/iains/gcc-13-branch/issues/8
-            options.append("--with-ld=/Library/Developer/CommandLineTools/usr/bin/ld-classic")
 
         # enable_bootstrap
         if spec.satisfies("+bootstrap"):
