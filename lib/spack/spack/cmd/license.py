@@ -3,7 +3,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import datetime
 import os
 import re
 from collections import defaultdict
@@ -97,7 +96,7 @@ def list_files(args):
 OLD_LICENSE, SPDX_MISMATCH, GENERAL_MISMATCH = range(1, 4)
 
 #: Latest year that copyright applies. UPDATE THIS when bumping copyright.
-latest_year = datetime.date.today().year
+latest_year = 2024  # year of 0.22 release
 strict_date = r"Copyright 2013-%s" % latest_year
 
 #: regexes for valid license lines at tops of files
