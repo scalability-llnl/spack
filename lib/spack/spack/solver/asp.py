@@ -650,6 +650,8 @@ class ConcretizationCache:
         self._cache_manifest = self.root / ".cache_manifest"
 
     def cleanup(self):
+        """Prunes the concretization cache according to configured size and entry
+        count limits. Cleanup is done in FIFO ordering."""
         # TODO: determine a better default
         entry_limit = spack.config.get("config:concretization_cache:entry_limit", 1000)
         bytes_limit = spack.config.get("config:concretization_cache:size_limit", 3e8)
@@ -708,6 +710,7 @@ class ConcretizationCache:
                     self._safe_remove(cache_dir)
 
     def cache_entries(self):
+        """Generator producing cache entries"""
         for cache_dir in self.root.iterdir():
             # ensure component is cache entry directory
             # not metadata file
@@ -723,11 +726,28 @@ class ConcretizationCache:
                         )
 
     def _parse_manifest_entry(self, line):
+        """Returns parsed manifest entry lines
+        with handling for invalid reads."""
         if line:
-            return line.strip("\n").split(" ")
+            try:
+                return line.strip("\n").split(" ")
+            except:
+                tty.warn(f"Invalid cache entry at {line}")
+                return None, None
         return None, None
 
     def _write_manifest(self, manifest_file, entry_count, entry_bytes):
+        """Writes new concretization cache manifest file.
+
+        Arguments:
+            manifest_file: IO stream opened for readin
+                            and writing wrapping the manifest file
+                            with cursor at calltime set to location
+                            where manifest should be truncated
+            entry_count: new total entry count
+            entry_bytes: new total entry bytes count
+
+        """
         persisted_entries = manifest_file.readlines()
         manifest_file.truncate(0)
         manifest_file.write(f"{entry_count} {entry_bytes}\n")
@@ -760,6 +780,8 @@ class ConcretizationCache:
         return None
 
     def _extract_cache_metadata(self, cache_stream: io.IOBase):
+        """Extracts and returns cache entry count and bytes count from head of manifest
+        file"""
         # make sure we're always reading from the beginning of the stream
         # concretization cache manifest data lives at the top of the file
         with current_file_position(cache_stream, 0):
@@ -790,6 +812,9 @@ class ConcretizationCache:
         )
 
     def _update_manifest(self, cache_path: pathlib.Path, bytes_written: int):
+        """Updates the concretization cache manifest file after a cache write operation
+        Updates the current byte count and entry counts and writes to the head of the
+        manifest file"""
         self._cache_manifest.touch(exist_ok=True)
         with open(self._cache_manifest, "r+", encoding="utf-8") as f:
             # check if manifest is empty
@@ -804,6 +829,8 @@ class ConcretizationCache:
             f.write(f"{cache_path.name} {bytes_written}\n")
 
     def _safe_remove(self, cache_dir: pathlib.Path):
+        """Removes cache entries with handling for the case where the entry has been
+        removed already or there are multiple cache entries in a directory"""
         try:
             if cache_dir.is_dir():
                 cache_dir.rmdir()
@@ -819,12 +846,15 @@ class ConcretizationCache:
         return False
 
     def _safe_read(self, cache_path: pathlib.Path):
+        """Cache entry read with error handling for cases where the entry has been removed by another process"""
         try:
             return cache_path.read_text()
         except FileNotFoundError:
             tty.debug(f"Unable to read cache entry, {str(cache_path)} does not exist")
 
     def _safe_write(self, cache_path: pathlib.Path, output: str):
+        """Cache entry write with handling for cases where the entry has already been
+        created by another process"""
         try:
             with tempfile.NamedTemporaryFile("w+", delete=False) as tf:
                 bytes_out = tf.write(output)
@@ -904,6 +934,7 @@ class ConcretizationCache:
         return None
 
     def destroy(self) -> None:
+        """Destroys the concretization cache"""
         with lk.WriteTransaction(lk.Lock(str(self._cache_manifest))):
             for cache_entry in self.cache_entries():
                 self._safe_remove(cache_entry)
