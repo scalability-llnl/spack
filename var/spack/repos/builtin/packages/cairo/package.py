@@ -114,7 +114,7 @@ class Cairo(AutotoolsPackage, MesonPackage):
 
     # meson also needs this for auto discovery of depends
     depends_on("pkgconfig", type="build")
-    
+
     # lzo is not strictly required, but cannot be disabled and may be pulled in accidentally
     # https://github.com/mesonbuild/meson/issues/8224
     # https://github.com/microsoft/vcpkg/pull/38313
