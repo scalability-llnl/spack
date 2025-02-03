@@ -824,7 +824,7 @@ class IncludePath(NamedTuple):
 
 
 def included_path(entry: Union[str, dict]) -> IncludePath:
-    """Convert the included path entry into a standard form.
+    """Convert the included path entry into an IncludePath.
 
     Args:
         entry: include configuration entry
