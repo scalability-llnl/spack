@@ -186,12 +186,16 @@ class _PossibleDependenciesAnalyzer:
             strict_depflag: if True, only the specific dep type is considered, if False any
                 deptype that intersects with allowed deptype is considered
         """
+        stack = [(x, 0) for x in self._package_list(specs)]
         virtuals: Set[str] = set()
-        stack = self._package_list(specs)
         visited: Dict[str, Set[str]] = {}
+
         while stack:
-            pkg_name = stack.pop()
-            visited.setdefault(pkg_name, set())
+            pkg_name, depth = stack.pop()
+            if pkg_name in visited:
+                continue
+
+            visited[pkg_name] = set()
 
             # Since libc is not buildable, there is no need to extend the
             # search space with libc dependencies.
@@ -224,13 +228,11 @@ class _PossibleDependenciesAnalyzer:
                 else:
                     dep_names = {name}
 
-                visited.setdefault(pkg_name, set()).update(dep_names)
+                visited[pkg_name].update(dep_names)
 
                 for dep_name in dep_names:
                     if dep_name in visited:
                         continue
-
-                    visited.setdefault(dep_name, set())
 
                     if not self.context.is_allowed_on_this_platform(pkg_name=dep_name):
                         continue
@@ -238,10 +240,10 @@ class _PossibleDependenciesAnalyzer:
                     if not self.context.can_be_installed(pkg_name=dep_name):
                         continue
 
-                    if not transitive:
+                    if not transitive and depth > 0:
                         continue
 
-                    stack.append(dep_name)
+                    stack.append((dep_name, depth + 1))
 
         virtuals.update(self.runtime_virtuals)
         real_packages = set(visited) | self.runtime_pkgs
