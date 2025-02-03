@@ -1,0 +1,26 @@
+diff --git a/src/future/future1.hpp b/src/future/future1.hpp
+index c2fd535a..e0fb187b 100644
+--- a/src/future/future1.hpp
++++ b/src/future/future1.hpp
+@@ -410,7 +410,7 @@ namespace upcxx {
+
+       UPCXXI_PROGRESS_UNTIL(impl_.ready(), detail::future_wait_upcxx_progress_user{});
+
+-      return std::move(*this).template result_tuple();
++      return std::move(*this).result_tuple();
+     }
+
+     template<int i=-1>
+diff --git a/src/rpc.hpp b/src/rpc.hpp
+index 4b644fa9..55feb545 100644
+--- a/src/rpc.hpp
++++ b/src/rpc.hpp
+@@ -301,7 +301,7 @@ namespace upcxx {
+
+       template<typename ...Arg>
+       void operator()(Arg &&...arg) const {
+-        backend::template send_awaken_lpc(
++        backend::send_awaken_lpc(
+           initiator,
+           remote_lpc, std::tuple<Arg&&...>(std::forward<Arg>(arg)...)
+         );
