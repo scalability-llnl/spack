@@ -40,6 +40,7 @@ class Professor(Package):
     depends_on("root")
     depends_on("gmake", type="build")
     depends_on("py-pip", type="build", when="@2.3.4:")
+    depends_on("py-setuptools", type="build", when="@2.3.4:")
 
     extends("python")
 
