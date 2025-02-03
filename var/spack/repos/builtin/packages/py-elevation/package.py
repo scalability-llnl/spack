@@ -31,7 +31,7 @@ class PyElevation(PythonPackage):
     depends_on("py-fiona")
     depends_on("py-appdirs")
 
-    # listed in 
+    # listed in
     # https://github.com/bopen/elevation/blob/1.1.3/README.rst
     depends_on("curl")
     depends_on("unzip")
