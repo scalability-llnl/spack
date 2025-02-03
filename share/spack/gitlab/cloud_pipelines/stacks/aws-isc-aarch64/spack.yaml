@@ -56,7 +56,7 @@ spack:
   definitions:
 
   - compiler_specs:
-    - gcc@11.2
+    - gcc@11
     # Licensing OK?
     # - intel-oneapi-compilers@2022.1
     # - nvhpc
