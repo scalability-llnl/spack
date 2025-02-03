@@ -198,7 +198,7 @@ def script_dir(sbang_line):
     ],
 )
 def test_shebang_interpreter_regex(shebang, interpreter):
-    sbang.get_interpreter(shebang) == interpreter
+    assert sbang.get_interpreter(shebang) == interpreter
 
 
 def test_shebang_handling(script_dir, sbang_line):

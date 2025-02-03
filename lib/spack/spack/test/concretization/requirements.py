@@ -182,7 +182,7 @@ def test_requirement_adds_version_satisfies(
 
     # Sanity check: early version of T does not include U
     s0 = spack.concretize.concretize_one("t@2.0")
-    assert not ("u" in s0)
+    assert "u" not in s0
 
     conf_str = """\
 packages:

@@ -328,16 +328,14 @@ def test_get_spec_filter_list(mutable_mock_env_path, mutable_mock_repo):
     e1.add("hypre")
     e1.concretize()
 
-    """
-    Concretizing the above environment results in the following graphs:
+    # Concretizing the above environment results in the following graphs:
 
-    mpileaks -> mpich (provides mpi virtual dep of mpileaks)
-             -> callpath -> dyninst -> libelf
-                                    -> libdwarf -> libelf
-                         -> mpich (provides mpi dep of callpath)
+    # mpileaks -> mpich (provides mpi virtual dep of mpileaks)
+    #          -> callpath -> dyninst -> libelf
+    #                                 -> libdwarf -> libelf
+    #                      -> mpich (provides mpi dep of callpath)
 
-    hypre -> openblas-with-lapack (provides lapack and blas virtual deps of hypre)
-    """
+    # hypre -> openblas-with-lapack (provides lapack and blas virtual deps of hypre)
 
     touched = ["libdwarf"]
 

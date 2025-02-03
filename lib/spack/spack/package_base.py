@@ -66,10 +66,6 @@ FLAG_HANDLER_RETURN_TYPE = Tuple[
 ]
 FLAG_HANDLER_TYPE = Callable[[str, Iterable[str]], FLAG_HANDLER_RETURN_TYPE]
 
-"""Allowed URL schemes for spack packages."""
-_ALLOWED_URL_SCHEMES = ["http", "https", "ftp", "file", "git"]
-
-
 #: Filename for the Spack build/install log.
 _spack_build_logfile = "spack-build-out.txt"
 
@@ -700,9 +696,6 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
 
     #: Verbosity level, preserved across installs.
     _verbose = None
-
-    #: index of patches by sha256 sum, built lazily
-    _patches_by_hash = None
 
     #: Package homepage where users can find more information about the package
     homepage: Optional[str] = None
