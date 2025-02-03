@@ -161,7 +161,7 @@ class Cairo(AutotoolsPackage, MesonPackage):
     # patch from https://gitlab.freedesktop.org/cairo/cairo/issues/346
     patch("fontconfig.patch", when="@1.16.0:1.17.2")
     # Don't regenerate docs to avoid a dependency on gtk-doc
-    patch("disable-gtk-docs.patch", when="@:1.17.4^autoconf@2.70:")
+    patch("disable-gtk-docs.patch", when="build_system=autotools ^autoconf@2.70:")
 
 
 class MesonBuilder(meson.MesonBuilder):
