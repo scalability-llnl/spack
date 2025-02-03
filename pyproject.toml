@@ -70,7 +70,7 @@ features = [
 
 [tool.ruff]
 line-length = 99
-extend-include = ["pyproject.toml", "lib/spack/**/*.py", "var/spack/repos/**/*.py", "bin/spack"]
+extend-include = ["bin/spack"]
 extend-exclude = ["lib/spack/external", "*.pyi"]
 
 [tool.ruff.format]
