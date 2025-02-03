@@ -4,7 +4,6 @@
 
 import os
 
-from spack.build_environment import optimization_flags
 from spack.package import *
 from spack.pkg.builtin.fftw import FftwBase
 
