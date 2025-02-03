@@ -43,7 +43,6 @@ class Cairo(AutotoolsPackage, MesonPackage):
 
     variant("X", default=False, description="Build with X11 support")
     variant("gobject", default=False, description="Enable cairo's gobject functions feature")
-    variant("shared", default=True, description="Build shared libraries")
 
     with when("@:1.17.6"):
         variant("png", default=False, description="Enable cairo's PNG functions feature")
@@ -57,6 +56,9 @@ class Cairo(AutotoolsPackage, MesonPackage):
         conflicts("+png", when="platform=darwin")
         conflicts("+svg", when="platform=darwin")
 
+        # meson build already defines these and maps them to args
+        # variant("shared", default=True, description="Build shared libraries")
+        variant("shared", default=True, description="Build shared libraries")
         conflicts("+shared~pic")
 
     # meson is the only build system from now
@@ -201,8 +203,6 @@ class MesonBuilder(meson.MesonBuilder):
         args.append(self.enable_or_disable("glib", variant="gobject"))
         args.append(self.enable_or_disable("spectre"))
         args.append(self.enable_or_disable("symbol-lookup"))
-
-        args.append(self.enable_or_disable("shared"))
 
         return args
 
