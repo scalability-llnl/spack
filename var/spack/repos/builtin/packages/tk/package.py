@@ -4,8 +4,6 @@
 
 import os
 
-from llnl.util.filesystem import find_first
-
 from spack.package import *
 
 

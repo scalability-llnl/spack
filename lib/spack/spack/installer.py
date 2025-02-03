@@ -814,7 +814,7 @@ class BuildRequest:
         # Include build dependencies if pkg is going to be built from sources, or
         # if build deps are explicitly requested.
         if include_build_deps or not (
-            cache_only or pkg.spec.installed and not pkg.spec.dag_hash() in self.overwrite
+            cache_only or pkg.spec.installed and pkg.spec.dag_hash() not in self.overwrite
         ):
             depflag |= dt.BUILD
         if self.run_tests(pkg):

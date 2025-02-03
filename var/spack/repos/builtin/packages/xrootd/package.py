@@ -259,7 +259,7 @@ class Xrootd(CMakePackage):
         else:
             # The user has selected a (new?) legal value that we've
             # forgotten to deal with here.
-            tty.die(
+            raise InstallError(
                 "INTERNAL ERROR: cannot accommodate unexpected variant ",
                 "cxxstd={0}".format(self.spec.variants["cxxstd"].value),
             )

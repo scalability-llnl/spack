@@ -5,8 +5,6 @@
 import os
 import shutil
 
-import llnl.util.filesystem as fs
-
 from spack.package import *
 
 
@@ -36,7 +34,7 @@ class PythonVenv(Package):
             # Replace the VIRTUAL_ENV variable in the activate scripts after copying
             if name.lower().startswith("activate"):
                 shutil.copy(src, dst)
-                fs.filter_file(
+                filter_file(
                     self.spec.prefix,
                     os.path.abspath(view.get_projection_for_spec(self.spec)),
                     dst,
