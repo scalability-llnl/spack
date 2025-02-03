@@ -12,7 +12,7 @@ class Embree(CMakePackage):
     url = "https://github.com/embree/embree/archive/v3.7.0.tar.gz"
     maintainers("aumuell")
 
-    license("Apache-2.0")
+    license("Apache-2.0", checked_by="wdconinc")
 
     version("4.3.3", sha256="8a3bc3c3e21aa209d9861a28f8ba93b2f82ed0dc93341dddac09f1f03c36ef2d")
     version("4.3.2", sha256="dc7bb6bac095b2e7bc64321435acd07c6137d6d60e4b79ec07bb0b215ddf81cb")
@@ -60,9 +60,10 @@ class Embree(CMakePackage):
         spec = self.spec
 
         args = [
-            "-DBUILD_TESTING=OFF",
-            "-DEMBREE_TUTORIALS=OFF",
-            "-DEMBREE_IGNORE_CMAKE_CXX_FLAGS=ON",
+            self.define("BUILD_TESTING", self.run_tests),
+            self.define("EMBREE_TUTORIALS", self.run_tests),
+            self.define("EMBREE_TUTORIALS_GLFW", False),
+            self.define("EMBREE_IGNORE_CMAKE_CXX_FLAGS", True),
             self.define_from_variant("EMBREE_ISPC_SUPPORT", "ispc"),
         ]
 
