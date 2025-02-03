@@ -2352,7 +2352,7 @@ class Spec:
         if self.external:
             d["external"] = {
                 "path": self.external_path,
-                "module": self.external_modules,
+                "module": self.external_modules or None,
                 "extra_attributes": syaml.sorted_dict(self.extra_attributes),
             }
 
