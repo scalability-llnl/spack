@@ -49,6 +49,8 @@ class Libgcrypt(AutotoolsPackage):
         # We should not inject optimization flags through the wrapper, because
         # the jitter entropy code should never be compiled with optimization
         # flags, and the build system ensures that
+        if name.lower() == "cflags":
+            flags.append("-O0")
         return (None, flags, None)
 
     # 1.10.2 fails on macOS when trying to use the Linux getrandom() call
