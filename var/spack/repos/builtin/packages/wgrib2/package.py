@@ -189,7 +189,7 @@ class Wgrib2(MakefilePackage, CMakePackage):
     # Use Spack compiler wrapper flags
     def inject_flags(self, name, flags):
         if name == "cflags":
-            if self.spec.compiler.name == "apple-clang":
+            if self.spec.compiler.name in ["apple-clang", "clang"]:
                 flags.append("-Wno-error=implicit-function-declaration")
 
             # When mixing Clang/gfortran need to link to -lgfortran
