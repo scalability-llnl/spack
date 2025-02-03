@@ -10,15 +10,16 @@ class Professor(Package):
     """Professor Monte-Carlo tuning package"""
 
     homepage = "https://professor.hepforge.org/"
-    url = "https://professor.hepforge.org/downloads/?f=Professor-2.3.3.tar.gz"
+    url = "https://gitlab.com/hepcedar/professor/-/archive/professor-2.5.1/professor-professor-2.5.1.tar.gz"
 
     maintainers("mjk655")
 
-    version("2.5.0", sha256="19bfb4924d9f36a245ee1fa62cdd02a92b11f4ae3a13bdd068979155938c8079")
-    # Note: version 2.4.2 tar ball name and content is different from other versions
-    version("2.4.1", sha256="98efb19fa1590841dacd4f1e6c26e677cd419091bea69ef638c6111073732684")
-    version("2.4.0", sha256="e6b28aa41d5df41d6c948056e7eaa7b47d3e4576f15d6bed8cafba8794e0e22e")
-    version("2.3.4", sha256="86ebfd9902d0bcd7f3037ce3010d1ea5b891a88fe277c73a8526c42ae83293bc")
+    version("2.5.1", sha256="c49174d1e4117da13083928a57e9bd6a52be25b9ccadee620315742f8e6b9430")
+    version("2.5.0", sha256="3b5791ff02e415fec9fd8ddd7e8e7e35977e1aec51efae39509cf4709dfd2252")
+    version("2.4.2", sha256="469d9b92d078fd621ea2c67383de10457811a1348a64b08fb585fc3a3e1046c1")
+    version("2.4.1", sha256="943199e8a45ae3c48c6d411f810b7ff8f0789db64a9149709e549678cff0b630")
+    version("2.4.0", sha256="8488f12a87080571837809b364864ce4ef079398089b6ea071def30ae43941aa")
+    version("2.3.4", sha256="a4e932170804c8da5ebb41e819d5b3b5484ccfd54b2dcf39e1a1c0ace50b19b7")
     version("2.3.3", sha256="60c5ba00894c809e2c31018bccf22935a9e1f51c0184468efbdd5d27b211009f")
 
     depends_on("cxx", type="build")  # generated
@@ -38,19 +39,28 @@ class Professor(Package):
     depends_on("py-matplotlib backend=wx", when="+interactive")
     depends_on("root")
     depends_on("gmake", type="build")
+    depends_on("py-pip", type="build", when="@2.3.4:")
 
     extends("python")
+
+    def url_for_version(self, version):
+        if self.spec.satisfies("@2.4:"):
+            return f"https://gitlab.com/hepcedar/professor/-/archive/professor-{version}/professor-professor-{version}.tar.gz"
+        else:
+            return f"https://professor.hepforge.org/downloads/?f=Professor-{version}.tar.gz"
 
     def setup_build_environment(self, env):
         env.set("PROF_VERSION", self.spec.version)
 
-    @when("@2.5.0:")
-    def configure(self, spec, prefix):
-        configure = Executable("configure")
-        configure(f"--prefix={prefix}", f"--with-eigen={self.spec['eigen'].prefix}")
+    @run_before("install")
+    def configure(self):                                           
+        if self.spec.satisfies("@2.5.0:"):
+            with working_dir(self.stage.source_path):
+                Executable("./configure")(f"--prefix={self.prefix}", f"--with-eigen={self.spec['eigen'].prefix}")
 
     def install(self, spec, prefix):
-        make()
-        make("PREFIX={0}".format(prefix), "install")
-        if self.spec.satisfies("~interactive"):
-            os.remove(join_path(prefix.bin, "prof2-I"))
+        with working_dir(self.stage.source_path):
+            make()
+            make(f"PREFIX={prefix}", "install")
+            if self.spec.satisfies("~interactive"):
+                os.remove(join_path(prefix.bin, "prof2-I"))
