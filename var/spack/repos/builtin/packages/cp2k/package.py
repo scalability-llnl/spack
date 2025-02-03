@@ -156,6 +156,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     )
 
     depends_on("python@3", type="build")
+    depends_on("pkgconfig", type="build", when="build_system=cmake")
 
     depends_on("blas")
     depends_on("lapack")
