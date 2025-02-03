@@ -11,7 +11,7 @@ import spack.paths
 import spack.util.git
 
 #: PEP440 canonical <major>.<minor>.<micro>.<devN> string
-__version__ = "0.23.0"
+__version__ = "0.23.1.dev0"
 spack_version = __version__
 
 
