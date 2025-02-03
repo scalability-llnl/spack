@@ -49,7 +49,7 @@ class GobjectIntrospection(MesonPackage, AutotoolsPackage):
     depends_on("glib@2.58:", when="@1.60:1.72")
     depends_on("glib@2.56:", when="@1.56")
     depends_on("glib@2.49.2:", when="@1.49.2")
-    depends_on("glib@2.48.1", when="@1.48.0")
+    depends_on("glib@2.48.1:", when="@1.48.0")
 
     depends_on("libffi")
     # https://gitlab.gnome.org/GNOME/gobject-introspection/-/merge_requests/283
