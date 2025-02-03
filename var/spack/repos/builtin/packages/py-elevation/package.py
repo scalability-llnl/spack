@@ -33,7 +33,6 @@ class PyElevation(PythonPackage):
 
     # listed in 
     # https://github.com/bopen/elevation/blob/1.1.3/README.rst
-    depends_on("make")
     depends_on("curl")
     depends_on("unzip")
     depends_on("gzip")
