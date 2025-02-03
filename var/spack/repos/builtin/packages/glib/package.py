@@ -31,12 +31,7 @@ class Glib(MesonPackage, AutotoolsPackage):
 
     # Even minor versions are stable, odd minor versions are development, only add even numbers
     version("2.82.2", sha256="ab45f5a323048b1659ee0fbda5cecd94b099ab3e4b9abf26ae06aeb3e781fd63")
-    # No real reason to prefer older versions, `preferred` should be removed after testing
-    version(
-        "2.78.3",
-        sha256="609801dd373796e515972bf95fc0b2daa44545481ee2f465c4f204d224b2bc21",
-        preferred=True,
-    )
+    version("2.78.3", sha256="609801dd373796e515972bf95fc0b2daa44545481ee2f465c4f204d224b2bc21")
     version("2.78.0", sha256="44eaab8b720877ce303c5540b657b126f12dc94972d9880b52959f43fb537b30")
     version("2.76.6", sha256="1136ae6987dcbb64e0be3197a80190520f7acab81e2bfb937dc85c11c8aa9f04")
     version("2.76.4", sha256="5a5a191c96836e166a7771f7ea6ca2b0069c603c7da3cba1cd38d1694a395dda")
