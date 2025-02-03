@@ -80,9 +80,9 @@ class Glib(MesonPackage):
         depends_on("meson@1.4:", when="@2.83:")
         depends_on("meson@1.2:", when="@2.79:")
         depends_on("meson@0.60.0:", when="@2.73:")
-        depends_on("meson@0.52.0:", when="@2.71:2.72")
-        depends_on("meson@0.49.2:", when="@2.61.2:2.70")
-        depends_on("meson@0.48.0:", when="@:2.61.1")
+        depends_on("meson@0.52.0:", when="@2.71:")
+        depends_on("meson@0.49.2:", when="@2.61.2:")
+        depends_on("meson@0.48.0:")
         depends_on("pkgconfig", type="build")
 
     depends_on("libffi")
