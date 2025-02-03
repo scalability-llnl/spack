@@ -83,7 +83,7 @@ def compiler_find(args):
     if args.mixed_toolchain:
         warnings.warn(
             "The '--mixed-toolchain' option has been deprecated in Spack v0.23, and currently "
-            "has no effect. The option will be removed in Spack v0.25"
+            "has no effect. The option will be removed in Spack v1.1"
         )
 
     paths = args.add_paths or None
