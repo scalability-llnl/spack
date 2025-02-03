@@ -427,7 +427,7 @@ class YamlFilesystemView(FilesystemView):
             try:
                 with open(manifest_file, "r", encoding="utf-8") as f:
                     manifest = s_json.load(f)
-            except (OSError, IOError):
+            except OSError:
                 # if we can't load it, assume it doesn't know about the file.
                 manifest = {}
             return test_path in manifest
@@ -831,7 +831,7 @@ def get_spec_from_file(filename):
     try:
         with open(filename, "r", encoding="utf-8") as f:
             return spack.spec.Spec.from_yaml(f)
-    except IOError:
+    except OSError:
         return None
 
 

@@ -177,16 +177,15 @@ def test_run(args):
         matching = spack.store.STORE.db.query_local(spec, hashes=hashes, explicit=explicit)
         if spec and not matching:
             tty.warn("No {0}installed packages match spec {1}".format(explicit_str, spec))
-            """
-            TODO: Need to write out a log message and/or CDASH Testing
-              output that package not installed IF continue to process
-              these issues here.
 
-            if args.log_format:
-                # Proceed with the spec assuming the test process
-                # to ensure report package as skipped (e.g., for CI)
-                specs_to_test.append(spec)
-            """
+            # TODO: Need to write out a log message and/or CDASH Testing
+            #   output that package not installed IF continue to process
+            #   these issues here.
+
+            # if args.log_format:
+            #     # Proceed with the spec assuming the test process
+            #     # to ensure report package as skipped (e.g., for CI)
+            #     specs_to_test.append(spec)
 
         specs_to_test.extend(matching)
 

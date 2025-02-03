@@ -7,7 +7,6 @@ import platform
 
 from spack.build_environment import dso_suffix
 from spack.package import *
-from spack.util.environment import EnvironmentModifications
 
 versions = [
     {

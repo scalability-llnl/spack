@@ -360,7 +360,7 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
             args.append("-DAMReX_GPU_BACKEND=SYCL")
             # SYCL GPU backend only supported with Intel's oneAPI or DPC++ compilers
             sycl_compatible_compilers = ["icpx"]
-            if not (os.path.basename(self.compiler.cxx) in sycl_compatible_compilers):
+            if os.path.basename(self.compiler.cxx) not in sycl_compatible_compilers:
                 raise InstallError(
                     "AMReX's SYCL GPU Backend requires the oneAPI CXX (icpx) compiler."
                 )

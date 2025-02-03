@@ -38,10 +38,11 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     git = "https://github.com/cp2k/cp2k.git"
     list_url = "https://github.com/cp2k/cp2k/releases"
 
-    maintainers("dev-zero", "mtaillefumier")
+    maintainers("dev-zero", "mtaillefumier", "RMeli", "abussy")
 
     license("GPL-2.0-or-later")
 
+    version("2025.1", sha256="65c8ad5488897b0f995919b9fa77f2aba4b61677ba1e3c19bb093d5c08a8ce1d")
     version("2024.3", sha256="a6eeee773b6b1fb417def576e4049a89a08a0ed5feffcd7f0b33c7d7b48f19ba")
     version("2024.2", sha256="cc3e56c971dee9e89b705a1103765aba57bf41ad39a11c89d3de04c8b8cdf473")
     version("2024.1", sha256="a7abf149a278dfd5283dc592a2c4ae803b37d040df25d62a5e35af5c4557668f")
@@ -115,7 +116,9 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     )
     variant("pytorch", default=False, description="Enable libtorch support")
     variant("quip", default=False, description="Enable quip support")
+    variant("dftd4", when="@2024.2:", default=False, description="Enable DFT-D4 support")
     variant("mpi_f08", default=False, description="Use MPI F08 module")
+    variant("smeagol", default=False, description="Enable libsmeagol support", when="@2025.2:")
 
     variant(
         "enable_regtests",
@@ -260,6 +263,8 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
         depends_on("plumed+mpi", when="+mpi")
         depends_on("plumed~mpi", when="~mpi")
 
+    depends_on("libsmeagol", when="+smeagol")
+
     # while we link statically against PEXSI, its own deps may be linked in
     # dynamically, therefore can't set this as pure build-type dependency.
     depends_on("pexsi+fortran@0.10.0:", when="+pexsi")
@@ -289,6 +294,8 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     depends_on("py-fypp")
 
     depends_on("spglib", when="+spglib")
+
+    depends_on("dftd4@3.6.0: build_system=cmake", when="+dftd4")
 
     with when("build_system=cmake"):
         depends_on("cmake@3.22:", type="build")
@@ -621,6 +628,18 @@ class MakefileBuilder(makefile.MakefileBuilder):
             ldflags += [spglib.search_flags]
             libs.append(spglib.ld_flags)
 
+        if spec.satisfies("+dftd4"):
+            cppflags += ["-D__DFTD4"]
+            dftd4 = spec["dftd4"].libs
+            ldflags += [dftd4.search_flags]
+            libs.append(dftd4.ld_flags)
+
+        if spec.satisfies("+smeagol"):
+            cppflags += ["-D__SMEAGOL"]
+            smeagol = spec["libsmeagol"].libs
+            ldflags += [smeagol.search_flags]
+            libs.append(smeagol.ld_flags)
+
         cc = spack_cc if "~mpi" in spec else spec["mpi"].mpicc
         cxx = spack_cxx if "~mpi" in spec else spec["mpi"].mpicxx
         fc = spack_fc if "~mpi" in spec else spec["mpi"].mpifc
@@ -763,8 +782,8 @@ class MakefileBuilder(makefile.MakefileBuilder):
                     "Point environment variable LIBSMM_PATH to "
                     "the absolute path of the libsmm.a file"
                 )
-            except IOError:
-                raise IOError(
+            except OSError:
+                raise OSError(
                     "The file LIBSMM_PATH pointed to does not "
                     "exist. Note that it must be absolute path."
                 )
@@ -994,7 +1013,9 @@ class CMakeBuilder(cmake.CMakeBuilder):
             self.define_from_variant("CP2K_USE_VORI", "libvori"),
             self.define_from_variant("CP2K_USE_SPLA", "spla"),
             self.define_from_variant("CP2K_USE_QUIP", "quip"),
+            self.define_from_variant("CP2K_USE_DFTD4", "dftd4"),
             self.define_from_variant("CP2K_USE_MPI_F08", "mpi_f08"),
+            self.define_from_variant("CP2K_USE_LIBSMEAGOL", "smeagol"),
         ]
 
         # we force the use elpa openmp threading support. might need to be revisited though

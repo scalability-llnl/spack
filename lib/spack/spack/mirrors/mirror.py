@@ -64,7 +64,7 @@ class Mirror:
     @staticmethod
     def from_url(url: str):
         """Create an anonymous mirror by URL. This method validates the URL."""
-        if not urllib.parse.urlparse(url).scheme in supported_url_schemes:
+        if urllib.parse.urlparse(url).scheme not in supported_url_schemes:
             raise ValueError(
                 f'"{url}" is not a valid mirror URL. '
                 f"Scheme must be one of {supported_url_schemes}."
