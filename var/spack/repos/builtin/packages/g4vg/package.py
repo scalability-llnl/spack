@@ -6,8 +6,7 @@ from spack.package import *
 
 
 class G4vg(CMakePackage):
-    """Generate VecGeom geometry representations from in-memory Geant4 geometry.
-    """
+    """Generate VecGeom geometry representations from in-memory Geant4 geometry."""
 
     homepage = "https://github.com/celeritas-project/g4vg"
     url = "https://github.com/celeritas-project/g4vg/releases/download/v1.0.1/g4vg-1.0.1.tar.gz"
