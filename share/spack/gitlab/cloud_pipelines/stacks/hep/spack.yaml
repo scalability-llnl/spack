@@ -16,7 +16,7 @@ spack:
     acts:
       require: +analysis +dd4hep +edm4hep +examples +fatras +geant4 +hepmc3 +podio +pythia8 +python ~svg +tgeo cxxstd=20
     celeritas:
-      require: +geant4 +hepmc3 +openmp +root +shared cxxstd=20
+      require: +geant4 +hepmc3 +root +shared cxxstd=20
     hip:
       require: '@5.7.1 +rocm'
     root:
@@ -47,7 +47,7 @@ spack:
   - alpgen
   - ampt
   - apfel +lhapdf +python
-  - celeritas ~cuda ~rocm +vecgeom
+  - celeritas ~cuda +openmp ~rocm +vecgeom
   - cepgen
   - cernlib +shared
   - collier
@@ -105,12 +105,12 @@ spack:
 
   # CUDA
   #- acts +cuda +traccc cuda_arch=80
-  - celeritas +cuda +vecgeom cuda_arch=80
+  - celeritas +cuda ~openmp +vecgeom cuda_arch=80
   - root +cuda +cudnn +tmva-gpu
   - vecgeom +cuda cuda_arch=80
 
   # ROCm
-  - celeritas +rocm amdgpu_target=gfx90a ~vecgeom  # only available with ORANGE
+  - celeritas +rocm amdgpu_target=gfx90a ~openmp ~vecgeom  # only available with ORANGE
 
   ci:
     pipeline-gen:
