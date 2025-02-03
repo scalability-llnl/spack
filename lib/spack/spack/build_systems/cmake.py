@@ -464,7 +464,7 @@ class CMakeBuilder(BuilderWithDefaults):
             # Determine the files that will re-run CMake that are generated from a successful
             # configure step based on state
             primary_generator = _extract_primary_generator(self.generator)
-            configure_artifact = "Makefile":
+            configure_artifact = "Makefile"
             if primary_generator == "Ninja":
                configure_artifact = "ninja.build"
 
