@@ -9,6 +9,7 @@ import llnl.util.tty as tty
 
 import spack.cmd
 import spack.config
+import spack.environment
 import spack.fetch_strategy
 import spack.repo
 import spack.spec
@@ -78,7 +79,7 @@ def _retrieve_develop_source(spec: spack.spec.Spec, abspath: str) -> None:
     package.stage.steal_source(abspath)
 
 
-def assure_concrete_spec(env: "spack.environment.Environment", spec: spack.spec.Spec):
+def assure_concrete_spec(env: spack.environment.Environment, spec: spack.spec.Spec):
     version = spec.versions.concrete_range_as_version
     if not version:
         # first check environment for a matching concrete spec
@@ -133,7 +134,7 @@ def _update_config(spec, path):
 
 
 def update_env(
-    env: "spack.environment.Environment",
+    env: spack.environment.Environment,
     spec: spack.spec.Spec,
     specified_path: Optional[str] = None,
     build_dir: Optional[str] = None,
@@ -176,7 +177,7 @@ def _clone(spec: spack.spec.Spec, abspath: str, force: bool = False):
 
 
 def _abs_code_path(
-    env: "spack.environment.Environment", spec: spack.spec.Spec, path: Optional[str] = None
+    env: spack.environment.Environment, spec: spack.spec.Spec, path: Optional[str] = None
 ):
     src_path = path if path else spec.name
     return spack.util.path.canonicalize_path(src_path, default_wd=env.path)
