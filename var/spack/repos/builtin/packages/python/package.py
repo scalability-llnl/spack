@@ -222,6 +222,9 @@ class Python(Package):
         deprecated=True,
     )
 
+    # For module hierarchy (JCSDA repo only):
+    provides("python_virtual")
+
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
 
