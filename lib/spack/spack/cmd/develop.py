@@ -78,7 +78,7 @@ def _retrieve_develop_source(spec: spack.spec.Spec, abspath: str) -> None:
     package.stage.steal_source(abspath)
 
 
-def assure_concrete_spec(env: spack.environment.Environment, spec: spack.spec.Spec):
+def assure_concrete_spec(env: "spack.environment.Environment", spec: spack.spec.Spec):
     version = spec.versions.concrete_range_as_version
     if not version:
         # first check environment for a matching concrete spec
