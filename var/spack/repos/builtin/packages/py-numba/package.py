@@ -47,7 +47,7 @@ class PyNumba(PythonPackage):
 
     variant("tbb", default=False, description="Build with Intel Threading Building Blocks")
 
-    # Becareful that the bounds given in setup.py are exclusive on the upper bound
+    # Be careful that the bounds given in setup.py are exclusive on the upper bound
     # i.e., [min, max)
     depends_on("python@3.10:3.13", when="@0.61:", type=("build", "run"))
     depends_on("python@3.9:3.12", when="@0.59:", type=("build", "run"))
