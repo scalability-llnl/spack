@@ -3248,8 +3248,8 @@ def test_concretization_cache_roundtrip(use_concretization_cache, monkeypatch, m
     # This method forces the same setup to be produced for the same specs
     # which gives us a guarantee of cache hits, as it removes the only
     # element of non deterministic solver setup for the same spec
+    # Basically just a quick and dirty memoization
     solver_setup = spack.solver.asp.SpackSolverSetup.setup
-
     def _setup(self, specs, *, reuse=None, allow_deprecated=False):
         if not getattr(_setup, "cache_setup", None):
             cache_setup = solver_setup(self, specs, reuse=reuse, allow_deprecated=allow_deprecated)
@@ -3258,6 +3258,8 @@ def test_concretization_cache_roundtrip(use_concretization_cache, monkeypatch, m
 
     # monkeypatch our forced determinism setup method into solver setup
     monkeypatch.setattr(spack.solver.asp.SpackSolverSetup, "setup", _setup)
+
+    assert spack.config.get("config:concretization_cache:enable")
 
     # run one standard concretization to populate the cache and the setup method
     # memoization
@@ -3269,8 +3271,16 @@ def test_concretization_cache_roundtrip(use_concretization_cache, monkeypatch, m
         # always throw, we never want to reach this code path
         assert False, "Concretization cache hit expected"
 
-    monkeypatch.setattr(spack.solver.asp.ConcretizationCache, "store", _ensure_no_store)
+    # Assert that we're actually hitting the cache
+    cache_fetch = spack.solver.asp.ConcretizationCache.fetch
+    def _ensure_cache_hits(self, problem: str):
+        result, statistics = cache_fetch(self, problem)
+        assert result, "Expected successful concretization cache hit"
+        assert statistics, "Expected statistics to be non null on cache hit"
+        return result, statistics
 
+    monkeypatch.setattr(spack.solver.asp.ConcretizationCache, "store", _ensure_no_store)
+    monkeypatch.setattr(spack.solver.asp.ConcretizationCache, "fetch", _ensure_cache_hits)
     # ensure subsequent concretizations of the same spec produce the same spec
     # object
     for _ in range(5):
