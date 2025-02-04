@@ -891,6 +891,15 @@ class DevelopStage(LockableStagingDir):
 
     @staticmethod
     def _rm_stage_path(stage_path):
+        """Called on any stage path. Returns whether the stage was
+        a DevelopStage. It does this because it needs to delete things
+        in a particular order: when symlinks are updated in the dev_path
+        they are only removed if the target stage path no longer exists,
+        so the stage path needs to be gone then; we need to make sure to
+        figure out where the dev_path is though before we do that, and
+        since we do it without constructing a DevelopStage object, we
+        need to read the symlink inside of the stage path.
+        """
         if not os.path.exists(stage_path):
             return False
 
