@@ -829,6 +829,10 @@ class DevelopStage(LockableStagingDir):
             link_path = os.path.join(self.source_path, reference_link)
         if not os.path.isdir(os.path.dirname(link_path)):
             raise StageError(f"The directory containing {link_path} must exist")
+
+        # Created inside of dev_path (typically a user-managed source directory
+        # that is not edited by spack except for this and .spack-develop-links),
+        # points to self.path
         self.reference_link = link_path
 
     @property
@@ -853,10 +857,14 @@ class DevelopStage(LockableStagingDir):
         super().create()
         try:
             DevelopStage._update_link_dict(self.dev_path, updates={self.reference_link: self.path})
-            self._write_link_breadcrumb()
+            llnl.util.symlink.symlink(self.dev_path, DevelopStage._dev_path_link(self.path))
             llnl.util.symlink.symlink(self.path, self.reference_link)
         except (llnl.util.symlink.AlreadyExistsError, FileExistsError):
             pass
+
+    @staticmethod
+    def _dev_path_link(stage_path):
+        return os.path.join(stage_path, ".dev-path-link")
 
     @staticmethod
     def _update_link_dict(dev_path, updates=None):
@@ -881,32 +889,30 @@ class DevelopStage(LockableStagingDir):
             with open(path, "w", encoding="utf-8") as f:
                 json.dump(new_refs, f)
 
-    def _write_link_breadcrumb(self):
-        dev_path_ptr = os.path.join(self.path, ".dev-path")
-        with open(dev_path_ptr, "w", encoding="utf-8") as f:
-            f.write(self.dev_path)
-
     @staticmethod
-    def _delete_reference_link(stage_path):
-        try:
-            if os.path.exists(stage_path):
-                dev_path_ptr = os.path.join(stage_path, ".dev-path")
-                dev_path = _read_property_file(dev_path_ptr)
-                DevelopStage._update_link_dict(dev_path)
-                os.remove(dev_path_ptr)
-        except FileNotFoundError:
-            pass
+    def _rm_stage_path(stage_path):
+        if not os.path.exists(stage_path):
+            return False
 
-    def destroy(self):
-        DevelopStage._delete_reference_link(self.path)
+        dev_path_link = DevelopStage._dev_path_link(stage_path)
+
+        if os.path.exists(dev_path_link):
+            dev_path = llnl.util.symlink.readlink(dev_path_link)
+        else:
+            return False
 
         try:
             # Destroy all files, but do not follow symlinks
-            shutil.rmtree(self.path)
+            shutil.rmtree(stage_path)
         except FileNotFoundError:
             pass
 
-        DevelopStage._update_link_dict(self.dev_path)
+        DevelopStage._update_link_dict(dev_path)
+        return True
+
+    def destroy(self):
+        DevelopStage._rm_stage_path(self.path)
+
         self.created = False
 
     def restage(self):
@@ -931,12 +937,13 @@ def purge():
             if stage_dir.startswith(stage_prefix) or stage_dir == ".lock":
                 stage_path = os.path.join(root, stage_dir)
 
-                DevelopStage._delete_reference_link(stage_path)
+                was_a_dev_stage = DevelopStage._rm_stage_path(stage_path)
 
-                if os.path.isdir(stage_path):
-                    remove_linked_tree(stage_path)
-                else:
-                    os.remove(stage_path)
+                if not was_a_dev_stage:
+                    if os.path.isdir(stage_path):
+                        remove_linked_tree(stage_path)
+                    else:
+                        os.remove(stage_path)
 
 
 def interactive_version_filter(
