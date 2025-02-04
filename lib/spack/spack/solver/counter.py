@@ -180,22 +180,25 @@ class _PossibleDependenciesAnalyzer:
     ) -> Tuple[Set[str], Set[str]]:
         """Returns the set of possible dependencies, and the set of possible virtuals.
 
+        Both sets always include runtime packages, which may be injected by compilers.
+
         Args:
             transitive: return transitive dependencies if True, only direct dependencies if False
             allowed_deps: dependency types to consider
             strict_depflag: if True, only the specific dep type is considered, if False any
                 deptype that intersects with allowed deptype is considered
         """
-        stack = [(x, 0) for x in self._package_list(specs)]
+        stack = [x for x in self._package_list(specs)]
         virtuals: Set[str] = set()
-        visited: Dict[str, Set[str]] = {}
+        edges: Dict[str, Set[str]] = {}
 
         while stack:
-            pkg_name, depth = stack.pop()
-            if pkg_name in visited:
+            pkg_name = stack.pop()
+
+            if pkg_name in edges:
                 continue
 
-            visited[pkg_name] = set()
+            edges[pkg_name] = set()
 
             # Since libc is not buildable, there is no need to extend the
             # search space with libc dependencies.
@@ -228,25 +231,28 @@ class _PossibleDependenciesAnalyzer:
                 else:
                     dep_names = {name}
 
-                visited[pkg_name].update(dep_names)
+                edges[pkg_name].update(dep_names)
+
+                if not transitive:
+                    continue
 
                 for dep_name in dep_names:
-                    if dep_name in visited:
+                    if dep_name in edges:
                         continue
 
-                    if not self.context.is_allowed_on_this_platform(pkg_name=dep_name):
+                    if not self._is_possible(pkg_name=dep_name):
                         continue
 
-                    if not self.context.can_be_installed(pkg_name=dep_name):
-                        continue
+                    stack.append(dep_name)
 
-                    if not transitive and depth > 0:
-                        continue
-
-                    stack.append((dep_name, depth + 1))
+        real_packages = set(edges)
+        if not transitive:
+            # We exit early, so add children from the edges information
+            for root, children in edges.items():
+                real_packages.update(x for x in children if self._is_possible(pkg_name=x))
 
         virtuals.update(self.runtime_virtuals)
-        real_packages = set(visited) | self.runtime_pkgs
+        real_packages = real_packages | self.runtime_pkgs
         return real_packages, virtuals
 
     def _package_list(self, specs: Tuple[Union[spack.spec.Spec, str], ...]) -> List[str]:
@@ -270,3 +276,8 @@ class _PossibleDependenciesAnalyzer:
         return any(
             dep.depflag & allowed_deps for deplist in dependencies.values() for dep in deplist
         )
+
+    def _is_possible(self, *, pkg_name):
+        return self.context.is_allowed_on_this_platform(
+            pkg_name=pkg_name
+        ) and self.context.can_be_installed(pkg_name=pkg_name)
