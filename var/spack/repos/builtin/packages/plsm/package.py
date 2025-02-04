@@ -4,6 +4,7 @@
 
 from spack.package import *
 
+
 class Plsm(CMakePackage):
     """plsm is a generic library for spatial subdivision within an N-dimensional lattice."""
 
