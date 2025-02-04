@@ -3250,6 +3250,7 @@ def test_concretization_cache_roundtrip(use_concretization_cache, monkeypatch, m
     # element of non deterministic solver setup for the same spec
     # Basically just a quick and dirty memoization
     solver_setup = spack.solver.asp.SpackSolverSetup.setup
+
     def _setup(self, specs, *, reuse=None, allow_deprecated=False):
         if not getattr(_setup, "cache_setup", None):
             cache_setup = solver_setup(self, specs, reuse=reuse, allow_deprecated=allow_deprecated)
@@ -3273,6 +3274,7 @@ def test_concretization_cache_roundtrip(use_concretization_cache, monkeypatch, m
 
     # Assert that we're actually hitting the cache
     cache_fetch = spack.solver.asp.ConcretizationCache.fetch
+
     def _ensure_cache_hits(self, problem: str):
         result, statistics = cache_fetch(self, problem)
         assert result, "Expected successful concretization cache hit"
