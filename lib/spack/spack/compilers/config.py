@@ -53,7 +53,7 @@ def compiler_config_files():
 
 def add_compiler_to_config(new_compilers, *, scope=None) -> None:
     """Add a Compiler object to the configuration, at the required scope."""
-    by_name: Dict[str, List["spack.spec.Spec"]] = {}
+    by_name: Dict[str, List[spack.spec.Spec]] = {}
     for x in new_compilers:
         by_name.setdefault(x.name, []).append(x)
 
@@ -65,7 +65,7 @@ def find_compilers(
     *,
     scope: Optional[str] = None,
     max_workers: Optional[int] = None,
-) -> List["spack.spec.Spec"]:
+) -> List[spack.spec.Spec]:
     """Searches for compiler in the paths given as argument. If any new compiler is found, the
     configuration is updated, and the list of new compiler objects is returned.
 
@@ -93,8 +93,8 @@ def find_compilers(
 
 
 def select_new_compilers(
-    candidates: List["spack.spec.Spec"], *, scope: Optional[str] = None
-) -> List["spack.spec.Spec"]:
+    candidates: List[spack.spec.Spec], *, scope: Optional[str] = None
+) -> List[spack.spec.Spec]:
     """Given a list of compilers, remove those that are already defined in
     the configuration.
     """
@@ -107,9 +107,7 @@ def supported_compilers() -> List[str]:
     return sorted(spack.repo.PATH.packages_with_tags(COMPILER_TAG))
 
 
-def all_compilers(
-    scope: Optional[str] = None, init_config: bool = True
-) -> List["spack.spec.Spec"]:
+def all_compilers(scope: Optional[str] = None, init_config: bool = True) -> List[spack.spec.Spec]:
     """Returns all the compilers from the current global configuration.
 
     Args:
@@ -127,7 +125,7 @@ def all_compilers(
 
 
 def _init_packages_yaml(
-    configuration: "spack.config.ConfigurationType", *, scope: Optional[str]
+    configuration: spack.config.ConfigurationType, *, scope: Optional[str]
 ) -> None:
     # Try importing from compilers.yaml
     legacy_compilers = CompilerFactory.from_compilers_yaml(configuration, scope=scope)
@@ -153,8 +151,8 @@ def _init_packages_yaml(
 
 
 def all_compilers_from(
-    configuration: "spack.config.ConfigurationType", scope: Optional[str] = None
-) -> List["spack.spec.Spec"]:
+    configuration: spack.config.ConfigurationType, scope: Optional[str] = None
+) -> List[spack.spec.Spec]:
     """Returns all the compilers from the current global configuration.
 
     Args:
@@ -169,13 +167,11 @@ def all_compilers_from(
 class CompilerRemover:
     """Removes compiler from configuration."""
 
-    def __init__(self, configuration: "spack.config.ConfigurationType") -> None:
+    def __init__(self, configuration: spack.config.ConfigurationType) -> None:
         self.configuration = configuration
         self.marked_packages_yaml: List[Tuple[str, Any]] = []
 
-    def mark_compilers(
-        self, *, match: str, scope: Optional[str] = None
-    ) -> List["spack.spec.Spec"]:
+    def mark_compilers(self, *, match: str, scope: Optional[str] = None) -> List[spack.spec.Spec]:
         """Marks compilers to be removed in configuration, and returns a corresponding list
         of specs.
 
@@ -238,8 +234,8 @@ class CompilerRemover:
 
 
 def compilers_for_arch(
-    arch_spec: "spack.spec.ArchSpec", *, scope: Optional[str] = None
-) -> List["spack.spec.Spec"]:
+    arch_spec: spack.spec.ArchSpec, *, scope: Optional[str] = None
+) -> List[spack.spec.Spec]:
     """Returns the compilers that can be used on the input architecture"""
     compilers = all_compilers_from(spack.config.CONFIG, scope=scope)
     query = f"platform={arch_spec.platform} target=:{arch_spec.target}"
@@ -252,7 +248,7 @@ _C_KEY = "c"
 _CXX_KEY, _FORTRAN_KEY = "cxx", "fortran"
 
 
-def name_os_target(spec: "spack.spec.Spec") -> Tuple[str, str, str]:
+def name_os_target(spec: spack.spec.Spec) -> Tuple[str, str, str]:
     if not spec.architecture:
         host_platform = spack.platforms.host()
         operating_system = host_platform.operating_system("default_os")
@@ -274,13 +270,13 @@ def name_os_target(spec: "spack.spec.Spec") -> Tuple[str, str, str]:
 class CompilerFactory:
     """Class aggregating all ways of constructing a list of compiler specs from config entries."""
 
-    _PACKAGES_YAML_CACHE: Dict[str, Optional["spack.spec.Spec"]] = {}
+    _PACKAGES_YAML_CACHE: Dict[str, Optional[spack.spec.Spec]] = {}
     _GENERIC_TARGET = None
 
     @staticmethod
     def from_packages_yaml(
-        configuration: "spack.config.ConfigurationType", *, scope: Optional[str] = None
-    ) -> List["spack.spec.Spec"]:
+        configuration: spack.config.ConfigurationType, *, scope: Optional[str] = None
+    ) -> List[spack.spec.Spec]:
         """Returns the compiler specs defined in the "packages" section of the configuration"""
         compilers = []
         compiler_package_names = supported_compilers()
@@ -309,7 +305,7 @@ class CompilerFactory:
         return compilers
 
     @staticmethod
-    def from_external_yaml(config: Dict[str, Any]) -> Optional["spack.spec.Spec"]:
+    def from_external_yaml(config: Dict[str, Any]) -> Optional[spack.spec.Spec]:
         """Returns a compiler spec from an external definition from packages.yaml."""
         # Allow `@x.y.z` instead of `@=x.y.z`
         err_header = f"The external spec '{config['spec']}' cannot be used as a compiler"
@@ -341,7 +337,7 @@ class CompilerFactory:
         abstract_spec._finalize_concretization()
 
     @staticmethod
-    def from_legacy_yaml(compiler_dict: Dict[str, Any]) -> List["spack.spec.Spec"]:
+    def from_legacy_yaml(compiler_dict: Dict[str, Any]) -> List[spack.spec.Spec]:
         """Returns a list of external specs, corresponding to a compiler entry
         from compilers.yaml.
         """
@@ -368,10 +364,10 @@ class CompilerFactory:
 
     @staticmethod
     def from_compilers_yaml(
-        configuration: "spack.config.ConfigurationType", *, scope: Optional[str] = None
-    ) -> List["spack.spec.Spec"]:
+        configuration: spack.config.ConfigurationType, *, scope: Optional[str] = None
+    ) -> List[spack.spec.Spec]:
         """Returns the compiler specs defined in the "compilers" section of the configuration"""
-        result: List["spack.spec.Spec"] = []
+        result: List[spack.spec.Spec] = []
         for item in configuration.get("compilers", scope=scope):
             result.extend(CompilerFactory.from_legacy_yaml(item["compiler"]))
         return result

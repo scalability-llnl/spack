@@ -2,15 +2,13 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import enum
-import typing
 from typing import Dict, List
 
 from llnl.util import lang
 
-from .libraries import CompilerPropertyDetector
+import spack.spec
 
-if typing.TYPE_CHECKING:
-    import spack.spec
+from .libraries import CompilerPropertyDetector
 
 
 class Languages(enum.Enum):
@@ -21,7 +19,7 @@ class Languages(enum.Enum):
 
 class CompilerAdaptor:
     def __init__(
-        self, compiled_spec: "spack.spec.Spec", compilers: Dict[Languages, "spack.spec.Spec"]
+        self, compiled_spec: spack.spec.Spec, compilers: Dict[Languages, spack.spec.Spec]
     ) -> None:
         if not compilers:
             raise AttributeError(f"{compiled_spec} has no 'compiler' attribute")
