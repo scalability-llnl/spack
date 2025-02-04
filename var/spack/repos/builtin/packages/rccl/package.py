@@ -63,6 +63,7 @@ class Rccl(CMakePackage):
         values=auto_or_any_combination_of(*amdgpu_targets),
         sticky=True,
     )
+    variant("asan", default=False, description="Build with address-sanitizer enabled or disabled")
 
     patch("0003-Fix-numactl-rocm-smi-path-issue.patch", when="@5.2.3:5.6")
     patch("0004-Set-rocm-core-path-for-version-file.patch", when="@6.0:6.2")
@@ -135,6 +136,11 @@ class Rccl(CMakePackage):
     def setup_build_environment(self, env):
         env.set("CXX", self.spec["hip"].hipcc)
         env.set("ROCMCORE_PATH", self.spec["rocm-core"].prefix)
+        if self.spec.satisfies("+asan"):
+            env.set("ASAN_OPTIONS", "detect_leaks=0")
+            env.set("CFLAGS", "-fsanitize=address -shared-libasan")
+            env.set("CXXFLAGS", "-fsanitize=address -shared-libasan")
+            env.set("LDFLAGS", "-fuse-ld=lld")
 
     def cmake_args(self):
         args = [

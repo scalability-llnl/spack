@@ -356,14 +356,6 @@ class RocmOpenmpExtras(Package):
         env.set("FC", "{0}/bin/flang".format(openmp_extras_prefix))
         if self.spec.satisfies("@6.1:"):
             env.prepend_path("LD_LIBRARY_PATH", self.spec["hsa-rocr-dev"].prefix.lib)
-        if self.spec.satisfies("+asan"):
-            env.set("SANITIZER", 1)
-            env.set("VERBOSE", 1)
-            env.set(
-                "LDSHARED",
-                self.spec["llvm-amdgpu"].prefix.bin.clang
-                + " -shared -Wl,-O1 -Wl,-Bsymbolic-functions -Wl,-z,relro -g -fwrapv -O2",
-            )
         gfx_list = "gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908"
 
         if self.spec.version >= Version("4.3.1"):
@@ -599,8 +591,17 @@ class RocmOpenmpExtras(Package):
                 "-DNUMACTL_DIR={0}".format(numactl_prefix),
             ]
         if self.spec.satisfies("@:6.2"):
-            "-DHSAKMT_LIB={0}/lib".format(hsakmt_prefix),
-            "-DHSAKMT_LIB64={0}/lib64".format(hsakmt_prefix),
+            openmp_common_args += [
+                "-DHSAKMT_LIB={0}/lib".format(hsakmt_prefix),
+                "-DHSAKMT_LIB64={0}/lib64".format(hsakmt_prefix),
+            ]
+        if self.spec.satisfies("+asan"):
+            openmp_common_args += [
+                "-DASAN_OPTIONS=detect_leaks=0",
+                "-DCMAKE_C_FLAGS=-fsanitize=address -shared-libasan",
+                "-DCMAKE_CXX_FLAGS=-fsanitize=address -shared-libasan",
+                "-DCMAKE_LD_FLAGS=-fuse-ld=lld",
+            ]
 
         components["openmp"] = ["../rocm-openmp-extras/llvm-project/openmp"]
         components["openmp"] += openmp_common_args
