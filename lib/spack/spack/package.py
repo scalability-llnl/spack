@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-# flake8: noqa: F401
+# flake8: noqa: F401, E402
 """spack.package defines the public API for Spack packages, by re-exporting useful symbols from
 other modules. Packages should import this module, instead of importing from spack.* directly
 to ensure forward compatibility with future versions of Spack."""
@@ -12,6 +12,17 @@ from shutil import move, rmtree
 
 # import most common types used in packages
 from typing import Dict, List, Optional
+
+
+class tty:
+    import llnl.util.tty as _tty
+
+    debug = _tty.debug
+    error = _tty.error
+    info = _tty.info
+    msg = _tty.msg
+    warn = _tty.warn
+
 
 from llnl.util.filesystem import (
     FileFilter,
@@ -49,7 +60,6 @@ from llnl.util.filesystem import (
 )
 from llnl.util.symlink import symlink
 
-# These props will be overridden when the build env is set up.
 from spack.build_environment import MakeExecutable
 from spack.build_systems.aspell_dict import AspellDictPackage
 from spack.build_systems.autotools import AutotoolsPackage
@@ -136,8 +146,10 @@ from spack.package_completions import (
 )
 from spack.phase_callbacks import run_after, run_before
 from spack.spec import Spec
+from spack.util.environment import EnvironmentModifications
 from spack.util.executable import Executable, ProcessError, which, which_string
 from spack.util.filesystem import fix_darwin_install_name
+from spack.util.prefix import Prefix
 from spack.variant import any_combination_of, auto_or_any_combination_of, disjoint_sets
 from spack.version import Version, ver
 

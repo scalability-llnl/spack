@@ -5,8 +5,6 @@
 import inspect
 import os
 
-import llnl.util.tty as tty
-
 import spack.pkg.builtin.openfoam as openfoam
 from spack.package import *
 

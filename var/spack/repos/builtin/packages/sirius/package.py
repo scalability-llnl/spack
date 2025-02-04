@@ -166,6 +166,11 @@ class Sirius(CMakePackage, CudaPackage, ROCmPackage):
         conflicts("^spla@:1.5~openmp", when="+openmp")
 
     patch("libxc7.patch", when="@7.6.0:7.6.1")
+    patch(
+        "https://github.com/electronic-structure/SIRIUS/commit/dd07010f7b49f31b7e3bb1b4e47f3d9ac3a0c0b4.patch?full_index=1",
+        sha256="dd680f8c47a0fc29097cae5cd1e72dfdbcf95f93089f73fb3f2fe9e750125d6f",
+        when="@7.6.0:7.6.1 +pugixml",
+    )
 
     depends_on("nlcglib", when="+nlcglib")
     depends_on("nlcglib+rocm", when="+nlcglib+rocm")
