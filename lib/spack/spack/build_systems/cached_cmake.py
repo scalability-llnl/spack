@@ -70,7 +70,8 @@ class CachedCMakeBuilder(CMakeBuilder):
 
     @property
     def cache_name(self):
-        return f"{self.pkg.name}-{self.spec.architecture.platform}-{self.spec.dag_hash()}.cmake"
+        compiler_str = f"{self.spec['c'].name}-{self.spec['c'].version}"
+        return f"{self.pkg.name}-{self.spec.architecture.platform}-{compiler_str}.cmake"
 
     @property
     def cache_path(self):
