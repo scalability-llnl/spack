@@ -36,21 +36,28 @@ def test_transitive_dependencies(mock_packages):
     out = dependencies("--transitive", "mpileaks")
     actual = set(re.split(r"\s+", out.strip()))
     expected = set(["callpath", "dyninst", "libdwarf", "libelf"] + mpis + mpi_deps)
+    expected.update(mock_packages.packages_with_tags("runtime"))
     assert expected == actual
 
 
 def test_transitive_dependencies_with_deptypes(mock_packages):
     out = dependencies("--transitive", "--deptype=link,run", "dtbuild1")
     deps = set(re.split(r"\s+", out.strip()))
-    assert set(["dtlink2", "dtrun2"]) == deps
+    expected = {"dtlink2", "dtrun2"}
+    expected.update(mock_packages.packages_with_tags("runtime"))
+    assert expected == deps
 
     out = dependencies("--transitive", "--deptype=build", "dtbuild1")
     deps = set(re.split(r"\s+", out.strip()))
-    assert set(["dtbuild2", "dtlink2"]) == deps
+    expected = {"dtbuild2", "dtlink2"}
+    expected.update(mock_packages.packages_with_tags("runtime"))
+    assert expected == deps
 
     out = dependencies("--transitive", "--deptype=link", "dtbuild1")
     deps = set(re.split(r"\s+", out.strip()))
-    assert set(["dtlink2"]) == deps
+    expected = {"dtlink2"}
+    expected.update(mock_packages.packages_with_tags("runtime"))
+    assert expected == deps
 
 
 @pytest.mark.db

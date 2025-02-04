@@ -70,7 +70,7 @@ def dependencies(parser, args):
 
     else:
         spec = specs[0]
-        dependencies, virtuals = PossibleDependenciesAnalyzer(
+        dependencies, virtuals, _ = PossibleDependenciesAnalyzer(
             Context(configuration=spack.config.CONFIG)
         ).possible_dependencies(
             spec,

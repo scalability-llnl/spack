@@ -1,7 +1,6 @@
 # Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
 """Test class methods on Package objects.
 
 This doesn't include methods on package *instances* (like do_patch(),
@@ -23,7 +22,6 @@ import spack.error
 import spack.install_test
 import spack.package
 import spack.package_base
-import spack.repo
 import spack.spec
 from spack.build_systems.generic import Package
 from spack.error import InstallError
@@ -65,24 +63,27 @@ def mpi_names(mock_context):
     return [spec.name for spec in mock_context.providers_for("mpi")]
 
 
-def test_possible_dependencies(mock_packages, mpileaks_possible_deps):
-    pkg_cls = spack.repo.PATH.get_pkg_class("mpileaks")
-    expanded_possible_deps = pkg_cls.possible_dependencies(expand_virtuals=True)
-    assert mpileaks_possible_deps == expanded_possible_deps
-    assert {
-        "callpath": {"dyninst", "mpi"},
-        "dyninst": {"libdwarf", "libelf"},
-        "libdwarf": {"libelf"},
-        "libelf": set(),
-        "mpi": set(),
-        "mpileaks": {"callpath", "mpi"},
-    } == pkg_cls.possible_dependencies(expand_virtuals=False)
+def test_possible_dependencies(mock_packages, mpileaks_possible_deps, mock_analyzer):
+    expected = set(mpileaks_possible_deps)
+    expected.update(mock_packages.packages_with_tags("runtime"))
+    result, *_ = mock_analyzer.possible_dependencies(
+        "mpileaks", expand_virtuals=True, allowed_deps=dt.ALL
+    )
+    assert expected == result
 
+    expected = {"callpath", "dyninst", "libdwarf", "libelf", "mpileaks"}
+    expected.update(mock_packages.packages_with_tags("runtime"))
+    result, *_ = mock_analyzer.possible_dependencies(
+        "mpileaks", expand_virtuals=False, allowed_deps=dt.ALL
+    )
+    assert expected == result
 
-def test_possible_direct_dependencies(mock_packages, mpileaks_possible_deps):
-    pkg_cls = spack.repo.PATH.get_pkg_class("mpileaks")
-    deps = pkg_cls.possible_dependencies(transitive=False, expand_virtuals=False)
-    assert {"callpath": set(), "mpi": set(), "mpileaks": {"callpath", "mpi"}} == deps
+    expected = {"callpath", "mpileaks"}
+    expected.update(mock_packages.packages_with_tags("runtime"))
+    result, *_ = mock_analyzer.possible_dependencies(
+        "mpileaks", expand_virtuals=False, allowed_deps=dt.ALL, transitive=False
+    )
+    assert expected == result
 
 
 def test_possible_dependencies_virtual(mock_analyzer, mock_packages, mpi_names):
@@ -91,37 +92,32 @@ def test_possible_dependencies_virtual(mock_analyzer, mock_packages, mpi_names):
         expected.update(dep for dep in mock_packages.get_pkg_class(name).dependencies_by_name())
     expected.update(mock_packages.packages_with_tags("runtime"))
 
-    real_pkgs, _ = mock_analyzer.possible_dependencies(
+    real_pkgs, *_ = mock_analyzer.possible_dependencies(
         "mpi", transitive=False, allowed_deps=dt.ALL
     )
     assert set(expected) == real_pkgs
 
 
-def test_possible_dependencies_missing(mock_packages):
-    pkg_cls = spack.repo.PATH.get_pkg_class("missing-dependency")
-    missing = {}
-    pkg_cls.possible_dependencies(transitive=True, missing=missing)
-    assert {"this-is-a-missing-dependency"} == missing["missing-dependency"]
+def test_possible_dependencies_missing(mock_analyzer):
+    result, *_ = mock_analyzer.possible_dependencies("missing-dependency", allowed_deps=dt.ALL)
+    assert "this-is-a-missing-dependency" not in result
 
 
-def test_possible_dependencies_with_deptypes(mock_packages):
-    dtbuild1 = spack.repo.PATH.get_pkg_class("dtbuild1")
+def test_possible_dependencies_with_deptypes(mock_packages, mock_analyzer):
+    expected = {"dtbuild1", "dtrun2", "dtlink2"}
+    expected.update(mock_packages.packages_with_tags("runtime"))
+    result, *_ = mock_analyzer.possible_dependencies("dtbuild1", allowed_deps=dt.LINK | dt.RUN)
+    assert expected == result
 
-    assert {
-        "dtbuild1": {"dtrun2", "dtlink2"},
-        "dtlink2": set(),
-        "dtrun2": set(),
-    } == dtbuild1.possible_dependencies(depflag=dt.LINK | dt.RUN)
+    expected = {"dtbuild1", "dtbuild2", "dtlink2"}
+    expected.update(mock_packages.packages_with_tags("runtime"))
+    result, *_ = mock_analyzer.possible_dependencies("dtbuild1", allowed_deps=dt.BUILD)
+    assert expected == result
 
-    assert {
-        "dtbuild1": {"dtbuild2", "dtlink2"},
-        "dtbuild2": set(),
-        "dtlink2": set(),
-    } == dtbuild1.possible_dependencies(depflag=dt.BUILD)
-
-    assert {"dtbuild1": {"dtlink2"}, "dtlink2": set()} == dtbuild1.possible_dependencies(
-        depflag=dt.LINK
-    )
+    expected = {"dtbuild1", "dtlink2"}
+    expected.update(mock_packages.packages_with_tags("runtime"))
+    result, *_ = mock_analyzer.possible_dependencies("dtbuild1", allowed_deps=dt.LINK)
+    assert expected == result
 
 
 def test_possible_dependencies_with_multiple_classes(
@@ -132,7 +128,7 @@ def test_possible_dependencies_with_multiple_classes(
     expected.update({"dt-diamond", "dt-diamond-left", "dt-diamond-right", "dt-diamond-bottom"})
     expected.update(mock_packages.packages_with_tags("runtime"))
 
-    real_pkgs, _ = mock_analyzer.possible_dependencies(*pkgs, allowed_deps=dt.ALL)
+    real_pkgs, *_ = mock_analyzer.possible_dependencies(*pkgs, allowed_deps=dt.ALL)
     assert set(expected) == real_pkgs
 
 

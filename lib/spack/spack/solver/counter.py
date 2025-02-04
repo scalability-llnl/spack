@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections
-from typing import Dict, List, Set, Tuple, Union
+from typing import Dict, List, NamedTuple, Set, Tuple, Union
 
 from llnl.util import tty
 
@@ -12,8 +12,6 @@ import spack.repo
 import spack.spec
 
 from .context import Context
-
-PossibleDependencies = Set[str]
 
 
 class Counter:
@@ -35,10 +33,10 @@ class Counter:
             self.link_run_types = dt.LINK | dt.RUN
             self.all_types = dt.LINK | dt.RUN | dt.BUILD
 
-        self._possible_dependencies: PossibleDependencies = set()
+        self._possible_dependencies: Set[str] = set()
         self._possible_virtuals: Set[str] = set(x.name for x in specs if x.virtual)
 
-    def possible_dependencies(self) -> PossibleDependencies:
+    def possible_dependencies(self) -> Set[str]:
         """Returns the list of possible dependencies"""
         self.ensure_cache_values()
         return self._possible_dependencies
@@ -64,7 +62,7 @@ class Counter:
 
 class NoDuplicatesCounter(Counter):
     def _compute_cache_values(self) -> None:
-        self._possible_dependencies, virtuals = self.analyzer.possible_dependencies(
+        self._possible_dependencies, virtuals, _ = self.analyzer.possible_dependencies(
             *self.specs, allowed_deps=self.all_types
         )
         self._possible_virtuals.update(virtuals)
@@ -87,25 +85,25 @@ class NoDuplicatesCounter(Counter):
 class MinimalDuplicatesCounter(NoDuplicatesCounter):
     def __init__(self, specs: List["spack.spec.Spec"], tests: bool) -> None:
         super().__init__(specs, tests)
-        self._link_run: PossibleDependencies = set()
-        self._direct_build: PossibleDependencies = set()
-        self._total_build: PossibleDependencies = set()
+        self._link_run: Set[str] = set()
+        self._direct_build: Set[str] = set()
+        self._total_build: Set[str] = set()
         self._link_run_virtuals: Set[str] = set()
 
     def _compute_cache_values(self) -> None:
-        self._link_run, virtuals = self.analyzer.possible_dependencies(
+        self._link_run, virtuals, _ = self.analyzer.possible_dependencies(
             *self.specs, allowed_deps=self.link_run_types
         )
         self._possible_virtuals.update(virtuals)
         self._link_run_virtuals.update(virtuals)
         for x in self._link_run:
-            reals, virtuals = self.analyzer.possible_dependencies(
+            reals, virtuals, _ = self.analyzer.possible_dependencies(
                 x, allowed_deps=dt.BUILD, transitive=False, strict_depflag=True
             )
             self._possible_virtuals.update(virtuals)
             self._direct_build.update(reals)
 
-        self._total_build, virtuals = self.analyzer.possible_dependencies(
+        self._total_build, virtuals, _ = self.analyzer.possible_dependencies(
             *self._direct_build, allowed_deps=self.all_types
         )
         self._possible_virtuals.update(virtuals)
@@ -166,6 +164,12 @@ class FullDuplicatesCounter(MinimalDuplicatesCounter):
         gen.newline()
 
 
+class PossibleDependencies(NamedTuple):
+    real_pkgs: Set[str]
+    virtuals: Set[str]
+    edges: Dict[str, Set[str]]
+
+
 class PossibleDependenciesAnalyzer:
     def __init__(self, context: Context) -> None:
         self.context = context
@@ -178,7 +182,7 @@ class PossibleDependenciesAnalyzer:
         transitive: bool = True,
         strict_depflag: bool = False,
         expand_virtuals: bool = True,
-    ) -> Tuple[Set[str], Set[str]]:
+    ) -> PossibleDependencies:
         """Returns the set of possible dependencies, and the set of possible virtuals.
 
         Both sets always include runtime packages, which may be injected by compilers.
@@ -257,7 +261,7 @@ class PossibleDependenciesAnalyzer:
 
         virtuals.update(self.runtime_virtuals)
         real_packages = real_packages | self.runtime_pkgs
-        return real_packages, virtuals
+        return PossibleDependencies(real_pkgs=real_packages, virtuals=virtuals, edges=edges)
 
     def _package_list(self, specs: Tuple[Union[spack.spec.Spec, str], ...]) -> List[str]:
         stack = []
@@ -282,6 +286,9 @@ class PossibleDependenciesAnalyzer:
         )
 
     def _is_possible(self, *, pkg_name):
-        return self.context.is_allowed_on_this_platform(
-            pkg_name=pkg_name
-        ) and self.context.can_be_installed(pkg_name=pkg_name)
+        try:
+            return self.context.is_allowed_on_this_platform(
+                pkg_name=pkg_name
+            ) and self.context.can_be_installed(pkg_name=pkg_name)
+        except spack.repo.UnknownPackageError:
+            return False
