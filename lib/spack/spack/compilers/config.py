@@ -243,9 +243,6 @@ def compilers_for_arch(
 
 
 _EXTRA_ATTRIBUTES_KEY = "extra_attributes"
-_COMPILERS_KEY = "compilers"
-_C_KEY = "c"
-_CXX_KEY, _FORTRAN_KEY = "cxx", "fortran"
 
 
 def name_os_target(spec: spack.spec.Spec) -> Tuple[str, str, str]:
