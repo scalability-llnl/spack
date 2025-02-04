@@ -1,0 +1,41 @@
+From 27363296ac990690fb446979aceadbf8fcc23396 Mon Sep 17 00:00:00 2001
+From: Kenneth Moreland <morelandkd@ornl.gov>
+Date: Tue, 4 Feb 2025 09:39:34 -0500
+Subject: [PATCH] Properly configure hipCUB dependency
+
+The HIP backend of MGARDX required the use of hipCUB. This is often
+installed with hip and will just be available, but it is not always.
+In the case where it is installed separately, make sure it is
+configured.
+---
+ CMakeLists.txt | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index a41973e5..d77bdc43 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -207,6 +207,20 @@ if (MGARD_ENABLE_HIP)
+   target_compile_definitions(mgard-library PUBLIC MGARD_ENABLE_HIP)
+   set (CMAKE_HIP_FLAGS  "${CMAKE_HIP_FLAGS} -w")
+   set_source_files_properties(${MGARD_X_HIP_SRC} PROPERTIES LANGUAGE HIP)
++
++  # Find the required hipCUB packages, which is usually, but not always,
++  # installed with hip.
++  find_package(rocprim REQUIRED CONFIG)
++  find_package(hipcub REQUIRED CONFIG)
++  # Normally, we would use target_link_libraries to include the hip::hipcub
++  # include directories and other parameters. However, for some reason this
++  # library has been changing the compiler away from HIP. So, instead just
++  # grab the include directories.
++  target_include_directories(mgard-library
++    PUBLIC $<TARGET_PROPERTY:hip::hipcub,INCLUDE_DIRECTORIES>
++    PUBLIC $<TARGET_PROPERTY:roc::rocprim_hip,INCLUDE_DIRECTORIES>
++    PUBLIC $<TARGET_PROPERTY:roc::rocprim,INCLUDE_DIRECTORIES>
++    )
+ endif()
+ 
+ if (MGARD_ENABLE_SYCL)
+-- 
+2.39.5 (Apple Git-154)
+
