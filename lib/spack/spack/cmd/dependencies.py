@@ -8,10 +8,12 @@ import llnl.util.tty as tty
 from llnl.util.tty.colify import colify
 
 import spack.cmd
+import spack.config
 import spack.environment as ev
-import spack.package_base
 import spack.store
 from spack.cmd.common import arguments
+from spack.solver.context import Context
+from spack.solver.counter import PossibleDependenciesAnalyzer
 
 description = "show dependencies of a package"
 section = "basic"
@@ -68,15 +70,19 @@ def dependencies(parser, args):
 
     else:
         spec = specs[0]
-        dependencies = spack.package_base.possible_dependencies(
+        dependencies, virtuals = PossibleDependenciesAnalyzer(
+            Context(configuration=spack.config.CONFIG)
+        ).possible_dependencies(
             spec,
             transitive=args.transitive,
             expand_virtuals=args.expand_virtuals,
-            depflag=args.deptype,
+            allowed_deps=args.deptype,
         )
+        if not args.expand_virtuals:
+            dependencies.update(virtuals)
 
         if spec.name in dependencies:
-            del dependencies[spec.name]
+            dependencies.remove(spec.name)
 
         if dependencies:
             colify(sorted(dependencies))

@@ -22,7 +22,6 @@ import sys
 import textwrap
 import time
 import traceback
-import typing
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, Type, TypeVar, Union
 
 from typing_extensions import Literal
@@ -2282,47 +2281,6 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
 inject_flags = PackageBase.inject_flags
 env_flags = PackageBase.env_flags
 build_system_flags = PackageBase.build_system_flags
-
-
-def possible_dependencies(
-    *pkg_or_spec: Union[str, spack.spec.Spec, typing.Type[PackageBase]],
-    transitive: bool = True,
-    expand_virtuals: bool = True,
-    depflag: dt.DepFlag = dt.ALL,
-    missing: Optional[dict] = None,
-    virtuals: Optional[set] = None,
-) -> Dict[str, Set[str]]:
-    """Get the possible dependencies of a number of packages.
-
-    See ``PackageBase.possible_dependencies`` for details.
-    """
-    packages = []
-    for pos in pkg_or_spec:
-        if isinstance(pos, PackageMeta) and issubclass(pos, PackageBase):
-            packages.append(pos)
-            continue
-
-        if not isinstance(pos, spack.spec.Spec):
-            pos = spack.spec.Spec(pos)
-
-        if spack.repo.PATH.is_virtual(pos.name):
-            packages.extend(p.package_class for p in spack.repo.PATH.providers_for(pos.name))
-            continue
-        else:
-            packages.append(pos.package_class)
-
-    visited: Dict[str, Set[str]] = {}
-    for pkg in packages:
-        pkg.possible_dependencies(
-            visited=visited,
-            transitive=transitive,
-            expand_virtuals=expand_virtuals,
-            depflag=depflag,
-            missing=missing,
-            virtuals=virtuals,
-        )
-
-    return visited
 
 
 def deprecated_version(pkg: PackageBase, version: Union[str, StandardVersion]) -> bool:

@@ -27,7 +27,7 @@ class Counter:
 
     def __init__(self, specs: List["spack.spec.Spec"], tests: bool) -> None:
         self.context = Context(configuration=spack.config.CONFIG)
-        self.analyzer = _PossibleDependenciesAnalyzer(self.context)
+        self.analyzer = PossibleDependenciesAnalyzer(self.context)
         self.specs = specs
         self.link_run_types: dt.DepFlag = dt.LINK | dt.RUN | dt.TEST
         self.all_types: dt.DepFlag = dt.ALL
@@ -166,7 +166,7 @@ class FullDuplicatesCounter(MinimalDuplicatesCounter):
         gen.newline()
 
 
-class _PossibleDependenciesAnalyzer:
+class PossibleDependenciesAnalyzer:
     def __init__(self, context: Context) -> None:
         self.context = context
         self.runtime_pkgs, self.runtime_virtuals = self.context.runtime_pkgs()
@@ -177,6 +177,7 @@ class _PossibleDependenciesAnalyzer:
         allowed_deps: dt.DepFlag,
         transitive: bool = True,
         strict_depflag: bool = False,
+        expand_virtuals: bool = True,
     ) -> Tuple[Set[str], Set[str]]:
         """Returns the set of possible dependencies, and the set of possible virtuals.
 
@@ -187,6 +188,7 @@ class _PossibleDependenciesAnalyzer:
             allowed_deps: dependency types to consider
             strict_depflag: if True, only the specific dep type is considered, if False any
                 deptype that intersects with allowed deptype is considered
+            expand_virtuals: expand virtual dependencies into all possible implementations
         """
         stack = [x for x in self._package_list(specs)]
         virtuals: Set[str] = set()
@@ -224,10 +226,12 @@ class _PossibleDependenciesAnalyzer:
                 if self.context.is_virtual(name) and name in virtuals:
                     continue
 
+                dep_names = set()
                 if self.context.is_virtual(name):
                     virtuals.add(name)
-                    providers = self.context.providers_for(name)
-                    dep_names = {spec.name for spec in providers}
+                    if expand_virtuals:
+                        providers = self.context.providers_for(name)
+                        dep_names = {spec.name for spec in providers}
                 else:
                     dep_names = {name}
 

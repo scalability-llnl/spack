@@ -28,6 +28,7 @@ def test_direct_dependencies(mock_packages):
     out = dependencies("mpileaks")
     actual = set(re.split(r"\s+", out.strip()))
     expected = set(["callpath"] + mpis)
+    expected.update(mock_packages.packages_with_tags("runtime"))
     assert expected == actual
 
 

@@ -27,11 +27,8 @@ import spack.repo
 import spack.spec
 from spack.build_systems.generic import Package
 from spack.error import InstallError
-
-
-@pytest.fixture(scope="module")
-def mpi_names(mock_repo_path):
-    return [spec.name for spec in mock_repo_path.providers_for("mpi")]
+from spack.solver.context import Context
+from spack.solver.counter import PossibleDependenciesAnalyzer
 
 
 @pytest.fixture()
@@ -51,6 +48,21 @@ def mpileaks_possible_deps(mock_packages, mpi_names):
         "zmpi": set(["fake"]),
     }
     return possible
+
+
+@pytest.fixture
+def mock_context(config, mock_packages):
+    return Context(configuration=config)
+
+
+@pytest.fixture
+def mock_analyzer(mock_context):
+    return PossibleDependenciesAnalyzer(mock_context)
+
+
+@pytest.fixture
+def mpi_names(mock_context):
+    return [spec.name for spec in mock_context.providers_for("mpi")]
 
 
 def test_possible_dependencies(mock_packages, mpileaks_possible_deps):
@@ -73,16 +85,16 @@ def test_possible_direct_dependencies(mock_packages, mpileaks_possible_deps):
     assert {"callpath": set(), "mpi": set(), "mpileaks": {"callpath", "mpi"}} == deps
 
 
-def test_possible_dependencies_virtual(mock_packages, mpi_names):
-    expected = dict(
-        (name, set(dep for dep in spack.repo.PATH.get_pkg_class(name).dependencies_by_name()))
-        for name in mpi_names
+def test_possible_dependencies_virtual(mock_analyzer, mock_packages, mpi_names):
+    expected = set(mpi_names)
+    for name in mpi_names:
+        expected.update(dep for dep in mock_packages.get_pkg_class(name).dependencies_by_name())
+    expected.update(mock_packages.packages_with_tags("runtime"))
+
+    real_pkgs, _ = mock_analyzer.possible_dependencies(
+        "mpi", transitive=False, allowed_deps=dt.ALL
     )
-
-    # only one mock MPI has a dependency
-    expected["fake"] = set()
-
-    assert expected == spack.package_base.possible_dependencies("mpi", transitive=False)
+    assert set(expected) == real_pkgs
 
 
 def test_possible_dependencies_missing(mock_packages):
@@ -112,19 +124,16 @@ def test_possible_dependencies_with_deptypes(mock_packages):
     )
 
 
-def test_possible_dependencies_with_multiple_classes(mock_packages, mpileaks_possible_deps):
+def test_possible_dependencies_with_multiple_classes(
+    mock_analyzer, mock_packages, mpileaks_possible_deps
+):
     pkgs = ["dt-diamond", "mpileaks"]
-    expected = mpileaks_possible_deps.copy()
-    expected.update(
-        {
-            "dt-diamond": set(["dt-diamond-left", "dt-diamond-right"]),
-            "dt-diamond-left": set(["dt-diamond-bottom"]),
-            "dt-diamond-right": set(["dt-diamond-bottom"]),
-            "dt-diamond-bottom": set(),
-        }
-    )
+    expected = set(mpileaks_possible_deps)
+    expected.update({"dt-diamond", "dt-diamond-left", "dt-diamond-right", "dt-diamond-bottom"})
+    expected.update(mock_packages.packages_with_tags("runtime"))
 
-    assert expected == spack.package_base.possible_dependencies(*pkgs)
+    real_pkgs, _ = mock_analyzer.possible_dependencies(*pkgs, allowed_deps=dt.ALL)
+    assert set(expected) == real_pkgs
 
 
 def setup_install_test(source_paths, test_root):
