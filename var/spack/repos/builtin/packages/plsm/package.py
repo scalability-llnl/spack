@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.package import *
+
 # ----------------------------------------------------------------------------
 # If you submit this package back to Spack as a pull request,
 # please first remove this boilerplate and all FIXME comments.
@@ -18,7 +20,6 @@
 #
 # See the Spack documentation for more information on packaging.
 # ----------------------------------------------------------------------------
-
 from spack.package import *
 
 
@@ -51,9 +52,7 @@ class Plsm(CMakePackage):
     depends_on("kokkos +openmp", when="+openmp")
 
     def cmake_args(self):
-        args = [
-            self.define("BUILD_TESTING", self.run_tests),
-        ]
+        args = [self.define("BUILD_TESTING", self.run_tests)]
 
         spec = self.spec
         if "+int64" in spec:
