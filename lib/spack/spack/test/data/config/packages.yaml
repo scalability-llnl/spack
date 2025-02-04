@@ -80,7 +80,6 @@ packages:
             cxx: /path/bin/g++-10
             fortran: /path/bin/gfortran-10
   llvm:
-    buildable: false
     externals:
       - spec: "llvm@15.0.0 +clang os={linux_os.name}{linux_os.version} target={target}"
         prefix: /path
