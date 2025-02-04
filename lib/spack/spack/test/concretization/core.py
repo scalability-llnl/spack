@@ -3146,3 +3146,13 @@ packages:
     mutable_config.set("packages", packages_yaml["packages"])
     s = spack.concretize.concretize_one("cmake")
     assert s.external and s.external_path == str(tmp_path)
+
+
+def test_compiler_can_be_built_with_other_compilers(config, mock_packages):
+    """Tests that a compiler can be built also with another compiler."""
+    s = Spec("llvm@18 +clang %gcc").concretized()
+    print(s.tree())
+    assert s.satisfies("llvm@18")
+
+    c_compiler = s.dependencies(virtuals=("c",))
+    assert len(c_compiler) == 1 and c_compiler[0].satisfies("gcc@10")

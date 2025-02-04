@@ -45,7 +45,7 @@ def mpileaks_possible_deps(mock_packages, mpi_names, compiler_names):
         "intel-parallel-studio": set(),
         "libdwarf": set(["libelf"] + compiler_names),
         "libelf": set(compiler_names),
-        "llvm": set(),
+        "llvm": {"gcc", "llvm"},
         "mpich": set(compiler_names),
         "mpich2": set(compiler_names),
         "mpileaks": set(["callpath"] + mpi_names + compiler_names),

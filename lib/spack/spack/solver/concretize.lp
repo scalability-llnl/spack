@@ -738,6 +738,7 @@ do_not_impose(EffectID, node(X, Package))
    explicitly_requested_root(PossibleProvider),
    not self_build_requirement(PossibleProvider, ProviderNode),
    not explicitly_requested_root(ProviderNode),
+   not language(Virtual),
    internal_error("If a root can provide a virtual, it must be the provider").
 
 % A package cannot be the actual provider for a virtual if it does not

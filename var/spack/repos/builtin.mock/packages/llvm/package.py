@@ -19,6 +19,8 @@ class Llvm(Package, CompilerPackage):
 
     provides("c", "cxx", when="+clang")
 
+    depends_on("c")
+
     c_names = ["clang"]
     cxx_names = ["clang++"]
     fortran_names = ["flang"]
