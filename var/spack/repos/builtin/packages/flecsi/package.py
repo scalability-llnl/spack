@@ -46,8 +46,8 @@ class Flecsi(CMakePackage, CudaPackage, ROCmPackage):
         description="Set Caliper Profiling Detail",
         multi=False,
     )
-    variant("kokkos", default=False, description="Enable Kokkos Support")
-    variant("openmp", default=False, description="Enable OpenMP Support")
+    variant("kokkos", default=False, description="Enable Kokkos Support", when="@:2.3.1")
+    variant("openmp", default=False, description="Enable OpenMP Support", when="@:2.3.1")
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
@@ -69,18 +69,25 @@ class Flecsi(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("boost@1.79.0:", when="@2.2:")
     depends_on("kokkos@3.2.00:", when="+kokkos")
     depends_on("kokkos@3.7:", when="+kokkos @2.3:")
+    depends_on("kokkos@3.7:", when="@2.4:")
     depends_on("kokkos +cuda +cuda_constexpr +cuda_lambda", when="+kokkos +cuda")
+    requires("^kokkos +cuda_constexpr +cuda_lambda", when="^kokkos +cuda")
     depends_on("kokkos +rocm", when="+kokkos +rocm")
     depends_on("kokkos +openmp", when="+kokkos +openmp")
     depends_on("legion@cr-20210122", when="backend=legion @2.0:2.2.1")
     depends_on("legion@cr-20230307", when="backend=legion @2.2.0:2.2.1")
     depends_on("legion@24.03.0:", when="backend=legion @2.2.2:")
+    depends_on("legion@24.09.0:", when="backend=legion @2.3.1:")
     depends_on("legion+shared", when="backend=legion +shared")
     depends_on("legion+hdf5", when="backend=legion +hdf5")
     depends_on("legion+kokkos", when="backend=legion +kokkos")
     depends_on("legion+openmp", when="backend=legion +openmp")
     depends_on("legion+cuda", when="backend=legion +cuda")
     depends_on("legion+rocm", when="backend=legion +rocm")
+    depends_on("legion+kokkos", when="backend=legion ^kokkos")
+    depends_on("legion+openmp", when="backend=legion ^kokkos+openmp")
+    depends_on("legion+cuda", when="backend=legion ^kokkos+cuda")
+    depends_on("legion+rocm", when="backend=legion ^kokkos+rocm")
     depends_on("hdf5@1.10.7:", when="backend=legion +hdf5")
     depends_on("hpx@1.10.0: cxxstd=17 malloc=system", when="backend=hpx")
     depends_on("mpi")
@@ -130,13 +137,13 @@ class Flecsi(CMakePackage, CudaPackage, ROCmPackage):
                 self.define_from_variant("ENABLE_DOCUMENTATION", "doc"),
             ]
 
-            if self.spec.satisfies("+rocm"):
+            if self.spec.satisfies("^kokkos +rocm"):
                 options.append(self.define("CMAKE_CXX_COMPILER", self.spec["hip"].hipcc))
                 options.append(self.define("CMAKE_C_COMPILER", self.spec["hip"].hipcc))
                 if self.spec.satisfies("backend=legion"):
                     # CMake pulled in via find_package(Legion) won't work without this
                     options.append(self.define("HIP_PATH", "{0}/hip".format(spec["hip"].prefix)))
-            elif self.spec.satisfies("+kokkos"):
+            elif self.spec.satisfies("^kokkos"):
                 options.append(self.define("CMAKE_CXX_COMPILER", self.spec["kokkos"].kokkos_cxx))
         else:
             # kept for supporing version prior to 2.2
