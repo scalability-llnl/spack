@@ -63,61 +63,64 @@ def mpi_names(mock_context):
     return [spec.name for spec in mock_context.providers_for("mpi")]
 
 
-def test_possible_dependencies(mock_packages, mpileaks_possible_deps, mock_analyzer):
-    expected = set(mpileaks_possible_deps)
-    expected.update(mock_packages.packages_with_tags("runtime"))
-    result, *_ = mock_analyzer.possible_dependencies(
-        "mpileaks", expand_virtuals=True, allowed_deps=dt.ALL
-    )
+@pytest.mark.parametrize(
+    "pkg_name,fn_kwargs,expected",
+    [
+        (
+            "mpileaks",
+            {"expand_virtuals": True, "allowed_deps": dt.ALL},
+            {
+                "fake",
+                "mpileaks",
+                "multi-provider-mpi",
+                "callpath",
+                "dyninst",
+                "mpich2",
+                "libdwarf",
+                "zmpi",
+                "low-priority-provider",
+                "intel-parallel-studio",
+                "mpich",
+                "libelf",
+            },
+        ),
+        (
+            "mpileaks",
+            {"expand_virtuals": False, "allowed_deps": dt.ALL},
+            {"callpath", "dyninst", "libdwarf", "libelf", "mpileaks"},
+        ),
+        (
+            "mpileaks",
+            {"expand_virtuals": False, "allowed_deps": dt.ALL, "transitive": False},
+            {"callpath", "mpileaks"},
+        ),
+        ("dtbuild1", {"allowed_deps": dt.LINK | dt.RUN}, {"dtbuild1", "dtrun2", "dtlink2"}),
+        ("dtbuild1", {"allowed_deps": dt.BUILD}, {"dtbuild1", "dtbuild2", "dtlink2"}),
+        ("dtbuild1", {"allowed_deps": dt.LINK}, {"dtbuild1", "dtlink2"}),
+    ],
+)
+def test_possible_dependencies(pkg_name, fn_kwargs, expected, mock_runtimes, mock_analyzer):
+    """Tests possible nodes of mpileaks, under different scenarios."""
+    expected.update(mock_runtimes)
+    result, *_ = mock_analyzer.possible_dependencies(pkg_name, **fn_kwargs)
     assert expected == result
 
-    expected = {"callpath", "dyninst", "libdwarf", "libelf", "mpileaks"}
-    expected.update(mock_packages.packages_with_tags("runtime"))
-    result, *_ = mock_analyzer.possible_dependencies(
-        "mpileaks", expand_virtuals=False, allowed_deps=dt.ALL
-    )
-    assert expected == result
 
-    expected = {"callpath", "mpileaks"}
-    expected.update(mock_packages.packages_with_tags("runtime"))
-    result, *_ = mock_analyzer.possible_dependencies(
-        "mpileaks", expand_virtuals=False, allowed_deps=dt.ALL, transitive=False
-    )
-    assert expected == result
-
-
-def test_possible_dependencies_virtual(mock_analyzer, mock_packages, mpi_names):
+def test_possible_dependencies_virtual(mock_analyzer, mock_packages, mock_runtimes, mpi_names):
     expected = set(mpi_names)
     for name in mpi_names:
         expected.update(dep for dep in mock_packages.get_pkg_class(name).dependencies_by_name())
-    expected.update(mock_packages.packages_with_tags("runtime"))
+    expected.update(mock_runtimes)
 
     real_pkgs, *_ = mock_analyzer.possible_dependencies(
         "mpi", transitive=False, allowed_deps=dt.ALL
     )
-    assert set(expected) == real_pkgs
+    assert expected == real_pkgs
 
 
 def test_possible_dependencies_missing(mock_analyzer):
     result, *_ = mock_analyzer.possible_dependencies("missing-dependency", allowed_deps=dt.ALL)
     assert "this-is-a-missing-dependency" not in result
-
-
-def test_possible_dependencies_with_deptypes(mock_packages, mock_analyzer):
-    expected = {"dtbuild1", "dtrun2", "dtlink2"}
-    expected.update(mock_packages.packages_with_tags("runtime"))
-    result, *_ = mock_analyzer.possible_dependencies("dtbuild1", allowed_deps=dt.LINK | dt.RUN)
-    assert expected == result
-
-    expected = {"dtbuild1", "dtbuild2", "dtlink2"}
-    expected.update(mock_packages.packages_with_tags("runtime"))
-    result, *_ = mock_analyzer.possible_dependencies("dtbuild1", allowed_deps=dt.BUILD)
-    assert expected == result
-
-    expected = {"dtbuild1", "dtlink2"}
-    expected.update(mock_packages.packages_with_tags("runtime"))
-    result, *_ = mock_analyzer.possible_dependencies("dtbuild1", allowed_deps=dt.LINK)
-    assert expected == result
 
 
 def test_possible_dependencies_with_multiple_classes(

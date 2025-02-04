@@ -2171,3 +2171,8 @@ class MockHTTPResponse(io.IOBase):
 
     def info(self):
         return self.headers
+
+
+@pytest.fixture()
+def mock_runtimes(config, mock_packages):
+    return mock_packages.packages_with_tags("runtime")

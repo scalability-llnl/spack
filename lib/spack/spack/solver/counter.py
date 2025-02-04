@@ -164,7 +164,7 @@ class FullDuplicatesCounter(MinimalDuplicatesCounter):
         gen.newline()
 
 
-class PossibleDependencies(NamedTuple):
+class PossibleGraph(NamedTuple):
     real_pkgs: Set[str]
     virtuals: Set[str]
     edges: Dict[str, Set[str]]
@@ -182,7 +182,7 @@ class PossibleDependenciesAnalyzer:
         transitive: bool = True,
         strict_depflag: bool = False,
         expand_virtuals: bool = True,
-    ) -> PossibleDependencies:
+    ) -> PossibleGraph:
         """Returns the set of possible dependencies, and the set of possible virtuals.
 
         Both sets always include runtime packages, which may be injected by compilers.
@@ -261,7 +261,7 @@ class PossibleDependenciesAnalyzer:
 
         virtuals.update(self.runtime_virtuals)
         real_packages = real_packages | self.runtime_pkgs
-        return PossibleDependencies(real_pkgs=real_packages, virtuals=virtuals, edges=edges)
+        return PossibleGraph(real_pkgs=real_packages, virtuals=virtuals, edges=edges)
 
     def _package_list(self, specs: Tuple[Union[spack.spec.Spec, str], ...]) -> List[str]:
         stack = []
