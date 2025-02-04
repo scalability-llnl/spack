@@ -7,10 +7,7 @@ import os
 import re
 import sys
 
-import llnl.util.tty as tty
-
 import spack.compilers
-import spack.version
 from spack.package import *
 
 
@@ -736,7 +733,7 @@ with '-Wl,-commons,use_dylibs' and without
                 variants.append("+atomics")
 
             # java
-            if version in spack.version.ver("1.7.4:"):
+            if version in ver("1.7.4:"):
                 match = re.search(r"\bJava bindings: (\S+)", output)
                 if match and is_enabled(match.group(1)):
                     variants.append("+java")
@@ -754,7 +751,7 @@ with '-Wl,-commons,use_dylibs' and without
                 variants.append("~static")
 
             # sqlite
-            if version in spack.version.ver("1.7.3:1"):
+            if version in ver("1.7.3:1"):
                 if re.search(r"\bMCA db: sqlite", output):
                     variants.append("+sqlite3")
                 else:
@@ -765,7 +762,7 @@ with '-Wl,-commons,use_dylibs' and without
                 variants.append("+vt")
 
             # thread_multiple
-            if version in spack.version.ver("1.5.4:2"):
+            if version in ver("1.5.4:2"):
                 match = re.search(r"MPI_THREAD_MULTIPLE: (\S+?),?", output)
                 if match and is_enabled(match.group(1)):
                     variants.append("+thread_multiple")
@@ -782,7 +779,7 @@ with '-Wl,-commons,use_dylibs' and without
                 variants.append("~cuda")
 
             # wrapper-rpath
-            if version in spack.version.ver("1.7.4:"):
+            if version in ver("1.7.4:"):
                 match = re.search(r"\bWrapper compiler rpath: (\S+)", output)
                 if match and is_enabled(match.group(1)):
                     variants.append("+wrapper-rpath")
@@ -790,7 +787,7 @@ with '-Wl,-commons,use_dylibs' and without
                     variants.append("~wrapper-rpath")
 
             # cxx
-            if version in spack.version.ver(":4"):
+            if version in ver(":4"):
                 match = re.search(r"\bC\+\+ bindings: (\S+)", output)
                 if match and match.group(1) == "yes":
                     variants.append("+cxx")
@@ -798,7 +795,7 @@ with '-Wl,-commons,use_dylibs' and without
                     variants.append("~cxx")
 
             # cxx_exceptions
-            if version in spack.version.ver(":4"):
+            if version in ver(":4"):
                 match = re.search(r"\bC\+\+ exceptions: (\S+)", output)
                 if match and match.group(1) == "yes":
                     variants.append("+cxx_exceptions")
@@ -806,7 +803,7 @@ with '-Wl,-commons,use_dylibs' and without
                     variants.append("~cxx_exceptions")
 
             # singularity
-            if version in spack.version.ver(":4"):
+            if version in ver(":4"):
                 if re.search(r"--with-singularity", output):
                     variants.append("+singularity")
 
@@ -822,7 +819,7 @@ with '-Wl,-commons,use_dylibs' and without
                 variants.append("~memchecker")
 
             # pmi
-            if version in spack.version.ver("1.5.5:4"):
+            if version in ver("1.5.5:4"):
                 if re.search(r"\bMCA (?:ess|prrte): pmi", output):
                     variants.append("+pmi")
                 else:

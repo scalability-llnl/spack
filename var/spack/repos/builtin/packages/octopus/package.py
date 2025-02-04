@@ -4,9 +4,6 @@
 
 import os
 
-import llnl.util.filesystem as fs
-import llnl.util.tty as tty
-
 from spack.package import *
 
 
@@ -193,7 +190,7 @@ class Octopus(AutotoolsPackage, CudaPackage):
         else:
             # To be foolproof, fail with a proper error message
             # if neither FFTW nor MKL are in the dependency tree.
-            tty.die(
+            raise InstallError(
                 'Unsupported "fftw-api" provider, '
                 "currently only FFTW and MKL are supported.\n"
                 "Please report this issue on Spack's repository."
@@ -370,7 +367,7 @@ class Octopus(AutotoolsPackage, CudaPackage):
 
         with working_dir("example-recipe", create=True):
             print("Current working directory (in example-recipe)")
-            fs.copy(join_path(os.path.dirname(__file__), "test", "recipe.inp"), "inp")
+            copy(join_path(os.path.dirname(__file__), "test", "recipe.inp"), "inp")
             exe = which(self.spec.prefix.bin.octopus)
             out = exe(output=str.split, error=str.split)
             check_outputs(expected, out)
@@ -399,7 +396,7 @@ class Octopus(AutotoolsPackage, CudaPackage):
 
         with working_dir("example-he", create=True):
             print("Current working directory (in example-he)")
-            fs.copy(join_path(os.path.dirname(__file__), "test", "he.inp"), "inp")
+            copy(join_path(os.path.dirname(__file__), "test", "he.inp"), "inp")
             exe = which(self.spec.prefix.bin.octopus)
             out = exe(output=str.split, error=str.split)
             check_outputs(expected, out)

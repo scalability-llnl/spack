@@ -5,8 +5,6 @@ import os
 import re
 import sys
 
-import llnl.util.tty as tty
-
 from spack.build_systems.cmake import get_cmake_prefix_path
 from spack.package import *
 
