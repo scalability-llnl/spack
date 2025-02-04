@@ -5,7 +5,7 @@
 from spack.package import *
 
 class Plsm(CMakePackage):
-    """FIXME: Put a proper description of your package here."""
+    """plsm is a generic library for spatial subdivision within an N-dimensional lattice."""
 
     homepage = "https://github.com/ORNL-Fusion/plsm"
     url = "https://github.com/ORNL-Fusion/plsm/archive/refs/tags/v2.1.2.tar.gz"
