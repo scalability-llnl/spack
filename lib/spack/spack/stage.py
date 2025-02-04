@@ -809,11 +809,6 @@ class StageComposite(pattern.Composite):
             item.keep = value
 
 
-def _read_property_file(path):
-    with open(path, "r", encoding="utf-8") as f:
-        return f.read()
-
-
 class DevelopStage(LockableStagingDir):
     requires_patch_success = False
 
