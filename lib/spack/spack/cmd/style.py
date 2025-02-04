@@ -190,7 +190,8 @@ def setup_parser(subparser):
         "-t",
         "--tool",
         action="append",
-        help="specify which tools to run (default: %s)" % ", ".join(default_tool_names),
+        help="specify which tools to run (default: [%s], other: [%s])"
+        % (", ".join(default_tool_names), "ruff"),
     )
     tool_group.add_argument(
         "-s",
