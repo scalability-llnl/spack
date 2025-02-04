@@ -167,13 +167,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     depends_on("fftw-api@3")
 
     depends_on("grpp@2023.12.25", when="+grpp")
-
-    with when("+trexio"):
-        depends_on("trexio")
-        depends_on("grpp@2023.12.25")
-
-    # the regtests depend on both libraries to be present otherwise they fail
-    conflicts("+trexio", when="~grpp")
+    depends_on("trexio", when="+trexio")
 
     # Force openmp propagation on some providers of blas / fftw-api
     with when("+openmp"):

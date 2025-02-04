@@ -21,17 +21,12 @@ class Grpp(CMakePackage):
 
     maintainers("mtaillefumier")
 
-    license("BSD-3-Clause")
-
-    build_system("cmake")
+    license("MIT-License")
 
     version("main", branch="main")
-    version(
-        "2023.12.25", commit="64d157f1dc95815096b1fd437a5851abeb3425929cf7b2092bf8262db9c5e33d"
-    )
+    version("2023.12.25", commit="6e63e88f75385b811837efbbb143b2dcd83b00e8")
 
     depends_on("c", type="build")
     depends_on("fortran", type="build")
-    depends_on("cmake", type="build")
 
     patch("grpp-cmake.patch")
