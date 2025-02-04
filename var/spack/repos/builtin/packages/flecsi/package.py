@@ -24,8 +24,12 @@ class Flecsi(CMakePackage, CudaPackage, ROCmPackage):
     version("2.3.0", tag="v2.3.0", commit="90bc8267fceb02060e54646f73b45d4252aef491")
     version("2.2.1", tag="v2.2.1", commit="84b5b232aebab40610f57387778db80f6c8c84c5")
     version("2.2.0", tag="v2.2.0", commit="dd531ac16c5df124d76e385c6ebe9b9589c2d3ad")
-    version("2.1.0", tag="v2.1.0", commit="533df139c267e2a93c268dfe68f9aec55de11cf0")
-    version("2.0.0", tag="v2.0.0", commit="5ceebadf75d1c98999ea9e9446926722d061ec22")
+    version(
+        "2.1.0", tag="v2.1.0", commit="533df139c267e2a93c268dfe68f9aec55de11cf0", deprecated=True
+    )
+    version(
+        "2.0.0", tag="v2.0.0", commit="5ceebadf75d1c98999ea9e9446926722d061ec22", deprecated=True
+    )
 
     variant(
         "backend",
