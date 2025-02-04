@@ -881,6 +881,7 @@ class TestDevelopStage:
         spack.stage.purge()
         assert not os.path.exists(stage.path)
         assert not os.path.exists(stage.reference_link)
+        assert not llnl.util.symlink.islink(stage.reference_link)
 
     def test_develop_stage_link_path_in_use(self, develop_path, tmp_build_stage_dir):
         """We try to put a symlink in dev_path, but if the path where
