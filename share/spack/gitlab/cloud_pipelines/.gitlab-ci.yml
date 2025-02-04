@@ -540,57 +540,6 @@ data-vis-sdk-build:
       job: data-vis-sdk-generate
 
 ########################################
-# AWS ISC Applications (x86_64)
-########################################
-
-# Call this AFTER .*-generate
-.aws-isc-overrides:
-  # This controls image for generate step; build step is controlled by spack.yaml
-  # Note that generator emits OS info for build so these should be the same.
-  image: { "name": "ghcr.io/spack/e4s-amazonlinux-2:v2023-03-09", "entrypoint": [""] }
-
-.aws-isc:
-  extends: [ ".linux_x86_64_v3" ]
-  variables:
-    SPACK_CI_STACK_NAME: aws-isc
-
-aws-isc-generate:
-  extends: [ ".aws-isc", ".generate-x86_64", ".aws-isc-overrides", ".tags-x86_64_v4" ]
-
-aws-isc-build:
-  extends: [ ".aws-isc", ".build" ]
-  trigger:
-    include:
-      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
-        job: aws-isc-generate
-    strategy: depend
-  needs:
-    - artifacts: True
-      job: aws-isc-generate
-
-# Parallel Pipeline for aarch64 (reuses override image, but generates and builds on aarch64)
-
-.aws-isc-aarch64:
-  extends: [ ".linux_aarch64" ]
-  variables:
-    SPACK_CI_STACK_NAME: aws-isc-aarch64
-
-aws-isc-aarch64-generate:
-  extends: [ ".aws-isc-aarch64", ".generate-aarch64", ".aws-isc-overrides" ]
-
-aws-isc-aarch64-build:
-  extends: [ ".aws-isc-aarch64", ".build" ]
-  trigger:
-    include:
-      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
-        job: aws-isc-aarch64-generate
-    strategy: depend
-  needs:
-    - artifacts: True
-      job: aws-isc-aarch64-generate
-
-
-########################################
 # Spack Tutorial
 ########################################
 .tutorial:

@@ -458,19 +458,18 @@ class CMakeBuilder(BuilderWithDefaults):
     ) -> None:
         """Runs ``cmake`` in the build directory"""
 
-        # skip cmake phase if it is an incremental develop build
-        # These are the files that will re-run CMake that are generated from a successful
-        # configure step
-        primary_generator = _extract_primary_generator(self.generator)
-        if primary_generator == "Unix Makefiles":
-            configure_artifact = "Makefile"
-        elif primary_generator == "Ninja":
-            configure_artifact = "ninja.build"
+        if spec.is_develop:
+            # skip cmake phase if it is an incremental develop build
 
-        if spec.is_develop and os.path.isfile(
-            os.path.join(self.build_directory, configure_artifact)
-        ):
-            return
+            # Determine the files that will re-run CMake that are generated from a successful
+            # configure step based on state
+            primary_generator = _extract_primary_generator(self.generator)
+            configure_artifact = "Makefile"
+            if primary_generator == "Ninja":
+                configure_artifact = "ninja.build"
+
+            if os.path.isfile(os.path.join(self.build_directory, configure_artifact)):
+                return
 
         options = self.std_cmake_args
         options += self.cmake_args()
