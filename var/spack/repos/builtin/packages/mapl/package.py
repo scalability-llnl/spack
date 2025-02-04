@@ -376,7 +376,7 @@ class Mapl(CMakePackage):
 
         # Compatibility flags for gfortran
         fflags = []
-        if self.compiler.name in ["gcc", "clang", "apple-clang"]:
+        if self["fortran"].name == "gcc":
             fflags.append("-ffree-line-length-none")
 
             gfortran_major_ver = int(self.spec["fortran"].version[0])
