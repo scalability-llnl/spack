@@ -4,6 +4,7 @@
 
 from spack.package import *
 
+
 class Xolotl(CMakePackage):
     """Xolotl is a high-performance computing code using
     advection-reaction-diffusion (ADR) kinetic rate theory to model the
