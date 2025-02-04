@@ -1,10 +1,7 @@
 name: import-check
 
 on:
-  push:
-    branches: [develop, releases/**]
-  pull_request:
-    branches: [develop, releases/**]
+  workflow_call:
 
 jobs:
   # Check we don't make the situation with circular imports worse
