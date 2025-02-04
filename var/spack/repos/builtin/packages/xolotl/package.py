@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.package import *
+
 # ----------------------------------------------------------------------------
 # If you submit this package back to Spack as a pull request,
 # please first remove this boilerplate and all FIXME comments.
@@ -18,12 +20,11 @@
 #
 # See the Spack documentation for more information on packaging.
 # ----------------------------------------------------------------------------
-
 from spack.package import *
 
 
 class Xolotl(CMakePackage):
-    """Xolotl is a high-performance computing code using 
+    """Xolotl is a high-performance computing code using
     advection-reaction-diffusion (ADR) kinetic rate theory to model the
     time evolution of the divertor material in next generation tokamaks,
     like ITER, as well as nuclear fuel in fission reactors."""
@@ -69,9 +70,7 @@ class Xolotl(CMakePackage):
     depends_on("boost +test", type="test")
 
     def cmake_args(self):
-        args = [
-            self.define("BUILD_TESTING", self.run_tests),
-        ]
+        args = [self.define("BUILD_TESTING", self.run_tests)]
 
         spec = self.spec
         if "+vtk-m" in spec:
