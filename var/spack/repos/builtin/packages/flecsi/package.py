@@ -104,11 +104,13 @@ class Flecsi(CMakePackage, CudaPackage, ROCmPackage):
 
     # Propagate cuda_arch requirement to dependencies
     for _flag in CudaPackage.cuda_arch_values:
+        requires(f"+cuda cuda_arch={_flag}", when=f"^kokkos +cuda cuda_arch={_flag}")
         depends_on(f"kokkos cuda_arch={_flag}", when=f"+cuda+kokkos cuda_arch={_flag}")
         depends_on(f"legion cuda_arch={_flag}", when=f"backend=legion +cuda cuda_arch={_flag}")
 
     # Propagate amdgpu_target requirement to dependencies
     for _flag in ROCmPackage.amdgpu_targets:
+        requires(f"+rocm amdgpu_target={_flag}", when=f"^kokkos +rocm amdgpu_target={_flag}")
         depends_on(f"kokkos amdgpu_target={_flag}", when=f"+kokkos +rocm amdgpu_target={_flag}")
         depends_on(
             f"legion amdgpu_target={_flag}", when=f"backend=legion +rocm amdgpu_target={_flag}"
