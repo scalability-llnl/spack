@@ -160,7 +160,7 @@ class MvapichPlus(AutotoolsPackage):
 
         other_pms = []
         for x in ("hydra", "gforker", "remshell"):
-            if spec.satisfies("process_managers={x}"):
+            if spec.satisfies(f"process_managers={x}"):
                 other_pms.append(x)
 
         opts = []
@@ -195,7 +195,7 @@ class MvapichPlus(AutotoolsPackage):
 
         fs = []
         for x in ("lustre", "gpfs", "nfs", "ufs"):
-            if spec.satisfies("file_systems={x}"):
+            if spec.satisfies(f"file_systems={x}"):
                 fs.append(x)
 
         opts = []
