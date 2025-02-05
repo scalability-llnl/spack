@@ -164,9 +164,9 @@ class CMakeBuilder(CMakeBuilder, SetupEnvironment):
             cuda_libs = find_libraries(cuda_libs_list, cuda_dir, shared=True, recursive=True)
             include_dirs.append(cuda_dir.include)
             library_dirs.extend(cuda_libs.directories)
-            args.append("-DOCCA_ENABLE_CUDA=ON")
+            args.append(self.define("OCCA_ENABLE_CUDA", True))
         else:
-            args.append("-DOCCA_ENABLE_CUDA=OFF")
+            args.append(self.define("OCCA_ENABLE_CUDA", False))
 
         if "+rocm" in spec:
             hip_dir = spec["hip"].prefix
@@ -175,22 +175,23 @@ class CMakeBuilder(CMakeBuilder, SetupEnvironment):
             include_dirs.append(hip_dir.include)
             library_dirs.extend(hip_libs.directories)
             args.append("-DOCCA_ENABLE_HIP=ON")
+            args.append(self.define("OCCA_ENABLE_HIP", True))
         else:
-            args.append("-DOCCA_ENABLE_HIP=OFF")
+            args.append(self.define("OCCA_ENABLE_HIP", False))
 
         # Turn-off OpenCL since it fails on some of the machines.
-        args.append("-DOCCA_ENABLE_OPENCL=OFF")
+        args.append(self.define("OCCA_ENABLE_OPENCL", False))
 
         if "+openmp" in spec:
-            args.append("-DOCCA_ENABLE_OPENMP=ON")
+            args.append(self.define("OCCA_ENABLE_OPENMP", True))
         else:
-            args.append("-DOCCA_ENABLE_OPENMP=OFF")
+            args.append(self.define("OCCA_ENABLE_OPENMP", False))
 
         if "+debug" in spec:
-            args.append("-DCMAKE_BUILD_TYPE=Debug")
+            args.append(self.define_from_variant("CMAKE_BUILD_TYPE", "Debug"))
 
-        args.append("-DCMAKE_INCLUDE_PATH={0}".format(";".join(include_dirs)))
-        args.append("-DCMAKE_LIBRARY_PATH={0}".format(";".join(library_dirs)))
+        args.append(self.define("CMAKE_INCLUDE_PATH", ";".join(include_dirs)))
+        args.append(self.define("CMAKE_LIBRARY_PATH", ";".join(library_dirs)))
 
         return args
 
