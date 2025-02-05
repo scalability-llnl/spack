@@ -52,6 +52,7 @@ import collections.abc
 import enum
 import io
 import itertools
+import json
 import os
 import pathlib
 import platform
@@ -2128,7 +2129,9 @@ class Spec:
         if hash.override is not None:
             return hash.override(self)
         node_dict = self.to_node_dict(hash=hash)
-        json_text = sjson.dump(node_dict)
+        json_text = json.dumps(
+            node_dict, ensure_ascii=True, indent=None, separators=(",", ":"), sort_keys=False
+        )
         # This implements "frankenhashes", preserving the last 7 characters of the
         # original hash when splicing so that we can avoid relocation issues
         out = spack.util.hash.b32_hash(json_text)
