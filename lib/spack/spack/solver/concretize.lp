@@ -1234,15 +1234,18 @@ error(100, "Cannot propagate the variant '{0}' from the package: {1} because pac
 
 % A propagated flag implies:
 % 1. The same flag type is not set on this node
-% 2. This node has the same compiler as the propagation source
+% 2. This node has the same compilers as the propagation source
+
+node_compiler(node(X, Package), node(Y, Compiler)) :-
+     attr("virtual_on_edge", node(X, Package), node(Y, Compiler), Language),
+     attr("version", node(Y, Compiler), Version),
+     compiler(Compiler), language(Language).
 
 propagated_flag(node(PackageID, Package), node_flag(FlagType, Flag, FlagGroup, Source), SourceNode) :-
   propagate(node(PackageID, Package), node_flag(FlagType, Flag, FlagGroup, Source), _),
   not attr("node_flag_set", node(PackageID, Package), node_flag(FlagType, _, _, "literal")),
-  % FIXME (compiler as nodes): do we need to match the compiler?
-  % Same compiler as propagation source
-  % node_compiler(node(PackageID, Package), CompilerID),
-  % node_compiler(SourceNode, CompilerID),
+  % Same compilers as propagation source
+  node_compiler(node(PackageID, Package), CompilerNode) : node_compiler(SourceNode, CompilerNode);
   attr("propagate", SourceNode, node_flag(FlagType, Flag, FlagGroup, Source), _),
   node(PackageID, Package) != SourceNode,
   not runtime(Package).
