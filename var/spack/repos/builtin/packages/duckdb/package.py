@@ -17,6 +17,7 @@ class Duckdb(MakefilePackage):
     maintainers("glentner", "teaguesterling")
 
     version("master", branch="master")
+    version("1.2.0", sha256="f22c97e18c071fa8e43b5e150c03c6ab4bcc510cca6e6b50cbe13af8535fa701")
     version("1.1.3", sha256="2aea0af898ad753fee82b776fea1bf78ccbc9648986e7f7a87372df5e74cdb98")
     version("1.1.2", sha256="a3319a64c390ed0454c869b2e4fc0af2413cd49f55cd0f1400aaed9069cdbc4c")
     version("1.1.1", sha256="a764cef80287ccfd8555884d8facbe962154e7c747043c0842cd07873b4d6752")
