@@ -11,6 +11,7 @@ from itertools import chain
 from typing import Any, List, Optional, Tuple
 
 import llnl.util.filesystem as fs
+from llnl.util import tty
 from llnl.util.lang import stable_partition
 
 import spack.builder
