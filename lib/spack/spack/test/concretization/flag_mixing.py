@@ -198,10 +198,6 @@ def test_propagate_and_compiler_cfg(concretize_scope, test_repo):
     assert root_spec["y"].satisfies("cflags='-f1 -f2'")
 
 
-# Note: setting flags on a dependency overrides propagation, which
-# is tested in test/concretize.py:test_compiler_flag_propagation
-
-
 def test_propagate_and_pkg_dep(concretize_scope, test_repo):
     root_spec1 = spack.concretize.concretize_one("x ~activatemultiflag cflags=='-f1'")
     assert root_spec1["y"].satisfies("cflags='-f1 -d1'")
@@ -275,3 +271,12 @@ def test_diamond_dep_flag_mixing(concretize_scope, test_repo):
     spec1 = root_spec1["y"]
     assert spec1.satisfies('cflags="-c1 -c2 -d1 -d2 -e1 -e2"')
     assert spec1.compiler_flags["cflags"] == "-c1 -c2 -e1 -e2 -d1 -d2".split()
+
+
+def test_flag_injection_different_compilers(mock_packages, mutable_config):
+    """Tests that flag propagation is not activated on nodes with a compiler that is different
+    from the propagation source.
+    """
+    s = spack.concretize.concretize_one('mpileaks %gcc cflags=="-O2" ^callpath %llvm')
+    assert s.satisfies('cflags="-O2"') and s["c"].name == "gcc"
+    assert not s["callpath"].satisfies('cflags="-O2"') and s["callpath"]["c"].name == "llvm"
