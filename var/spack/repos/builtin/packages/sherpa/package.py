@@ -39,7 +39,7 @@ class Sherpa(CMakePackage, AutotoolsPackage):
     depends_on("cxx", type="build")  # generated
     depends_on("fortran", type="build")  # generated
 
-    _cxxstd_values = ("11", "14", "17")
+    _cxxstd_values = (conditional("11", "14", "17", when="@:"), conditional("20", when="@3:"))
     variant(
         "cxxstd",
         default="11",
@@ -114,7 +114,8 @@ class Sherpa(CMakePackage, AutotoolsPackage):
     filter_compiler_wrappers("share/SHERPA-MC/makelibs")
 
     for std in _cxxstd_values:
-        depends_on("root cxxstd=" + std, when="+root cxxstd=" + std)
+        for v in std:
+            depends_on(f"root cxxstd={v.value}", when=f"+root cxxstd={v.value}")
 
     def patch(self):
         filter_file(
