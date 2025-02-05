@@ -740,7 +740,7 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
     patch(
         "https://github.com/llvm/llvm-project/commit/73e15b5edb4fa4a77e68c299a6e3b21e610d351f.patch?full_index=1",
         sha256="b540ef6e3728d7881d95775a163314fac6e2f9207f5d5e8b79c8c73c73ba4dc3",
-        when="@15",
+        when="@15:16",
     )
 
     @when("@14:17")
