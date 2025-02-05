@@ -3861,6 +3861,13 @@ class Spec:
         for item in self._cmp_node():
             yield item
 
+        # If there is ever a breaking change to hash computation, whether accidental or purposeful,
+        # two specs can be identical modulo DAG hash, depending on what time they were concretized
+        # From the perspective of many operation in Spack (database, build cache, etc) a different
+        # DAG hash means a different spec. Here we ensure that two otherwise identical specs, one
+        # serialized before the hash change and one after, are considered different.
+        yield self.dag_hash() if self.concrete else None
+
         # This needs to be in _cmp_iter so that no specs with different process hashes
         # are considered the same by `__hash__` or `__eq__`.
         #
@@ -3870,13 +3877,6 @@ class Spec:
         # TODO: having two types of hashing now that we use `json` instead of `yaml` for
         # TODO: spec hashing.
         yield self.process_hash() if self.concrete else None
-
-        # If there is ever a breaking change to hash computation, whether accidental or purposeful,
-        # two specs can be identical modulo DAG hash, depending on what time they were concretized
-        # From the perspective of many operation in Spack (database, build cache, etc) a different
-        # DAG hash means a different spec. Here we ensure that two otherwise identical specs, one
-        # serialized before the hash change and one after, are considered different.
-        yield self.dag_hash() if self.concrete else None
 
         def deps():
             for dep in sorted(itertools.chain.from_iterable(self._dependencies.values())):
