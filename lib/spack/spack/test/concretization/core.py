@@ -1131,22 +1131,6 @@ class TestConcretize:
         assert s.concrete
         assert not s.satisfies("^variant-on-dependency-condition-b")
 
-    # FIXME (compiler as nodes): revisit this test
-    # @pytest.mark.regression("8082")
-    # @pytest.mark.parametrize(
-    #     "spec_str,expected", [("cmake %gcc", "%gcc"), ("cmake %clang", "%clang")]
-    # )
-    # def test_compiler_constraint_with_external_package(self, spec_str, expected):
-    #     packages_yaml = {
-    #         "cmake": {"externals": [{"spec": "cmake@3.4.3", "prefix": "/usr"}],
-    #         "buildable": False}
-    #     }
-    #     spack.config.set("packages", packages_yaml)
-    #
-    #     s = spack.concretize.concretize_one(spec_str)
-    #     assert s.external
-    #     assert s.satisfies(expected)
-
     def test_external_that_would_require_a_virtual_dependency(self):
         s = spack.concretize.concretize_one("requires-virtual")
 
