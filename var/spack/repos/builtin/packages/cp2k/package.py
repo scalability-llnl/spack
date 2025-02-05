@@ -122,7 +122,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
         "unified_memory",
         default=False,
         description="Enable unified memory support on Mi250 and Mi300 GPUs",
-        when="+rocm",
+        when="+rocm amdgpu_target=(gfx90a or gfx942)",
     )
     variant(
         "spla_gemm_offloading",
