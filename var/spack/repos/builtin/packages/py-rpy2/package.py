@@ -17,6 +17,8 @@ class PyRpy2(PythonPackage):
 
     license("GPL-2.0-or-later")
 
+    maintainers("Chrismarsh")
+
     version("3.5.17", sha256="dbff08c30f3d79161922623858a5b3b68a3fba8ee1747d6af41bc4ba68f3d582")
     version("3.0.4", sha256="2af5158a5d56af7f7bf5e54d8d7e87b6f115ff40f056d82f93cad0cbf6acc0cb")
     version("3.0.0", sha256="34efc2935d9015527837d6b1de29641863d184b19d39ad415d5384be8a015bce")
