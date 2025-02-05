@@ -18,6 +18,7 @@ class Spiner(CMakePackage):
     license("BSD-3-Clause")
 
     version("main", branch="main")
+    version("1.6.3", sha256="f78c50e0b4d7c4fd3f380432f12a528941e2bee5171d6f200e9a52bbcea940e9")
     version("1.6.2", sha256="91fb403ce3b151fbdf8b6ff5aed0d8dde1177749f5633951027b100ebc7080d3")
     version("1.6.1", sha256="52774322571d3b9b0dc3c6b255257de9af0e8e6170834360f2252c1ac272cbe7")
     version("1.6.0", sha256="afa5526d87c78c1165ead06c09c5c2b9e4a913687443e5adff7b709ea4dd7edf")
