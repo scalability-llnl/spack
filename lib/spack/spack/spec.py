@@ -3871,6 +3871,13 @@ class Spec:
         # TODO: spec hashing.
         yield self.process_hash() if self.concrete else None
 
+        # If there is ever a breaking change to hash computation, whether accidental or purposeful,
+        # two specs can be identical modulo DAG hash, depending on what time they were concretized
+        # From the perspective of many operation in Spack (database, build cache, etc) a different
+        # DAG hash means a different spec. Here we ensure that two otherwise identical specs, one
+        # serialized before the hash change and one after, are considered different.
+        yield self.dag_hash() if self.concrete else None
+
         def deps():
             for dep in sorted(itertools.chain.from_iterable(self._dependencies.values())):
                 yield dep.spec.name
