@@ -263,18 +263,6 @@ class InstallRecord:
         return InstallRecord(spec, **d)
 
 
-class ForbiddenLockError(SpackError):
-    """Raised when an upstream DB attempts to acquire a lock"""
-
-
-class ForbiddenLock:
-    def __getattr__(self, name):
-        raise ForbiddenLockError(f"Cannot access attribute '{name}' of lock")
-
-    def __reduce__(self):
-        return ForbiddenLock, tuple()
-
-
 class LockConfiguration(NamedTuple):
     """Data class to configure locks in Database objects
 
@@ -617,16 +605,12 @@ class Database:
         self.db_lock_timeout = lock_cfg.database_timeout
         tty.debug(f"DATABASE LOCK TIMEOUT: {str(self.db_lock_timeout)}s")
 
-        self.lock: Union[ForbiddenLock, lk.Lock]
-        if self.is_upstream:
-            self.lock = ForbiddenLock()
-        else:
-            self.lock = lk.Lock(
-                str(self._lock_path),
-                default_timeout=self.db_lock_timeout,
-                desc="database",
-                enable=lock_cfg.enable,
-            )
+        self.lock = lk.Lock(
+            str(self._lock_path),
+            default_timeout=self.db_lock_timeout,
+            desc="database",
+            enable=not self.is_upstream and lock_cfg.enable,
+        )
         self._data: Dict[str, InstallRecord] = {}
 
         # For every installed spec we keep track of its install prefix, so that
@@ -1050,6 +1034,9 @@ class Database:
 
         This routine does no locking.
         """
+        if self.is_upstream:
+            raise UpstreamDatabaseLockingError("Cannot write to an upstream database")
+
         self._ensure_parent_directories()
 
         # Do not write if exceptions were raised
@@ -1670,38 +1657,24 @@ class Database:
         """
         valid_trees = ["all", "upstream", "local", self.root] + [u.root for u in self.upstream_dbs]
         if install_tree not in valid_trees:
-            msg = "Invalid install_tree argument to Database.query()\n"
-            msg += f"Try one of {', '.join(valid_trees)}"
-            tty.error(msg)
-            return []
-
-        upstream_results = []
-        upstreams = self.upstream_dbs
-        if install_tree not in ("all", "upstream"):
-            upstreams = [u for u in self.upstream_dbs if u.root == install_tree]
-        for upstream_db in upstreams:
-            # queries for upstream DBs need to *not* lock - we may not
-            # have permissions to do this and the upstream DBs won't know about
-            # us anyway (so e.g. they should never uninstall specs)
-            upstream_results.extend(
-                upstream_db._query(
-                    query_spec,
-                    predicate_fn=predicate_fn,
-                    installed=installed,
-                    explicit=explicit,
-                    start_date=start_date,
-                    end_date=end_date,
-                    hashes=hashes,
-                    in_buildcache=in_buildcache,
-                    origin=origin,
-                )
-                or []
+            raise ValueError(
+                f"Invalid install_tree argument to Database.query(). Try one of {valid_trees}"
             )
 
-        local_results: Set["spack.spec.Spec"] = set()
-        if install_tree in ("all", "local") or self.root == install_tree:
-            local_results = set(
-                self.query_local(
+        if install_tree == "all":
+            databases = [self, *self.upstream_dbs]
+        elif install_tree == "upstream":
+            databases = self.upstream_dbs
+        elif install_tree == "local" or self.root == install_tree:
+            databases = [self]
+        else:
+            databases = [u for u in self.upstream_dbs if u.root == install_tree]
+
+        results: List[spack.spec.Spec] = []
+
+        for db in databases:
+            results.extend(
+                db.query_local(
                     query_spec,
                     predicate_fn=predicate_fn,
                     installed=installed,
@@ -1714,8 +1687,13 @@ class Database:
                 )
             )
 
-        results = list(local_results) + list(x for x in upstream_results if x not in local_results)
-        results.sort()  # type: ignore[call-overload]
+        # Stable deduplication on dag hash picks local specs over upstreams.
+        if len(databases) > 1:
+            results = list(llnl.util.lang.dedupe(results, key=lambda x: x.dag_hash()))
+
+        # reduce number of comparisons with slow default __lt__
+        results.sort(key=lambda s: s.name)
+        results.sort()
         return results
 
     def query_one(

@@ -165,10 +165,8 @@ def test_installed_upstream(upstream_and_downstream_db, tmpdir):
         upstream_db._read()
 
         for dep in spec.traverse(root=False):
-            record = downstream_db.get_by_hash(dep.dag_hash())
-            assert record is not None
-            with pytest.raises(spack.database.ForbiddenLockError):
-                upstream_db.get_by_hash(dep.dag_hash())
+            assert downstream_db.get_by_hash(dep.dag_hash()) is not None
+            assert upstream_db.get_by_hash(dep.dag_hash()) is not None
 
         new_spec = spack.concretize.concretize_one("w")
         downstream_db.add(new_spec)
@@ -258,7 +256,7 @@ def test_cannot_write_upstream(tmp_path, mock_packages, config):
     # Create it as an upstream
     db = spack.database.Database(str(tmp_path), is_upstream=True)
 
-    with pytest.raises(spack.database.ForbiddenLockError):
+    with pytest.raises(spack.database.UpstreamDatabaseLockingError):
         db.add(spack.concretize.concretize_one("pkg-a"))
 
 
