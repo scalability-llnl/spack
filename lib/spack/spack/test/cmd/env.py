@@ -1038,6 +1038,58 @@ spack:
     assert not e2.specs_by_hash
 
 
+def test_init_from_yaml_relative_includes(tmp_path):
+    files = [
+        "relative_copied/packages.yaml",
+        "./relative_copied/compilers.yaml",
+        "repos.yaml",
+        "./config.yaml",
+    ]
+
+    manifest = f"""
+spack:
+  specs: []
+  include: {files}
+"""
+
+    e1_path = tmp_path / "e1"
+    e1_manifest = e1_path / "spack.yaml"
+    fs.mkdirp(e1_path)
+    with open(e1_manifest, "w", encoding="utf-8") as f:
+        f.write(manifest)
+
+    for f in files:
+        fs.touchp(e1_path / f)
+
+    e2 = _env_create("test2", init_file=e1_manifest)
+
+    for f in files:
+        assert os.path.exists(os.path.join(e2.path, f))
+
+
+def test_init_from_yaml_relative_includes_outside_env(tmp_path):
+    files = ["../outside_env_not_copied/repos.yaml"]
+
+    manifest = f"""
+spack:
+  specs: []
+  include: {files}
+"""
+
+    # subdir to ensure parent of environment dir is not shared
+    e1_path = tmp_path / "e1_subdir" / "e1"
+    e1_manifest = e1_path / "spack.yaml"
+    fs.mkdirp(e1_path)
+    with open(e1_manifest, "w", encoding="utf-8") as f:
+        f.write(manifest)
+
+    for f in files:
+        fs.touchp(e1_path / f)
+
+    with pytest.raises(spack.config.ConfigFileError, match="Detected 1 missing include"):
+        _ = _env_create("test2", init_file=e1_manifest)
+
+
 def test_env_view_external_prefix(tmp_path, mutable_database, mock_packages):
     fake_prefix = tmp_path / "a-prefix"
     fake_bin = fake_prefix / "bin"

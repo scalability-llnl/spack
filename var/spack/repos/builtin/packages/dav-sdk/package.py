@@ -30,7 +30,7 @@ def dav_sdk_depends_on(spec, when=None, propagate=None):
     # Map the propagated variants to the dependency variant.  Some packages may need
     # overrides to propagate a dependency as something else, e.g., {"visit": "libsim"}.
     # Most call-sites will just use a list.
-    if not type(propagate) is dict:
+    if type(propagate) is not dict:
         propagate = dict([(v, v) for v in propagate])
 
     # Determine the base variant

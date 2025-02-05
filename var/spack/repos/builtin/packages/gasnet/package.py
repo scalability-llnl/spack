@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
+import warnings
 
-import spack.main
 from spack.package import *
 
 
@@ -147,7 +147,7 @@ class Gasnet(Package, CudaPackage, ROCmPackage):
                 git = which("git")
                 git("describe", "--long", "--always", output="version.git")
             except ProcessError:
-                spack.main.send_warning_to_tty("Omitting version stamp due to git error")
+                warnings.warn("Omitting version stamp due to git error")
 
         # The GASNet-EX library has a highly multi-dimensional configure space,
         # to accomodate the varying behavioral requirements of each client runtime.

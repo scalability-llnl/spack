@@ -391,7 +391,7 @@ class Lock:
 
             return True
 
-        except IOError as e:
+        except OSError as e:
             # EAGAIN and EACCES == locked by another process (so try again)
             if e.errno not in (errno.EAGAIN, errno.EACCES):
                 raise
