@@ -610,9 +610,11 @@ def set_wrapper_variables(pkg, env):
     if spack.config.get("config:ccache"):
         # Enable ccache in the compiler wrapper
         env.set(SPACK_CCACHE_BINARY, spack.util.executable.which_string("ccache", required=True))
+        env.set("CCACHE_NOHASHDIR", "")
+        env.set("CCACHE_BASEDIR", os.path.realpath(spack.stage.get_stage_root()))
     else:
         # Avoid cache pollution if a build system forces `ccache <compiler wrapper invocation>`.
-        env.set("CCACHE_DISABLE", "1")
+        env.set("CCACHE_DISABLE", "")
 
     # Gather information about various types of dependencies
     rpath_hashes = set(s.dag_hash() for s in get_rpath_deps(pkg))
