@@ -96,6 +96,7 @@ class R(AutotoolsPackage):
     depends_on("zlib-api")
     depends_on("zlib@1.2.5:", when="^[virtuals=zlib-api] zlib")
     depends_on("texinfo", type="build")
+    depends_on("gettext")
 
     with when("+X"):
         depends_on("cairo+X+gobject+pdf")
@@ -196,6 +197,8 @@ class R(AutotoolsPackage):
             "ac_cv_path_TEX=",
             "ac_cv_path_TEXI2DVI=",
         ]
+
+        config_args.append("--with-libintl-prefix={0}".format(spec["gettext"].prefix))
 
         if "+X" in spec:
             config_args.append("--with-cairo")
