@@ -131,7 +131,7 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
         if self.spec.satisfies("+cuda"):
             args.append(CMakeBuilder.define_cuda_architectures(self))
         if self.spec.satisfies("+rocm"):
-            args.append(define("CMAKE_HIP_COMPILER", self.spec["hip"].prefix.bin.hipcc))
+            args.append(CMakeBuilder.define_hip_architectures(self))
             args.append(
                 define(
                     "CMAKE_HIP_FLAGS",
@@ -143,7 +143,6 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
                     ),
                 )
             )
-            args.append(CMakeBuilder.define_hip_architectures(self))
 
         if self.version < Version("0.5"):
             # JSON is required for 0.5 and later
