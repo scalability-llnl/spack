@@ -1,0 +1,16 @@
+diff --git a/VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/vtkm/filter/contour/worklet/mir/MIRTables.h b/VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/vtkm/filter/contour/worklet/mir/MIRTables.h
+index 3dff3329e..a6f4d4f1f 100644
+--- a/VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/vtkm/filter/contour/worklet/mir/MIRTables.h
++++ b/VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/vtkm/filter/contour/worklet/mir/MIRTables.h
+@@ -11400,11 +11400,6 @@ public:
+       return FacesLookup[shape];
+     }
+ 
+-    VTKM_EXEC vtkm::UInt8 GetPoint(vtkm::Id pointIndex) const
+-    {
+-      return this->CellFacePortal.Get(pointIndex);
+-    }
+-
+   private:
+     typename vtkm::cont::ArrayHandle<vtkm::UInt8>::ReadPortalType MIRTablesDataPortal;
+     typename vtkm::cont::ArrayHandle<vtkm::UInt16>::ReadPortalType MIRTablesIndicesPortal;
