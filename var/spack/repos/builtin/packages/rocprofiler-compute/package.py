@@ -5,7 +5,7 @@
 from spack.package import *
 
 
-class RocprofilerCompute(Package):
+class RocprofilerCompute(CMakePackage):
     """Advanced Profiling and Analytics for AMD Hardware"""
 
     homepage = "https://github.com/ROCm/rocprofiler-compute"
