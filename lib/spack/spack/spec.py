@@ -4902,7 +4902,7 @@ class SpecfileReaderBase:
                 spec.external_modules = node["external"]["module"]
                 if spec.external_modules is False:
                     spec.external_modules = None
-                spec.extra_attributes = node["external"].get("extra_attributes", {})
+                spec.extra_attributes = node["external"].get("extra_attributes") or {}
 
         # specs read in are concrete unless marked abstract
         if node.get("concrete", True):
