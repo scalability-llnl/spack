@@ -135,7 +135,12 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
             args.append(
                 define(
                     "CMAKE_CXX_FLAGS",
-                    " ".join([f"-I{self.spec[p].prefix.include}" for p in ["rocprim", "rocrand", "rocthrust"]])
+                    " ".join(
+                        [
+                            f"-I{self.spec[p].prefix.include}"
+                            for p in ["rocprim", "rocrand", "rocthrust"]
+                        ]
+                    ),
                 )
             )
             args.append(CMakeBuilder.define_hip_architectures(self))
