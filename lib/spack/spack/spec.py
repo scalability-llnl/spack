@@ -1538,9 +1538,8 @@ class Spec:
         self._external_path = external_path
         self.external_modules = Spec._format_module_list(external_modules)
 
-        # This attribute is used to store custom information for
-        # external specs. None signal that it was not set yet.
-        self.extra_attributes = None
+        # This attribute is used to store custom information for external specs.
+        self.extra_attributes: dict = {}
 
         # This attribute holds the original build copy of the spec if it is
         # deployed differently than it was built. None signals that the spec
@@ -2252,16 +2251,11 @@ class Spec:
             )
 
         if self.external:
-            if self.extra_attributes:
-                extra_attributes = syaml.sorted_dict(self.extra_attributes)
-            else:
-                extra_attributes = None
-
             d["external"] = syaml.syaml_dict(
                 [
                     ("path", self.external_path),
-                    ("module", self.external_modules),
-                    ("extra_attributes", extra_attributes),
+                    ("module", self.external_modules or None),
+                    ("extra_attributes", syaml.sorted_dict(self.extra_attributes)),
                 ]
             )
 
