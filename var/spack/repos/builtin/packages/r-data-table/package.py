@@ -41,7 +41,7 @@ class RDataTable(RPackage):
 
     depends_on("r@3.1.0:", type=("build", "run"))
     depends_on("zlib-api")
-    depends_on("llvm-openmp", when="platform=darwin %apple-clang" , type=("build", "run")
+    depends_on("llvm-openmp", when="platform=darwin %apple-clang" , type=("build", "run"))
 
     # gettext linkage is passed in from libR, however data-table looks for libintl.h directly
     depends_on("gettext")
