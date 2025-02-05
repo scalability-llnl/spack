@@ -85,6 +85,7 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
     with when("+cuda"):
         depends_on("thrust")
     with when("+rocm"):
+        depends_on("hiprand")
         depends_on("rocprim")
         depends_on("rocrand")
         depends_on("rocthrust")
@@ -138,7 +139,7 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
                     " ".join(
                         [
                             f"-I{self.spec[p].prefix.include}"
-                            for p in ["rocprim", "rocrand", "rocthrust"]
+                            for p in ["hiprand", "rocprim", "rocrand", "rocthrust"]
                         ]
                     ),
                 )
