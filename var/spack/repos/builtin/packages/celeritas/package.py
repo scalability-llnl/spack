@@ -131,10 +131,10 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
         if self.spec.satisfies("+cuda"):
             args.append(CMakeBuilder.define_cuda_architectures(self))
         if self.spec.satisfies("+rocm"):
-            args.append(define("CMAKE_CXX_COMPILER", self.spec["hip"].prefix.bin.hipcc))
+            args.append(define("CMAKE_HIP_COMPILER", self.spec["hip"].prefix.bin.hipcc))
             args.append(
                 define(
-                    "CMAKE_CXX_FLAGS",
+                    "CMAKE_HIP_FLAGS",
                     " ".join(
                         [
                             f"-I{self.spec[p].prefix.include}"
