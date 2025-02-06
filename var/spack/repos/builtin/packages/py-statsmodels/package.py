@@ -16,6 +16,8 @@ class PyStatsmodels(PythonPackage):
     pypi = "statsmodels/statsmodels-0.8.0.tar.gz"
     git = "https://github.com/statsmodels/statsmodels.git"
 
+    maintainers("climbfuji")
+
     license("BSD-3-Clause")
 
     version("0.14.1", sha256="2260efdc1ef89f39c670a0bd8151b1d0843567781bcafec6cda0534eb47a94f6")
@@ -55,8 +57,8 @@ class PyStatsmodels(PythonPackage):
     #    https://github.com/pydata/patsy/pull/131
 
     # requirements.txt
-    depends_on("py-numpy@1.22.3:", when="@0.14.1:", type=("build", "link", "run"))
-    depends_on("py-numpy@1.18:", when="@0.14:", type=("build", "link", "run"))
+    depends_on("py-numpy@1.22.3:1", when="@0.14.1:", type=("build", "link", "run"))
+    depends_on("py-numpy@1.18:1", when="@0.14:", type=("build", "link", "run"))
     depends_on("py-numpy@1.17:", when="@0.13:", type=("build", "link", "run"))
     depends_on("py-numpy@1.15:", when="@0.12.1:", type=("build", "link", "run"))
     depends_on("py-numpy@1.11:", when="@0.10.1:", type=("build", "link", "run"))
