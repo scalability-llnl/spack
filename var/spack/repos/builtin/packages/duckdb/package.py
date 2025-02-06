@@ -93,7 +93,7 @@ class Duckdb(MakefilePackage):
     # Extensions
     variant("autocomplete", default=True, description="Include autocomplete for CLI in build")
     variant("excel", default=True, description="Include Excel formatting extension in build")
-    variant("fts", default=True, description="Include FTS (full text search) support in build")
+    variant("fts", default=True, description="Include FTS (full text search) support in build", when="@:1.1")
     variant("httpfs", default=True, description="Include HTTPFS (& S3) support in build")
     variant("inet", default=True, description="Include INET (ip address) support in build")
     variant("json", default=True, description="Include JSON support in build")
