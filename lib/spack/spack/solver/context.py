@@ -48,6 +48,11 @@ class ContextInspector:
             pkg_class = self.context.repo.get_pkg_class(x)
             self.runtime_virtuals.update(pkg_class.provided_virtual_names())
 
+        try:
+            self.libc_pkgs = [x.name for x in self.providers_for("libc")]
+        except spack.repo.UnknownPackageError:
+            self.libc_pkgs = []
+
     @property
     def configuration(self):
         return self.context.configuration
@@ -67,13 +72,6 @@ class ContextInspector:
 
     def is_virtual(self, name: str) -> bool:
         return self.context.repo.is_virtual(name)
-
-    @lang.memoized
-    def libc_pkgs(self) -> List[str]:
-        try:
-            return [x.name for x in self.providers_for("libc")]
-        except spack.repo.UnknownPackageError:
-            return []
 
     @lang.memoized
     def is_allowed_on_this_platform(self, *, pkg_name: str) -> bool:
@@ -167,7 +165,7 @@ class ContextInspector:
 
             # Since libc is not buildable, there is no need to extend the
             # search space with libc dependencies.
-            if pkg_name in self.libc_pkgs():
+            if pkg_name in self.libc_pkgs:
                 continue
 
             pkg_cls = self.context.repo.get_pkg_class(pkg_name=pkg_name)
