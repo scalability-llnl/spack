@@ -145,6 +145,7 @@ class ClingoBootstrapConcretizer:
         return self._external_spec(result)
 
     def _external_spec(self, initial_spec) -> "spack.spec.Spec":
+        # TODO/RepoSplit: How should the built-in repository be handled?
         initial_spec.namespace = "builtin"
         initial_spec.compiler = self.host_compiler.spec
         initial_spec.architecture = self.host_architecture

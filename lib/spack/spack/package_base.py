@@ -952,6 +952,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
             namespace = getattr(cls, "namespace", None)
             if namespace:
                 fullnames.append("%s.%s" % (namespace, cls.name))
+            # TODO/RepoSplit: Is this still relevant post-split?
             if namespace == "builtin":
                 # builtin packages cannot inherit from other repos
                 break

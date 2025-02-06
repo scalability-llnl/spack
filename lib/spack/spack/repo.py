@@ -55,7 +55,7 @@ def python_package_for_repo(namespace):
 
     For instance:
 
-        python_package_for_repo('builtin') == 'spack.pkg.builtin'
+        python_package_for_repo('builtin.mock') == 'spack.pkg.builtin.mock'
 
     Args:
         namespace (str): repo namespace
@@ -68,7 +68,7 @@ def namespace_from_fullname(fullname):
 
     For instance:
 
-        namespace_from_fullname('spack.pkg.builtin.hdf5') == 'builtin'
+        namespace_from_fullname('spack.pkg.builtin.mock.hdf5') == 'builtin.mock'
 
     Args:
         fullname (str): full name for the Python module
@@ -181,6 +181,7 @@ def packages_path():
     try:
         return PATH.get_repo("builtin.mock").packages_path
     except UnknownNamespaceError:
+        # TODO/RepoSplit: How will this be handled post-repo split?
         return PATH.get_repo("builtin").packages_path
 
 

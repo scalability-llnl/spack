@@ -2258,6 +2258,7 @@ class Spec:
 
         self._dup(self.lookup_hash())
 
+    # TODO/RepoSplit: does the repository split affect the namespace in the docstring?
     def to_node_dict(self, hash=ht.dag_hash):
         """Create a dictionary representing the state of this Spec.
 
