@@ -698,6 +698,7 @@ def validate_standard_versions(pkg, versions: VersionList) -> bool:
                 f"    [Downloaded] {sha}"
             )
             valid_checksums = False
+            continue
 
         tty.info(f"Validated {pkg.name}@{version} --> {sha}")
 
