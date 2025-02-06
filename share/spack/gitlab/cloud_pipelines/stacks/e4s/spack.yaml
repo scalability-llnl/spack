@@ -4,7 +4,8 @@ spack:
   concretizer:
     reuse: false
     unify: false
-    preferred_providers_only: true
+    static_analysis:
+      enable: true
 
   packages:
     all:
@@ -14,6 +15,15 @@ spack:
         blas:: [openblas]
         mpi:: [mpich]
       variants: +mpi
+    mpi:
+      require:
+      - mpich
+    blas:
+      require:
+      - openblas
+    lapack:
+      require:
+      - openblas
     binutils:
       variants: +ld +gold +headers +libiberty ~nls
     cmake:
