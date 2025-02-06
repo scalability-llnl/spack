@@ -44,9 +44,6 @@ spack:
         +ifpack +ifpack2 +intrepid +intrepid2 +isorropia +kokkos +ml +minitensor +muelu
         +nox +piro +phalanx +rol +rythmos +sacado +stk +shards +shylu +stokhos +stratimikos
         +teko +tempus +tpetra +trilinoscouplings +zoltan +zoltan2 +superlu-dist gotype=long_long
-    mpi:
-      require:
-      - mpich
     mpich:
       require:
       - '~wrapperrpath ~hwloc'
