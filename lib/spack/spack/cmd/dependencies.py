@@ -8,11 +8,10 @@ import llnl.util.tty as tty
 from llnl.util.tty.colify import colify
 
 import spack.cmd
-import spack.config
 import spack.environment as ev
 import spack.store
 from spack.cmd.common import arguments
-from spack.solver.context import Context
+from spack.solver.context import create_inspector, default_context
 from spack.solver.counter import PossibleDependenciesAnalyzer
 
 description = "show dependencies of a package"
@@ -71,7 +70,7 @@ def dependencies(parser, args):
     else:
         spec = specs[0]
         dependencies, virtuals, _ = PossibleDependenciesAnalyzer(
-            Context(configuration=spack.config.CONFIG)
+            create_inspector(default_context())
         ).possible_dependencies(
             spec,
             transitive=args.transitive,

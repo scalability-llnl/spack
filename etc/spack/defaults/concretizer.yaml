@@ -64,6 +64,7 @@ concretizer:
   # for debugging purposes (e.g. check which constraints can help Spack concretize faster).
   error_on_timeout: true
 
-  # If set to true, only the providers explicitly mentioned in packages:all:providers will
-  # enter concretization. If set to false, any possible provider might be used.
-  preferred_providers_only: false
+  # Static analysis may reduce the concretization time by generating smaller ASP problems, in
+  # cases where there are requirements that prevent part of the search space to be explored.
+  static_analysis:
+    enable: false

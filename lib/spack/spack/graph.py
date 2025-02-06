@@ -41,12 +41,11 @@ from typing import List, Optional, Set, TextIO, Tuple
 
 import llnl.util.tty.color
 
-import spack.config
 import spack.deptypes as dt
 import spack.spec
 import spack.tengine
 import spack.traverse
-from spack.solver.context import Context
+from spack.solver.context import create_inspector, default_context
 from spack.solver.counter import PossibleDependenciesAnalyzer
 
 
@@ -540,7 +539,7 @@ class DAGWithDependencyTypes(DotGraphBuilder):
 def _static_edges(specs, depflag):
     for spec in specs:
         *_, edges = PossibleDependenciesAnalyzer(
-            Context(configuration=spack.config.CONFIG)
+            create_inspector(default_context())
         ).possible_dependencies(spec.name, expand_virtuals=True, allowed_deps=depflag)
 
         for parent_name, dependencies in edges.items():

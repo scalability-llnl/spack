@@ -49,7 +49,7 @@ import spack.version as vn
 import spack.version.git_ref_lookup
 from spack import traverse
 
-from .context import Context, ContextAnalyzer
+from .context import Context, ContextInspector, create_inspector
 from .core import (
     AspFunction,
     AspVar,
@@ -272,7 +272,7 @@ def remove_node(spec: spack.spec.Spec, facts: List[AspFunction]) -> List[AspFunc
     return list(filter(lambda x: x.args[0] not in ("node", "virtual_node"), facts))
 
 
-def _create_counter(specs: List[spack.spec.Spec], tests: bool, context: ContextAnalyzer):
+def _create_counter(specs: List[spack.spec.Spec], tests: bool, context: ContextInspector):
     strategy = context.configuration.get("concretizer:duplicates:strategy", "none")
     if strategy == "full":
         return FullDuplicatesCounter(specs, tests=tests, context=context)
@@ -1128,7 +1128,7 @@ class SpackSolverSetup:
             store=spack.store.STORE,
             binary_index=spack.binary_distribution.BINARY_INDEX,
         )
-        self.context_analyzer = ContextAnalyzer(context=self.context)
+        self.context_inspector = create_inspector(self.context)
 
         # these are all initialized in setup()
         self.gen: "ProblemInstanceBuilder" = ProblemInstanceBuilder()
@@ -2410,15 +2410,15 @@ class SpackSolverSetup:
 
         platform = spack.platforms.host()
         uarch = archspec.cpu.TARGETS.get(platform.default)
-        host_compatible = self.context_analyzer.configuration.get(
+        host_compatible = self.context_inspector.configuration.get(
             "concretizer:targets:host_compatible"
         )
 
         # Add targets explicitly requested from specs
         candidate_targets = []
-        for x in self.context_analyzer.candidate_targets():
+        for x in self.context_inspector.candidate_targets():
             if all(
-                self.context_analyzer.unreachable(pkg_name=pkg_name, when_spec=f"target={x}")
+                self.context_inspector.unreachable(pkg_name=pkg_name, when_spec=f"target={x}")
                 for pkg_name in self.pkgs
             ):
                 tty.debug(f"[{__name__}] excluding target={x}, cause no package can use it")
@@ -2678,7 +2678,7 @@ class SpackSolverSetup:
         """
         check_packages_exist(specs)
 
-        node_counter = _create_counter(specs, tests=self.tests, context=self.context_analyzer)
+        node_counter = _create_counter(specs, tests=self.tests, context=self.context_inspector)
         self.possible_virtuals = node_counter.possible_virtuals()
         self.pkgs = node_counter.possible_dependencies()
         self.libcs = sorted(all_libcs())  # type: ignore[type-var]

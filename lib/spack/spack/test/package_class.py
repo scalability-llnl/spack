@@ -15,6 +15,7 @@ import pytest
 
 import llnl.util.filesystem as fs
 
+import spack.binary_distribution
 import spack.compilers
 import spack.concretize
 import spack.deptypes as dt
@@ -26,7 +27,7 @@ import spack.spec
 import spack.store
 from spack.build_systems.generic import Package
 from spack.error import InstallError
-from spack.solver.context import Context, ContextAnalyzer
+from spack.solver.context import Context, ContextInspector, StaticAnalyzer
 from spack.solver.counter import PossibleDependenciesAnalyzer
 
 
@@ -49,21 +50,26 @@ def mpileaks_possible_deps(mock_packages, mpi_names):
     return possible
 
 
-@pytest.fixture
-def mock_context(config, mock_packages):
-    return ContextAnalyzer(
-        context=Context(configuration=config, repo=mock_packages, store=spack.store.STORE)
+@pytest.fixture(params=[ContextInspector, StaticAnalyzer])
+def mock_inspector(config, mock_packages, request):
+    inspector_cls = request.param
+    context = Context(
+        configuration=config,
+        repo=mock_packages,
+        store=spack.store.STORE,
+        binary_index=spack.binary_distribution.BINARY_INDEX,
     )
+    return inspector_cls(context=context)
 
 
 @pytest.fixture
-def mock_analyzer(mock_context):
-    return PossibleDependenciesAnalyzer(mock_context)
+def mock_analyzer(mock_inspector):
+    return PossibleDependenciesAnalyzer(mock_inspector)
 
 
 @pytest.fixture
-def mpi_names(mock_context):
-    return [spec.name for spec in mock_context.providers_for("mpi")]
+def mpi_names(mock_inspector):
+    return [spec.name for spec in mock_inspector.providers_for("mpi")]
 
 
 @pytest.mark.parametrize(

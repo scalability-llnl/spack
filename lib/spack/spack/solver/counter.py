@@ -10,7 +10,7 @@ import spack.deptypes as dt
 import spack.repo
 import spack.spec
 
-from .context import ContextAnalyzer
+from .context import ContextInspector
 
 
 class Counter:
@@ -23,7 +23,7 @@ class Counter:
     """
 
     def __init__(
-        self, specs: List["spack.spec.Spec"], tests: bool, context: ContextAnalyzer
+        self, specs: List["spack.spec.Spec"], tests: bool, context: ContextInspector
     ) -> None:
         self.context = context
         self.analyzer = PossibleDependenciesAnalyzer(self.context)
@@ -85,7 +85,7 @@ class NoDuplicatesCounter(Counter):
 
 class MinimalDuplicatesCounter(NoDuplicatesCounter):
     def __init__(
-        self, specs: List["spack.spec.Spec"], tests: bool, context: ContextAnalyzer
+        self, specs: List["spack.spec.Spec"], tests: bool, context: ContextInspector
     ) -> None:
         super().__init__(specs, tests, context)
         self._link_run: Set[str] = set()
@@ -174,7 +174,7 @@ class PossibleGraph(NamedTuple):
 
 
 class PossibleDependenciesAnalyzer:
-    def __init__(self, context: ContextAnalyzer) -> None:
+    def __init__(self, context: ContextInspector) -> None:
         self.context = context
         self.runtime_pkgs, self.runtime_virtuals = self.context.runtime_pkgs()
 
