@@ -148,6 +148,10 @@ class Ascent(CMakePackage, CudaPackage):
     # https://github.com/Alpine-DAV/ascent/pull/1123
     patch("ascent-find-raja-pr1123.patch", when="@0.9.0")
 
+    # patch for fix typo in coord_type
+    # https://github.com/Alpine-DAV/ascent/pull/1408
+    patch("ascent-oneapi-coords_type_typo.patch", when="@0.9.3 %oneapi@2025:")
+
     ##########################################################################
     # package dependencies
     ###########################################################################
@@ -468,6 +472,9 @@ class Ascent(CMakePackage, CudaPackage):
         if cflags:
             cfg.write(cmake_cache_entry("CMAKE_C_FLAGS", cflags))
         cxxflags = cppflags + " ".join(spec.compiler_flags["cxxflags"])
+        if spec.satisfies("%oneapi@2025:"):
+            cxxflags += "-Wno-error=missing-template-arg-list-after-template-kw "
+            cxxflags += "-Wno-missing-template-arg-list-after-template-kw"
         if cxxflags:
             cfg.write(cmake_cache_entry("CMAKE_CXX_FLAGS", cxxflags))
         fflags = " ".join(spec.compiler_flags["fflags"])
