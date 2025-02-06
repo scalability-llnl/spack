@@ -11,9 +11,6 @@ spack:
     all:
       require:
       - '%gcc target=x86_64_v3'
-      providers:
-        blas:: [openblas]
-        mpi:: [mpich]
       variants: +mpi
     mpi:
       require:
