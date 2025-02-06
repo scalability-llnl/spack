@@ -272,13 +272,13 @@ def remove_node(spec: spack.spec.Spec, facts: List[AspFunction]) -> List[AspFunc
     return list(filter(lambda x: x.args[0] not in ("node", "virtual_node"), facts))
 
 
-def _create_counter(specs: List[spack.spec.Spec], tests: bool):
-    strategy = spack.config.CONFIG.get("concretizer:duplicates:strategy", "none")
+def _create_counter(specs: List[spack.spec.Spec], tests: bool, context: Context):
+    strategy = context.configuration.get("concretizer:duplicates:strategy", "none")
     if strategy == "full":
-        return FullDuplicatesCounter(specs, tests=tests)
+        return FullDuplicatesCounter(specs, tests=tests, context=context)
     if strategy == "minimal":
-        return MinimalDuplicatesCounter(specs, tests=tests)
-    return NoDuplicatesCounter(specs, tests=tests)
+        return MinimalDuplicatesCounter(specs, tests=tests, context=context)
+    return NoDuplicatesCounter(specs, tests=tests, context=context)
 
 
 def all_libcs() -> Set[spack.spec.Spec]:
@@ -1122,7 +1122,9 @@ class SpackSolverSetup:
     """Class to set up and run a Spack concretization solve."""
 
     def __init__(self, tests: bool = False):
-        self.context = Context(configuration=spack.config.CONFIG)
+        self.context = Context(
+            configuration=spack.config.CONFIG, repo=spack.repo.PATH, store=spack.store.STORE
+        )
 
         # these are all initialized in setup()
         self.gen: "ProblemInstanceBuilder" = ProblemInstanceBuilder()
@@ -2670,7 +2672,7 @@ class SpackSolverSetup:
         """
         check_packages_exist(specs)
 
-        node_counter = _create_counter(specs, tests=self.tests)
+        node_counter = _create_counter(specs, tests=self.tests, context=self.context)
         self.possible_virtuals = node_counter.possible_virtuals()
         self.pkgs = node_counter.possible_dependencies()
         self.libcs = sorted(all_libcs())  # type: ignore[type-var]

@@ -6,7 +6,6 @@ from typing import Dict, List, NamedTuple, Set, Tuple, Union
 
 from llnl.util import tty
 
-import spack.config
 import spack.deptypes as dt
 import spack.repo
 import spack.spec
@@ -23,8 +22,8 @@ class Counter:
         tests: if True, add test dependencies to the list of possible packages
     """
 
-    def __init__(self, specs: List["spack.spec.Spec"], tests: bool) -> None:
-        self.context = Context(configuration=spack.config.CONFIG)
+    def __init__(self, specs: List["spack.spec.Spec"], tests: bool, context: Context) -> None:
+        self.context = context
         self.analyzer = PossibleDependenciesAnalyzer(self.context)
         self.specs = specs
         self.link_run_types: dt.DepFlag = dt.LINK | dt.RUN | dt.TEST
@@ -83,8 +82,8 @@ class NoDuplicatesCounter(Counter):
 
 
 class MinimalDuplicatesCounter(NoDuplicatesCounter):
-    def __init__(self, specs: List["spack.spec.Spec"], tests: bool) -> None:
-        super().__init__(specs, tests)
+    def __init__(self, specs: List["spack.spec.Spec"], tests: bool, context: Context) -> None:
+        super().__init__(specs, tests, context)
         self._link_run: Set[str] = set()
         self._direct_build: Set[str] = set()
         self._total_build: Set[str] = set()

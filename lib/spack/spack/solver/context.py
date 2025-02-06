@@ -21,10 +21,16 @@ RUNTIME_TAG = "runtime"
 class Context:
     """A full Spack context that can be passed around as an object"""
 
-    def __init__(self, *, configuration: spack.config.Configuration):
+    def __init__(
+        self,
+        *,
+        configuration: spack.config.Configuration,
+        repo: spack.repo.RepoPath,
+        store: spack.store.Store,
+    ):
         self.configuration = configuration
-        self.repo = spack.repo.create(configuration)
-        self.store = spack.store.create(configuration)
+        self.repo = repo
+        self.store = store
 
     @lang.memoized
     def buildcache_specs(self) -> List[spack.spec.Spec]:
