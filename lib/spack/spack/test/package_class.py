@@ -28,7 +28,6 @@ import spack.store
 from spack.build_systems.generic import Package
 from spack.error import InstallError
 from spack.solver.context import Context, ContextInspector, StaticAnalyzer
-from spack.solver.counter import PossibleDependenciesAnalyzer
 
 
 @pytest.fixture()
@@ -60,11 +59,6 @@ def mock_inspector(config, mock_packages, request):
         binary_index=spack.binary_distribution.BINARY_INDEX,
     )
     return inspector_cls(context=context)
-
-
-@pytest.fixture
-def mock_analyzer(mock_inspector):
-    return PossibleDependenciesAnalyzer(mock_inspector)
 
 
 @pytest.fixture
@@ -108,39 +102,39 @@ def mpi_names(mock_inspector):
         ("dtbuild1", {"allowed_deps": dt.LINK}, {"dtbuild1", "dtlink2"}),
     ],
 )
-def test_possible_dependencies(pkg_name, fn_kwargs, expected, mock_runtimes, mock_analyzer):
+def test_possible_dependencies(pkg_name, fn_kwargs, expected, mock_runtimes, mock_inspector):
     """Tests possible nodes of mpileaks, under different scenarios."""
     expected.update(mock_runtimes)
-    result, *_ = mock_analyzer.possible_dependencies(pkg_name, **fn_kwargs)
+    result, *_ = mock_inspector.possible_dependencies(pkg_name, **fn_kwargs)
     assert expected == result
 
 
-def test_possible_dependencies_virtual(mock_analyzer, mock_packages, mock_runtimes, mpi_names):
+def test_possible_dependencies_virtual(mock_inspector, mock_packages, mock_runtimes, mpi_names):
     expected = set(mpi_names)
     for name in mpi_names:
         expected.update(dep for dep in mock_packages.get_pkg_class(name).dependencies_by_name())
     expected.update(mock_runtimes)
 
-    real_pkgs, *_ = mock_analyzer.possible_dependencies(
+    real_pkgs, *_ = mock_inspector.possible_dependencies(
         "mpi", transitive=False, allowed_deps=dt.ALL
     )
     assert expected == real_pkgs
 
 
-def test_possible_dependencies_missing(mock_analyzer):
-    result, *_ = mock_analyzer.possible_dependencies("missing-dependency", allowed_deps=dt.ALL)
+def test_possible_dependencies_missing(mock_inspector):
+    result, *_ = mock_inspector.possible_dependencies("missing-dependency", allowed_deps=dt.ALL)
     assert "this-is-a-missing-dependency" not in result
 
 
 def test_possible_dependencies_with_multiple_classes(
-    mock_analyzer, mock_packages, mpileaks_possible_deps
+    mock_inspector, mock_packages, mpileaks_possible_deps
 ):
     pkgs = ["dt-diamond", "mpileaks"]
     expected = set(mpileaks_possible_deps)
     expected.update({"dt-diamond", "dt-diamond-left", "dt-diamond-right", "dt-diamond-bottom"})
     expected.update(mock_packages.packages_with_tags("runtime"))
 
-    real_pkgs, *_ = mock_analyzer.possible_dependencies(*pkgs, allowed_deps=dt.ALL)
+    real_pkgs, *_ = mock_inspector.possible_dependencies(*pkgs, allowed_deps=dt.ALL)
     assert set(expected) == real_pkgs
 
 

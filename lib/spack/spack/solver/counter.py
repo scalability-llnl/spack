@@ -2,9 +2,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections
-from typing import Dict, List, NamedTuple, Set, Tuple, Union
-
-from llnl.util import tty
+from typing import List, Set
 
 import spack.deptypes as dt
 import spack.repo
@@ -25,8 +23,7 @@ class Counter:
     def __init__(
         self, specs: List["spack.spec.Spec"], tests: bool, context: ContextInspector
     ) -> None:
-        self.context = context
-        self.analyzer = PossibleDependenciesAnalyzer(self.context)
+        self.inspector = context
         self.specs = specs
         self.link_run_types: dt.DepFlag = dt.LINK | dt.RUN | dt.TEST
         self.all_types: dt.DepFlag = dt.ALL
@@ -63,7 +60,7 @@ class Counter:
 
 class NoDuplicatesCounter(Counter):
     def _compute_cache_values(self) -> None:
-        self._possible_dependencies, virtuals, _ = self.analyzer.possible_dependencies(
+        self._possible_dependencies, virtuals, _ = self.inspector.possible_dependencies(
             *self.specs, allowed_deps=self.all_types
         )
         self._possible_virtuals.update(virtuals)
@@ -94,19 +91,19 @@ class MinimalDuplicatesCounter(NoDuplicatesCounter):
         self._link_run_virtuals: Set[str] = set()
 
     def _compute_cache_values(self) -> None:
-        self._link_run, virtuals, _ = self.analyzer.possible_dependencies(
+        self._link_run, virtuals, _ = self.inspector.possible_dependencies(
             *self.specs, allowed_deps=self.link_run_types
         )
         self._possible_virtuals.update(virtuals)
         self._link_run_virtuals.update(virtuals)
         for x in self._link_run:
-            reals, virtuals, _ = self.analyzer.possible_dependencies(
+            reals, virtuals, _ = self.inspector.possible_dependencies(
                 x, allowed_deps=dt.BUILD, transitive=False, strict_depflag=True
             )
             self._possible_virtuals.update(virtuals)
             self._direct_build.update(reals)
 
-        self._total_build, virtuals, _ = self.analyzer.possible_dependencies(
+        self._total_build, virtuals, _ = self.inspector.possible_dependencies(
             *self._direct_build, allowed_deps=self.all_types
         )
         self._possible_virtuals.update(virtuals)
@@ -165,133 +162,3 @@ class FullDuplicatesCounter(MinimalDuplicatesCounter):
         for pkg, count in sorted(counter.items(), key=lambda x: (x[1], x[0])):
             gen.fact(fn.max_dupes(pkg, count))
         gen.newline()
-
-
-class PossibleGraph(NamedTuple):
-    real_pkgs: Set[str]
-    virtuals: Set[str]
-    edges: Dict[str, Set[str]]
-
-
-class PossibleDependenciesAnalyzer:
-    def __init__(self, context: ContextInspector) -> None:
-        self.context = context
-        self.runtime_pkgs, self.runtime_virtuals = self.context.runtime_pkgs()
-
-    def possible_dependencies(
-        self,
-        *specs: Union[spack.spec.Spec, str],
-        allowed_deps: dt.DepFlag,
-        transitive: bool = True,
-        strict_depflag: bool = False,
-        expand_virtuals: bool = True,
-    ) -> PossibleGraph:
-        """Returns the set of possible dependencies, and the set of possible virtuals.
-
-        Both sets always include runtime packages, which may be injected by compilers.
-
-        Args:
-            transitive: return transitive dependencies if True, only direct dependencies if False
-            allowed_deps: dependency types to consider
-            strict_depflag: if True, only the specific dep type is considered, if False any
-                deptype that intersects with allowed deptype is considered
-            expand_virtuals: expand virtual dependencies into all possible implementations
-        """
-        stack = [x for x in self._package_list(specs)]
-        virtuals: Set[str] = set()
-        edges: Dict[str, Set[str]] = {}
-
-        while stack:
-            pkg_name = stack.pop()
-
-            if pkg_name in edges:
-                continue
-
-            edges[pkg_name] = set()
-
-            # Since libc is not buildable, there is no need to extend the
-            # search space with libc dependencies.
-            if pkg_name in self.context.libc_pkgs():
-                continue
-
-            pkg_cls = self.context.repo.get_pkg_class(pkg_name=pkg_name)
-            for name, conditions in pkg_cls.dependencies_by_name(when=True).items():
-                if all(
-                    self.context.unreachable(pkg_name=pkg_name, when_spec=x) for x in conditions
-                ):
-                    tty.debug(
-                        f"[{__name__}] Not adding {name} as a dep of {pkg_name}, because "
-                        f"conditions cannot be met"
-                    )
-                    continue
-
-                if not self._has_deptypes(
-                    conditions, allowed_deps=allowed_deps, strict=strict_depflag
-                ):
-                    continue
-
-                if name in virtuals:
-                    continue
-
-                dep_names = set()
-                if self.context.is_virtual(name):
-                    virtuals.add(name)
-                    if expand_virtuals:
-                        providers = self.context.providers_for(name)
-                        dep_names = {spec.name for spec in providers}
-                else:
-                    dep_names = {name}
-
-                edges[pkg_name].update(dep_names)
-
-                if not transitive:
-                    continue
-
-                for dep_name in dep_names:
-                    if dep_name in edges:
-                        continue
-
-                    if not self._is_possible(pkg_name=dep_name):
-                        continue
-
-                    stack.append(dep_name)
-
-        real_packages = set(edges)
-        if not transitive:
-            # We exit early, so add children from the edges information
-            for root, children in edges.items():
-                real_packages.update(x for x in children if self._is_possible(pkg_name=x))
-
-        virtuals.update(self.runtime_virtuals)
-        real_packages = real_packages | self.runtime_pkgs
-        return PossibleGraph(real_pkgs=real_packages, virtuals=virtuals, edges=edges)
-
-    def _package_list(self, specs: Tuple[Union[spack.spec.Spec, str], ...]) -> List[str]:
-        stack = []
-        for current_spec in specs:
-            if isinstance(current_spec, str):
-                current_spec = spack.spec.Spec(current_spec)
-
-            if self.context.repo.is_virtual(current_spec.name):
-                stack.extend([p.name for p in self.context.providers_for(current_spec.name)])
-                continue
-
-            stack.append(current_spec.name)
-        return sorted(set(stack))
-
-    def _has_deptypes(self, dependencies, *, allowed_deps: dt.DepFlag, strict: bool) -> bool:
-        if strict is True:
-            return any(
-                dep.depflag == allowed_deps for deplist in dependencies.values() for dep in deplist
-            )
-        return any(
-            dep.depflag & allowed_deps for deplist in dependencies.values() for dep in deplist
-        )
-
-    def _is_possible(self, *, pkg_name):
-        try:
-            return self.context.is_allowed_on_this_platform(
-                pkg_name=pkg_name
-            ) and self.context.can_be_installed(pkg_name=pkg_name)
-        except spack.repo.UnknownPackageError:
-            return False

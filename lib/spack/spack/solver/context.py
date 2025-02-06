@@ -1,7 +1,7 @@
 # Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-from typing import List, NamedTuple, Set, Tuple
+from typing import Dict, List, NamedTuple, Set, Tuple, Union
 
 import archspec.cpu
 
@@ -9,6 +9,7 @@ from llnl.util import lang, tty
 
 import spack.binary_distribution
 import spack.config
+import spack.deptypes as dt
 import spack.platforms
 import spack.repo
 import spack.spec
@@ -25,6 +26,12 @@ class Context(NamedTuple):
     binary_index: spack.binary_distribution.BinaryCacheIndex
 
 
+class PossibleGraph(NamedTuple):
+    real_pkgs: Set[str]
+    virtuals: Set[str]
+    edges: Dict[str, Set[str]]
+
+
 class ContextInspector:
     """Inspects a context, to return information used when setting up concretization.
 
@@ -35,6 +42,11 @@ class ContextInspector:
 
     def __init__(self, *, context: Context):
         self.context = context
+        self.runtime_pkgs = set(self.context.repo.packages_with_tags(RUNTIME_TAG))
+        self.runtime_virtuals = set()
+        for x in self.runtime_pkgs:
+            pkg_class = self.context.repo.get_pkg_class(x)
+            self.runtime_virtuals.update(pkg_class.provided_virtual_names())
 
     @property
     def configuration(self):
@@ -52,15 +64,6 @@ class ContextInspector:
     def buildcache_specs(self) -> List[spack.spec.Spec]:
         self.context.binary_index.update()
         return self.context.binary_index.get_all_built_specs()
-
-    def runtime_pkgs(self) -> Tuple[Set[str], Set[str]]:
-        """Returns the runtime packages for this context, and the virtuals they may provide"""
-        runtime_pkgs = set(self.context.repo.packages_with_tags(RUNTIME_TAG))
-        runtime_virtuals = set()
-        for x in runtime_pkgs:
-            pkg_class = self.context.repo.get_pkg_class(x)
-            runtime_virtuals.update(pkg_class.provided_virtual_names())
-        return runtime_pkgs, runtime_virtuals
 
     def is_virtual(self, name: str) -> bool:
         return self.context.repo.is_virtual(name)
@@ -131,8 +134,131 @@ class ContextInspector:
 
         return candidate_targets
 
+    def possible_dependencies(
+        self,
+        *specs: Union[spack.spec.Spec, str],
+        allowed_deps: dt.DepFlag,
+        transitive: bool = True,
+        strict_depflag: bool = False,
+        expand_virtuals: bool = True,
+    ) -> PossibleGraph:
+        """Returns the set of possible dependencies, and the set of possible virtuals.
+
+        Both sets always include runtime packages, which may be injected by compilers.
+
+        Args:
+            transitive: return transitive dependencies if True, only direct dependencies if False
+            allowed_deps: dependency types to consider
+            strict_depflag: if True, only the specific dep type is considered, if False any
+                deptype that intersects with allowed deptype is considered
+            expand_virtuals: expand virtual dependencies into all possible implementations
+        """
+        stack = [x for x in self._package_list(specs)]
+        virtuals: Set[str] = set()
+        edges: Dict[str, Set[str]] = {}
+
+        while stack:
+            pkg_name = stack.pop()
+
+            if pkg_name in edges:
+                continue
+
+            edges[pkg_name] = set()
+
+            # Since libc is not buildable, there is no need to extend the
+            # search space with libc dependencies.
+            if pkg_name in self.libc_pkgs():
+                continue
+
+            pkg_cls = self.context.repo.get_pkg_class(pkg_name=pkg_name)
+            for name, conditions in pkg_cls.dependencies_by_name(when=True).items():
+                if all(self.unreachable(pkg_name=pkg_name, when_spec=x) for x in conditions):
+                    tty.debug(
+                        f"[{__name__}] Not adding {name} as a dep of {pkg_name}, because "
+                        f"conditions cannot be met"
+                    )
+                    continue
+
+                if not self._has_deptypes(
+                    conditions, allowed_deps=allowed_deps, strict=strict_depflag
+                ):
+                    continue
+
+                if name in virtuals:
+                    continue
+
+                dep_names = set()
+                if self.is_virtual(name):
+                    virtuals.add(name)
+                    if expand_virtuals:
+                        providers = self.providers_for(name)
+                        dep_names = {spec.name for spec in providers}
+                else:
+                    dep_names = {name}
+
+                edges[pkg_name].update(dep_names)
+
+                if not transitive:
+                    continue
+
+                for dep_name in dep_names:
+                    if dep_name in edges:
+                        continue
+
+                    if not self._is_possible(pkg_name=dep_name):
+                        continue
+
+                    stack.append(dep_name)
+
+        real_packages = set(edges)
+        if not transitive:
+            # We exit early, so add children from the edges information
+            for root, children in edges.items():
+                real_packages.update(x for x in children if self._is_possible(pkg_name=x))
+
+        virtuals.update(self.runtime_virtuals)
+        real_packages = real_packages | self.runtime_pkgs
+        return PossibleGraph(real_pkgs=real_packages, virtuals=virtuals, edges=edges)
+
+    def _package_list(self, specs: Tuple[Union[spack.spec.Spec, str], ...]) -> List[str]:
+        stack = []
+        for current_spec in specs:
+            if isinstance(current_spec, str):
+                current_spec = spack.spec.Spec(current_spec)
+
+            if self.context.repo.is_virtual(current_spec.name):
+                stack.extend([p.name for p in self.providers_for(current_spec.name)])
+                continue
+
+            stack.append(current_spec.name)
+        return sorted(set(stack))
+
+    def _has_deptypes(self, dependencies, *, allowed_deps: dt.DepFlag, strict: bool) -> bool:
+        if strict is True:
+            return any(
+                dep.depflag == allowed_deps for deplist in dependencies.values() for dep in deplist
+            )
+        return any(
+            dep.depflag & allowed_deps for deplist in dependencies.values() for dep in deplist
+        )
+
+    def _is_possible(self, *, pkg_name):
+        try:
+            return self.is_allowed_on_this_platform(pkg_name=pkg_name) and self.can_be_installed(
+                pkg_name=pkg_name
+            )
+        except spack.repo.UnknownPackageError:
+            return False
+
 
 class StaticAnalyzer(ContextInspector):
+    """Performs some static analysis of the configuration, store, etc. to provide more precise
+    answers on whether some packages can be installed, or used as a provider.
+
+    It increases the setup time, but might decrease the grounding and solve time considerably
+    in cases with strict requirements.
+    """
+
     @lang.memoized
     def providers_for(self, virtual_str: str) -> List[spack.spec.Spec]:
         candidates = super().providers_for(virtual_str)
@@ -163,20 +289,15 @@ class StaticAnalyzer(ContextInspector):
 
     @lang.memoized
     def _is_provider_candidate(self, *, pkg_name: str, virtual: str) -> bool:
-        if self.context.configuration.get("concretizer:preferred_providers_only", False):
-            virtual_spec = spack.spec.Spec(virtual)
-            preferred_providers = self.context.configuration.get(
-                f"packages:all:providers:{virtual_spec.name}"
-            )
-            preferred_providers = [spack.spec.Spec(x) for x in preferred_providers]
-            if not any(x.intersects(pkg_name) for x in preferred_providers):
-                tty.debug(f"[{__name__}] {pkg_name} is not among preferred {virtual} providers")
-                return False
-
         if not self.is_allowed_on_this_platform(pkg_name=pkg_name):
             return False
 
         if not self.can_be_installed(pkg_name=pkg_name):
+            return False
+
+        virtual_spec = spack.spec.Spec(virtual)
+        if self.unreachable(pkg_name=virtual_spec.name, when_spec=pkg_name):
+            tty.debug(f"[{__name__}] {pkg_name} cannot be a provider for {virtual}")
             return False
 
         return True
@@ -247,3 +368,7 @@ def default_context() -> Context:
         store=spack.store.STORE,
         binary_index=spack.binary_distribution.BINARY_INDEX,
     )
+
+
+def default_inspector() -> ContextInspector:
+    return create_inspector(default_context())
