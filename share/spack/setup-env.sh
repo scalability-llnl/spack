@@ -305,6 +305,9 @@ else
 fi
 _spack_pathadd PATH "${_sp_prefix%/}/bin"
 
+# These are needed for environment modifications in spack load & spack unload
+. $SPACK_ROOT/share/spack/shell_commands.sh
+
 # Set shell being used
 export SPACK_SHELL="sh"
 

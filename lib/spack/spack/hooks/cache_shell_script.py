@@ -29,7 +29,7 @@ def post_install(spec, explicit=None):
     for shell in shells_avail:
         mods = env_mods.shell_modifications(shell)
 
-        shell_script_path = os.path.join(spec.prefix, ".spack", f"{spec.name}_shell.{shell}")
+        shell_script_path = os.path.join(spec.prefix, ".spack", f"load.{shell}")
 
         with open(shell_script_path, "w") as f:
             f.write(mods)

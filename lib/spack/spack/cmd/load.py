@@ -10,7 +10,6 @@ import spack.cmd.common
 import spack.environment as ev
 import spack.store
 from spack.cmd.common import arguments
-from spack.util.executable import Executable
 
 description = "add package to the user environment"
 section = "user environment"
@@ -104,17 +103,7 @@ def load(parser, args):
     with spack.store.STORE.db.read_transaction():
         shell = args.shell if args.shell else os.environ.get("SPACK_SHELL")
 
-    cmds = ""
-
-    for spec in specs:
+    for spec in specs:  # reversed specs?
         shell_script_file = os.path.join(spec.prefix, ".spack", f"{spec.name}_shell.{shell}")
 
-        if shell == "sh":
-            exec = Executable("bash")
-
-        exec(shell_script_file, "source")
-
-        with open(shell_script_file, "r") as f:
-            cmds += f.read()
-
-    sys.stdout.write(cmds)
+        print(f"source {shell_script_file}")
