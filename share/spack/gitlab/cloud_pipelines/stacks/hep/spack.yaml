@@ -105,7 +105,7 @@ spack:
 
   # CUDA
   #- acts +cuda +traccc cuda_arch=80
-  - celeritas +cuda ~openmp +vecgeom cuda_arch=80
+  #- celeritas +cuda ~openmp +vecgeom cuda_arch=80
   - root +cuda +cudnn +tmva-gpu
   - vecgeom +cuda cuda_arch=80
 
