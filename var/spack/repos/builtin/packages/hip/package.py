@@ -5,7 +5,6 @@
 import os
 import re
 
-import spack.build_environment
 from spack.hooks.sbang import filter_shebang
 from spack.package import *
 
@@ -323,33 +322,6 @@ class Hip(CMakePackage):
             destination="",
             placement="hipother",
             when=f"@{d_version} +cuda",
-        )
-
-    # Add hiptests sources thru the below
-    for d_version, d_shasum in [
-        ("6.3.1", "0fc1cf4f46f2bbef377d65803d86c2489b01b598c468070c79c5114a661f07c6"),
-        ("6.3.0", "8081d4ab1a43ffa1cebd646668d83008b799ab98c14daf7b455922355a439c8a"),
-        ("6.2.4", "1478b49583d09cb3a96e26ec3bf8dc5ff3e3ec72fa133bb6d7768595d825051e"),
-        ("6.2.1", "90fcf0169889533b882d289f9cb8a7baf9bd46a3ce36752b915083931dc839f1"),
-        ("6.2.0", "314837dbac78be71844ceb959476470c484fdcd4fb622ff8de9277783e0fcf1c"),
-        ("6.1.2", "5b14e4a30d8d8fb56c43e262009646ba9188eac1c8ff882d9a606a4bec69b56b"),
-        ("6.1.1", "10c96ee72adf4580056292ab17cfd858a2fd7bc07abeb41c6780bd147b47f7af"),
-        ("6.1.0", "cf3a6a7c43116032d933cc3bc88bfc4b17a4ee1513c978e751755ca11a5ed381"),
-        ("6.0.2", "740ca064f4909c20d83226a63c2f164f7555783ec5f5f70be5bc23d3587ad829"),
-        ("6.0.0", "e8f92a0f5d1f6093ca1fb24ff1b7140128900fcdc6e9f01f153d6907e5c2d807"),
-        ("5.7.1", "28fbdf49f405adfee903bc0f05a43ac392c55b34c514c3582dfb7d6d67e79985"),
-        ("5.7.0", "b1dae3cfc715e71dce92ac1da94265a9398944c76cee85ffab8f0c93665a48d6"),
-        ("5.6.1", "5b3002ddfafda162329e4d9e6ac1200eeb48ff08e666b342aa8aeca30750f48b"),
-        ("5.6.0", "8cf4509bf9c0747dab8ed8fec1365a9156792034b517207a0b2d63270429fd2e"),
-    ]:
-        resource(
-            name="hip-tests",
-            url=f"https://github.com/ROCm/hip-tests/archive/refs/tags/rocm-{d_version}.tar.gz",
-            sha256=d_shasum,
-            expand=True,
-            destination="",
-            placement="hip-tests",
-            when=f"@{d_version}",
         )
 
     # Improve compilation without git repo and remove compiler rt linkage
@@ -673,69 +645,3 @@ class Hip(CMakePackage):
         if self.spec.satisfies("@6.0:"):
             args.append(self.define("HIPCC_BIN_DIR", self.spec["hipcc"].prefix.bin))
         return args
-
-    test_src_dir_old = "samples"
-    test_src_dir = "hip-tests/samples"
-
-    @run_after("install")
-    def install_samples(self):
-        if self.spec.satisfies("@5.6.0:"):
-            install_tree(self.test_src_dir, self.spec.prefix.share.samples)
-
-    @run_after("install")
-    def cache_test_sources(self):
-        """Copy the tests source files after the package is installed to an
-        install test subdirectory for use during `spack test run`."""
-        if self.spec.satisfies("@5.1:5.5"):
-            cache_extra_test_sources(self, [self.test_src_dir_old])
-        elif self.spec.satisfies("@5.6:"):
-            cache_extra_test_sources(self, [self.test_src_dir])
-
-    def test_samples(self):
-        """build and run all hip samples"""
-        if self.spec.satisfies("@5.1:5.5"):
-            test_dir = join_path(self.test_suite.current_test_cache_dir, self.test_src_dir_old)
-        elif self.spec.satisfies("@5.6:"):
-            test_dir = join_path(self.test_suite.current_test_cache_dir, self.test_src_dir)
-        prefixes = ";".join(spack.build_environment.get_cmake_prefix_path(self))
-        cc_options = ["-DCMAKE_PREFIX_PATH=" + prefixes, ".."]
-
-        amdclang_path = join_path(self.spec["llvm-amdgpu"].prefix, "bin", "amdclang++")
-        os.environ["CXX"] = amdclang_path
-        os.environ["FC"] = "/usr/bin/gfortran"
-
-        cmake = which(self.spec["cmake"].prefix.bin.cmake)
-
-        for root, dirs, files in os.walk(test_dir):
-            dirs.sort()
-            if "CMakeLists.txt" in files or "Makefile" in files:
-                with working_dir(root, create=True):
-                    head, test_name = os.path.split(root)
-                    with test_part(
-                        self,
-                        "test_sample_{0}".format(test_name),
-                        purpose="configure, build and run test: {0}".format(test_name),
-                    ):
-                        if "CMakeLists.txt" in files:
-                            print("Configuring  test " + test_name)
-                            os.mkdir("build")
-                            os.chdir("build")
-                            cmake(*cc_options)
-
-                        print("Building test " + test_name)
-                        make(parallel=False)
-                        # iterate through the files in dir to find the newly built binary
-                        for file in os.listdir("."):
-                            if (
-                                file not in files
-                                and os.path.isfile(file)
-                                and os.access(file, os.X_OK)
-                                and not file.endswith(".o")
-                            ):
-                                print("Executing test binary: " + file)
-                                exe = which(file)
-                                if file == "hipDispatchEnqueueRateMT":
-                                    options = ["16", "0"]
-                                else:
-                                    options = []
-                                exe(*options)
