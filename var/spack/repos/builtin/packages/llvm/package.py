@@ -740,7 +740,7 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
             string=True,
         )
 
-    clang_and_friends = "(clang|flang|flang-new)"
+    clang_and_friends = "(?:clang|flang|flang-new)"
 
     compiler_version_regex = (
         # Normal clang compiler versions are left as-is
