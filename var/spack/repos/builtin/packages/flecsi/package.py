@@ -20,12 +20,16 @@ class Flecsi(CMakePackage, CudaPackage, ROCmPackage):
 
     tags = ["e4s"]
 
-    version("develop", branch="develop", deprecated=True)
+    version("2.3.1", tag="v2.3.1", commit="6c04b9b21790533e457764bd7f8f26757db1552f")
     version("2.3.0", tag="v2.3.0", commit="90bc8267fceb02060e54646f73b45d4252aef491")
     version("2.2.1", tag="v2.2.1", commit="84b5b232aebab40610f57387778db80f6c8c84c5")
     version("2.2.0", tag="v2.2.0", commit="dd531ac16c5df124d76e385c6ebe9b9589c2d3ad")
-    version("2.1.0", tag="v2.1.0", commit="533df139c267e2a93c268dfe68f9aec55de11cf0")
-    version("2.0.0", tag="v2.0.0", commit="5ceebadf75d1c98999ea9e9446926722d061ec22")
+    version(
+        "2.1.0", tag="v2.1.0", commit="533df139c267e2a93c268dfe68f9aec55de11cf0", deprecated=True
+    )
+    version(
+        "2.0.0", tag="v2.0.0", commit="5ceebadf75d1c98999ea9e9446926722d061ec22", deprecated=True
+    )
 
     variant(
         "backend",
@@ -46,8 +50,8 @@ class Flecsi(CMakePackage, CudaPackage, ROCmPackage):
         description="Set Caliper Profiling Detail",
         multi=False,
     )
-    variant("kokkos", default=False, description="Enable Kokkos Support")
-    variant("openmp", default=False, description="Enable OpenMP Support")
+    variant("kokkos", default=False, description="Enable Kokkos Support", when="@:2.3.1")
+    variant("openmp", default=False, description="Enable OpenMP Support", when="@:2.3.1")
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
@@ -69,18 +73,22 @@ class Flecsi(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("boost@1.79.0:", when="@2.2:")
     depends_on("kokkos@3.2.00:", when="+kokkos")
     depends_on("kokkos@3.7:", when="+kokkos @2.3:")
-    depends_on("kokkos +cuda +cuda_constexpr +cuda_lambda", when="+kokkos +cuda")
+    depends_on("kokkos@3.7:", when="@2.4:")
+    depends_on("kokkos +cuda", when="+kokkos +cuda")
+    requires("^kokkos +cuda_constexpr +cuda_lambda", when="^kokkos +cuda")
     depends_on("kokkos +rocm", when="+kokkos +rocm")
     depends_on("kokkos +openmp", when="+kokkos +openmp")
-    depends_on("legion@cr-20210122", when="backend=legion @2.0:2.2.1")
+    requires("+openmp", when="@:2.3.1 ^kokkos +openmp")
+    depends_on("legion@cr-20210122", when="backend=legion @2.0:2.1.0")
     depends_on("legion@cr-20230307", when="backend=legion @2.2.0:2.2.1")
     depends_on("legion@24.03.0:", when="backend=legion @2.2.2:")
+    depends_on("legion@24.09.0:", when="backend=legion @2.3.1:")
     depends_on("legion+shared", when="backend=legion +shared")
     depends_on("legion+hdf5", when="backend=legion +hdf5")
-    depends_on("legion+kokkos", when="backend=legion +kokkos")
-    depends_on("legion+openmp", when="backend=legion +openmp")
-    depends_on("legion+cuda", when="backend=legion +cuda")
-    depends_on("legion+rocm", when="backend=legion +rocm")
+    depends_on("legion+kokkos", when="backend=legion ^kokkos")
+    depends_on("legion+openmp", when="backend=legion ^kokkos+openmp")
+    depends_on("legion+cuda", when="backend=legion ^kokkos+cuda")
+    depends_on("legion+rocm", when="backend=legion ^kokkos+rocm")
     depends_on("hdf5@1.10.7:", when="backend=legion +hdf5")
     depends_on("hpx@1.10.0: cxxstd=17 malloc=system", when="backend=hpx")
     depends_on("mpi")
@@ -97,11 +105,13 @@ class Flecsi(CMakePackage, CudaPackage, ROCmPackage):
 
     # Propagate cuda_arch requirement to dependencies
     for _flag in CudaPackage.cuda_arch_values:
+        requires(f"+cuda cuda_arch={_flag}", when=f"^kokkos +cuda cuda_arch={_flag}")
         depends_on(f"kokkos cuda_arch={_flag}", when=f"+cuda+kokkos cuda_arch={_flag}")
         depends_on(f"legion cuda_arch={_flag}", when=f"backend=legion +cuda cuda_arch={_flag}")
 
     # Propagate amdgpu_target requirement to dependencies
     for _flag in ROCmPackage.amdgpu_targets:
+        requires(f"+rocm amdgpu_target={_flag}", when=f"^kokkos +rocm amdgpu_target={_flag}")
         depends_on(f"kokkos amdgpu_target={_flag}", when=f"+kokkos +rocm amdgpu_target={_flag}")
         depends_on(
             f"legion amdgpu_target={_flag}", when=f"backend=legion +rocm amdgpu_target={_flag}"
@@ -130,13 +140,13 @@ class Flecsi(CMakePackage, CudaPackage, ROCmPackage):
                 self.define_from_variant("ENABLE_DOCUMENTATION", "doc"),
             ]
 
-            if self.spec.satisfies("+rocm"):
+            if self.spec.satisfies("^kokkos +rocm"):
                 options.append(self.define("CMAKE_CXX_COMPILER", self.spec["hip"].hipcc))
                 options.append(self.define("CMAKE_C_COMPILER", self.spec["hip"].hipcc))
                 if self.spec.satisfies("backend=legion"):
                     # CMake pulled in via find_package(Legion) won't work without this
                     options.append(self.define("HIP_PATH", "{0}/hip".format(spec["hip"].prefix)))
-            elif self.spec.satisfies("+kokkos"):
+            elif self.spec.satisfies("^kokkos"):
                 options.append(self.define("CMAKE_CXX_COMPILER", self.spec["kokkos"].kokkos_cxx))
         else:
             # kept for supporing version prior to 2.2
