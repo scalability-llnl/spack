@@ -26,7 +26,7 @@ import spack.spec
 import spack.store
 from spack.build_systems.generic import Package
 from spack.error import InstallError
-from spack.solver.context import Context
+from spack.solver.context import Context, ContextAnalyzer
 from spack.solver.counter import PossibleDependenciesAnalyzer
 
 
@@ -51,7 +51,9 @@ def mpileaks_possible_deps(mock_packages, mpi_names):
 
 @pytest.fixture
 def mock_context(config, mock_packages):
-    return Context(configuration=config, repo=mock_packages, store=spack.store.STORE)
+    return ContextAnalyzer(
+        context=Context(configuration=config, repo=mock_packages, store=spack.store.STORE)
+    )
 
 
 @pytest.fixture

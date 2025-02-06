@@ -10,7 +10,7 @@ import spack.deptypes as dt
 import spack.repo
 import spack.spec
 
-from .context import Context
+from .context import ContextAnalyzer
 
 
 class Counter:
@@ -22,7 +22,9 @@ class Counter:
         tests: if True, add test dependencies to the list of possible packages
     """
 
-    def __init__(self, specs: List["spack.spec.Spec"], tests: bool, context: Context) -> None:
+    def __init__(
+        self, specs: List["spack.spec.Spec"], tests: bool, context: ContextAnalyzer
+    ) -> None:
         self.context = context
         self.analyzer = PossibleDependenciesAnalyzer(self.context)
         self.specs = specs
@@ -82,7 +84,9 @@ class NoDuplicatesCounter(Counter):
 
 
 class MinimalDuplicatesCounter(NoDuplicatesCounter):
-    def __init__(self, specs: List["spack.spec.Spec"], tests: bool, context: Context) -> None:
+    def __init__(
+        self, specs: List["spack.spec.Spec"], tests: bool, context: ContextAnalyzer
+    ) -> None:
         super().__init__(specs, tests, context)
         self._link_run: Set[str] = set()
         self._direct_build: Set[str] = set()
@@ -170,7 +174,7 @@ class PossibleGraph(NamedTuple):
 
 
 class PossibleDependenciesAnalyzer:
-    def __init__(self, context: Context) -> None:
+    def __init__(self, context: ContextAnalyzer) -> None:
         self.context = context
         self.runtime_pkgs, self.runtime_virtuals = self.context.runtime_pkgs()
 

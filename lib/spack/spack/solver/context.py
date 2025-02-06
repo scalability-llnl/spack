@@ -1,7 +1,7 @@
 # Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-from typing import List, Set, Tuple
+from typing import List, NamedTuple, Set, Tuple
 
 import archspec.cpu
 
@@ -18,19 +18,21 @@ from spack.error import SpackError
 RUNTIME_TAG = "runtime"
 
 
-class Context:
+class Context(NamedTuple):
+    configuration: spack.config.Configuration
+    repo: spack.repo.RepoPath
+    store: spack.store.Store
+
+
+class ContextAnalyzer:
     """A full Spack context that can be passed around as an object"""
 
-    def __init__(
-        self,
-        *,
-        configuration: spack.config.Configuration,
-        repo: spack.repo.RepoPath,
-        store: spack.store.Store,
-    ):
-        self.configuration = configuration
-        self.repo = repo
-        self.store = store
+    def __init__(self, *, context: Context):
+        self.context = context
+        # Set aliases for convenience
+        self.configuration = context.configuration
+        self.repo = context.repo
+        self.store = context.store
 
     @lang.memoized
     def buildcache_specs(self) -> List[spack.spec.Spec]:
