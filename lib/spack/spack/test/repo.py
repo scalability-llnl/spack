@@ -65,8 +65,9 @@ def test_repo_unknown_pkg(mutable_mock_repo):
         mutable_mock_repo.get_pkg_class("builtin.mock.nonexistentpackage")
 
 
+# TODO/RepoSplit: Should this span builtin and mock repositories instead?
 @pytest.mark.maybeslow
-def test_repo_last_mtime():
+def test_repo_last_mtime(mock_packages):
     latest_mtime = max(
         os.path.getmtime(p.module.__file__) for p in spack.repo.PATH.all_package_classes()
     )
@@ -90,12 +91,14 @@ def test_namespace_hasattr(attr_name, exists, mutable_mock_repo):
     assert hasattr(nms, attr_name) == exists
 
 
+# TODO/RepoSplit: Should this span builtin and mock repositories instead?
 @pytest.mark.regression("24552")
-def test_all_package_names_is_cached_correctly():
+def test_all_package_names_is_cached_correctly(mock_packages):
     assert "mpi" in spack.repo.all_package_names(include_virtuals=True)
     assert "mpi" not in spack.repo.all_package_names(include_virtuals=False)
 
 
+# TODO/RepoSplit: Adjust as needed based on builtin repository handling
 @pytest.mark.regression("29203")
 def test_use_repositories_doesnt_change_class():
     """Test that we don't create the same package module and class multiple times
@@ -166,6 +169,7 @@ def test_repo_dump_virtuals(tmpdir, mutable_mock_repo, mock_packages, ensure_deb
     assert "package.py" in os.listdir(tmpdir), "Expected the virtual's package to be copied"
 
 
+# TODO/RepoSplit: Adjust as needed based on builtin repository handling
 @pytest.mark.parametrize(
     "repo_paths,namespaces",
     [
