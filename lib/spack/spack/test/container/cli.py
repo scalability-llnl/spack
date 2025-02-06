@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import pytest
@@ -8,7 +7,6 @@ import llnl.util.filesystem as fs
 
 import spack.container.images
 import spack.main
-import spack.platforms
 
 containerize = spack.main.SpackCommand("containerize")
 
@@ -27,7 +25,6 @@ def test_listing_possible_os():
         assert expected_os in output
 
 
-@pytest.mark.skipif(str(spack.platforms.host()) == "windows", reason="test unsupported on Windows")
 @pytest.mark.maybeslow
 @pytest.mark.requires_executables("git")
 def test_bootstrap_phase(minimal_configuration, config_dumper, capsys):

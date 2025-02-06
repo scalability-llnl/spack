@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,15 +11,12 @@
   default unorderd dict.
 
 """
-import collections
-import collections.abc
-import copy
 import ctypes
 import enum
 import functools
 import io
 import re
-from typing import IO, List, Optional
+from typing import IO, Any, Callable, Dict, List, Optional, Union
 
 import ruamel.yaml
 from ruamel.yaml import comments, constructor, emitter, error, representer
@@ -34,23 +30,20 @@ __all__ = ["load", "dump", "SpackYAMLError"]
 
 
 # Make new classes so we can add custom attributes.
-# Also, use OrderedDict instead of just dict.
-class syaml_dict(collections.OrderedDict):
-    def __repr__(self):
-        mappings = (f"{k!r}: {v!r}" for k, v in self.items())
-        return "{%s}" % ", ".join(mappings)
+class syaml_dict(dict):
+    pass
 
 
 class syaml_list(list):
-    __repr__ = list.__repr__
+    pass
 
 
 class syaml_str(str):
-    __repr__ = str.__repr__
+    pass
 
 
 class syaml_int(int):
-    __repr__ = int.__repr__
+    pass
 
 
 #: mapping from syaml type -> primitive type
@@ -233,8 +226,8 @@ def return_string_when_no_stream(func):
 @return_string_when_no_stream
 def dump(data, stream=None, default_flow_style=False):
     handler = ConfigYAML(yaml_type=YAMLType.GENERIC_YAML)
-    handler.default_flow_style = default_flow_style
-    handler.width = maxint
+    handler.yaml.default_flow_style = default_flow_style
+    handler.yaml.width = maxint
     return handler.dump(data, stream=stream)
 
 
@@ -400,20 +393,6 @@ class ConfigYAML:
         return result.getvalue()
 
 
-def deepcopy(data):
-    """Returns a deepcopy of the input YAML data."""
-    result = copy.deepcopy(data)
-
-    if isinstance(result, comments.CommentedMap):
-        # HACK to fully copy ruamel CommentedMap that doesn't provide copy
-        # method. Especially necessary for environments
-        extracted_comments = extract_comments(data)
-        if extracted_comments:
-            set_comments(result, data_comments=extracted_comments)
-
-    return result
-
-
 def load_config(str_or_file):
     """Load but modify the loader instance so that it will add __line__
     attributes to the returned object."""
@@ -431,10 +410,12 @@ def dump_config(data, stream, *, default_flow_style=False, blame=False):
     if blame:
         handler = ConfigYAML(yaml_type=YAMLType.ANNOTATED_SPACK_CONFIG_FILE)
         handler.yaml.default_flow_style = default_flow_style
+        handler.yaml.width = maxint
         return _dump_annotated(handler, data, stream)
 
     handler = ConfigYAML(yaml_type=YAMLType.SPACK_CONFIG_FILE)
     handler.yaml.default_flow_style = default_flow_style
+    handler.yaml.width = maxint
     return handler.dump(data, stream)
 
 
@@ -455,27 +436,20 @@ def _dump_annotated(handler, data, stream=None):
     width = max(clen(a) for a in _ANNOTATIONS)
     formats = ["%%-%ds  %%s\n" % (width + cextra(a)) for a in _ANNOTATIONS]
 
-    for f, a, l in zip(formats, _ANNOTATIONS, lines):
-        stream.write(f % (a, l))
+    for fmt, annotation, line in zip(formats, _ANNOTATIONS, lines):
+        stream.write(fmt % (annotation, line))
 
     if getvalue:
         return getvalue()
 
 
-def sorted_dict(dict_like):
-    """Return an ordered dict with all the fields sorted recursively.
-
-    Args:
-        dict_like (dict): dictionary to be sorted
-
-    Returns:
-        dictionary sorted recursively
-    """
-    result = syaml_dict(sorted(dict_like.items()))
-    for key, value in result.items():
-        if isinstance(value, collections.abc.Mapping):
-            result[key] = sorted_dict(value)
-    return result
+def sorted_dict(data):
+    """Descend into data and sort all dictionary keys."""
+    if isinstance(data, dict):
+        return type(data)((k, sorted_dict(v)) for k, v in sorted(data.items()))
+    elif isinstance(data, (list, tuple)):
+        return type(data)(sorted_dict(v) for v in data)
+    return data
 
 
 def extract_comments(data):
@@ -491,6 +465,29 @@ def set_comments(data, *, data_comments):
 def name_mark(name):
     """Returns a mark with just a name"""
     return error.StringMark(name, None, None, None, None, None)
+
+
+def anchorify(data: Union[dict, list], identifier: Callable[[Any], str] = repr) -> None:
+    """Replace identical dict/list branches in tree with references to earlier instances. The YAML
+    serializer generate anchors for them, resulting in small yaml files."""
+    anchors: Dict[str, Union[dict, list]] = {}
+    stack: List[Union[dict, list]] = [data]
+
+    while stack:
+        item = stack.pop()
+
+        for key, value in item.items() if isinstance(item, dict) else enumerate(item):
+            if not isinstance(value, (dict, list)):
+                continue
+
+            id = identifier(value)
+            anchor = anchors.get(id)
+
+            if anchor is None:
+                anchors[id] = value
+                stack.append(value)
+            else:
+                item[key] = anchor  # replace with reference
 
 
 class SpackYAMLError(spack.error.SpackError):

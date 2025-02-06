@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,8 @@ class Libristra(CMakePackage):
 
     version("master", branch="master", submodules=False, preferred=True)
     version("1.0.0", commit="33235fe0334ca7f1f99b386a90932d9f8e1e71de")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("paraview", default=False, description="Enable ParaView")
     variant("shared_lua", default=False, description="Build with shared lua")

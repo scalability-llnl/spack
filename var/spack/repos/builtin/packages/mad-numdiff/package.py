@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,3 +17,5 @@ class MadNumdiff(CMakePackage):
 
     version("develop", branch="master")
     version("20150724", sha256="33130b48416f8dcb6402acbcb8906cdec35b7242fe2f3ad49b7d7c063d75377b")
+
+    depends_on("c", type="build")  # generated

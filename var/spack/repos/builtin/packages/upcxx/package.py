@@ -1,20 +1,24 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 import re
 
+import llnl.util.lang
+
+import spack.platforms
 from spack.package import *
 
 
+@llnl.util.lang.memoized
 def is_CrayXC():
     return spack.platforms.host().name == "linux" and (
         os.environ.get("CRAYPE_NETWORK_TARGET") == "aries"
     )
 
 
+@llnl.util.lang.memoized
 def is_CrayEX():
     if spack.platforms.host().name == "linux":
         target = os.environ.get("CRAYPE_NETWORK_TARGET")
@@ -22,11 +26,15 @@ def is_CrayEX():
             return True
         elif target is None:  # but some systems lack Cray PrgEnv
             fi_info = which("fi_info")
-            if fi_info and fi_info("-l", output=str).find("cxi") >= 0:
+            if (
+                fi_info
+                and fi_info("-l", output=str, error=str, fail_on_error=False).find("cxi") >= 0
+            ):
                 return True
     return False
 
 
+@llnl.util.lang.memoized
 def cross_detect():
     if is_CrayXC():
         if which("srun"):
@@ -92,6 +100,9 @@ class Upcxx(Package, CudaPackage, ROCmPackage):
     )
     # Do NOT add older versions here.
     # UPC++ releases over 2 years old are not supported.
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("gmake", type="build")
 
     patch("fix_configure_ldflags.patch", when="@2021.9.0:master")
 
@@ -182,6 +193,12 @@ class Upcxx(Package, CudaPackage, ROCmPackage):
         # UPC++ follows autoconf naming convention for LDLIBS, which is 'LIBS'
         if env.get("LDLIBS"):
             env["LIBS"] = env["LDLIBS"]
+
+        if spec.satisfies("%oneapi@2025:"):
+            env["CXXFLAGS"] = (
+                "-Wno-error=missing-template-arg-list-after-template-kw "
+                "-Wno-missing-template-arg-list-after-template-kw"
+            )
 
         options = ["--prefix=%s" % prefix]
 

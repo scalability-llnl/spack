@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class PerlMoose(PerlPackage):
     version("2.2009", sha256="63ba8a5e27dbcbdbac2cd8f4162fff50a31e9829d8955a196a5898240c02d194")
     version("2.2007", sha256="bc75a320b55ba26ac9e60e11a77b3471066cb615bf7097537ed22e20df88afe8")
     version("2.2006", sha256="a4e00ab25cc41bebc5e7a11d71375fb5e64b56d5f91159afee225d698e06392b")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("perl-cpan-meta-check", type=("build", "run"))
     depends_on("perl-test-cleannamespaces", type=("build", "run"))

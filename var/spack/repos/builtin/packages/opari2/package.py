@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -30,6 +29,10 @@ class Opari2(AutotoolsPackage):
     version("2.0", sha256="0c4e575be05627cd001d692204f10caef37b2f3d1ec825f98cbe1bfa4232b0b7")
     version("1.1.4", sha256="b80c04fe876faaa4ee9a0654486ecbeba516b27fc14a90d20c6384e81060cffe")
     version("1.1.2", sha256="8405c2903730d94c828724b3a5f8889653553fb8567045a6c54ac0816237835d")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     def url_for_version(self, version):
         if version >= Version("2.0.6"):

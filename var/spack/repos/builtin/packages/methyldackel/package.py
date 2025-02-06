@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,8 @@ class Methyldackel(MakefilePackage):
     license("MIT")
 
     version("0.6.1", sha256="eeb1da4c830bcd9f3e6663a764947d957c41337643069524a4b545812fcf4819")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("htslib@1.11:")
     depends_on("libbigwig")

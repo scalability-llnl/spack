@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -33,6 +32,9 @@ class Libcint(CMakePackage):
     version("3.0.5", sha256="7bde241ce83c00b89c80459e3af5734d40925d8fd9fcaaa7245f61b08192c722")
     version("3.0.4", sha256="0f25ef7ad282dd7a20e4decf283558e4f949243a5423ff4c0cd875276c310c47")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     #
     # Variants
     #
@@ -65,11 +67,11 @@ class Libcint(CMakePackage):
     def cmake_args(self):
         spec = self.spec
         args = [
-            "-DWITH_RANGE_COULOMB=" + str("+coulomb_erf" in spec),
-            "-DPYPZPX=" + str("+pypzpx" in spec),
-            "-DWITH_F12=" + str("+f12" in spec),
-            "-DBUILD_SHARED_LIBS=" + str("+shared" in spec),
-            "-DENABLE_TEST=" + str("+test" in spec),
+            "-DWITH_RANGE_COULOMB=" + str(spec.satisfies("+coulomb_erf")),
+            "-DPYPZPX=" + str(spec.satisfies("+pypzpx")),
+            "-DWITH_F12=" + str(spec.satisfies("+f12")),
+            "-DBUILD_SHARED_LIBS=" + str(spec.satisfies("+shared")),
+            "-DENABLE_TEST=" + str(spec.satisfies("+test")),
             "-DENABLE_EXAMPLE=OFF",  # Requires fortran compiler
         ]
         return args

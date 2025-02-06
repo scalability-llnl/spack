@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,9 @@ class Flashdimmsim(Package):
     git = "https://github.com/slunk/FlashDIMMSim.git"
 
     version("master", branch="master")
+
+    depends_on("cxx", type="build")  # generated
+    depends_on("gmake", type="build")
 
     build_directory = "src"
 

@@ -1,0 +1,50 @@
+From: Mickael Philit <mickey.phy@gmail.com>
+Date: Sun, 3 Mar 2024 20:54:39 +0100
+Subject: [PATCH] backport gcc14 fedora patch
+
+---
+ src/cgnstools/tkogl/gencyl.c | 4 ++--
+ src/cgnstools/tkogl/tkogl.c  | 8 +++++++-
+ 2 files changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/src/cgnstools/tkogl/gencyl.c b/src/cgnstools/tkogl/gencyl.c
+index cc36c4ba6..b64d777f4 100644
+--- a/src/cgnstools/tkogl/gencyl.c
++++ b/src/cgnstools/tkogl/gencyl.c
+@@ -682,8 +682,8 @@ RenderModel (Model* model)
+       Vector normal;
+       GLdouble v [3];
+       obj = gluNewTess();
+-      gluTessCallback(obj, GLU_BEGIN, glBegin);
+-      gluTessCallback(obj, GLU_VERTEX, glVertex3fv);
++      gluTessCallback(obj, GLU_BEGIN, (_GLUfuncptr)glBegin);
++      gluTessCallback(obj, GLU_VERTEX, (_GLUfuncptr)glVertex3fv);
+       gluTessCallback(obj, GLU_END, glEnd);
+       if (flags&CLOSE_FIRST) {
+          CrossSection *a = model->cross [0];
+diff --git a/src/cgnstools/tkogl/tkogl.c b/src/cgnstools/tkogl/tkogl.c
+index e697e735e..506599d54 100644
+--- a/src/cgnstools/tkogl/tkogl.c
++++ b/src/cgnstools/tkogl/tkogl.c
+@@ -22,6 +22,12 @@
+ #include "printstr.h"
+ #include "feedback.h"
+ 
++#if ! defined(__WIN32__) && ! defined(_WIN32)
++/* For TkWmAddToColormapWindows. */
++#define _TKPORT /* Typical installations cannot find tkPort.h. */
++#include <tkInt.h>
++#endif
++
+ #ifndef CONST
+ # define CONST
+ #endif
+@@ -599,7 +605,7 @@ OGLwinCmd(clientData, interp, argc, argv)
+ 
+     if ((Tk_Parent(tkwin) != NULL) &&
+ 	(Tk_Colormap(tkwin) != Tk_Colormap (Tk_Parent(tkwin)))) {
+-       TkWmAddToColormapWindows(tkwin);
++       TkWmAddToColormapWindows((TkWindow *)tkwin);
+     }
+ 
+     /* See if this window will share display lists with another */

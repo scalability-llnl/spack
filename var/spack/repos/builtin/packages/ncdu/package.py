@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -33,6 +32,8 @@ class Ncdu(Package):
     version("1.8", sha256="42aaf0418c05e725b39b220166a9c604a9c54c0fbf7692c9c119b36d0ed5d099")
     version("1.7", sha256="70dfe10b4c0843050ee17ab27b7ad4d65714682f117079b85d779f83431fb333")
 
+    depends_on("c", type="build")  # generated
+    depends_on("gmake", type="build")
     depends_on("ncurses")
     depends_on("pkgconfig", type="build")
 

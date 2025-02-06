@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,8 @@ class PyExarl(PythonPackage):
     version("develop", branch="develop")
     version("update-spack", branch="update-spack")
     version("0.1.0", tag="v0.1.0", commit="5f5b99884a92f86ea9f637524eca6f4393b9635f")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("python@3.6:", type=("build", "run"))
     depends_on("git-lfs", type=("build"))

@@ -14,14 +14,10 @@ spack:
       variants: +mpi
     binutils:
       variants: +ld +gold +headers +libiberty ~nls
-    elfutils:
-      variants: ~nls
     hdf5:
       variants: +fortran +hl +shared
     libfabric:
       variants: fabrics=sockets,tcp,udp,rxm
-    libunwind:
-      variants: +pic +xz
     openblas:
       variants: threads=openmp
     trilinos:
@@ -29,25 +25,16 @@ spack:
         +ifpack +ifpack2 +intrepid +intrepid2 +isorropia +kokkos +ml +minitensor +muelu
         +nox +piro +phalanx +rol +rythmos +sacado +stk +shards +shylu +stokhos +stratimikos
         +teko +tempus +tpetra +trilinoscouplings +zoltan +zoltan2 +superlu-dist gotype=long_long
-    xz:
-      variants: +pic
     mpi:
       require: mpich
     mpich:
-      require: '~wrapperrpath ~hwloc'
+      require: '~wrapperrpath ~hwloc %gcc target=neoverse_v2'
     tbb:
       require: intel-tbb
-    boost:
-      variants: +atomic +chrono +container +date_time +exception +filesystem +graph
-        +iostreams +locale +log +math +mpi +multithreaded +program_options +random
-        +regex +serialization +shared +signals +stacktrace +system +test +thread +timer
-        cxxstd=17 visibility=global
-    libffi:
-      require: "@3.4.4"
     vtk-m:
-      require: "+examples"
-    cuda:
-      version: [11.8.0]
+      require: "+examples %gcc target=neoverse_v2"
+    paraview:
+      require: "+examples %gcc target=neoverse_v2"
 
   specs:
   # CPU
@@ -72,6 +59,7 @@ spack:
   - dyninst
   - ecp-data-vis-sdk ~cuda ~rocm +adios2 +ascent +cinema +darshan +faodel +hdf5 ~paraview +pnetcdf +sz +unifyfs +veloc ~visit +vtkm +zfp  # +visit: ?
   - exaworks
+  - fftx
   - flecsi
   # - flit
   # - flux-core
@@ -96,6 +84,7 @@ spack:
   - lammps
   - lbann
   - legion
+  - libceed
   - libnrm
   - libquo
   - libunwind
@@ -111,6 +100,7 @@ spack:
   - netlib-scalapack
   - nrm
   # - nvhpc
+  - nwchem 
   - omega-h
   - openfoam
   # - openmpi
@@ -131,7 +121,6 @@ spack:
   - py-jupyterhub
   - py-libensemble
   - py-petsc4py
-  - py-warpx
   - qthreads scheduler=distrib
   - quantum-espresso
   - raja
@@ -155,6 +144,7 @@ spack:
   - upcxx
   # - veloc
   - wannier90
+  - warpx +python
   - xyce +mpi +shared +pymi +pymi_static_tpls
   # INCLUDED IN ECP DAV CPU
   # - adios2
@@ -180,27 +170,6 @@ spack:
   # - libpressio +bitgrooming +bzip2 ~cuda ~cusz +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp # py-numcodecs@0.7.3: gcc: error: unrecognized command-line option '-mno-sse2'
   # - variorum                      # variorum: https://github.com/spack/spack/issues/38786
 
-  # PYTHON PACKAGES
-  # - opencv +python3
-  # - py-horovod
-  # - py-jax
-  # - py-jupyterlab
-  # - py-matplotlib
-  # - py-mpi4py
-  # - py-notebook
-  # - py-numba
-  # - py-numpy
-  # - py-openai
-  # - py-pandas
-  # - py-plotly
-  # - py-pooch
-  # - py-pytest
-  # - py-scikit-learn
-  # - py-scipy
-  # - py-seaborn
-  # - py-tensorflow
-  # - py-torch
-
   # CUDA NOARCH
   - flux-core +cuda
   - hpctoolkit +cuda
@@ -216,7 +185,7 @@ spack:
   - cabana +cuda cuda_arch=90  ^kokkos +wrapper +cuda_lambda +cuda cuda_arch=90
   - caliper +cuda cuda_arch=90
   - chai +cuda cuda_arch=90 ^umpire ~shared
-  # - cp2k +mpi +cuda cuda_arch=90 # cp2k: cp2k only supports cuda_arch ('35', '37', '60', '70', '80')
+  - fftx +cuda cuda_arch=90
   - flecsi +cuda cuda_arch=90
   - ginkgo +cuda cuda_arch=90
   - gromacs +cuda cuda_arch=90
@@ -224,6 +193,7 @@ spack:
   - hpx +cuda cuda_arch=90
   - kokkos +wrapper +cuda cuda_arch=90
   - kokkos-kernels +cuda cuda_arch=90 ^kokkos +wrapper +cuda cuda_arch=90
+  - libceed +cuda cuda_arch=90
   - magma +cuda cuda_arch=90
   - mfem +cuda cuda_arch=90
   - mgard +serial +openmp +timing +unstructured +cuda cuda_arch=90
@@ -238,12 +208,13 @@ spack:
   - umpire ~shared +cuda cuda_arch=90
   # INCLUDED IN ECP DAV CUDA
   - adios2 +cuda cuda_arch=90
+  # - ascent +cuda cuda_arch=90     # ascent: https://github.com/spack/spack/issues/38045
   # - paraview +cuda cuda_arch=90   # paraview: InstallError: Incompatible cuda_arch=90
   - vtk-m +cuda cuda_arch=90
   - zfp +cuda cuda_arch=90
   # --
-  # - ascent +cuda cuda_arch=90     # ascent: https://github.com/spack/spack/issues/38045
   # - axom +cuda cuda_arch=90       # axom: https://github.com/spack/spack/issues/29520
+  # - cp2k +mpi +cuda cuda_arch=90  # cp2k: cp2k only supports cuda_arch ('35', '37', '60', '70', '80')
   # - cusz +cuda cuda_arch=90       # cusz: https://github.com/spack/spack/issues/38787
   # - dealii +cuda cuda_arch=90     # dealii: https://github.com/spack/spack/issues/39532
   # - ecp-data-vis-sdk +adios2 +hdf5 +vtkm +zfp +paraview +cuda cuda_arch=90 # embree: https://github.com/spack/spack/issues/39534
@@ -260,7 +231,7 @@ spack:
   ci:
     pipeline-gen:
     - build-job:
-        image: ecpe4s/ubuntu22.04-runner-arm64-gcc-11.4:2024.03.01
+        image: ghcr.io/spack/spack/ubuntu22.04-runner-arm64-gcc-11.4:2024.03.01
 
   cdash:
     build-group: E4S ARM Neoverse V2

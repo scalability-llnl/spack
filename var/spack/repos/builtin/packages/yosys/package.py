@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,7 +19,7 @@ class Yosys(MakefilePackage):
     """
 
     homepage = "https://yosyshq.net/yosys"
-    url = "https://github.com/YosysHQ/yosys/archive/refs/tags/yosys-0.40.tar.gz"
+    url = "https://github.com/YosysHQ/yosys/archive/refs/tags/yosys-0.46.tar.gz"
     git = "https://github.com/YosysHQ/yosys.git"
 
     maintainers("davekeeshan")
@@ -29,6 +28,14 @@ class Yosys(MakefilePackage):
 
     version("master", branch="master")
 
+    version("0.49", commit="427b5a251bfb511528a177bfa92567b4b3ada3dd", submodules=True)
+    version("0.48", commit="aaa5347494801e9e3870b31387da59da24233f76", submodules=True)
+    version("0.47", commit="647d61dd9212365a3cd44db219660b8f90b95cbd", submodules=True)
+    version("0.46", commit="e97731b9dda91fa5fa53ed87df7c34163ba59a41", submodules=True)
+    version("0.45", commit="9ed031ddd588442f22be13ce608547a5809b62f0", submodules=True)
+    version("0.44", commit="80ba43d26264738c93900129dc0aab7fab36c53f", submodules=True)
+    version("0.43", commit="ead4718e567aed2e552dcfe46294b132aa04c158", submodules=True)
+    version("0.42", commit="9b6afcf3f83fea413b57c3790c25ba43b9914ce2", submodules=True)
     version("0.41", sha256="b0037d0a5864550a07a72ba81346e52a7d5f76b3027ef1d7c71b975d2c8bd2b2")
     version("0.40", sha256="c1d42ad90d587b587210b40cf3c5584e41e20f656e8630c33b6583322e8b764e")
     version("0.39", sha256="a66d95747b21d03e5b9c274d3f7cb0f7dd99610891dd66920bfaee25bc30dad1")
@@ -51,6 +58,9 @@ class Yosys(MakefilePackage):
     version("0.22", sha256="2a0c29b6f66b3ee70316dd734eceb14f452445a83ccac600b97100ffd7c7a7aa")
     version("0.21", sha256="2b0e140f47d682e1069b1ca53b1fd91cbb1c1546932bd5cb95566f59a673cd8d")
     version("0.20", sha256="ee261487badf1b554616d555da8496a7c84ef21ae66a979ddd946b6949a780a4")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("abc", default=True, description="build with abc support")
     variant("ccache", default=False, description="build with ccache support")

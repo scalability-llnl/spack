@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class PyTweedledum(PythonPackage):
     license("MIT")
 
     version("1.1.1", sha256="58d6f7a988b10c31be3faa1faf3e58288ef7e8159584bfa6ded45742f390309f")
+
+    depends_on("cxx", type="build")  # generated
     depends_on("python@3.6:", type=("build", "run"))
     depends_on("py-setuptools@42:", type="build")
     depends_on("py-scikit-build@0.12:", type="build")

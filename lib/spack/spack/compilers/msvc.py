@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -8,7 +7,7 @@ import re
 import subprocess
 import sys
 import tempfile
-from typing import Dict, List
+from typing import Dict
 
 import archspec.cpu
 
@@ -117,18 +116,6 @@ def get_valid_fortran_pth():
 
 
 class Msvc(Compiler):
-    # Subclasses use possible names of C compiler
-    cc_names: List[str] = ["cl"]
-
-    # Subclasses use possible names of C++ compiler
-    cxx_names: List[str] = ["cl"]
-
-    # Subclasses use possible names of Fortran 77 compiler
-    f77_names: List[str] = ["ifx"]
-
-    # Subclasses use possible names of Fortran 90 compiler
-    fc_names: List[str] = ["ifx"]
-
     # Named wrapper links within build_env_path
     # Due to the challenges of supporting compiler wrappers
     # in Windows, we leave these blank, and dynamically compute
@@ -224,6 +211,30 @@ class Msvc(Compiler):
         self.msvc_compiler_environment = CmdCall(*env_cmds)
 
     @property
+    def cxx11_flag(self):
+        return "/std:c++11"
+
+    @property
+    def cxx14_flag(self):
+        return "/std:c++14"
+
+    @property
+    def cxx17_flag(self):
+        return "/std:c++17"
+
+    @property
+    def cxx20_flag(self):
+        return "/std:c++20"
+
+    @property
+    def c11_flag(self):
+        return "/std:c11"
+
+    @property
+    def c17_flag(self):
+        return "/std:c17"
+
+    @property
     def msvc_version(self):
         """This is the VCToolset version *NOT* the actual version of the cl compiler
         For CL version, query `Msvc.cl_version`"""
@@ -231,24 +242,66 @@ class Msvc(Compiler):
 
     @property
     def short_msvc_version(self):
+        """This is the shorthand VCToolset version of form
+        MSVC<short-ver>
         """
-        This is the shorthand VCToolset version of form
-        MSVC<short-ver> *NOT* the full version, for that see
+        return "MSVC" + self.vc_toolset_ver
+
+    @property
+    def vc_toolset_ver(self):
+        """
+        The toolset version is the version of the combined set of cl and link
+        This typically relates directly to VS version i.e. VS 2022 is v143
+        VS 19 is v142, etc.
+        This value is defined by the first three digits of the major + minor
+        version of the VS toolset (143 for 14.3x.bbbbb). Traditionally the
+        minor version has remained a static two digit number for a VS release
+        series, however, as of VS22, this is no longer true, both
+        14.4x.bbbbb and 14.3x.bbbbb are considered valid VS22 VC toolset
+        versions due to a change in toolset minor version sentiment.
+
+        This is *NOT* the full version, for that see
         Msvc.msvc_version or MSVC.platform_toolset_ver for the
         raw platform toolset version
+
         """
-        ver = self.platform_toolset_ver
-        return "MSVC" + ver
+        ver = self.msvc_version[:2].joined.string[:3]
+        return ver
 
     @property
     def platform_toolset_ver(self):
         """
         This is the platform toolset version of current MSVC compiler
-        i.e. 142.
+        i.e. 142. The platform toolset is the targeted MSVC library/compiler
+        versions by compilation (this is different from the VC Toolset)
+
+
         This is different from the VC toolset version as established
-        by `short_msvc_version`
+        by `short_msvc_version`, but typically are represented by the same
+        three digit value
         """
-        return self.msvc_version[:2].joined.string[:3]
+        # Typically VS toolset version and platform toolset versions match
+        # VS22 introduces the first divergence of VS toolset version
+        # (144 for "recent" releases) and platform toolset version (143)
+        # so it needs additional handling until MS releases v144
+        # (assuming v144 is also for VS22)
+        # or adds better support for detection
+        # TODO: (johnwparent) Update this logic for the next platform toolset
+        # or VC toolset version update
+        toolset_ver = self.vc_toolset_ver
+        vs22_toolset = Version(toolset_ver) > Version("142")
+        return toolset_ver if not vs22_toolset else "143"
+
+    @property
+    def visual_studio_version(self):
+        """The four digit Visual Studio version (i.e. 2019 or 2022)
+
+        Note: This differs from the msvc version or toolset version as
+        those properties track the compiler and build tools version
+        respectively, whereas this tracks the VS release associated
+        with a given MSVC compiler.
+        """
+        return re.search(r"[0-9]{4}", self.cc).group(0)
 
     def _compiler_version(self, compiler):
         """Returns version object for given compiler"""
@@ -338,7 +391,3 @@ class Msvc(Compiler):
             )
         clp = spack.util.executable.which_string("cl", path=sps)
         return cls.default_version(clp) if clp else fc_ver
-
-    @classmethod
-    def f77_version(cls, f77):
-        return cls.fc_version(f77)

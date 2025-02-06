@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,8 @@ class PySphinxRtdTheme(PythonPackage):
 
     license("MIT")
 
+    version("3.0.0", sha256="905d67de03217fd3d76fbbdd992034ac8e77044ef8063a544dda1af74d409e08")
+    version("2.0.0", sha256="bd5d7b80622406762073a04ef8fadc5f9151261563d47027de09910ce03afe6b")
     version("1.2.2", sha256="01c5c5a72e2d025bd23d1f06c59a4831b06e6ce6c01fdd5ebfe9986c0a880fc7")
     version("1.2.0", sha256="a0d8bd1a2ed52e0b338cbe19c4b2eef3c5e7a048769753dac6a9f059c7b641b8")
     version("1.0.0", sha256="eec6d497e4c2195fa0e8b2016b337532b8a699a68bcb22a512870e16925c6a5c")
@@ -22,13 +23,20 @@ class PySphinxRtdTheme(PythonPackage):
     version("0.5.0", sha256="22c795ba2832a169ca301cd0a083f7a434e09c538c70beb42782c073651b707d")
     version("0.4.3", sha256="728607e34d60456d736cc7991fd236afb828b21b82f956c5ea75f94c8414040a")
 
+    depends_on("python@3.8:", when="@3:")
+    depends_on("python@3.6:", when="@:2")
+    depends_on("python@:3.11", when="@:1.0.0")  # distutils was removed in python@3.12
     depends_on("py-setuptools", type="build")
-
-    depends_on("py-sphinx@1.6:6", when="@1:", type=("build", "run"))
+    depends_on("py-sphinx@6:8", when="@3:", type=("build", "run"))
+    depends_on("py-sphinx@5:7", when="@2", type=("build", "run"))
+    depends_on("py-sphinx@1.6:6", when="@1", type=("build", "run"))
     depends_on("py-sphinx@:6", when="@0", type=("build", "run"))
-    depends_on("py-docutils@:0.18", when="@1.2:", type=("build", "run"))
+    depends_on("py-docutils@0.19:0.21", when="@3:", type=("build", "run"))
+    depends_on("py-docutils@:0.20", when="@2", type=("build", "run"))
+    depends_on("py-docutils@:0.18", when="@1.2.0", type=("build", "run"))
     depends_on("py-docutils@:0.17", when="@1:1.1", type=("build", "run"))
     depends_on("py-docutils@:0.16", when="@0.5.2:0", type=("build", "run"))
+    depends_on("py-sphinxcontrib-jquery@4", when="@2:", type=("build", "run"))
     depends_on("py-sphinxcontrib-jquery@4", when="@1.2.2:", type=("build", "run"))
     depends_on("py-sphinxcontrib-jquery@2:", when="@1.2:1.2.1", type=("build", "run"))
     conflicts("^py-sphinxcontrib-jquery@3.0.0")

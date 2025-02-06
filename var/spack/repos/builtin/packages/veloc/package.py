@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,6 +27,9 @@ class Veloc(CMakePackage):
     version("1.2", sha256="126a7e01d79458807a6545a8e5f92f8d62a23187dee70be0913b60a1393780e0")
     version("1.1", sha256="2bbdacf3e0ce4e7c9e360874d8d85b405525bdc7bd992bdb1f1ba49218072160")
     version("1.0", sha256="d594b73d6549a61fce8e67b8984a17cebc3e766fc520ed1636ae3683cdde77cb")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("libpthread-stubs")
     depends_on("mpi")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,10 +27,14 @@ class Gdal(CMakePackage, AutotoolsPackage, PythonExtension):
     list_url = "https://download.osgeo.org/gdal/"
     list_depth = 1
 
+    license("MIT")
     maintainers("adamjstewart")
 
-    license("MIT")
-
+    version("3.10.1", sha256="9211eac72b53f5f85d23cf6d83ee20245c6d818733405024e71f2af41e5c5f91")
+    version("3.10.0", sha256="af821a3bcf68cf085724c21c9b53605fd451d83af3c8854d8bf194638eb734a8")
+    version("3.9.3", sha256="34a037852ffe6d2163f1b8948a1aa7019ff767148aea55876c1339b22ad751f1")
+    version("3.9.2", sha256="bfbcc9f087f012c36151c20c79f8eac9529e1e5298fbded79cd5a1365f0b113a")
+    version("3.9.1", sha256="aff3086fee75f5773e33a5598df98d8a4d10be411f777d3ce23584b21d8171ca")
     version("3.9.0", sha256="577f80e9d14ff7c90b6bfbc34201652b4546700c01543efb4f4c3050e0b3fda2")
     version("3.8.5", sha256="e8b4df2a8a7d25272f867455c0c230459545972f81f0eff2ddbf6a6f60dcb1e4")
     version("3.8.4", sha256="0c53ced95d29474236487202709b49015854f8e02e35e44ed0f4f4e12a7966ce")
@@ -99,6 +102,9 @@ class Gdal(CMakePackage, AutotoolsPackage, PythonExtension):
         version("2.0.1", sha256="2564c91ed8ed36274ee31002a25798f5babc4221e879cb5013867733d80f9920")
         version("2.0.0", sha256="91704fafeea2349c5e268dc1e2d03921b3aae64b05ee01d59fdfc1a6b0ffc061")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     # Optional dependencies
     variant("archive", default=False, when="@3.7:", description="Optional for vsi7z VFS driver")
     variant(
@@ -109,6 +115,7 @@ class Gdal(CMakePackage, AutotoolsPackage, PythonExtension):
     variant(
         "arrow", default=False, when="build_system=cmake", description="Required for Arrow driver"
     )
+    variant("avif", default=False, when="@3.10:", description="Required for AVIF driver")
     variant(
         "basisu", default=False, when="@3.6:", description="Required for BASISU and KTX2 drivers"
     )
@@ -191,6 +198,7 @@ class Gdal(CMakePackage, AutotoolsPackage, PythonExtension):
         "opencad", default=False, when="build_system=cmake", description="Required for CAD driver"
     )
     variant("opencl", default=False, description="Required to accelerate warping computations")
+    variant("opendrive", default=False, when="@3.10:", description="Required for XODR driver")
     variant("openexr", default=False, when="@3.1:", description="Required for EXR driver")
     variant("openjpeg", default=False, description="Required for JP2OpenJPEG driver")
     variant("openssl", default=False, when="@2.3:", description="Required for EEDAI driver")
@@ -283,6 +291,7 @@ class Gdal(CMakePackage, AutotoolsPackage, PythonExtension):
     depends_on("blas", when="+armadillo")
     depends_on("lapack", when="+armadillo")
     depends_on("arrow", when="+arrow")
+    depends_on("libavif", when="+avif")
     # depends_on("basis-universal", when="+basisu")
     depends_on("c-blosc", when="+blosc")
     depends_on("brunsli", when="+brunsli")
@@ -348,6 +357,7 @@ class Gdal(CMakePackage, AutotoolsPackage, PythonExtension):
     # depends_on('ogdi', when='+ogdi')
     # depends_on('lib-opencad', when='+opencad')
     depends_on("opencl", when="+opencl")
+    # depends_on("libopendrive@0.6:", when="+opendrive")
     depends_on("openexr@2.2:", when="+openexr")
     depends_on("openjpeg@2.3.1:", when="@3.9:+openjpeg")
     depends_on("openjpeg", when="+openjpeg")
@@ -408,6 +418,8 @@ class Gdal(CMakePackage, AutotoolsPackage, PythonExtension):
     depends_on("py-setuptools@:57", type="build", when="@:3.2+python")  # needs 2to3
     depends_on("py-setuptools", type="build", when="+python")
     depends_on("py-numpy@1.0.0:", type=("build", "run"), when="+python")
+    # https://github.com/OSGeo/gdal/issues/9751
+    depends_on("py-numpy@:1", when="@:3.8+python", type=("build", "run"))
     depends_on("swig", type="build", when="+python")
     depends_on("java@7:", type=("build", "link", "run"), when="@3.2:+java")
     depends_on("java@6:", type=("build", "link", "run"), when="@2.4:+java")
@@ -424,16 +436,19 @@ class Gdal(CMakePackage, AutotoolsPackage, PythonExtension):
     depends_on("googletest@1.10:", type="test")
 
     # https://gdal.org/development/rfc/rfc98_build_requirements_gdal_3_9.html
-    msg = "GDAL requires C++17 support"
-    conflicts("%gcc@:7", msg=msg)
-    conflicts("%clang@:4", msg=msg)
-    conflicts("%msvc@:19.14", msg=msg)
+    with default_args(when="@3.9:", msg="GDAL requires C++17 support"):
+        conflicts("%gcc@:7")
+        conflicts("%clang@:4")
+        conflicts("%msvc@:19.14")
 
     # https://gdal.org/development/rfc/rfc68_cplusplus11.html
-    msg = "GDAL requires C++11 support"
-    conflicts("%gcc@:4.8.0", msg=msg)
-    conflicts("%clang@:3.2", msg=msg)
-    conflicts("%msvc@:13", msg=msg)
+    with default_args(when="@2.3:", msg="GDAL requires C++11 support"):
+        conflicts("%gcc@:4.8.0")
+        conflicts("%clang@:3.2")
+        conflicts("%msvc@:13")
+
+    # https://github.com/OSGeo/gdal/issues/8693
+    conflicts("%gcc@11:", when="@:3.6")
 
     # https://github.com/OSGeo/gdal/issues/5994
     conflicts("~png", when="@3:3.5.0")
@@ -496,7 +511,7 @@ class Gdal(CMakePackage, AutotoolsPackage, PythonExtension):
         return Executable(exe)("--version", output=str, error=str).rstrip()
 
     def setup_run_environment(self, env):
-        if "+java" in self.spec:
+        if self.spec.satisfies("+java"):
             class_paths = find(self.prefix, "*.jar")
             classpath = os.pathsep.join(class_paths)
             env.prepend_path("CLASSPATH", classpath)
@@ -513,7 +528,7 @@ class Gdal(CMakePackage, AutotoolsPackage, PythonExtension):
             env.prepend_path("LD_LIBRARY_PATH", ":".join(libs))
 
     def patch(self):
-        if "+java platform=darwin" in self.spec:
+        if self.spec.satisfies("+java platform=darwin"):
             filter_file("linux", "darwin", "swig/java/java.opt", string=True)
             filter_file("-lazy-ljvm", "-ljvm", "configure", string=True)
 
@@ -538,6 +553,7 @@ class CMakeBuilder(CMakeBuilder):
             self.define_from_variant("GDAL_USE_ARCHIVE", "archive"),
             self.define_from_variant("GDAL_USE_ARMADILLO", "armadillo"),
             self.define_from_variant("GDAL_USE_ARROW", "arrow"),
+            self.define_from_variant("GDAL_USE_AVIF", "avif"),
             self.define_from_variant("GDAL_USE_BASISU", "basisu"),
             self.define_from_variant("GDAL_USE_BLOSC", "blosc"),
             self.define_from_variant("GDAL_USE_BRUNSLI", "brunsli"),
@@ -584,6 +600,7 @@ class CMakeBuilder(CMakeBuilder):
             self.define_from_variant("GDAL_USE_OGDI", "ogdi"),
             self.define_from_variant("GDAL_USE_OPENCAD", "opencad"),
             self.define_from_variant("GDAL_USE_OPENCL", "opencl"),
+            self.define_from_variant("GDAL_USE_OPENDRIVE", "opendrive"),
             self.define_from_variant("GDAL_USE_OPENEXR", "openexr"),
             self.define_from_variant("GDAL_USE_OPENJPEG", "openjpeg"),
             self.define_from_variant("GDAL_USE_OPENSSL", "openssl"),
@@ -631,7 +648,7 @@ class AutotoolsBuilder(AutotoolsBuilder):
         if not variant:
             variant = name
 
-        if variant not in self.pkg.variants:
+        if not self.pkg.has_variant(variant):
             msg = '"{}" is not a variant of "{}"'
             raise KeyError(msg.format(variant, self.name))
 
@@ -741,7 +758,7 @@ class AutotoolsBuilder(AutotoolsBuilder):
             self.with_or_without("perl"),
             self.with_or_without("php"),
         ]
-        if "+iconv" in self.spec:
+        if self.spec.satisfies("+iconv"):
             if self.spec["iconv"].name == "libiconv":
                 args.append(f"--with-libiconv-prefix={self.spec['iconv'].prefix}")
             else:
@@ -777,7 +794,7 @@ class AutotoolsBuilder(AutotoolsBuilder):
         else:
             args.append(self.with_or_without("dwgdirect", variant="teigha", package="teigha"))
 
-        if "+hdf4" in self.spec:
+        if self.spec.satisfies("+hdf4"):
             hdf4 = self.spec["hdf"]
             if "+external-xdr" in hdf4 and hdf4["rpc"].name == "libtirpc":
                 args.append("LIBS=" + hdf4["rpc"].libs.link_flags)
@@ -790,19 +807,19 @@ class AutotoolsBuilder(AutotoolsBuilder):
     def build(self, pkg, spec, prefix):
         # https://trac.osgeo.org/gdal/wiki/GdalOgrInJavaBuildInstructionsUnix
         make()
-        if "+java" in spec:
+        if spec.satisfies("+java"):
             with working_dir("swig/java"):
                 make()
 
     def check(self):
         # no top-level test target
-        if "+java" in self.spec:
+        if self.spec.satisfies("+java"):
             with working_dir("swig/java"):
                 make("test")
 
     def install(self, pkg, spec, prefix):
         make("install")
-        if "+java" in spec:
+        if spec.satisfies("+java"):
             with working_dir("swig/java"):
                 make("install")
                 install("*.jar", prefix)

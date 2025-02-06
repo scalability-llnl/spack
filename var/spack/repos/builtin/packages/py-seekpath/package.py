@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,7 +9,7 @@ class PySeekpath(PythonPackage):
     """SeeK-path is a python module to obtain band paths in the Brillouin zone of crystal
     structures."""
 
-    homepage = "http://github.com/giovannipizzi/seekpath"
+    homepage = "https://github.com/giovannipizzi/seekpath"
     pypi = "seekpath/seekpath-2.0.1.tar.gz"
 
     maintainers("meyersbs")

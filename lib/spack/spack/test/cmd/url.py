@@ -1,9 +1,7 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import re
-import sys
 
 import pytest
 
@@ -117,7 +115,6 @@ def test_url_summary(mock_packages):
     assert out_correct_versions == correct_versions
 
 
-@pytest.mark.skipif(sys.platform.startswith("win"), reason="Unsupported on Windows for now")
 def test_url_stats(capfd, mock_packages):
     with capfd.disabled():
         output = url("stats")

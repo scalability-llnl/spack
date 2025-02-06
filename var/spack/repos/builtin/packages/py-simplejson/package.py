@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -30,5 +29,7 @@ class PySimplejson(PythonPackage):
     version("3.8.1", sha256="428ac8f3219c78fb04ce05895d5dff9bd813c05a9a7922c53dc879cd32a12493")
     version("3.8.0", sha256="217e4797da3a9a4a9fbe6722e0db98070b8443a88212d7acdbd241a7668141d9")
     version("3.3.0", sha256="7a8a6bd82e111976aeb06138316ab10847adf612925072eaff8512228bcf9a1f")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("py-setuptools", type="build")

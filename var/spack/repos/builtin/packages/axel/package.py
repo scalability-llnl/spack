@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class Axel(AutotoolsPackage):
     version("2.17.13", sha256="aedd5e0f22d6eda23eece483ce89be4adfdf1e16ba18d54fd6b743da9d49911b")
     version("2.17.10", sha256="c0d26eba6b94945cd98c5b69ca6df2744639d17bfd49047ef51a8a48f067de10")
     version("2.16.1", sha256="763066efc61e4f7be2eb59afa049bdbc520837e01c95a78f403e542ad82f2719")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("pkgconfig", type="build")
 

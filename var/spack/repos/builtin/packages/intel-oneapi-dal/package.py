@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,6 +25,36 @@ class IntelOneapiDal(IntelOneApiLibraryPackage):
         "https://software.intel.com/content/www/us/en/develop/tools/oneapi/components/onedal.html"
     )
 
+    version(
+        "2025.0.1",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/928ba1dd-c2bc-41f6-a35f-8de41ddf055a/intel-onedal-2025.0.1.19_offline.sh",
+        sha256="40d9926cf0daba1334bcbcfca72dc9313a62a2e066a7248938f97f2d2ff0a85b",
+        expand=False,
+    )
+    version(
+        "2025.0.0",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/d9f2cdb2-93ec-4c78-a3fb-a59d27050c16/intel-onedal-2025.0.0.958_offline.sh",
+        sha256="be6c4130c29a77323515d1febcd55163f1db3e1cecdc8d477617cb8e560e4a3f",
+        expand=False,
+    )
+    version(
+        "2024.7.0",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/ed2c397a-9a78-4466-9179-b39b7da07e83/l_daal_oneapi_p_2024.7.0.14_offline.sh",
+        sha256="aa7b072fe019ce253a111b38055f3949222d7be5231b4df2780a7ded16cd9097",
+        expand=False,
+    )
+    version(
+        "2024.6.0",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/1edf7074-80f8-4b97-aad3-5023b41b7ecd/l_daal_oneapi_p_2024.6.0.418_offline.sh",
+        sha256="2e5966348df4dd70b2887512dca12ecc671de831a30ca21a23a28822c4d24f9f",
+        expand=False,
+    )
+    version(
+        "2024.5.0",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/6ca2d1a8-b7c7-4a70-9c38-2b437dacae1a/l_daal_oneapi_p_2024.5.0.284_offline.sh",
+        sha256="65d437f8841fd4872e35708f3c989bc00022fe041e750e8c35dee010bd87db9d",
+        expand=False,
+    )
     version(
         "2024.2.0",
         url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/3cee4c6c-b7d1-42ce-8bbb-d829a700952f/l_daal_oneapi_p_2024.2.0.280_offline.sh",

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,9 @@ class ModeltestNg(CMakePackage):
 
     version("20220721", commit="1066356b984100897b8bd38ac771c5c950984c01", submodules=True)
     version("0.1.7", commit="cc028888f1d4222aaa53b99c6b02cd934a279001", submodules=True)
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("mpi", default=False, description="Enable MPI")
 

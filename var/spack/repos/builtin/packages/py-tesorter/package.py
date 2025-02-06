@@ -1,7 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+from glob import glob
 
 from spack.package import *
 
@@ -29,5 +30,20 @@ class PyTesorter(PythonPackage):
     depends_on("py-biopython", type=("build", "run"))
     depends_on("py-xopen", type=("build", "run"))
 
-    depends_on("hmmer@3.3:", type="run")
+    depends_on("hmmer@3.3:", type=("build", "run"))
     depends_on("blast-plus", type="run")
+
+    @run_after("install")
+    def run_hmmpress(self):
+        hmmpress = Executable(self.spec["hmmer"].prefix.bin.hmmpress)
+        db_dir = join_path(
+            self.prefix,
+            "lib",
+            f"python{self.spec['python'].version.dotted[:2]}",
+            "site-packages",
+            "TEsorter",
+            "database",
+        )
+        with working_dir(db_dir):
+            for f in glob("*.hmm"):
+                hmmpress(f)

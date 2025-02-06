@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -35,6 +34,8 @@ class Sombrero(MakefilePackage):
         sha256="423a631c86f0e5f14dea186228871099ca0374dc07bf1bb24b6be17f79784682",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
 
     depends_on("mpi")
 

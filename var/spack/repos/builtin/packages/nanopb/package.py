@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,8 @@ class Nanopb(CMakePackage):
     license("Zlib")
 
     version("0.3.9.1", sha256="b22d1f86d4adb2aa0436a277c4a59a5adfc467cafeb9bf405c27ef136599bbb3")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("protobuf", type=("build"))
     depends_on("py-protobuf", type=("build"))

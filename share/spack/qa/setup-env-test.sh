@@ -1,7 +1,6 @@
 #!/bin/sh
 #
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -207,3 +206,20 @@ fails spack env deactivate
 
 echo "Correct error exit codes for unit-test when it fails"
 fails spack unit-test fail
+
+title "Testing config override from command line, outside of an environment"
+contains 'True' spack -c config:ccache:true python -c "import spack.config;print(spack.config.CONFIG.get('config:ccache'))"
+contains 'True' spack -C "$SHARE_DIR/qa/configuration" python -c "import spack.config;print(spack.config.CONFIG.get('config:ccache'))"
+succeeds spack -c config:ccache:true python "$SHARE_DIR/qa/config_state.py"
+succeeds spack -C "$SHARE_DIR/qa/configuration" python "$SHARE_DIR/qa/config_state.py"
+
+title "Testing config override from command line, inside an environment"
+spack env activate --temp
+spack config add "config:ccache:false"
+
+contains 'True' spack -c config:ccache:true python -c "import spack.config;print(spack.config.CONFIG.get('config:ccache'))"
+contains 'True' spack -C "$SHARE_DIR/qa/configuration" python -c "import spack.config;print(spack.config.CONFIG.get('config:ccache'))"
+succeeds spack -c config:ccache:true python "$SHARE_DIR/qa/config_state.py"
+succeeds spack -C "$SHARE_DIR/qa/configuration" python "$SHARE_DIR/qa/config_state.py"
+
+spack env deactivate

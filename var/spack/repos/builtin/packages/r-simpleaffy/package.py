@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,6 +24,8 @@ class RSimpleaffy(RPackage):
     version("2.56.0", commit="a05d768180b8713ad9e1dc46d491b7ef389b299d")
     version("2.54.0", commit="6876e028d412b14504ad3915cbec1a189e9c6478")
     version("2.52.0", commit="f2b43fb9b8e6fa4c03fe28b4efb3144a0a42a385")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r@2.0.0:", type=("build", "run"))
     depends_on("r-biocgenerics@0.1.12:", type=("build", "run"))

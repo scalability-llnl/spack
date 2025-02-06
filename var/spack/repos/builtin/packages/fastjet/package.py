@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -60,6 +59,10 @@ class Fastjet(AutotoolsPackage):
     version("2.3.0", sha256="e452fe4a9716627bcdb726cfb0917f46a7ac31f6006330a6ccc1abc43d9c2d53")
     # older version use .tar instead of .tar.gz extension, to be added
 
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build", when="plugins=all")
+    depends_on("fortran", type="build", when="plugins=pxcone")
+
     variant("shared", default=True, description="Builds a shared version of the library")
     variant("auto-ptr", default=False, description="Use auto_ptr")
     variant(
@@ -96,9 +99,9 @@ class Fastjet(AutotoolsPackage):
     )
     variant(
         "plugins",
-        multi=True,
-        values=("all", "cxx") + available_plugins,
-        default="all",
+        values=disjoint_sets(("all",), ("cxx",), available_plugins)
+        .prohibit_empty_set()
+        .with_default("all"),
         description="List of plugins to enable, or 'cxx' or 'all'",
     )
 

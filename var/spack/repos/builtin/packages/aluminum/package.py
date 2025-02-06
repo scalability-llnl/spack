@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -32,6 +31,8 @@ class Aluminum(CachedCMakePackage, CudaPackage, ROCmPackage):
     version("1.3.1", sha256="28ce0af6c6f29f97b7f19c5e45184bd2f8a0b1428f1e898b027d96d47cb74b0b")
     version("1.3.0", sha256="d0442efbebfdfb89eec793ae65eceb8f1ba65afa9f2e48df009f81985a4c27e3")
     version("1.2.3", sha256="9b214bdf30f9b7e8e017f83e6615db6be2631f5be3dd186205dbe3aa62f4018a")
+
+    depends_on("cxx", type="build")  # generated
 
     # Library capabilities
     variant(
@@ -86,7 +87,6 @@ class Aluminum(CachedCMakePackage, CudaPackage, ROCmPackage):
     # FIXME: Do we want to expose tuning parameters to the Spack
     # recipe? Some are numeric values, some are on/off switches.
 
-    conflicts("~cuda", when="+cuda_rma", msg="CUDA RMA support requires CUDA")
     conflicts("+cuda", when="+rocm", msg="CUDA and ROCm support are mutually exclusive")
 
     depends_on("mpi")

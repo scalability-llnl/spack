@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,8 @@ class PyPyrocko(PythonPackage):
 
     version("2024.1.10", sha256="4fb2c72d0b036ce3c70bfd066e1ce4946eb93d9190d202e9fc689c1f29e4845f")
     version("2023.6.29", sha256="779a234592bfcfa1c96939fee53d0dfc5cadf111432a2679f08166cfd8bcae41")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("python@3.7:", type=("build", "run"))
 

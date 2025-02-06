@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,8 @@ class PyLazyObjectProxy(PythonPackage):
     version("1.6.0", sha256="489000d368377571c6f982fba6497f2aa13c6d1facc40660963da62f5c379726")
     version("1.4.3", sha256="f3900e8a5de27447acbf900b4750b0ddfd7ec1ea7fbaf11dfa911141bc522af0")
     version("1.3.1", sha256="eb91be369f945f10d3a49f5f9be8b3d0b93a4c2be8f8a5b83b0571b8123e0a7a")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("python@2.7:2.8,3.4:", type=("build", "run"))
     depends_on("python@2.7:2.8,3.6:", type=("build", "run"), when="@1.6.0:")

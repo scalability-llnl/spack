@@ -1,19 +1,16 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import glob
-import itertools
 import os
 import sys
 
-from archspec.cpu import UnsupportedMicroarchitecture
+import archspec.cpu
 
-import llnl.util.tty as tty
 from llnl.util.symlink import readlink
 
+import spack.compiler
 import spack.platforms
-import spack.util.executable
 import spack.util.libc
 from spack.operating_systems.mac_os import macos_sdk_path, macos_version
 from spack.package import *
@@ -34,68 +31,108 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
 
     license("GPL-2.0-or-later AND LGPL-2.1-or-later")
 
+    provides("c")
+    provides("cxx")
+    provides("fortran")
+
     version("master", branch="master")
 
-    version("14.1.0", sha256="e283c654987afe3de9d8080bc0bd79534b5ca0d681a73a11ff2b5d3767426840")
-
+    version("14.2.0", sha256="a7b39bc69cbf9e25826c5a60ab26477001f7c08d85cec04bc0e29cabed6f3cc9")
     version("13.3.0", sha256="0845e9621c9543a13f484e94584a49ffc0129970e9914624235fc1d061a0c083")
-    version("13.2.0", sha256="e275e76442a6067341a27f04c5c6b83d8613144004c0413528863dc6b5c743da")
-    version("13.1.0", sha256="61d684f0aa5e76ac6585ad8898a2427aade8979ed5e7f85492286c4dfc13ee86")
-
-    version("12.3.0", sha256="949a5d4f99e786421a93b532b22ffab5578de7321369975b91aec97adfda8c3b")
-    version("12.2.0", sha256="e549cf9cf3594a00e27b6589d4322d70e0720cdd213f39beb4181e06926230ff")
-    version("12.1.0", sha256="62fd634889f31c02b64af2c468f064b47ad1ca78411c45abe6ac4b5f8dd19c7b")
-
-    version("11.4.0", sha256="3f2db222b007e8a4a23cd5ba56726ef08e8b1f1eb2055ee72c1402cea73a8dd9")
-    version("11.3.0", sha256="b47cf2818691f5b1e21df2bb38c795fac2cfbd640ede2d0a5e1c89e338a3ac39")
-    version("11.2.0", sha256="d08edc536b54c372a1010ff6619dd274c0f1603aa49212ba20f7aa2cda36fa8b")
-    version("11.1.0", sha256="4c4a6fb8a8396059241c2e674b85b351c26a5d678274007f076957afa1cc9ddf")
-
+    version("12.4.0", sha256="704f652604ccbccb14bdabf3478c9511c89788b12cb3bbffded37341916a9175")
+    version("11.5.0", sha256="a6e21868ead545cf87f0c01f84276e4b5281d672098591c1c896241f09363478")
     version("10.5.0", sha256="25109543fdf46f397c347b5d8b7a2c7e5694a5a51cce4b9c6e1ea8a71ca307c1")
-    version("10.4.0", sha256="c9297d5bcd7cb43f3dfc2fed5389e948c9312fd962ef6a4ce455cff963ebe4f1")
-    version("10.3.0", sha256="64f404c1a650f27fc33da242e1f2df54952e3963a49e06e73f6940f3223ac344")
-    version("10.2.0", sha256="b8dd4368bb9c7f0b98188317ee0254dd8cc99d1e3a18d0ff146c855fe16c1d8c")
-    version("10.1.0", sha256="b6898a23844b656f1b68691c5c012036c2e694ac4b53a8918d4712ad876e7ea2")
-
     version("9.5.0", sha256="27769f64ef1d4cd5e2be8682c0c93f9887983e6cfd1a927ce5a0a2915a95cf8f")
-    version("9.4.0", sha256="c95da32f440378d7751dd95533186f7fc05ceb4fb65eb5b85234e6299eb9838e")
-    version("9.3.0", sha256="71e197867611f6054aa1119b13a0c0abac12834765fe2d81f35ac57f84f742d1")
-    version("9.2.0", sha256="ea6ef08f121239da5695f76c9b33637a118dcf63e24164422231917fa61fb206")
-    version("9.1.0", sha256="79a66834e96a6050d8fe78db2c3b32fb285b230b855d0a66288235bc04b327a0")
-
     version("8.5.0", sha256="d308841a511bb830a6100397b0042db24ce11f642dab6ea6ee44842e5325ed50")
-    version("8.4.0", sha256="e30a6e52d10e1f27ed55104ad233c30bd1e99cfb5ff98ab022dc941edd1b2dd4")
-    version("8.3.0", sha256="64baadfe6cc0f4947a84cb12d7f0dfaf45bb58b7e92461639596c21e02d97d2c")
-    version("8.2.0", sha256="196c3c04ba2613f893283977e6011b2345d1cd1af9abeac58e916b1aab3e0080")
-    version("8.1.0", sha256="1d1866f992626e61349a1ccd0b8d5253816222cdc13390dcfaa74b093aa2b153")
-
     version("7.5.0", sha256="b81946e7f01f90528a1f7352ab08cc602b9ccc05d4e44da4bd501c5a189ee661")
-    version("7.4.0", sha256="eddde28d04f334aec1604456e536416549e9b1aa137fc69204e65eb0c009fe51")
-    version("7.3.0", sha256="832ca6ae04636adbb430e865a1451adf6979ab44ca1c8374f61fba65645ce15c")
-    version("7.2.0", sha256="1cf7adf8ff4b5aa49041c8734bbcf1ad18cc4c94d0029aae0f4e48841088479a")
-    version("7.1.0", sha256="8a8136c235f64c6fef69cac0d73a46a1a09bb250776a050aec8f9fc880bebc17")
-
     version("6.5.0", sha256="7ef1796ce497e89479183702635b14bb7a46b53249209a5e0f999bebf4740945")
-    version("6.4.0", sha256="850bf21eafdfe5cd5f6827148184c08c4a0852a37ccf36ce69855334d2c914d4")
-    version("6.3.0", sha256="f06ae7f3f790fbf0f018f6d40e844451e6bc3b7bc96e128e63b09825c1f8b29f")
-    version("6.2.0", sha256="9944589fc722d3e66308c0ce5257788ebd7872982a718aa2516123940671b7c5")
-    version("6.1.0", sha256="09c4c85cabebb971b1de732a0219609f93fc0af5f86f6e437fd8d7f832f1a351")
-
     version("5.5.0", sha256="530cea139d82fe542b358961130c69cfde8b3d14556370b65823d2f91f0ced87")
-    version("5.4.0", sha256="608df76dec2d34de6558249d8af4cbee21eceddbcb580d666f7a5a583ca3303a")
-    version("5.3.0", sha256="b84f5592e9218b73dbae612b5253035a7b34a9a1f7688d2e1bfaaf7267d5c4db")
-    version("5.2.0", sha256="5f835b04b5f7dd4f4d2dc96190ec1621b8d89f2dc6f638f9f8bc1b1014ba8cad")
-    version("5.1.0", sha256="b7dafdf89cbb0e20333dbf5b5349319ae06e3d1a30bf3515b5488f7e89dca5ad")
-
     version("4.9.4", sha256="6c11d292cd01b294f9f84c9a59c230d80e9e4a47e5c6355f046bb36d4f358092")
-    version("4.9.3", sha256="2332b2a5a321b57508b9031354a8503af6fdfb868b8c1748d33028d100a8b67e")
-    version("4.9.2", sha256="2020c98295856aa13fda0f2f3a4794490757fc24bcca918d52cc8b4917b972dd")
-    version("4.9.1", sha256="d334781a124ada6f38e63b545e2a3b8c2183049515a1abab6d513f109f1d717e")
     version("4.8.5", sha256="22fb1e7e0f68a63cee631d85b20461d1ea6bda162f03096350e38c8d427ecf23")
-    version("4.8.4", sha256="4a80aa23798b8e9b5793494b8c976b39b8d9aa2e53cd5ed5534aff662a7f8695")
     version("4.7.4", sha256="92e61c6dc3a0a449e62d72a38185fda550168a86702dea07125ebd3ec3996282")
     version("4.6.4", sha256="35af16afa0b67af9b8eb15cafb76d2bc5f568540552522f5dc2c88dd45d977e8")
     version("4.5.4", sha256="eef3f0456db8c3d992cbb51d5d32558190bc14f3bc19383dd93acc27acc6befc")
+
+    with default_args(deprecated=True):
+        version(
+            "14.1.0", sha256="e283c654987afe3de9d8080bc0bd79534b5ca0d681a73a11ff2b5d3767426840"
+        )
+
+        version(
+            "13.2.0", sha256="e275e76442a6067341a27f04c5c6b83d8613144004c0413528863dc6b5c743da"
+        )
+        version(
+            "13.1.0", sha256="61d684f0aa5e76ac6585ad8898a2427aade8979ed5e7f85492286c4dfc13ee86"
+        )
+
+        version(
+            "12.3.0", sha256="949a5d4f99e786421a93b532b22ffab5578de7321369975b91aec97adfda8c3b"
+        )
+        version(
+            "12.2.0", sha256="e549cf9cf3594a00e27b6589d4322d70e0720cdd213f39beb4181e06926230ff"
+        )
+        version(
+            "12.1.0", sha256="62fd634889f31c02b64af2c468f064b47ad1ca78411c45abe6ac4b5f8dd19c7b"
+        )
+
+        version(
+            "11.4.0", sha256="3f2db222b007e8a4a23cd5ba56726ef08e8b1f1eb2055ee72c1402cea73a8dd9"
+        )
+        version(
+            "11.3.0", sha256="b47cf2818691f5b1e21df2bb38c795fac2cfbd640ede2d0a5e1c89e338a3ac39"
+        )
+        version(
+            "11.2.0", sha256="d08edc536b54c372a1010ff6619dd274c0f1603aa49212ba20f7aa2cda36fa8b"
+        )
+        version(
+            "11.1.0", sha256="4c4a6fb8a8396059241c2e674b85b351c26a5d678274007f076957afa1cc9ddf"
+        )
+
+        version(
+            "10.4.0", sha256="c9297d5bcd7cb43f3dfc2fed5389e948c9312fd962ef6a4ce455cff963ebe4f1"
+        )
+        version(
+            "10.3.0", sha256="64f404c1a650f27fc33da242e1f2df54952e3963a49e06e73f6940f3223ac344"
+        )
+        version(
+            "10.2.0", sha256="b8dd4368bb9c7f0b98188317ee0254dd8cc99d1e3a18d0ff146c855fe16c1d8c"
+        )
+        version(
+            "10.1.0", sha256="b6898a23844b656f1b68691c5c012036c2e694ac4b53a8918d4712ad876e7ea2"
+        )
+
+        version("9.4.0", sha256="c95da32f440378d7751dd95533186f7fc05ceb4fb65eb5b85234e6299eb9838e")
+        version("9.3.0", sha256="71e197867611f6054aa1119b13a0c0abac12834765fe2d81f35ac57f84f742d1")
+        version("9.2.0", sha256="ea6ef08f121239da5695f76c9b33637a118dcf63e24164422231917fa61fb206")
+        version("9.1.0", sha256="79a66834e96a6050d8fe78db2c3b32fb285b230b855d0a66288235bc04b327a0")
+
+        version("8.4.0", sha256="e30a6e52d10e1f27ed55104ad233c30bd1e99cfb5ff98ab022dc941edd1b2dd4")
+        version("8.3.0", sha256="64baadfe6cc0f4947a84cb12d7f0dfaf45bb58b7e92461639596c21e02d97d2c")
+        version("8.2.0", sha256="196c3c04ba2613f893283977e6011b2345d1cd1af9abeac58e916b1aab3e0080")
+        version("8.1.0", sha256="1d1866f992626e61349a1ccd0b8d5253816222cdc13390dcfaa74b093aa2b153")
+
+        version("7.4.0", sha256="eddde28d04f334aec1604456e536416549e9b1aa137fc69204e65eb0c009fe51")
+        version("7.3.0", sha256="832ca6ae04636adbb430e865a1451adf6979ab44ca1c8374f61fba65645ce15c")
+        version("7.2.0", sha256="1cf7adf8ff4b5aa49041c8734bbcf1ad18cc4c94d0029aae0f4e48841088479a")
+        version("7.1.0", sha256="8a8136c235f64c6fef69cac0d73a46a1a09bb250776a050aec8f9fc880bebc17")
+
+        version("6.4.0", sha256="850bf21eafdfe5cd5f6827148184c08c4a0852a37ccf36ce69855334d2c914d4")
+        version("6.3.0", sha256="f06ae7f3f790fbf0f018f6d40e844451e6bc3b7bc96e128e63b09825c1f8b29f")
+        version("6.2.0", sha256="9944589fc722d3e66308c0ce5257788ebd7872982a718aa2516123940671b7c5")
+        version("6.1.0", sha256="09c4c85cabebb971b1de732a0219609f93fc0af5f86f6e437fd8d7f832f1a351")
+
+        version("5.4.0", sha256="608df76dec2d34de6558249d8af4cbee21eceddbcb580d666f7a5a583ca3303a")
+        version("5.3.0", sha256="b84f5592e9218b73dbae612b5253035a7b34a9a1f7688d2e1bfaaf7267d5c4db")
+        version("5.2.0", sha256="5f835b04b5f7dd4f4d2dc96190ec1621b8d89f2dc6f638f9f8bc1b1014ba8cad")
+        version("5.1.0", sha256="b7dafdf89cbb0e20333dbf5b5349319ae06e3d1a30bf3515b5488f7e89dca5ad")
+
+        version("4.9.3", sha256="2332b2a5a321b57508b9031354a8503af6fdfb868b8c1748d33028d100a8b67e")
+        version("4.9.2", sha256="2020c98295856aa13fda0f2f3a4794490757fc24bcca918d52cc8b4917b972dd")
+        version("4.9.1", sha256="d334781a124ada6f38e63b545e2a3b8c2183049515a1abab6d513f109f1d717e")
+        version("4.8.4", sha256="4a80aa23798b8e9b5793494b8c976b39b8d9aa2e53cd5ed5534aff662a7f8695")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     # We specifically do not add 'all' variant here because:
     # (i) Ada, D, Go, Jit, and Objective-C++ are not default languages.
@@ -130,6 +167,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
         description="Compilers and runtime libraries to build",
     )
     variant("binutils", default=False, description="Build via binutils")
+    variant("mold", default=False, description="Use mold as the linker by default", when="@12:")
     variant(
         "piclibs", default=False, description="Build PIC versions of libgfortran.a and libstdc++.a"
     )
@@ -194,6 +232,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
     depends_on(
         "binutils+gas+ld+plugins~libiberty", when="+binutils", type=("build", "link", "run")
     )
+    depends_on("mold", when="+mold")
     depends_on("zip", type="build", when="languages=java")
 
     # The server is sometimes a bit slow to respond
@@ -395,39 +434,71 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
                 when="@11.2.0",
             )
 
-        # Apple M1 support, created from branch of Darwin maintainer for GCC:
-        # https://github.com/iains/gcc-11-branch
+        # aarch64-darwin support from Iain Sandoe's branch
         patch(
-            "https://raw.githubusercontent.com/Homebrew/formula-patches/22dec3fc/gcc/gcc-11.3.0-arm.diff",
-            sha256="e02006b7ec917cc1390645d95735a6a866caed0dfe506d5bef742f7862cab218",
-            when="@11.3.0 target=aarch64:",
-        )
-        # https://github.com/iains/gcc-12-branch
-        patch(
-            "https://raw.githubusercontent.com/Homebrew/formula-patches/76677f2b/gcc/gcc-12.1.0-arm.diff",
-            sha256="a000f1d9cb1dd98c7c4ef00df31435cd5d712d2f9d037ddc044f8bf82a16cf35",
-            when="@12.1.0 target=aarch64:",
+            "https://github.com/iains/gcc-14-branch/compare/04696df09633baf97cdbbdd6e9929b9d472161d3..gcc-14.2-darwin-r2.patch?full_index=1",
+            sha256="01ea668489f3f0fb2439060f6c333c4c17ef4c19c4c4e6e6aa4b8ea493e97685",
+            when="@14.2.0 target=aarch64:",
         )
         patch(
-            "https://raw.githubusercontent.com/Homebrew/formula-patches/1d184289/gcc/gcc-12.2.0-arm.diff",
-            sha256="a7843b5c6bf1401e40c20c72af69c8f6fc9754ae980bb4a5f0540220b3dcb62d",
-            when="@12.2.0 target=aarch64:",
+            "https://github.com/iains/gcc-14-branch/compare/cd0059a1976303638cea95f216de129334fc04d1..gcc-14.1-darwin-r1.patch?full_index=1",
+            sha256="159cc2a1077ad5d9a3cca87880cd977b8202d8fb464a6ec7b53804475d21a682",
+            when="@14.1.0 target=aarch64:",
+        )
+
+        patch(
+            "https://github.com/iains/gcc-13-branch/compare/b71f1de6e9cf7181a288c0f39f9b1ef6580cf5c8..gcc-13.3-darwin-r1.patch?full_index=1",
+            sha256="d957520afc286ac46aa3c4bf9b64618d02ca0bf1466f32321b5d6beec6a396eb",
+            when="@13.3.0 target=aarch64:",
         )
         patch(
-            "https://raw.githubusercontent.com/Homebrew/formula-patches/5c206c47/gcc/gcc-13.1.0.diff",
-            sha256="cb4e8a89387f748a744da0273025d0dc2e3c76780cc390b18ada704676afea11",
-            when="@13.1.0 target=aarch64:",
-        )
-        patch(
-            "https://raw.githubusercontent.com/Homebrew/formula-patches/3c5cbc8e9cf444a1967786af48e430588e1eb481/gcc/gcc-13.2.0.diff",
-            sha256="2df7ef067871a30b2531a2013b3db661ec9e61037341977bfc451e30bf2c1035",
+            "https://github.com/iains/gcc-13-branch/compare/c891d8dc23e1a46ad9f3e757d09e57b500d40044..gcc-13.2-darwin-r0.patch?full_index=1",
+            sha256="6a49d1074d7dd2e3b76e61613a0f143c668ed648fb8d9d48ed76a6b127815c88",
             when="@13.2.0 target=aarch64:",
         )
         patch(
-            "https://raw.githubusercontent.com/Homebrew/formula-patches/82b5c1cd38826ab67ac7fc498a8fe74376a40f4a/gcc/gcc-14.1.0.diff",
-            sha256="1529cff128792fe197ede301a81b02036c8168cb0338df21e4bc7aafe755305a",
-            when="@14.1.0 target=aarch64:",
+            "https://github.com/iains/gcc-13-branch/compare/cc035c5d8672f87dc8c2756d9f8367903aa72d93..gcc-13.1-darwin-r0.patch?full_index=1",
+            sha256="36d2c04d487edb6792b48dedae6936f8b864b6f969bd3fd03763e072d471c022",
+            when="@13.1.0 target=aarch64:",
         )
+
+        patch(
+            "https://github.com/iains/gcc-12-branch/compare/2bada4bc59bed4be34fab463bdb3c3ebfd2b41bb..gcc-12.4-darwin-r0.patch?full_index=1",
+            sha256="e242adf240a62ed3005da75a9e304bda980b84ce497f124b4bddc819ee821e2a",
+            when="@12.4.0 target=aarch64:",
+        )
+        patch(
+            "https://github.com/iains/gcc-12-branch/compare/8fc1a49c9312b05d925b7d21f1d2145d70818151..gcc-12.3-darwin-r0.patch?full_index=1",
+            sha256="1ebac2010eb9ced33cf46a8d8378193671ed6830f262219aa3428de5bc9fd668",
+            when="@12.3.0 target=aarch64:",
+        )
+        patch(
+            "https://github.com/iains/gcc-12-branch/compare/2ee5e4300186a92ad73f1a1a64cb918dc76c8d67..gcc-12.2-darwin-r0.patch?full_index=1",
+            sha256="16d5203ddb97cd43d6c1e9c34e0f681154aed1d127f2324b2a50006b92960cfd",
+            when="@12.2.0 target=aarch64:",
+        )
+        patch(
+            "https://github.com/iains/gcc-12-branch/compare/1ea978e3066ac565a1ec28a96a4d61eaf38e2726..gcc-12.1-darwin-r1.patch?full_index=1",
+            sha256="b0a811e33c3451ebd1882eac4e2b4b32ce0b60cfa0b8ccf8c5fda7b24327c820",
+            when="@12.1.0 target=aarch64:",
+        )
+
+        patch(
+            "https://github.com/iains/gcc-11-branch/compare/5cc4c42a0d4de08715c2eef8715ad5b2e92a23b6..gcc-11.5-darwin-r0.patch?full_index=1",
+            sha256="6c92190a9acabd6be13bd42ca675f59f44be050a7121214abeaea99d898db30c",
+            when="@11.5.0 target=aarch64:",
+        )
+        patch(
+            "https://github.com/iains/gcc-11-branch/compare/ff4bf326d03e750a8d4905ea49425fe7d15a04b8..gcc-11.4-darwin-r0.patch?full_index=1",
+            sha256="05810e5cdb052c06490f7d987c66a13d47ae7bd2eb285a3a881ad4aa6dd0d13f",
+            when="@11.4.0 target=aarch64:",
+        )
+        patch(
+            "https://github.com/iains/gcc-11-branch/compare/2d280e7eafc086e9df85f50ed1a6526d6a3a204d..gcc-11.3-darwin-r2.patch?full_index=1",
+            sha256="a8097c232dfb21b0e02f3d99e3c3e47443db3982dafbb584938ac1a9a4afd33d",
+            when="@11.3.0 target=aarch64:",
+        )
+
         conflicts("+bootstrap", when="@11.3.0,13.1: target=aarch64:")
 
         # Use -headerpad_max_install_names in the build,
@@ -507,6 +578,9 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
         when="@13.2.0 target=aarch64:",
     )
 
+    # see https://gcc.gnu.org/gcc-11/changes.html 11.5 Caveats
+    patch("patch-5522dec054cb940fe83661b96249aa12c54c1d77.patch", when="@11.5.0 target=aarch64:")
+
     build_directory = "spack-build"
 
     compiler_languages = ["c", "cxx", "fortran", "d", "go"]
@@ -523,48 +597,26 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
     fortran_names = ["gfortran"]
     d_names = ["gdc"]
     go_names = ["gccgo"]
-    compiler_prefixes = [r"\w+-\w+-\w+-"]
     compiler_suffixes = [r"-mp-\d+(?:\.\d+)?", r"-\d+(?:\.\d+)?", r"\d\d"]
-    compiler_version_regex = r"(?<!clang version)\s?([0-9.]+)"
+    compiler_version_regex = r"([0-9.]+)"
     compiler_version_argument = ("-dumpfullversion", "-dumpversion")
 
     @classmethod
-    def determine_version(cls, exe):
-        try:
-            output = spack.compiler.get_compiler_version_output(exe, "--version")
-        except Exception:
-            output = ""
-        # Apple's gcc is actually apple clang, so skip it.
-        if "Apple" in output:
-            return None
-
-        return super().determine_version(exe)
-
-    @classmethod
     def filter_detected_exes(cls, prefix, exes_in_prefix):
-        result = []
-        for exe in exes_in_prefix:
-            # On systems like Ubuntu we might get multiple executables
-            # with the string "gcc" in them. See:
-            # https://helpmanual.io/packages/apt/gcc/
-            basename = os.path.basename(exe)
-            substring_to_be_filtered = [
-                "c99-gcc",
-                "c89-gcc",
-                "-nm",
-                "-ar",
-                "ranlib",
-                "clang",  # clang++ matches g++ -> clan[g++]
-            ]
-            if any(x in basename for x in substring_to_be_filtered):
-                continue
-            # Filter out links in favor of real executables
-            if os.path.islink(exe):
-                continue
+        # Apple's gcc is actually apple clang, so skip it.
+        if str(spack.platforms.host()) == "darwin":
+            not_apple_clang = []
+            for exe in exes_in_prefix:
+                try:
+                    output = spack.compiler.get_compiler_version_output(exe, "--version")
+                except Exception:
+                    output = ""
+                if "clang version" in output:
+                    continue
+                not_apple_clang.append(exe)
+            return not_apple_clang
 
-            result.append(exe)
-
-        return result
+        return exes_in_prefix
 
     @classmethod
     def determine_variants(cls, exes, version_str):
@@ -603,7 +655,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
         if self.spec.external:
             return self.spec.extra_attributes["compilers"].get("c", None)
         result = None
-        if "languages=c" in self.spec:
+        if self.spec.satisfies("languages=c"):
             result = str(self.spec.prefix.bin.gcc)
         return result
 
@@ -614,7 +666,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
         if self.spec.external:
             return self.spec.extra_attributes["compilers"].get("cxx", None)
         result = None
-        if "languages=c++" in self.spec:
+        if self.spec.satisfies("languages=c++"):
             result = os.path.join(self.spec.prefix.bin, "g++")
         return result
 
@@ -625,7 +677,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
         if self.spec.external:
             return self.spec.extra_attributes["compilers"].get("fortran", None)
         result = None
-        if "languages=fortran" in self.spec:
+        if self.spec.satisfies("languages=fortran"):
             result = str(self.spec.prefix.bin.gfortran)
         return result
 
@@ -693,7 +745,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
         for uarch in microarchitectures:
             try:
                 return uarch.optimization_flags("gcc", str(spec.version))
-            except UnsupportedMicroarchitecture:
+            except archspec.cpu.UnsupportedMicroarchitecture:
                 pass
         # no arch specific flags in common, unlikely to happen.
         return ""
@@ -721,7 +773,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
         if "+bootstrap %gcc" in self.spec and self.spec.target.family != "aarch64":
             flags += " " + self.get_common_target_flags(self.spec)
 
-        if "+bootstrap" in self.spec:
+        if self.spec.satisfies("+bootstrap"):
             variables = ["BOOT_CFLAGS", "CFLAGS_FOR_TARGET", "CXXFLAGS_FOR_TARGET"]
         else:
             variables = ["CFLAGS", "CXXFLAGS"]
@@ -762,12 +814,12 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
         if self.version >= Version("6"):
             options.append("--with-system-zlib")
 
-        if "zstd" in spec:
+        if spec.satisfies("^zstd"):
             options.append("--with-zstd-include={0}".format(spec["zstd"].headers.directories[0]))
             options.append("--with-zstd-lib={0}".format(spec["zstd"].libs.directories[0]))
 
         # Enabling language "jit" requires --enable-host-shared.
-        if "languages=jit" in spec:
+        if spec.satisfies("languages=jit"):
             options.append("--enable-host-shared")
 
         # Binutils
@@ -781,11 +833,6 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
                     "--with-as=" + binutils.join("as"),
                 ]
             )
-        elif spec.satisfies("%apple-clang@15:"):
-            # https://github.com/iains/gcc-darwin-arm64/issues/117
-            # https://github.com/iains/gcc-12-branch/issues/22
-            # https://github.com/iains/gcc-13-branch/issues/8
-            options.append("--with-ld=/Library/Developer/CommandLineTools/usr/bin/ld-classic")
 
         # enable_bootstrap
         if spec.satisfies("+bootstrap"):
@@ -842,7 +889,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
         options.append("--with-boot-ldflags=" + boot_ldflags)
         options.append("--with-build-config=spack")
 
-        if "languages=d" in spec:
+        if spec.satisfies("languages=d"):
             # Phobos is the standard library for the D Programming Language. The documentation says
             # that on some targets, 'libphobos' is not enabled by default, but compiles and works
             # if '--enable-libphobos' is used. Specifics are documented for affected targets.
@@ -929,13 +976,13 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
 
     @property
     def build_targets(self):
-        if "+profiled" in self.spec:
+        if self.spec.satisfies("+profiled"):
             return ["profiledbootstrap"]
         return []
 
     @property
     def install_targets(self):
-        if "+strip" in self.spec:
+        if self.spec.satisfies("+strip"):
             return ["install-strip"]
         return ["install"]
 
@@ -977,37 +1024,27 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
             # programs search path
             if self.spec.satisfies("+binutils"):
                 f.write(f"*self_spec:\n+ -B{self.spec['binutils'].prefix.bin}\n\n")
+
+            # set -fuse-ld=mold as the default linker when +mold
+            if self.spec.satisfies("+mold"):
+                f.write(
+                    f"*self_spec:\n+ -B{self.spec['mold'].prefix.bin} "
+                    "%{!fuse-ld*:-fuse-ld=mold}\n\n"
+                )
+
         set_install_permissions(specs_file)
         tty.info(f"Wrote new spec file to {specs_file}")
 
     def setup_run_environment(self, env):
-        # Search prefix directory for possibly modified compiler names
-        from spack.compilers.gcc import Gcc as Compiler
+        if self.spec.satisfies("languages=c"):
+            env.set("CC", self.cc)
 
-        # Get the contents of the installed binary directory
-        bin_path = self.spec.prefix.bin
+        if self.spec.satisfies("languages=c++"):
+            env.set("CXX", self.cxx)
 
-        if not os.path.isdir(bin_path):
-            return
-
-        bin_contents = os.listdir(bin_path)
-
-        # Find the first non-symlink compiler binary present for each language
-        for lang in ["cc", "cxx", "fc", "f77"]:
-            for filename, regexp in itertools.product(bin_contents, Compiler.search_regexps(lang)):
-                if not regexp.match(filename):
-                    continue
-
-                abspath = os.path.join(bin_path, filename)
-
-                # Skip broken symlinks (https://github.com/spack/spack/issues/41327)
-                if not os.path.exists(abspath):
-                    continue
-
-                # Set the proper environment variable
-                env.set(lang.upper(), abspath)
-                # Stop searching filename/regex combos for this language
-                break
+        if self.spec.satisfies("languages=fortran"):
+            env.set("FC", self.fortran)
+            env.set("F77", self.fortran)
 
     def detect_gdc(self):
         """Detect and return the path to GDC that belongs to the same instance of GCC that is used
@@ -1139,6 +1176,10 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
             )
         # The version of gcc-runtime is the same as the %gcc used to "compile" it
         pkg("gcc-runtime").requires(f"@={str(spec.version)}", when=f"%{str(spec)}")
+
+        # If a node used %gcc@X.Y its dependencies must use gcc-runtime@:X.Y
+        # (technically @:X is broader than ... <= @=X but this should work in practice)
+        pkg("*").propagate(f"%gcc@:{str(spec.version)}", when=f"%{str(spec)}")
 
     def _post_buildcache_install_hook(self):
         if not self.spec.satisfies("platform=linux"):

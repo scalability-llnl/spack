@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,8 @@ class EsShell(AutotoolsPackage):
     license("Public-Domain")
 
     version("0.9.1", sha256="b0b41fce99b122a173a06b899a4d92e5bd3cc48b227b2736159f596a58fff4ba")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("readline")
     depends_on("yacc")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,8 @@ class ModelTraits(CMakePackage):
     version("0.1.1", sha256="75af53b4f576071570fdcfa7a4ce150b935cf21368da41d16d8377c5b3b93713")
     version("0.1.0", sha256="ff7c1c5be6977f1d3dc592e8b6c5bff5a8b7ea80d0f059d85c02300bdb8faf2c")
     version("main", branch="main")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("yaml", default=True, description="build the Yaml IO backend")
     variant("simmetrix", default=False, description="build the Simmetrix backend")

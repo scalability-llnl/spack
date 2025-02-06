@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -18,6 +17,9 @@ class Audacious(AutotoolsPackage):
     version("4.0", sha256="cdfffd0eb966856980328ebb0fff9cbce57f99db9bda15e7e839d26c89e953e6")
     version("3.10.1", sha256="c478939b4bcf6704c26eee87d48cab26547e92a83741f437711178c433373fa1")
     version("3.10", sha256="82710d6ac90931c2cc4a0f0fcb6380ac21ed42a7a50856d16a67d3179a96e9ae")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("m4", type="build")
     depends_on("autoconf", type="build")

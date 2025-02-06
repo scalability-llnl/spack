@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,3 +16,5 @@ class PerlXmlHashXs(PerlPackage):
     license("Artistic-1.0-Perl OR GPL-1.0-or-later")
 
     version("0.56", sha256="be4c60ded94c5ebe53a81ef74928dfbec9613986d2a6056dd253665c6ae9802f")
+
+    depends_on("c", type="build")  # generated

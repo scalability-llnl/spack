@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -50,6 +49,8 @@ class PyNetworkx(PythonPackage):
         # From requirements/default.txt
         depends_on("py-numpy@1.20:", when="@3:", type=("build", "run"))
         depends_on("py-numpy@1.19:", when="@2.8.6:", type=("build", "run"))
+        # https://github.com/networkx/networkx/pull/7390
+        depends_on("py-numpy@:1", when="@:3.2", type=("build", "run"))
         depends_on("py-scipy@1.8:", when="@2.8.6:", type=("build", "run"))
         depends_on("py-matplotlib@3.4:", when="@2.8.6:", type=("build", "run"))
         depends_on("py-pandas@1.3:", when="@2.8.6:", type=("build", "run"))

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -20,6 +19,10 @@ class Agile(AutotoolsPackage):
     license("GPL-2.0-only")
 
     version("1.5.1", sha256="e38536300060e4b845ccaaed824c7495944f9117a0d7e4ee74a18bf278e2012f")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("hepmc")
     depends_on("boost")

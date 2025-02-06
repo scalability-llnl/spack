@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class Memsurfer(PythonPackage):
     version("1.0", tag="v1.0", commit="93d114016cd3ef48950bc53cca0a6e9f70589361", submodules=True)
     version("master", branch="master", submodules=True)
     version("develop", branch="develop", submodules=True)
+
+    depends_on("cxx", type="build")  # generated
 
     extends("python")
     depends_on("python@3.7:", type=("build", "run"))

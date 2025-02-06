@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,8 @@ class PyCyvcf2(PythonPackage):
     license("MIT")
 
     version("0.11.7", sha256="a4b6229b89a0a1043684c65cbdd702c366a8800dc3591fb44c4b5a08640cbeec")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("python@2.7:", type=("build", "run"))
     depends_on("py-setuptools", type="build")

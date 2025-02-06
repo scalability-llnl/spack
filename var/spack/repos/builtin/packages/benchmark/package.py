@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,10 +13,14 @@ class Benchmark(CMakePackage):
     git = "https://github.com/google/benchmark.git"
 
     license("Apache-2.0")
+    maintainers("stephenswat")
 
     # first properly installed CMake config packages in
     # 1.2.0 release: https://github.com/google/benchmark/issues/363
     version("main", branch="main")
+    version("1.9.1", sha256="32131c08ee31eeff2c8968d7e874f3cb648034377dfc32a4c377fa8796d84981")
+    version("1.9.0", sha256="35a77f46cc782b16fac8d3b107fbfbb37dcd645f7c28eee19f3b8e0758b48994")
+    version("1.8.5", sha256="d26789a2b46d8808a48a4556ee58ccc7c497fcd4c0af9b90197674a81e04798a")
     version("1.8.4", sha256="3e7059b6b11fb1bbe28e33e02519398ca94c1818874ebed18e504dc6f709be45")
     version("1.8.3", sha256="6bc180a57d23d4d9515519f92b0c83d61b05b5bab188961f36ac7b06b0d9e9ce")
     version("1.8.2", sha256="2aab2980d0376137f969d92848fbb68216abb07633034534fc8c65cc4e7a0e93")
@@ -39,6 +42,8 @@ class Benchmark(CMakePackage):
     version("1.1.0", sha256="e7334dd254434c6668e33a54c8f839194c7c61840d52f4b6258eee28e9f3b20e")
     version("1.0.0", sha256="d2206c263fc1a7803d4b10e164e0c225f6bcf0d5e5f20b87929f137dee247b54")
 
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "build_type",
         default="RelWithDebInfo",
@@ -51,6 +56,9 @@ class Benchmark(CMakePackage):
         when="@1.5.4:",
         description="Enable performance counters provided by libpfm",
     )
+    variant(
+        "shared", default=True, sticky=True, description="Build the libraries as shared objects"
+    )
 
     depends_on("cmake@2.8.11:", type="build", when="@:1.1.0")
     depends_on("cmake@2.8.12:", type="build", when="@1.2.0:1.4")
@@ -61,6 +69,7 @@ class Benchmark(CMakePackage):
         # No need for testing for the install
         args = [
             self.define("BENCHMARK_ENABLE_TESTING", False),
+            self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
             self.define_from_variant("BENCHMARK_ENABLE_LIBPFM", "performance_counters"),
         ]
         return args

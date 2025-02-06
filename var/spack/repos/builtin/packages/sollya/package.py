@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,9 @@ class Sollya(AutotoolsPackage):
     license("LGPL-3.0-or-later")
 
     version("7.0", sha256="15745871f7dd3e96e12915098dd6df2078b815853a38143b2bc6c01477044984")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("gmp")
     depends_on("mpfi")

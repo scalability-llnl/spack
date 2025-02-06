@@ -1,11 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
-
-import llnl.util.tty as tty
 
 from spack.package import *
 from spack.package_test import compare_output
@@ -29,6 +26,9 @@ class Bohrium(CMakePackage, CudaPackage):
     version("develop", branch="master")
     version("0.9.1", sha256="a8675db35ea4587ef12d5885a1aa19b59fd9c3f1366e239059de8b0f3cf51e04")
     version("0.9.0", sha256="6f6379f1555de5a6a19138beac891a470df7df1fc9594e2b9404cf01b6e17d93")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     #
     # Variants
@@ -145,7 +145,7 @@ class Bohrium(CMakePackage, CudaPackage):
         #
         args += ["-DVE_OPENCL=" + str("+opencl" in spec), "-DVE_CUDA=" + str("+cuda" in spec)]
 
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             args += [
                 "-DVE_OPENMP=ON",
                 "-DOPENMP_FOUND=True",
@@ -157,7 +157,7 @@ class Bohrium(CMakePackage, CudaPackage):
         #
         # Extension methods
         #
-        if "+blas" in spec:
+        if spec.satisfies("+blas"):
             args += [
                 "-DEXT_BLAS=ON",
                 "-DCBLAS_FOUND=True",
@@ -167,7 +167,7 @@ class Bohrium(CMakePackage, CudaPackage):
         else:
             args += ["-DEXT_BLAS=OFF", "-DDCBLAS_FOUND=False"]
 
-        if "+lapack" in spec:
+        if spec.satisfies("+lapack"):
             args += [
                 "-DEXT_LAPACK=ON",
                 "-DLAPACKE_FOUND=True",
@@ -177,7 +177,7 @@ class Bohrium(CMakePackage, CudaPackage):
         else:
             args += ["-DEXT_LAPACK=OFF", "-DLAPACKE_FOUND=False"]
 
-        if "+opencv" in spec:
+        if spec.satisfies("+opencv"):
             args += [
                 "-DEXT_OPENCV=ON",
                 "-DOpenCV_FOUND=True",
@@ -231,11 +231,11 @@ class Bohrium(CMakePackage, CudaPackage):
 
         # Collect the stacks which should be available:
         stacks = ["default"]
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             stacks.append("openmp")
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             stacks.append("cuda")
-        if "+opencl" in spec:
+        if spec.satisfies("+opencl"):
             stacks.append("opencl")
 
         # C++ compiler and compiler flags
@@ -265,7 +265,7 @@ class Bohrium(CMakePackage, CudaPackage):
             compare_output(cpp_output, "Success!\n")
 
             # Python test (if +python)
-            if "+python" in spec:
+            if spec.satisfies("+python"):
                 file_pyadd = join_path(os.path.dirname(self.module.__file__), "pyadd.py")
                 py_output = python(file_pyadd, output=str, env=test_env)
                 compare_output(py_output, "Success!\n")

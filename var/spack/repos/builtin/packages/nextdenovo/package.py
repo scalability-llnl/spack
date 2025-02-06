@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,8 @@ class Nextdenovo(MakefilePackage):
     license("GPL-3.0-only")
 
     version("2.5.2", sha256="f1d07c9c362d850fd737c41e5b5be9d137b1ef3f1aec369dc73c637790611190")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("python", type="run")
     depends_on("py-paralleltask", type="run")

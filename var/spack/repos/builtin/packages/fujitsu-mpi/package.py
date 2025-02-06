@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,8 @@ class FujitsuMpi(Package):
         policy="one_of",
         msg="currently only supports Fujitsu, Clang, or GCC compilers",
     )
+
+    requires("platform=linux")
 
     def install(self, spec, prefix):
         raise InstallError("Fujitsu MPI is not installable; it is vendor supplied")

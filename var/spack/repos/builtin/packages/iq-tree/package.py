@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -36,6 +35,9 @@ class IqTree(CMakePackage):
     )
     version("1.6.12", sha256="9614092de7a157de82c9cc402b19cc8bfa0cb0ffc93b91817875c2b4bb46a284")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("openmp", default=True, description="Enable OpenMP support.")
     variant("mpi", default=False, description="Enable MPI support.")
     variant("lsd2", default=True, description="Activate Least Squares Dating.")
@@ -54,13 +56,13 @@ class IqTree(CMakePackage):
         args = []
         iqflags = []
 
-        if "+lsd2" in spec:
+        if spec.satisfies("+lsd2"):
             args.append("-DUSE_LSD2=ON")
 
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             iqflags.append("omp")
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             iqflags.append("mpi")
 
         if not iqflags:

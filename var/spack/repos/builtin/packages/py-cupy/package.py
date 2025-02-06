@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,6 +26,8 @@ class PyCupy(PythonPackage, CudaPackage, ROCmPackage):
     version("11.3.0", sha256="d057cc2f73ecca06fae8b9c270d9e14116203abfd211a704810cc50a453b4c9e")
     version("11.2.0", sha256="c33361f117a347a63f6996ea97446d17f1c038f1a1f533e502464235076923e2")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("all", default=False, description="Enable optional py-scipy, optuna, and cython")
 
     depends_on("python@3.7:", when="@:11", type=("build", "run"))
@@ -51,7 +52,8 @@ class PyCupy(PythonPackage, CudaPackage, ROCmPackage):
     for a in CudaPackage.cuda_arch_values:
         depends_on("nccl +cuda cuda_arch={0}".format(a), when="+cuda cuda_arch={0}".format(a))
 
-    depends_on("cudnn", when="+cuda")
+    depends_on("cudnn@8.8", when="@12.0.0: +cuda")
+    depends_on("cudnn@8.5", when="@11.2.0:11.6.0 +cuda")
     depends_on("cutensor", when="@:12.1.0 +cuda")
     depends_on("cutensor@2.0.1.2", when="@13.1: +cuda")
 

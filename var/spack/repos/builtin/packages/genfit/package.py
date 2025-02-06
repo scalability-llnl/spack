@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -29,6 +28,8 @@ class Genfit(CMakePackage):
     version("02-00-00", sha256="0bfd5dd152ad0573daa4153a731945824e0ce266f844988b6a8bebafb7f2dacc")
     # Untagged version from 2017-06-23 known to work with root@6.16.00
     version("b496504a", sha256="e1582b35782118ade08498adc03f3fda01979ff8bed61e0520edae46d7bfe477")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("root")
     depends_on("root@:6.16.00", when="@b496504a")

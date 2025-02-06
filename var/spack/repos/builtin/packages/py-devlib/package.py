@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,8 @@ class PyDevlib(PythonPackage):
     version("0.0.4", sha256="0f55e684d43fab759d0e74bd8f0d0260d9546a8b8d853d286acfe5e00c86da05")
     version("0.0.3", sha256="29ec5f1de481783ab0b9efc111dfeb67c890187d56fca8592b25ee756ff32902")
     version("0.0.2", sha256="972f33be16a06572a19b67d909ee0ed6cb6f21f9a9da3c43fd0ff5851421051d")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("py-setuptools", type="build")
     depends_on("py-python-dateutil", type=("build", "run"))

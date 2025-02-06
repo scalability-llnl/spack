@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,7 @@ class Parallelio(CMakePackage):
 
     license("Apache-2.0")
 
+    version("2.6.3", sha256="a483eb1cfa88ace8c6266e02741771c984e846dd732e86c72c3fdeae942b4299")
     version("2.6.2", sha256="c318894f0230197458917e932ec66301b4407a744df481e9c6a6d9d85f7e5ab1")
     version("2.6.1", sha256="83d3108d2b9db8219aa6b6ee333cfc12b2a588bcfc781587df5f8b24a716a6eb")
     version("2.6.0", sha256="e56a980c71c7f57f396a88beae08f1670d4adf59be6411cd573fe85868ef98c0")
@@ -29,6 +29,10 @@ class Parallelio(CMakePackage):
     version("2.5.4", sha256="e51dc71683da808a714deddc1a80c2650ce847110383e42f1710f3ba567e7a65")
     version("2.5.3", sha256="205a0a128fd5262700efc230b3380dc5ab10e74bc5d273ae05db76c9d95487ca")
     version("2.5.2", sha256="935bc120ef3bf4fe09fb8bfdf788d05fb201a125d7346bf6b09e27ac3b5f345c")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("pnetcdf", default=False, description="enable pnetcdf")
     variant("timing", default=False, description="enable GPTL timing")
@@ -65,6 +69,11 @@ class Parallelio(CMakePackage):
 
     # Allow argument mismatch in gfortran versions > 10 for mpi library compatibility
     patch("gfortran.patch", when="@:2.5.8 +fortran %gcc@10:")
+
+    @run_after("install", when="platform=darwin")
+    def darwin_install_name(self):
+        # The shared library is not installed correctly on Darwin; fix this
+        fix_darwin_install_name(self.prefix.lib)
 
     def cmake_args(self):
         define = self.define

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -33,6 +32,8 @@ class Paml(MakefilePackage):
         sha256="623bf6cf4a018a4e7b4dbba189c41d6c0c25fdca3a0ae24703b82965c772edb3",
         url="http://abacus.gene.ucl.ac.uk/software/SoftOld/paml4.9h.tgz",
     )
+
+    depends_on("c", type="build")  # generated
 
     build_directory = "src"
 

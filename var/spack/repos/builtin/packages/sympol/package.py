@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,9 @@ class Sympol(CMakePackage):
     license("GPL-2.0-only")
 
     version("0.1.8", sha256="8f4c013fa563e696fc8c27c408fd1f3d47783639815e8141e3a99826f1f3d54f")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@2.6:", type="build")
 

@@ -1,10 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import sys
 
 import spack.build_systems.meson
+import spack.variant
 from spack.package import *
 
 
@@ -49,7 +49,12 @@ class Mesa(MesonPackage):
     version("20.3.4", sha256="dc21a987ec1ff45b278fe4b1419b1719f1968debbb80221480e44180849b4084")
     version("20.2.1", sha256="d1a46d9a3f291bc0e0374600bdcb59844fa3eafaa50398e472a36fc65fd0244a")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("meson@0.52:", type="build")
+    depends_on("meson@0.54:", type="build", when="@23:")
+    depends_on("meson@0.60:", type="build", when="@23.1:")
 
     depends_on("pkgconfig", type="build")
     depends_on("bison", type="build")

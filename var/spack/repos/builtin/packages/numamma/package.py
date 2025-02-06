@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,8 @@ class Numamma(CMakePackage):
     license("MIT")
 
     version("1.1.1", sha256="f79ca22a95df33a1af529ddd653d043f7f0d32a6d196e559aee8bef8fc74771f")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("numap")
     depends_on("libbacktrace")

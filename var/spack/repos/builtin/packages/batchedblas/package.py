@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,8 @@ class Batchedblas(MakefilePackage):
     license("BSD-2-Clause")
 
     version("1.0", sha256="798ae4e7cc4ad5c3d5f3479f3d001da566d7d5205779103aaf10cd5b956ba433")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("blas")
 

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,9 @@ class Nopayloadclient(CMakePackage):
 
     version("main", branch="main")
     version("0.0.3", sha256="9481981d0cfbe1727f08ae3d1129c142a952d5e67ddb9ad88224356040af2225")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("curl")
     depends_on("nlohmann-json", type="build")

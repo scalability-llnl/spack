@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,9 @@ class Sympack(CMakePackage, CudaPackage):
     version("3.0", sha256="bd04284bb6a309a71cd4f9f54f72345ff98fa7ba5719498df1e8a00ef05c41de")
     version("2.0.1", sha256="21c172e902531c94c3bb5932c15de4b4ec9adf9c0d8e2071bb12cdbdfa25ca52")
     version("2.0", sha256="93fcfbadab73718e249e7ed12641a3c6be58b19cafdf6bad12a6a09c3d1eb4a1")
+
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("cmake@3.11:", type="build")
 

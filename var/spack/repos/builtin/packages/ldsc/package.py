@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,7 +9,7 @@ class Ldsc(PythonPackage):
     """ldsc is a command line tool for estimating heritability and genetic correlation from
     GWAS summary statistics. ldsc also computes LD scores"""
 
-    homepage = "http://github.com/bulik/ldsc"
+    homepage = "https://github.com/bulik/ldsc"
     pypi = "ldsc/ldsc-2.0.1.tar.gz"
 
     license("GPL-3.0-only", checked_by="A-N-Other")

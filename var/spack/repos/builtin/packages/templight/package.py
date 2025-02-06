@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -61,6 +60,8 @@ class Templight(CMakePackage):
     )
 
     version("2018.07.20", commit="91589f95427620dd0a2346bd69ba922f374aa42a")
+
+    depends_on("cxx", type="build")  # generated
     resource(
         name="llvm-r337566",
         svn=llvm_svn.format("llvm"),

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,10 @@ class Herwigpp(AutotoolsPackage):
     license("GPL-2.0-only")
 
     version("2.7.1", sha256="80a189376bb65f5ec4e64f42e76c00ea9102d8224010563a424fc11e619a6ad6")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
     patch("herwig++-2.7.1.patch", when="@2.7.1", level=0)
 
     depends_on("gsl")

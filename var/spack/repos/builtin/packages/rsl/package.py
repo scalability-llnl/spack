@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,8 @@ class Rsl(AutotoolsPackage):
     license("LGPL-2.0-only")
 
     version("1.50", sha256="9e4e3fe45eb1e4aebea63255d4956b00eb69527044a83f182cde1b43510bd342")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("bzip2")
     depends_on("jpeg")

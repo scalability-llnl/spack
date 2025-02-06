@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,8 @@ class Psm(MakefilePackage):
         preferred=True,
     )
     version("2017-04-28", commit="604758e76dc31e68d1de736ccf5ddf16cb22355b")
+
+    depends_on("c", type="build")  # generated
 
     conflicts("%gcc@6:", when="@3.3")
 

@@ -1,9 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import os.path
+import os
 
 from spack.package import *
 
@@ -51,6 +50,9 @@ class Dyninst(CMakePackage):
         "8.2.1", tag="v8.2.1", commit="939afcbad1a8273636a3686a31b51dae4f1f0c11", deprecated=True
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "openmp",
         default=True,
@@ -61,8 +63,9 @@ class Dyninst(CMakePackage):
 
     variant("stat_dysect", default=False, description="Patch for STAT's DySectAPI")
 
-    boost_libs = "+atomic+chrono+date_time+filesystem+system+thread+timer"
-    "+container+random+exception"
+    boost_libs = (
+        "+atomic+chrono+date_time+filesystem+system+thread+timer+container+random+exception"
+    )
 
     depends_on("boost@1.61.0:" + boost_libs, when="@10.1.0:")
     depends_on("boost@1.61.0:1.69" + boost_libs, when="@:10.0")
@@ -107,6 +110,11 @@ class Dyninst(CMakePackage):
     patch("stackanalysis_h.patch", when="@9.2.0")
     patch("v9.3.2-auto.patch", when="@9.3.2 %gcc@:4.7")
     patch("tribool.patch", when="@9.3.0:10.0.0 ^boost@1.69:")
+    patch(
+        "missing_include_deque.patch",
+        when="@10.0.0:12.2.0",
+        sha256="0064d8d51bd01bd0035e1ebc49276f627ce6366d4524c92cf47d3c09b0031f96",
+    )
 
     requires("%gcc", when="@:13.0.0", msg="dyninst builds only with GCC")
 
@@ -136,12 +144,12 @@ class Dyninst(CMakePackage):
             self.define("LibIberty_LIBRARIES", spec["libiberty"].libs),
         ]
 
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             args.append("-DUSE_OpenMP=ON")
         else:
             args.append("-DUSE_OpenMP=OFF")
 
-        if "+static" in spec:
+        if spec.satisfies("+static"):
             args.append("-DENABLE_STATIC_LIBS=YES")
         else:
             args.append("-DENABLE_STATIC_LIBS=NO")
@@ -191,14 +199,14 @@ class Dyninst(CMakePackage):
 
         # Openmp applies to version 10.x or later.
         if spec.satisfies("@10.0.0:"):
-            if "+openmp" in spec:
+            if spec.satisfies("+openmp"):
                 args.append("-DUSE_OpenMP=ON")
             else:
                 args.append("-DUSE_OpenMP=OFF")
 
         # Static libs started with version 9.1.0.
         if spec.satisfies("@9.1.0:"):
-            if "+static" in spec:
+            if spec.satisfies("+static"):
                 args.append("-DENABLE_STATIC_LIBS=1")
             else:
                 args.append("-DENABLE_STATIC_LIBS=NO")

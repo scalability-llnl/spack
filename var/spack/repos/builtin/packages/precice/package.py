@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,7 @@ class Precice(CMakePackage):
     license("LGPL-3.0-or-later")
 
     version("develop", branch="develop")
+    version("3.1.2", sha256="e06d5e183f584c51812dcddf958210d1195bea38fa2df13be72303dcb06c869b")
     version("3.1.1", sha256="fe759293942ebc9cb2e6127f356a8c795ab7383c1b074595994ebc92466e478d")
     version("3.1.0", sha256="11e7d3d4055ee30852c0e83692ca7563acaa095bd223ebdbd5c8c851b3646d37")
     version("3.0.0", sha256="efe6cf505d9305af89c6da1fdba246199a75a1c63a6a22103773ed95341879ba")
@@ -46,6 +46,10 @@ class Precice(CMakePackage):
     version("1.4.0", sha256="3499bfc0941fb9f004d5e32eb63d64f93e17b4057fab3ada1cde40c8311bd466")
     version("1.3.0", sha256="610322ba1b03df8e8f7d060d57a6a5afeabd5db4e8c4a638d04ba4060a3aec96")
     version("1.2.0", sha256="0784ecd002092949835151b90393beb6e9e7a3e9bd78ffd40d18302d6da4b05b")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
     # Skip version 1.1.1 entirely, the cmake was lacking install.
 
     variant("mpi", default=True, description="Enable MPI support")
@@ -88,6 +92,7 @@ class Precice(CMakePackage):
     depends_on("boost@:1.72", when="@:2.0.2")
     depends_on("boost@:1.74", when="@:2.1.1")
     depends_on("boost@:1.78", when="@:2.3.0")
+    depends_on("boost@:1.86", when="@:3.1.2")
 
     depends_on("eigen@3.2:")
     depends_on("eigen@3.4:", when="@3.2:")
@@ -111,7 +116,6 @@ class Precice(CMakePackage):
     conflicts("%apple-clang@:5")
     conflicts("%clang@:3.7")
     conflicts("%intel@:16")
-    conflicts("%pgi@:17.3")
 
     def xsdk_tpl_args(self):
         return [

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,9 +16,11 @@ class Onnx(CMakePackage):
     url = "https://github.com/onnx/onnx/archive/refs/tags/v1.9.0.tar.gz"
     git = "https://github.com/onnx/onnx.git"
 
-    license("Apache-2.0")
+    license("Apache-2.0", checked_by="wdconinc")
 
     version("master", branch="master")
+    version("1.16.2", sha256="84fc1c3d6133417f8a13af6643ed50983c91dacde5ffba16cc8bb39b22c2acbb")
+    version("1.16.1", sha256="0e6aa2c0a59bb2d90858ad0040ea1807117cc2f05b97702170f18e6cd6b66fb3")
     version("1.16.0", sha256="0ce153e26ce2c00afca01c331a447d86fbf21b166b640551fe04258b4acfc6a4")
     version("1.15.0", sha256="c757132e018dd0dd171499ef74fca88b74c5430a20781ec53da19eb7f937ef68")
     version("1.14.1", sha256="e296f8867951fa6e71417a18f2e550a730550f8829bd35e947b4df5e3e777aa1")
@@ -49,16 +50,26 @@ class Onnx(CMakePackage):
     )  # py-torch@1.6:1.7
     version("1.6.0_2020-02-16", commit="9fdae4c68960a2d44cd1cc871c74a6a9d469fa1f")  # py-torch@1.5
     version("1.6.0_2019-11-06", commit="fea8568cac61a482ed208748fdc0e1a8e47f62f5")  # py-torch@1.4
-    version("1.6.0_2019-09-26", commit="034921bd574cc84906b7996c07873454b7dd4135")  # py-torch@1.3
-    version("1.5.0_2019-07-25", commit="28ca699b69b5a31892619defca2391044a9a6052")  # py-torch@1.2
-    version("1.5.0_2019-04-25", commit="22662bfd4dcc6baebf29e3b823a051676f991001")  # py-torch@1.1
-    version("1.3.0_2018-12-04", commit="42804705bdbf179d1a98394008417e1392013547")  # py-torch@1.0
     version(
-        "1.2.2_2018-07-16", commit="b2817a682f25f960586f06caa539bbbd7a96b859"
+        "1.6.0_2019-09-26", commit="034921bd574cc84906b7996c07873454b7dd4135", deprecated=True
+    )  # py-torch@1.3
+    version(
+        "1.5.0_2019-07-25", commit="28ca699b69b5a31892619defca2391044a9a6052", deprecated=True
+    )  # py-torch@1.2
+    version(
+        "1.5.0_2019-04-25", commit="22662bfd4dcc6baebf29e3b823a051676f991001", deprecated=True
+    )  # py-torch@1.1
+    version(
+        "1.3.0_2018-12-04", commit="42804705bdbf179d1a98394008417e1392013547", deprecated=True
+    )  # py-torch@1.0
+    version(
+        "1.2.2_2018-07-16", commit="b2817a682f25f960586f06caa539bbbd7a96b859", deprecated=True
     )  # py-torch@0.4.1
     version(
-        "1.1.0_2018-04-19", commit="7e1bed51cc508a25b22130de459830b5d5063c41"
+        "1.1.0_2018-04-19", commit="7e1bed51cc508a25b22130de459830b5d5063c41", deprecated=True
     )  # py-torch@0.4.0
+
+    depends_on("cxx", type="build")
 
     generator("ninja")
     depends_on("cmake@3.1:", type="build")
@@ -67,9 +78,21 @@ class Onnx(CMakePackage):
 
     def patch(self):
         if self.spec.satisfies("@1.13:1.14 ^protobuf@3.22:"):
-            filter_file("CMAKE_CXX_STANDARD 11", "CMAKE_CXX_STANDARD 14", "CMakeLists.txt")
+            # CMAKE_CXX_STANDARD is overridden in CMakeLists.txt until 1.14
+            cxxstd = self.spec["abseil-cpp"].variants["cxxstd"].value
+            filter_file("CMAKE_CXX_STANDARD 11", f"CMAKE_CXX_STANDARD {cxxstd}", "CMakeLists.txt")
 
     def cmake_args(self):
-        # Try to get ONNX to use the same version of python as the spec is using
-        args = ["-DPY_VERSION={0}".format(self.spec["python"].version.up_to(2))]
+        # https://github.com/pytorch/pytorch/blob/main/cmake/Dependencies.cmake
+        args = [
+            self.define("BUILD_SHARED_LIBS", False),
+            self.define("ONNXIFI_ENABLE_EXT", True),
+            # Try to get ONNX to use the same version of python as the spec is using
+            self.define("PY_VERSION", self.spec["python"].version.up_to(2)),
+            self.define("ONNX_BUILD_TESTS", self.run_tests),
+        ]
+        if self.spec.satisfies("@1.15: ^protobuf@3.22:"):
+            # CMAKE_CXX_STANDARD can be set on command line as of 1.15
+            cxxstd = self.spec["abseil-cpp"].variants["cxxstd"].value
+            args.append(self.define("CMAKE_CXX_STANDARD", cxxstd))
         return args

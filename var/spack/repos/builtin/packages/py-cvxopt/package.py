@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,8 @@ class PyCvxopt(PythonPackage):
     license("GPL-3.0-only")
 
     version("1.2.5", sha256="94ec8c36bd6628a11de9014346692daeeef99b3b7bae28cef30c7490bbcb2d72")
+
+    depends_on("c", type="build")  # generated
 
     variant(
         "gsl",

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class PyMeshpy(PythonPackage):
     license("MIT")
 
     version("2022.1.3", sha256="a7158e31ece25fa6c6cebce9fd1e968157d661dc8769fb30ceba69c351478475")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("python@3.6:3", type=("build", "run"))
     depends_on("py-setuptools", type="build")

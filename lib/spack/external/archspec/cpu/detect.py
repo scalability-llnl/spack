@@ -47,7 +47,11 @@ def detection(operating_system: str):
 
 
 def partial_uarch(
-    name: str = "", vendor: str = "", features: Optional[Set[str]] = None, generation: int = 0
+    name: str = "",
+    vendor: str = "",
+    features: Optional[Set[str]] = None,
+    generation: int = 0,
+    cpu_part: str = "",
 ) -> Microarchitecture:
     """Construct a partial microarchitecture, from information gathered during system scan."""
     return Microarchitecture(
@@ -57,6 +61,7 @@ def partial_uarch(
         features=features or set(),
         compilers={},
         generation=generation,
+        cpu_part=cpu_part,
     )
 
 
@@ -90,6 +95,7 @@ def proc_cpuinfo() -> Microarchitecture:
         return partial_uarch(
             vendor=_canonicalize_aarch64_vendor(data),
             features=_feature_set(data, key="Features"),
+            cpu_part=data.get("CPU part", ""),
         )
 
     if architecture in (PPC64LE, PPC64):
@@ -344,6 +350,10 @@ def host():
     # Get the best generic micro-architecture
     generic_candidates = [c for c in candidates if c.vendor == "generic"]
     best_generic = max(generic_candidates, key=sorting_fn)
+
+    # Relevant for AArch64. Filter on "cpu_part" if we have any match
+    if info.cpu_part != "" and any(c for c in candidates if info.cpu_part == c.cpu_part):
+        candidates = [c for c in candidates if info.cpu_part == c.cpu_part]
 
     # Filter the candidates to be descendant of the best generic candidate.
     # This is to avoid that the lack of a niche feature that can be disabled

@@ -1,27 +1,20 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-
-import pytest
-
+import spack.concretize
 import spack.environment as ev
-import spack.spec
 from spack.main import SpackCommand
 
 undevelop = SpackCommand("undevelop")
 env = SpackCommand("env")
 concretize = SpackCommand("concretize")
 
-pytestmark = pytest.mark.not_on_windows("does not run on windows")
-
 
 def test_undevelop(tmpdir, mutable_config, mock_packages, mutable_mock_env_path):
     # setup environment
     envdir = tmpdir.mkdir("env")
     with envdir.as_cwd():
-        with open("spack.yaml", "w") as f:
+        with open("spack.yaml", "w", encoding="utf-8") as f:
             f.write(
                 """\
 spack:
@@ -37,9 +30,9 @@ spack:
 
         env("create", "test", "./spack.yaml")
         with ev.read("test"):
-            before = spack.spec.Spec("mpich").concretized()
+            before = spack.concretize.concretize_one("mpich")
             undevelop("mpich")
-            after = spack.spec.Spec("mpich").concretized()
+            after = spack.concretize.concretize_one("mpich")
 
     # Removing dev spec from environment changes concretization
     assert before.satisfies("dev_path=*")
@@ -50,7 +43,7 @@ def test_undevelop_nonexistent(tmpdir, mutable_config, mock_packages, mutable_mo
     # setup environment
     envdir = tmpdir.mkdir("env")
     with envdir.as_cwd():
-        with open("spack.yaml", "w") as f:
+        with open("spack.yaml", "w", encoding="utf-8") as f:
             f.write(
                 """\
 spack:

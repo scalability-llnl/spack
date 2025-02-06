@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -7,6 +6,8 @@ import re
 import sys
 from tempfile import NamedTemporaryFile
 
+import spack.build_systems.autotools
+import spack.build_systems.nmake
 import spack.platforms
 from spack.package import *
 
@@ -23,6 +24,10 @@ class Sqlite(AutotoolsPackage, NMakePackage):
 
     license("blessing")
 
+    version("3.46.0", sha256="6f8e6a7b335273748816f9b3b62bbdc372a889de8782d7f048c653a447417a7d")
+    version("3.45.3", sha256="b2809ca53124c19c60f42bf627736eae011afdcc205bb48270a5ee9a38191531")
+    version("3.45.1", sha256="cd9c27841b7a5932c9897651e20b86c701dd740556989b01ca596fcfa3d49a0a")
+    version("3.44.2", sha256="1c6719a148bc41cf0f2bbbe3926d7ce3f5ca09d878f1246fcc20767b175bb407")
     version("3.43.2", sha256="6d422b6f62c4de2ca80d61860e3a3fb693554d2f75bb1aaca743ccc4d6f609f0")
     version("3.42.0", sha256="7abcfd161c6e2742ca5c6c0895d1f853c940f203304a0b49da4e1eca5d088ca6")
     version("3.40.1", sha256="2c5dea207fa508d765af1ef620b637dcb06572afa6f01f0815bd5bbf864b33d9")
@@ -50,6 +55,8 @@ class Sqlite(AutotoolsPackage, NMakePackage):
     version("3.27.1", sha256="54a92b8ff73ff6181f89b9b0c08949119b99e8cccef93dbef90e852a8b10f4f8")
     version("3.27.0", sha256="dbfb0fb4fc32569fa427d3658e888f5e3b84a0952f706ccab1fd7c62a54f10f0")
     version("3.26.0", sha256="5daa6a3fb7d1e8c767cd59c4ded8da6e4b00c61d3b466d0685e35c4dd6d7bf5d")
+
+    depends_on("c", type="build")  # generated
     # All versions prior to 3.26.0 are vulnerable to Magellan when FTS
     # is enabled, see https://blade.tencent.com/magellan/index_en.html
 
@@ -178,11 +185,13 @@ class Sqlite(AutotoolsPackage, NMakePackage):
         return all_variants
 
     def url_for_version(self, version):
-        full_version = list(version.version) + [0 * (4 - len(version.version))]
-        version_string = str(full_version[0]) + "".join(["%02d" % v for v in full_version[1:]])
+        if len(version) < 3:
+            raise ValueError(f"Unsupported sqlite version: {version}")
         # See https://www.sqlite.org/chronology.html for version -> year
         # correspondence.
-        if version >= Version("3.41.0"):
+        if version >= Version("3.45.0"):
+            year = "2024"
+        elif version >= Version("3.41.0"):
             year = "2023"
         elif version >= Version("3.37.2"):
             year = "2022"
@@ -205,12 +214,13 @@ class Sqlite(AutotoolsPackage, NMakePackage):
         elif version >= Version("3.7.16"):
             year = "2013"
         else:
-            raise ValueError("Unsupported version {0}".format(version))
-        return "https://www.sqlite.org/{0}/sqlite-autoconf-{1}.tar.gz".format(year, version_string)
+            raise ValueError(f"Unsupported sqlite version {version}")
+        return f"https://www.sqlite.org/{year}/sqlite-autoconf-{version[0]}{version[1]:02}{version[2]:02}00.tar.gz"
 
     @property
     def libs(self):
-        return find_libraries("libsqlite3", root=self.prefix.lib)
+        prefix = "lib" if sys.platform != "win32" else ""
+        return find_libraries(f"{prefix}sqlite3", root=self.prefix.lib, runtime=False)
 
     def test_example(self):
         """check example table dump"""
@@ -271,7 +281,7 @@ class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
             libraryname = "libsqlitefunctions." + dso_suffix
             cc = Executable(spack_cc)
             cc(
-                self.compiler.cc_pic_flag,
+                self.pkg.compiler.cc_pic_flag,
                 "-lm",
                 "-shared",
                 "extension-functions.c",

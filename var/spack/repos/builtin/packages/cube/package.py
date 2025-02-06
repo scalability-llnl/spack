@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -33,6 +32,9 @@ class Cube(AutotoolsPackage):
     version("4.3.4", sha256="34c55fc5d0c84942c0845a7324d84cde09f3bc1b3fae6a0f9556f7ea0e201065")
     version("4.3.3", sha256="ce8e1bff5a208fe5700a0194170be85bbd8f554e1aa1514b4afc5129326c7f83")
     version("4.2.3", sha256="b30c6998bcc54f795bcd6de3cfbef9c3cec094f782820174b533f628b0e60765")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("gui", default=True, description="Build Cube GUI")
 

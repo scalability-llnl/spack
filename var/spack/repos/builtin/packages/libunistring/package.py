@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,6 +26,8 @@ class Libunistring(AutotoolsPackage, GNUMirrorPackage):
     version("0.9.7", sha256="2e3764512aaf2ce598af5a38818c0ea23dedf1ff5460070d1b6cee5c3336e797")
     version("0.9.6", sha256="2df42eae46743e3f91201bf5c100041540a7704e8b9abfd57c972b2d544de41b")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("iconv")
     with when("@master"):
         depends_on("autoconf", type="build")
@@ -43,6 +44,11 @@ class Libunistring(AutotoolsPackage, GNUMirrorPackage):
         # Applies upstream fix for testcase: pragma weak conflicts with --as-needed
         # https://bugs.gentoo.org/688464#c9 (this links to all further info)
         filter_file("#  pragma weak pthread_create", "", "tests/glthread/thread.h")
+
+    def flag_handler(self, name, flags):
+        if name == "cflags" and self.spec.satisfies("@1.1:") and self.spec.satisfies("%intel"):
+            flags.append(self.compiler.c18_flag)
+        return (flags, None, None)
 
     @when("@master")
     def autoreconf(self, spec, prefix):

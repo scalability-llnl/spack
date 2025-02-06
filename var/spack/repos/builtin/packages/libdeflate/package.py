@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,8 @@ class Libdeflate(MakefilePackage, CMakePackage):
     version("1.14", sha256="89e7df898c37c3427b0f39aadcf733731321a278771d20fc553f92da8d4808ac")
     version("1.10", sha256="5c1f75c285cd87202226f4de49985dcb75732f527eefba2b3ddd70a8865f2533")
     version("1.7", sha256="a5e6a0a9ab69f40f0f59332106532ca76918977a974e7004977a9498e3f11350")
+
+    depends_on("c", type="build")  # generated
 
     build_system(
         conditional("makefile", when="@:1.14"),

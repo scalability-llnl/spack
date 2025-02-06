@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,8 @@ class JxrlibDebian(MakefilePackage):
         "1.2_git20170615.f752187-5",
         sha256="3d9d5d6ca972b51259efe1f37a8e42892e90920b13308d70b8a24eb9a82bf34c",
     )
+
+    depends_on("c", type="build")  # generated
 
     def setup_build_environment(self, env):
         env.set("DIR_INSTALL", self.prefix)

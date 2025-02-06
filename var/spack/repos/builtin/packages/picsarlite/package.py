@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,9 @@ class Picsarlite(MakefilePackage):
 
     version("develop", branch="PICSARlite")
     version("0.1", tag="PICSARlite-0.1", commit="3c9cee9bdf32da0998f504bff7af31fcae2f0452")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("prod", default=True, description="Production mode (without FFTW)")
     variant(

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,9 @@ class Jchronoss(CMakePackage):
     version("1.1.1", sha256="5a11463b7295817f503c58dda1a82c0d3568bdee5e9d13d59e00d337ba84dc45")
     version("1.1", sha256="e8230416c94fb58516a4b9293efd0a67edf4a37e82cfae2ced2c0af8b4615f22")
     version("1.0", sha256="6a92d3cf2424fc7eaaeac9bfefe395596275e552ac5660eb4543e43679586f24")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("realtime", default=False, description="Enable Real-Time support")
     variant("openmp", default=False, description="Enable OpenMP constructs")

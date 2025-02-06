@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,6 +24,8 @@ class PyBackportsLzma(PythonPackage):
     version("0.0.7", sha256="f5de56b740ce47e03de02d5c4983e0e2f19b4f6b0bc4597af6369905177f62cd")
     version("0.0.6", sha256="8e70936641398a6814d70f6eae6399be2ae514578d38b7f9b15c277438bbd853")
     version("0.0.4", sha256="7c973edbd50c1467fed2247117e128a924d25404394a57e30d5b6c52cfcd342d")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("python@2.6:3.0,3.4:", type=("build", "run"))
     depends_on("py-setuptools", type="build")

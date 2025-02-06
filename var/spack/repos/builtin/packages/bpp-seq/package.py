@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,8 @@ class BppSeq(CMakePackage):
         sha256="0927d7fb0301c1b99a7353d5876deadb4a3040776cc74e8fe1c366fe920e7b6b",
         deprecated=True,
     )
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@2.6:", type="build")
     depends_on("bpp-core")

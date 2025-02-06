@@ -1,0 +1,35 @@
+diff --git a/vtkm/exec/cuda/internal/WrappedOperators.h b/vtkm/exec/cuda/internal/WrappedOperators.h
+index bece57098..b46077e6a 100644
+--- a/vtkm/exec/cuda/internal/WrappedOperators.h
++++ b/vtkm/exec/cuda/internal/WrappedOperators.h
+@@ -22,6 +22,10 @@ VTKM_THIRDPARTY_PRE_INCLUDE
+ #include <thrust/system/cuda/memory.h>
+ VTKM_THIRDPARTY_POST_INCLUDE
+ 
++#if THRUST_VERSION >= 200500
++#include <cuda/std/type_traits>
++#endif
++
+ namespace vtkm
+ {
+ namespace exec
+@@ -193,11 +197,19 @@ namespace detail
+ // the binary functor is commutative and the T type is is_arithmetic
+ //
+ //
++#if THRUST_VERSION >= 200500
++template <typename T, typename F>
++struct is_commutative<vtkm::exec::cuda::internal::WrappedBinaryOperator<T, F>>
++  : public ::cuda::std::is_arithmetic<T>
++{
++};
++#else
+ template <typename T, typename F>
+ struct is_commutative<vtkm::exec::cuda::internal::WrappedBinaryOperator<T, F>>
+   : public thrust::detail::is_arithmetic<T>
+ {
+ };
++#endif
+ }
+ } //namespace thrust::detail
+ 

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -8,7 +7,6 @@ import platform
 import re
 
 from spack.package import *
-from spack.util.prefix import Prefix
 
 # If you need to add a new version, please be aware that:
 #  - versions in the following dict are automatically added to the package
@@ -27,7 +25,7 @@ _versions = {
             "7d3ab0e8eba95bd682cfda8041c6cb6fa21e09d0d9131316fd7c96c78969de31",
             "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.3%2B9/OpenJDK21U-jdk_aarch64_linux_hotspot_21.0.3_9.tar.gz",
         ),
-        "Darwin-aarch64": (
+        "Darwin-arm64": (
             "b6be6a9568be83695ec6b7cb977f4902f7be47d74494c290bc2a5c3c951e254f",
             "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.3%2B9/OpenJDK21U-jdk_aarch64_mac_hotspot_21.0.3_9.tar.gz",
         ),
@@ -47,7 +45,7 @@ _versions = {
             "a900acf3ae56b000afc35468a083b6d6fd695abec87a8abdb02743d5c72f6d6d",
             "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.11%2B9/OpenJDK17U-jdk_aarch64_linux_hotspot_17.0.11_9.tar.gz",
         ),
-        "Darwin-aarch64": (
+        "Darwin-arm64": (
             "09a162c58dd801f7cfacd87e99703ed11fb439adc71cfa14ceb2d3194eaca01c",
             "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.11%2B9/OpenJDK17U-jdk_aarch64_mac_hotspot_17.0.11_9.tar.gz",
         ),
@@ -65,7 +63,7 @@ _versions = {
             "18be56732c1692ef131625d814dcb02ee091a43fdd6f214a33d87cc14842fc3f",
             "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.8.1%2B1/OpenJDK17U-jdk_x64_mac_hotspot_17.0.8.1_1.tar.gz",
         ),
-        "Darwin-aarch64": (
+        "Darwin-arm64": (
             "2e95eed48650f00650e963c8213b6c6ecda54458edf8d254ebc99d6a6966ffad",
             "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.8.1%2B1/OpenJDK17U-jdk_aarch64_mac_hotspot_17.0.8.1_1.tar.gz",
         ),
@@ -97,7 +95,7 @@ _versions = {
             "ac21a5a87f7cfa00212ab7c41f7eb80ca33640d83b63ad850be811c24095d61a",
             "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.4.1%2B1/OpenJDK17U-jdk_x64_mac_hotspot_17.0.4.1_1.tar.gz",
         ),
-        "Darwin-aarch64": (
+        "Darwin-arm64": (
             "3a976943a9e6a635e68e2b06bd093fc096aad9f5894acda673d3bea0cb3a6f38",
             "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.4.1%2B1/OpenJDK17U-jdk_aarch64_mac_hotspot_17.0.4.1_1.tar.gz",
         ),
@@ -197,7 +195,7 @@ _versions = {
             "e00476a7be3c4adfa9b3d55d30768967fd246a8352e518894e183fa444d4d3ce",
             "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.23%2B9/OpenJDK11U-jdk_aarch64_linux_hotspot_11.0.23_9.tar.gz",
         ),
-        "Darwin-aarch64": (
+        "Darwin-arm64": (
             "49122443bdeab2c9f468bd400f58f85a9ea462846faa79084fd6fd786d9b492d",
             "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.23%2B9/OpenJDK11U-jdk_aarch64_mac_hotspot_11.0.23_9.tar.gz",
         ),
@@ -215,7 +213,7 @@ _versions = {
             "42fd1373ee3f7c24f13551be20c8a5ae7ade778f83c45476ea333b2e3e025267",
             "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.20.1%2B1/OpenJDK11U-jdk_x64_mac_hotspot_11.0.20.1_1.tar.gz",
         ),
-        "Darwin-aarch64": (
+        "Darwin-arm64": (
             "d36abd2f8a8cd2c73a7893306d65a5ae03eaa73565c1fc197a69d1d6fb02405e",
             "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.20.1%2B1/OpenJDK11U-jdk_aarch64_mac_hotspot_11.0.20.1_1.tar.gz",
         ),
@@ -233,7 +231,7 @@ _versions = {
             "18c636bd103e240d29cdb30d7867720ea9fb9ff7c645738bfb4d5b8027269263",
             "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.17%2B8/OpenJDK11U-jdk_ppc64le_linux_hotspot_11.0.17_8.tar.gz",
         ),
-        "Darwin-aarch64": (
+        "Darwin-arm64": (
             "79b18cbd398b67a52ebaf033dfca15c7af4c1a84ec5fa68a88f3bf742bb082f7",
             "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.17%2B8/OpenJDK11U-jdk_aarch64_mac_hotspot_11.0.17_8.tar.gz",
         ),
@@ -255,7 +253,7 @@ _versions = {
             "723548e36e0b3e0a5a2f36a38b22ea825d3004e26054a0e254854adc57045352",
             "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.16.1%2B1/OpenJDK11U-jdk_x64_mac_hotspot_11.0.16.1_1.tar.gz",
         ),
-        "Darwin-aarch64": (
+        "Darwin-arm64": (
             "1953f06702d45eb54bae3ccf453b57c33de827015f5623a2dfc16e1c83e6b0a1",
             "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.16.1%2B1/OpenJDK11U-jdk_aarch64_mac_hotspot_11.0.16.1_1.tar.gz",
         ),
@@ -393,7 +391,7 @@ class Openjdk(Package):
     """The free and opensource java implementation"""
 
     homepage = "https://openjdk.org/"
-    preferred_prefix = "11."
+    preferred_prefix = "17."
 
     preferred_defined = False
     for ver, packages in _versions.items():
@@ -405,6 +403,14 @@ class Openjdk(Package):
                 preferred_defined = True
 
             version(ver, sha256=pkg[0], url=pkg[1], preferred=is_preferred)
+
+    variant(
+        "certs",
+        default="none",
+        values=("system", "none"),
+        multi=False,
+        description=("symlink system certs if requested, otherwise use default package version"),
+    )
 
     provides("java@21", when="@21.0:21")
     provides("java@17", when="@17.0:17")
@@ -479,6 +485,37 @@ class Openjdk(Package):
         top_dir = "Contents/Home/" if platform.system() == "Darwin" else "."
         install_tree(top_dir, prefix)
 
+    @run_after("install")
+    def link_system_certs(self):
+        if self.spec.variants["certs"].value != "system":
+            return
+
+        system_dirs = [
+            # CentOS, Fedora, RHEL
+            "/etc/pki/java",
+            # Ubuntu
+            "/etc/ssl/certs/java",
+            # OpenSUSE
+            "/var/lib/ca-certificates/java-certs",
+        ]
+
+        for directory in system_dirs:
+            # Link configuration file
+            sys_certs = join_path(directory, "cacerts")
+
+            # path for 1.8.0 versions
+            pkg_dir = join_path(self.prefix, "jre", "lib", "security")
+            if not os.path.exists(pkg_dir):
+                # path for version 11 and newer
+                pkg_dir = join_path(self.prefix, "lib", "security")
+            if not os.path.exists(pkg_dir):
+                break
+            pkg_conf = join_path(pkg_dir, "cacerts")
+            if os.path.exists(sys_certs):
+                if os.path.exists(pkg_conf):
+                    os.remove(pkg_conf)
+                os.symlink(sys_certs, pkg_conf)
+
     def setup_run_environment(self, env):
         """Set JAVA_HOME."""
 
@@ -516,3 +553,6 @@ class Openjdk(Package):
     # fix that prevents us from modifying the soname of libjvm.so. If we move
     # to source builds this should be possible.
     non_bindable_shared_objects = ["libjvm.so"]
+
+    # contains precompiled binaries without rpaths
+    unresolved_libraries = ["*"]

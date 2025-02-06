@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -33,6 +32,8 @@ class RPcamethods(RPackage):
     version("1.72.0", commit="1bb8c7d056645e62ee5179f6bb30b6594ebf3bfd")
     version("1.70.0", commit="3368fad48ea930775505fd26e4179d7714d633d8")
     version("1.68.0", commit="c8d7c93dcaf7ef728f3d089ae5d55771b320bdab")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r-biobase", type=("build", "run"))
     depends_on("r-biocgenerics", type=("build", "run"))

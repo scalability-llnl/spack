@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,30 @@ class IntelOneapiMpi(IntelOneApiLibraryPackage):
 
     homepage = "https://software.intel.com/content/www/us/en/develop/tools/oneapi/components/mpi-library.html"
 
+    version(
+        "2021.14.1",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/1acd5e79-796c-401a-ab31-a3dc7b20c6a2/intel-mpi-2021.14.1.7_offline.sh",
+        sha256="6459b9fc81fad9b9955de7fd9904e67fcf2ada3564ce0a74b9c14ea8fb533ddf",
+        expand=False,
+    )
+    version(
+        "2021.14.0",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/4b14b28c-2ca6-4559-a0ca-8a157627e0c8/intel-mpi-2021.14.0.791_offline.sh",
+        sha256="81ea7aaf8039c134b4df40bab1423a269425d26bb90ac05f7decac39719d21f3",
+        expand=False,
+    )
+    version(
+        "2021.13.1",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/364c798c-4cad-4c01-82b5-e1edd1b476af/l_mpi_oneapi_p_2021.13.1.769_offline.sh",
+        sha256="be61c4792d25bd4a1b5f7b808c06a9f4676f1b247d7605ac6d3c6cffdb8f19b7",
+        expand=False,
+    )
+    version(
+        "2021.13.0",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/9f84e1e8-11b2-4bd1-8512-3e3343585956/l_mpi_oneapi_p_2021.13.0.719_offline.sh",
+        sha256="5e23cf495c919e17032577e3059438f632297ee63f2cdb906a2547298823cc64",
+        expand=False,
+    )
     version(
         "2021.12.1",
         url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/56b2dd0e-954d-4330-b0a7-b22992f7e6b7/l_mpi_oneapi_p_2021.12.1.8_offline.sh",
@@ -116,7 +139,12 @@ class IntelOneapiMpi(IntelOneApiLibraryPackage):
     variant(
         "generic-names",
         default=False,
-        description="Use generic names, e.g mpicc instead of mpiicc",
+        description="Use generic names, e.g mpicc instead of mpiicx",
+    )
+    variant(
+        "classic-names",
+        default=False,
+        description="Use classic compiler names, e.g mpiicc instead of mpiicx",
     )
     variant(
         "external-libfabric", default=False, description="Enable external libfabric dependency"
@@ -124,6 +152,7 @@ class IntelOneapiMpi(IntelOneApiLibraryPackage):
     depends_on("libfabric", when="+external-libfabric", type=("link", "run"))
 
     provides("mpi@:3.1")
+    conflicts("+generic-names +classic-names")
 
     @property
     def mpiexec(self):
@@ -139,22 +168,29 @@ class IntelOneapiMpi(IntelOneApiLibraryPackage):
 
     @property
     def env_script_args(self):
-        if "+external-libfabric" in self.spec:
+        if self.spec.satisfies("+external-libfabric"):
             return ("-i_mpi_ofi_internal=0",)
         else:
             return ()
 
-    def setup_dependent_package(self, module, dep_spec):
-        if "+generic-names" in self.spec:
-            self.spec.mpicc = join_path(self.component_prefix.bin, "mpicc")
-            self.spec.mpicxx = join_path(self.component_prefix.bin, "mpicxx")
-            self.spec.mpif77 = join_path(self.component_prefix.bin, "mpif77")
-            self.spec.mpifc = join_path(self.component_prefix.bin, "mpifc")
+    def wrapper_names(self):
+        if self.spec.satisfies("+generic-names"):
+            return ["mpicc", "mpicxx", "mpif77", "mpif90", "mpifc"]
+        elif self.spec.satisfies("+classic-names"):
+            return ["mpiicc", "mpiicpc", "mpiifort", "mpiifort", "mpiifort"]
         else:
-            self.spec.mpicc = join_path(self.component_prefix.bin, "mpiicc")
-            self.spec.mpicxx = join_path(self.component_prefix.bin, "mpiicpc")
-            self.spec.mpif77 = join_path(self.component_prefix.bin, "mpiifort")
-            self.spec.mpifc = join_path(self.component_prefix.bin, "mpiifort")
+            return ["mpiicx", "mpiicpx", "mpiifx", "mpiifx", "mpiifx"]
+
+    def wrapper_paths(self):
+        return [self.component_prefix.bin.join(name) for name in self.wrapper_names()]
+
+    def setup_dependent_package(self, module, dep_spec):
+        wrappers = self.wrapper_paths()
+        self.spec.mpicc = wrappers[0]
+        self.spec.mpicxx = wrappers[1]
+        self.spec.mpif77 = wrappers[2]
+        # no self.spec.mpif90
+        self.spec.mpifc = wrappers[4]
 
     def setup_dependent_build_environment(self, env, dependent_spec):
         dependent_module = dependent_spec.package.module
@@ -165,32 +201,26 @@ class IntelOneapiMpi(IntelOneApiLibraryPackage):
         env.set("I_MPI_FC", dependent_module.spack_fc)
 
         # Set compiler wrappers for dependent build stage
-        if "+generic-names" in self.spec:
-            env.set("MPICC", join_path(self.component_prefix.bin, "mpicc"))
-            env.set("MPICXX", join_path(self.component_prefix.bin, "mpicxx"))
-            env.set("MPIF77", join_path(self.component_prefix.bin, "mpif77"))
-            env.set("MPIF90", join_path(self.component_prefix.bin, "mpif90"))
-            env.set("MPIFC", join_path(self.component_prefix.bin, "mpifc"))
-        else:
-            env.set("MPICC", join_path(self.component_prefix.bin, "mpiicc"))
-            env.set("MPICXX", join_path(self.component_prefix.bin, "mpiicpc"))
-            env.set("MPIF77", join_path(self.component_prefix.bin, "mpiifort"))
-            env.set("MPIF90", join_path(self.component_prefix.bin, "mpiifort"))
-            env.set("MPIFC", join_path(self.component_prefix.bin, "mpiifort"))
+        wrappers = self.wrapper_paths()
+        env.set("MPICC", wrappers[0])
+        env.set("MPICXX", wrappers[1])
+        env.set("MPIF77", wrappers[2])
+        env.set("MPIF90", wrappers[3])
+        env.set("MPIFC", wrappers[4])
 
         env.set("I_MPI_ROOT", self.component_prefix)
 
     @property
     def libs(self):
         libs = []
-        if "+ilp64" in self.spec:
+        if self.spec.satisfies("+ilp64"):
             libs += find_libraries("libmpi_ilp64", self.component_prefix.lib.release)
         libs += find_libraries(["libmpicxx", "libmpifort"], self.component_prefix.lib)
         libs += find_libraries("libmpi", self.component_prefix.lib.release)
         libs += find_system_libraries(["libdl", "librt", "libpthread"])
 
         # Find libfabric for libmpi.so
-        if "+external-libfabric" in self.spec:
+        if self.spec.satisfies("+external-libfabric"):
             libs += self.spec["libfabric"].libs
         else:
             libs += find_libraries(["libfabric"], self.component_prefix.libfabric.lib)

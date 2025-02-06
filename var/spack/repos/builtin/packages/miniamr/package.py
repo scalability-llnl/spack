@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -30,6 +29,8 @@ class Miniamr(MakefilePackage):
     version("1.4.2", sha256="d2347e0e22a8e79aa0dc3316b67dd7c40dded39d82f6e068e6fb8c9f0766566b")
     version("1.4.1", sha256="dd8e8d9fd0768cb4f2c5d7fe6989dfa6bb95a8461f04deaccdbb50b0dd51e97a")
     version("1.4.0", sha256="f0b959c90416288c5ab51ed86b6ba49bc8a319006c2a74a070c94133267edc6f")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("mpi")
 

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -19,5 +18,7 @@ class Dateutils(AutotoolsPackage):
     version("0.4.7", sha256="49725457f5bef45ea424baade8999a6e54496e357f64280474ff7134a54f599a")
     version("0.4.6", sha256="26a071317ae5710f226a3e6ba9a54d3764cd9efe3965aecc18e75372088757cd")
     version("0.4.5", sha256="16d6a0fe7b7d49ddbb303f33538dd7304a0d4af5a0369bcbf275db6a5060cbde")
+
+    depends_on("c", type="build")  # generated
 
     build_directory = "spack-build"

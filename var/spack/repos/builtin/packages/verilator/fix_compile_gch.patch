@@ -1,0 +1,13 @@
+diff --git a/src/Makefile_obj.in b/src/Makefile_obj.in
+index 18947923a..d29baa840 100644
+--- a/src/Makefile_obj.in
++++ b/src/Makefile_obj.in
+@@ -363,7 +363,7 @@ $(TGT): $(PREDEP_H) $(OBJS)
+ .SECONDARY:
+ 
+ %.gch: %
+-	$(OBJCACHE) ${CXX} ${CXXFLAGS} ${CPPFLAGSWALL} ${CFG_CXXFLAGS_PCH} $< -o $@
++	$(OBJCACHE) ${CXX} ${CXXFLAGS} ${CPPFLAGSWALL} ${CFG_CXXFLAGS_PCH} -c $< -o $@
+ %.o: %.cpp
+ 	$(OBJCACHE) ${CXX} ${CXXFLAGS} ${CPPFLAGSWALL} -c $< -o $@
+ %.o: %.c

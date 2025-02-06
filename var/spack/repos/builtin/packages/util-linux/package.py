@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,7 @@ class UtilLinux(AutotoolsPackage):
 
     license("GPL-2.0-only", checked_by="wdconinc")
 
+    version("2.40.2", sha256="7bec316b713a14c6be1a5721aa0e56a3b6170277329e6e1f1a56013cc91eece0")
     version("2.40", sha256="2a51d08cb71fd8e491e0cf633032c928f9a2848417f8441cb8cf7ef9971de916")
     version("2.39.3", sha256="40ea07584d56c310455471afa92c119ec259776a561af7159cc802344c2c370d")
     version("2.39.1", sha256="d7c8a58eb2c7248a32754eb3a3b6772e368b984d9907ada834c2cf3e13024270")
@@ -38,6 +38,8 @@ class UtilLinux(AutotoolsPackage):
     version("2.29.1", sha256="a6a7adba65a368e6dad9582d9fbedee43126d990df51266eaee089a73c893653")
     version("2.25", sha256="7e43273a9e2ab99b5a54ac914fddf5d08ba7ab9b114c550e9f03474672bd23a1")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@2.7:", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("ncurses", type="link")
@@ -47,6 +49,8 @@ class UtilLinux(AutotoolsPackage):
     variant("bash", default=False, description="Install bash completion scripts")
 
     depends_on("bash", when="+bash", type="run")
+
+    patch("missing-errno-header.patch", when="@2.40.2")
 
     def url_for_version(self, version):
         url = "https://www.kernel.org/pub/linux/utils/util-linux/v{0}/util-linux-{1}.tar.gz"

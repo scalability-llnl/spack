@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,9 +26,13 @@ class RHaven(RPackage):
     version("2.1.0", sha256="c0a1cf1b039549fb3ad833f9644ed3f142790236ad755d2ee7bd3d8109e3ae74")
     version("1.1.0", sha256="089fb4d0955f320abc48d0a3031799f96f3a20b82492474743903fdf12001d19")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@3.1:", type=("build", "run"))
     depends_on("r@3.2:", type=("build", "run"), when="@2.1.1:")
     depends_on("r@3.4:", type=("build", "run"), when="@2.5.0:")
+    depends_on("r@3.6:", type=("build", "run"), when="@2.5.4:")
     depends_on("r-cli@3.0.0:", type=("build", "run"), when="@2.5.0:")
     depends_on("r-forcats@0.2.0:", type=("build", "run"))
     depends_on("r-hms", type=("build", "run"))

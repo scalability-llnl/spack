@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,6 +26,8 @@ class Nfft(AutotoolsPackage):
         url="https://www-user.tu-chemnitz.de/~potts/nfft/download/nfft-3.2.4.tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("fftw")
 
     _fftw_precisions = None
@@ -34,7 +35,7 @@ class Nfft(AutotoolsPackage):
     @property
     def fftw_selected_precisions(self):
         if not self._fftw_precisions:
-            self._fftw_precisions = self.spec["fftw"].package.selected_precisions
+            self._fftw_precisions = self["fftw"].selected_precisions
         return self._fftw_precisions
 
     def configure(self, spec, prefix):

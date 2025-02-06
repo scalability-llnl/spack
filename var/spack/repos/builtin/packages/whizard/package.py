@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,7 +12,7 @@ class Whizard(AutotoolsPackage):
     of multi-particle scattering cross sections
     and simulated event samples."""
 
-    homepage = "whizard.hepforge.org"
+    homepage = "https://whizard.hepforge.org"
     urls = [
         "https://launchpad.net/whizard/3.1.x/3.1.2/+download/whizard-3.1.2.tar.gz",
         "https://whizard.hepforge.org/downloads/?f=whizard-2.8.3.tar.gz",
@@ -43,6 +42,10 @@ class Whizard(AutotoolsPackage):
     version("2.8.2", sha256="32c9be342d01b3fc6f947fddce74bf2d81ece37fb39bca1f37778fb0c07e2568")
     version("2.8.1", sha256="0c759ce0598e25f38e04659f745c5963d238c4b5c12209f16449b6c0bc6dc64e")
     version("2.8.0", sha256="3b5175eafa879d1baca20237d18fb2b18bee89631e73ada499de9c082d009696")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant(
         "hepmc",
@@ -88,6 +91,9 @@ class Whizard(AutotoolsPackage):
     # that happens, this needs to be adapted with a when clause
     patch("parallel_build_fix.patch", when="@3:3.1.3")
     patch("parallel_build_fix_2.8.patch", when="@2.8")
+
+    # Subset of https://gitlab.tp.nt.uni-siegen.de/whizard/public/-/commit/f6048e4
+    patch("hepmc3.3.0.patch", when="@3:3.1.4^hepmc3@3.3.0:")
     # Make sure that the patch actually has an effect by running autoreconf
     force_autoreconf = True
     # Which then requires the following build dependencies

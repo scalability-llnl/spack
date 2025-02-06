@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,6 +25,8 @@ class Hztool(AutotoolsPackage):
     version("4.2", sha256="87b74b2e424a1e6bd990cc12a0bfcba15854a6451ffa20aff8dc4bdfed559160")
     version("4.1", sha256="a24b5d483d1dacaa991958956e838601a426133c74885b3aa2fc27c98b42d22a")
     version("4.0", sha256="e6f6955159da46156bf9182f61754a59dd14e407d40c2448e3f821d55bf963a0")
+
+    depends_on("fortran", type="build")  # generated
 
     def patch(self):
         filter_file("-fno-automatic", "-fno-automatic -fallow-argument-mismatch", "configure.ac")

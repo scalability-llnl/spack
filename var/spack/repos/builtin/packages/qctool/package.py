@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,10 @@ class Qctool(WafPackage):
         sha256="7ba47998a2559193483cebe3710ce14d4e5d55d2e123840b4d1614b88459a9fc",
         url="https://enkre.net/cgi-bin/code/qctool/tarball/86639c1ad4/qctool-86639c1ad4.tar.gz",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # Required external libraries as detailed in Prerequisites:
     # https://enkre.net/cgi-bin/code/qctool/wiki?name=Compiling+QCTOOL

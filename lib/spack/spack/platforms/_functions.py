@@ -1,12 +1,7 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import contextlib
-
 import llnl.util.lang
-
-import spack.util.environment
 
 from .darwin import Darwin
 from .freebsd import FreeBSD
@@ -57,14 +52,3 @@ def by_name(name):
     """
     platform_cls = cls_by_name(name)
     return platform_cls() if platform_cls else None
-
-
-@contextlib.contextmanager
-def prevent_cray_detection():
-    """Context manager that prevents the detection of the Cray platform"""
-    reset()
-    try:
-        with spack.util.environment.set_env(MODULEPATH=""):
-            yield
-    finally:
-        reset()

@@ -18,7 +18,7 @@ spack:
         - hdf5+hl+mpi ^mpich
         - trilinos
         - trilinos +hdf5 ^hdf5+hl+mpi ^mpich
-        - gcc@12.3.0
+        - gcc@12
         - mpileaks
         - lmod@8.7.18
         - environment-modules

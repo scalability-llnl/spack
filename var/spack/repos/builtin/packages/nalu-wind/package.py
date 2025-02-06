@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,13 +17,15 @@ class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
 
     homepage = "https://nalu-wind.readthedocs.io"
     git = "https://github.com/exawind/nalu-wind.git"
+    url = "https://github.com/Exawind/nalu-wind/archive/refs/tags/v2.0.0.tar.gz"
 
     maintainers("jrood-nrel", "psakievich")
 
     tags = ["ecp", "ecp-apps"]
 
-    version("master", branch="master")
-    version("2.0.0", tag="v2.0.0")
+    version("master", branch="master", submodules=True)
+    version("2.1.0", tag="v2.1.0", submodules=True)
+    version("2.0.0", tag="v2.0.0", submodules=True)
 
     variant("pic", default=True, description="Position independent code")
     variant(
@@ -42,7 +43,7 @@ class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
     variant("openfast", default=False, description="Compile with OpenFAST support")
     variant("tioga", default=False, description="Compile with Tioga support")
     variant("hypre", default=True, description="Compile with Hypre support")
-    variant("trilinos-solvers", default=True, description="Compile with Trilinos Solvers support")
+    variant("trilinos-solvers", default=False, description="Compile with Trilinos Solvers support")
     variant("catalyst", default=False, description="Compile with Catalyst support")
     variant("shared", default=True, description="Build shared libraries")
     variant("fftw", default=False, description="Compile with FFTW support")
@@ -51,10 +52,18 @@ class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
     variant("gpu-aware-mpi", default=False, description="gpu-aware-mpi")
     variant("wind-utils", default=False, description="Build wind-utils")
     variant("umpire", default=False, description="Enable Umpire")
+    variant(
+        "tests", default=False, description="Enable regression tests and clone the mesh submodule"
+    )
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build", when="+openfast")
 
     depends_on("mpi")
-    depends_on("yaml-cpp@0.5.3:")
+    depends_on("yaml-cpp@0.6.0:0.7.0")
     depends_on("openfast@4.0.0:+cxx+netcdf", when="+fsi")
+    depends_on("trilinos@15.1.1", when="@=2.1.0")
     depends_on("trilinos@13.4.1", when="@=2.0.0")
     depends_on("hypre@2.29.0:", when="@2.0.0:+hypre")
     depends_on(
@@ -63,43 +72,43 @@ class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
     )
     depends_on("trilinos~cuda~wrapper", when="~cuda")
     depends_on("openfast@2.6.0: +cxx", when="+openfast")
-    depends_on("tioga@master:", when="+tioga")
+    depends_on("tioga@1.0.0:", when="+tioga")
     depends_on("hypre@2.18.2: ~int64+mpi~superlu-dist", when="+hypre")
     depends_on("trilinos+muelu+belos+amesos2+ifpack2", when="+trilinos-solvers")
-    conflicts(
-        "~hypre~trilinos-solvers",
-        msg="nalu-wind: Must enable at least one of the linear-solvers: hypre or trilinos-solvers",
-    )
     depends_on("kokkos-nvcc-wrapper", type="build", when="+cuda")
+    depends_on("trilinos-catalyst-ioss-adapter", when="+catalyst")
+    depends_on("fftw+mpi", when="+fftw")
+    depends_on("nccmp")
+    depends_on("boost +filesystem +iostreams cxxstd=14", when="+boost")
+    depends_on("hypre+gpu-aware-mpi", when="+gpu-aware-mpi")
+    depends_on("hypre+umpire", when="+umpire")
+    depends_on("trilinos~shared", when="+trilinos-solvers")
+    # indirect dependency needed to make original concretizer work
+    depends_on("netcdf-c+parallel-netcdf")
+
     for _arch in CudaPackage.cuda_arch_values:
         depends_on(
             "trilinos~shared+cuda+cuda_rdc+wrapper cuda_arch={0}".format(_arch),
             when="+cuda cuda_arch={0}".format(_arch),
         )
         depends_on(
-            "hypre@develop +mpi+cuda~int64~superlu-dist cuda_arch={0}".format(_arch),
+            "hypre@2.30.0: +cuda cuda_arch={0}".format(_arch),
             when="+hypre+cuda cuda_arch={0}".format(_arch),
         )
     for _arch in ROCmPackage.amdgpu_targets:
         depends_on(
-            "trilinos@13.4: ~shared+rocm+rocm_rdc amdgpu_target={0}".format(_arch),
+            "trilinos~shared+rocm+rocm_rdc amdgpu_target={0}".format(_arch),
             when="+rocm amdgpu_target={0}".format(_arch),
         )
         depends_on(
-            "hypre+rocm amdgpu_target={0}".format(_arch),
+            "hypre@2.30.0: +rocm amdgpu_target={0}".format(_arch),
             when="+hypre+rocm amdgpu_target={0}".format(_arch),
         )
 
-    depends_on("trilinos-catalyst-ioss-adapter", when="+catalyst")
-    depends_on("fftw+mpi", when="+fftw")
-    depends_on("nccmp")
-    # indirect dependency needed to make original concretizer work
-    depends_on("netcdf-c+parallel-netcdf")
-    depends_on("boost +filesystem +iostreams cxxstd=14", when="+boost")
-    depends_on("hypre+gpu-aware-mpi", when="+gpu-aware-mpi")
-    depends_on("hypre+umpire", when="+umpire")
-    depends_on("trilinos~shared", when="+trilinos-solvers platform=darwin")
-
+    conflicts(
+        "~hypre~trilinos-solvers",
+        msg="nalu-wind: Must enable at least one of the linear-solvers: hypre or trilinos-solvers",
+    )
     conflicts(
         "+shared",
         when="+cuda",
@@ -117,6 +126,7 @@ class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
     conflicts("^hypre+sycl")
     conflicts("^trilinos+cuda", when="~cuda")
     conflicts("^trilinos+rocm", when="~rocm")
+    conflicts("+shared", when="+trilinos-solvers")
 
     def setup_dependent_run_environment(self, env, dependent_spec):
         spec = self.spec
@@ -141,7 +151,6 @@ class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
 
         args = [
             self.define("CMAKE_CXX_COMPILER", spec["mpi"].mpicxx),
-            self.define("CMAKE_Fortran_COMPILER", spec["mpi"].mpifc),
             self.define("Trilinos_DIR", spec["trilinos"].prefix),
             self.define("YAML_DIR", spec["yaml-cpp"].prefix),
             self.define("CMAKE_CXX_STANDARD", "17"),
@@ -157,10 +166,12 @@ class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
             self.define_from_variant("ENABLE_PARAVIEW_CATALYST", "catalyst"),
             self.define_from_variant("ENABLE_FFTW", "fftw"),
             self.define_from_variant("ENABLE_UMPIRE", "umpire"),
+            self.define_from_variant("ENABLE_TESTS", "tests"),
         ]
 
         if spec.satisfies("+openfast"):
             args.append(self.define("OpenFAST_DIR", spec["openfast"].prefix))
+            args.append(self.define("CMAKE_Fortran_COMPILER", spec["mpi"].mpifc))
 
         if spec.satisfies("+tioga"):
             args.append(self.define("TIOGA_DIR", spec["tioga"].prefix))

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,8 @@ class Wrk(MakefilePackage):
     version("4.0.1", sha256="c03bbc283836cb4b706eb6bfd18e724a8ce475e2c16154c13c6323a845b4327d")
     version("4.0.0", sha256="8fa8fb05f4663d03c1ca7804367eb602882f9630441bd56e8e9aaf3a2bd26067")
     version("3.1.2", sha256="da88a25f0eeb9e1fd6a9dcf4a96859e9e758f9446f0787cf7c95e4ccde14eefc")
+
+    depends_on("c", type="build")  # generated
 
     def install(self, spec, prefix):
         mkdirp(prefix.bin)

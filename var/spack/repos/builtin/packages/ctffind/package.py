@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,8 @@ class Ctffind(AutotoolsPackage):
         sha256="bec43c0b8d32878c740d6284ef6d9d22718c80dc62270be18d1d44e8b84b2729",
         extension="tar.gz",
     )
+
+    depends_on("cxx", type="build")  # generated
 
     def url_for_version(self, version):
         url = "https://grigoriefflab.umassmed.edu/system/tdf?path=ctffind-{0}.tar.gz&file=1&type=node&id=26"

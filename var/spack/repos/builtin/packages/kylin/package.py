@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,5 +21,7 @@ class Kylin(MavenPackage):
     license("Apache-2.0")
 
     version("3.1.0", sha256="84073ff16a0dad6e0611fea9fbf2b977b6bac307107a222b7f576a3a3b712157")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("java@8", type=("build", "run"))

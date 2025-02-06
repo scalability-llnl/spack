@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,3 +14,5 @@ class Smalt(AutotoolsPackage, SourceforgePackage):
     license("GPL-3.0-only")
 
     version("0.7.6", sha256="89ccdfe471edba3577b43de9ebfdaedb5cd6e26b02bf4000c554253433796b31")
+
+    depends_on("c", type="build")  # generated

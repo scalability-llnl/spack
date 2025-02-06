@@ -1,0 +1,56 @@
+diff --git a/src/qs_dispersion_d4.F b/src/qs_dispersion_d4.F
+index 74df989b4..e513ed435 100644
+--- a/src/qs_dispersion_d4.F
++++ b/src/qs_dispersion_d4.F
+@@ -26,6 +26,7 @@ MODULE qs_dispersion_d4
+ #endif
+    USE kinds, ONLY: dp
+    USE particle_types, ONLY: particle_type
++   USE periodic_table, ONLY: get_ptable_info, ptable
+    USE qs_dispersion_types, ONLY: qs_dispersion_type
+    USE qs_force_types, ONLY: qs_force_type
+    USE message_passing, ONLY: mp_para_env_type
+@@ -76,7 +77,8 @@ CONTAINS
+       TYPE(structure_type)                               :: mol
+       TYPE(realspace_cutoff)                             :: cutoff
+ 
+-      INTEGER                                            :: iatom, natom, ind_atom
++      LOGICAL                                            :: found
++      INTEGER                                            :: iatom, natom, ind_atom, zatom
+       INTEGER, ALLOCATABLE, DIMENSION(:)                 :: el_num
+       REAL(KIND=dp), ALLOCATABLE, DIMENSION(:, :)        :: gradient, xyz
+       REAL(KIND=dp), DIMENSION(3, 3)                     :: stress
+@@ -94,7 +96,9 @@ CONTAINS
+       DO iatom = 1, natom
+          xyz(:, iatom) = particle_set(iatom)%r(:)
+          CALL get_atomic_kind(particle_set(iatom)%atomic_kind, kind_number=ikind)
+-         el_num(iatom) = ikind
++         CALL get_ptable_info(particle_set(iatom)%atomic_kind%element_symbol, &
++                              ielement=zatom, found=found)
++         el_num(iatom) = zatom
+       END DO
+ 
+       !get information about cell / lattice
+@@ -125,7 +129,7 @@ CONTAINS
+                IF (para_env%num_pe > 1 .AND. para_env%mepos > 0) virial = 0.00_dp
+             END IF
+             DO iatom = 1, natom
+-               ikind = el_num(iatom)
++               CALL get_atomic_kind(particle_set(iatom)%atomic_kind, kind_number=ikind)
+                ind_atom = atom_of_kind(iatom)
+                force(ikind)%dispersion(:, ind_atom) = force(ikind)%dispersion(:, ind_atom) + gradient(:, iatom)
+             END DO
+diff --git a/tests/QS/regtest-dft-vdw-corr-4/TEST_FILES b/tests/QS/regtest-dft-vdw-corr-4/TEST_FILES
+index 047421204..c817677df 100644
+--- a/tests/QS/regtest-dft-vdw-corr-4/TEST_FILES
++++ b/tests/QS/regtest-dft-vdw-corr-4/TEST_FILES
+@@ -3,7 +3,7 @@
+ # e.g. 0 means do not compare anything, running is enough
+ #      1 compares the last total energy in the file
+ #      for details see cp2k/tools/do_regtest
+-pbe_dftd4.inp                                          33    1.0E-14              -0.00141644869634
++pbe_dftd4.inp                                          33    1.0E-14              -0.00283102230260
+ pbe_dftd4_force.inp                                    72    1.0E-07                     0.00007217 
+-pbe_dftd4_stress.inp                                   31    1.0E-07             -5.16289312880E-03
++pbe_dftd4_stress.inp                                   31    1.0E-07             -2.14003785359E-02
+ #EOF

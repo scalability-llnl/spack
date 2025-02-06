@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,8 @@ class PyMerlin(PythonPackage):
     version("develop", branch="develop")
     version("master", branch="master")
     version("1.10.3", sha256="6edaf17b502db090cef0bc53ae0118c55f77d7a16f43c7a235e0dd1770decadb")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("py-setuptools", type=("build", "run"))
     depends_on("py-cached-property", type=("build", "run"))

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -37,6 +36,9 @@ class Bcftools(AutotoolsPackage):
     version("1.3.1", sha256="12c37a4054cbf1980223e2b3a80a7fdb3fd850324a4ba6832e38fdba91f1b924")
     version("1.2", sha256="53c628339020dd45334a007c9cefdaf1cba3f1032492ec813b116379fa684fd6")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "libgsl",
         default=False,
@@ -52,6 +54,7 @@ class Bcftools(AutotoolsPackage):
 
     depends_on("gsl", when="+libgsl")
     depends_on("py-matplotlib", when="@1.6:", type="run")
+    depends_on("py-gffutils", when="@1.9:", type="run")
     depends_on("perl", when="@1.8:~perl-filters", type="run")
     depends_on("perl", when="@1.8:+perl-filters", type=("build", "run"))
 
@@ -97,7 +100,7 @@ class Bcftools(AutotoolsPackage):
         options.append("prefix={0}".format(self.prefix))
         options.append("HTSDIR={0}".format(self.spec["htslib"].prefix))
 
-        if "+libgsl" in self.spec:
+        if self.spec.satisfies("+libgsl"):
             options.append("USE_GPL=1")
 
         return options

@@ -1,10 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
-from spack.variant import _ConditionalVariantValues
 
 
 class Acts(CMakePackage, CudaPackage):
@@ -33,7 +31,7 @@ class Acts(CMakePackage, CudaPackage):
     homepage = "https://acts.web.cern.ch/ACTS/"
     git = "https://github.com/acts-project/acts.git"
     list_url = "https://github.com/acts-project/acts/releases/"
-    maintainers("HadrienG2")
+    maintainers("wdconinc", "stephenswat")
 
     tags = ["hep"]
 
@@ -42,6 +40,24 @@ class Acts(CMakePackage, CudaPackage):
     # Supported Acts versions
     version("main", branch="main")
     version("master", branch="main", deprecated=True)  # For compatibility
+    version("39.0.0", commit="b055202e2fbdd509bc186eb4782714bc46f38f3f", submodules=True)
+    version("38.2.0", commit="9cb8f4494656553fd9b85955938b79b2fac4c9b0", submodules=True)
+    version("38.1.0", commit="8a20c88808f10bf4fcdfd7c6e077f23614c3ab90", submodules=True)
+    version("38.0.0", commit="0a6b5155e29e3b755bf351b8a76067fff9b4214b", submodules=True)
+    version("37.4.0", commit="4ae9a44f54c854599d1d753222ec36e0b5b4e9c7", submodules=True)
+    version("37.3.0", commit="b3e856d4dadcda7d1a88a9b846ce5a7acd8410c4", submodules=True)
+    version("37.2.0", commit="821144dc40d35b44aee0d7857a0bd1c99e4a3932", submodules=True)
+    version("37.1.0", commit="fa6ad4d52e0bd09cf8c78507fcbb18e9ac2c87a3", submodules=True)
+    version("37.0.1", commit="998b9c9dd42d5160c2540f8fa820505869bfdb79", submodules=True)
+    version("37.0.0", commit="117feaaadc7a2336755274e0cd70ba58a047a1de", submodules=True)
+    version("36.3.2", commit="01e124d253a3c9c9b9f5d2fde16682ce9d4599cd", submodules=True)
+    version("36.3.1", commit="b58e5b0c33fb8423ce60a6a45f333edd0d178acd", submodules=True)
+    version("36.3.0", commit="3b875cebabdd10462e224279558429f49ed75945", submodules=True)
+    version("36.2.0", commit="e2fb53da911dc481969e56d635898a46b8d78df9", submodules=True)
+    version("36.1.0", commit="3f19d1a0eec1d11937d66d0ef603f0b25b9b4e96", submodules=True)
+    version("36.0.0", commit="6eca77c45b136861272694edbb61bb77200948a5", submodules=True)
+    version("35.2.0", commit="b3b09f46d064c43050dd3d21cdf51d7a412134fc", submodules=True)
+    version("35.1.0", commit="9dfb47b8edeb8b9c75115462079bcb003dd3f031", submodules=True)
     version("35.0.0", commit="352b423ec31934f825deb9897780246d60ffc44e", submodules=True)
     version("34.1.0", commit="8e1b7a659d912cd98db9d700906ff59e708da574", submodules=True)
     version("34.0.0", commit="daafd83adf0ce50f9667f3c9d4791a459e39fd1b", submodules=True)
@@ -178,18 +194,24 @@ class Acts(CMakePackage, CudaPackage):
     version("0.08.1", commit="289bdcc320f0b3ff1d792e29e462ec2d3ea15df6")
     version("0.08.0", commit="99eedb38f305e3a1cd99d9b4473241b7cd641fa9")
 
+    depends_on("cxx", type="build")  # generated
+
     # Variants that affect the core Acts library
     variant(
         "benchmarks", default=False, description="Build the performance benchmarks", when="@0.16:"
     )
-    _cxxstd_values = (conditional("14", when="@:0.8.1"), "17", conditional("20", when="@24:"))
-    variant(
-        "cxxstd",
-        default="17",
-        values=_cxxstd_values,
-        multi=False,
-        description="Use the specified C++ standard when building.",
+    _cxxstd_values = (
+        conditional("14", when="@:0.8.1"),
+        conditional("17", when="@:35"),
+        conditional("20", when="@24:"),
     )
+    _cxxstd_common = {
+        "values": _cxxstd_values,
+        "multi": False,
+        "description": "Use the specified C++ standard when building.",
+    }
+    variant("cxxstd", default="17", when="@:35", **_cxxstd_common)
+    variant("cxxstd", default="20", when="@36:", **_cxxstd_common)
     variant(
         "examples",
         default=False,
@@ -214,6 +236,15 @@ class Acts(CMakePackage, CudaPackage):
         "log_failure_threshold",
         default="MAX",
         description="Log level above which examples should auto-crash",
+    )
+    _scalar_values = ["float", "double"]
+    variant(
+        "scalar",
+        default="double",
+        values=_scalar_values,
+        multi=False,
+        sticky=True,
+        description="Scalar type to use throughout Acts.",
     )
 
     # Variants that enable / disable Acts plugins
@@ -267,6 +298,7 @@ class Acts(CMakePackage, CudaPackage):
         "tgeo", default=False, description="Build the TGeo plugin", when="@:34 +identification"
     )
     variant("tgeo", default=False, description="Build the TGeo plugin", when="@35:")
+    variant("traccc", default=False, description="Build the Traccc plugin", when="@35.1:")
 
     # Variants that only affect Acts examples for now
     variant(
@@ -310,7 +342,7 @@ class Acts(CMakePackage, CudaPackage):
         "tbb",
         default=True,
         description="Build the examples with Threading Building Blocks library",
-        when="@19.8:19,20.1: +examples",
+        when="@19.8:19,20.1:37.2 +examples",
     )
     variant("analysis", default=False, description="Build analysis applications in the examples")
 
@@ -325,31 +357,45 @@ class Acts(CMakePackage, CudaPackage):
         depends_on("actsvg@0.4.35:", when="@28:")
         depends_on("actsvg@0.4.39:", when="@32:")
         depends_on("actsvg@0.4.40:", when="@32.1:")
+        depends_on("actsvg@0.4.50:", when="@37:")
+    depends_on("acts-algebra-plugins @0.24:", when="+traccc")
     depends_on("autodiff @0.6:", when="@17: +autodiff")
     depends_on("autodiff @0.5.11:0.5.99", when="@1.2:16 +autodiff")
     depends_on("boost @1.62:1.69 +program_options +test", when="@:0.10.3")
     depends_on("boost @1.71: +filesystem +program_options +test", when="@0.10.4:")
     depends_on("cmake @3.14:", type="build")
+    depends_on("covfie @0.10:", when="+traccc")
+    depends_on("cuda @12:", when="+traccc")
     depends_on("dd4hep @1.11: +dddetectors +ddrec", when="+dd4hep")
     depends_on("dd4hep @1.21: +dddetectors +ddrec", when="@20: +dd4hep")
     depends_on("dd4hep +ddg4", when="+dd4hep +geant4 +examples")
+    depends_on("detray @0.72.1:", when="+traccc")
+    depends_on("detray @0.75.3:", when="@37: +traccc")
     depends_on("edm4hep @0.4.1:", when="+edm4hep")
     depends_on("edm4hep @0.7:", when="@25: +edm4hep")
     depends_on("eigen @3.3.7:", when="@15.1:")
     depends_on("eigen @3.3.7:3.3.99", when="@:15.0")
+    depends_on("eigen @3.4:", when="@36.1:")
     depends_on("geant4", when="+fatras_geant4")
     depends_on("geant4", when="+geant4")
+    depends_on("geomodel +geomodelg4", when="+geomodel")
+    depends_on("geomodel @4.6.0:", when="+geomodel")
+    depends_on("geomodel @6.3.0:", when="+geomodel @36.1:")
     depends_on("git-lfs", when="@12.0.0:")
     depends_on("gperftools", when="+profilecpu")
     depends_on("gperftools", when="+profilemem")
     depends_on("hepmc3 @3.2.1:", when="+hepmc3")
     depends_on("heppdt", when="+hepmc3 @:4.0")
     depends_on("intel-tbb @2020.1:", when="+examples +tbb")
+    depends_on("intel-tbb @2020.1:", when="+examples @37.3:")
     depends_on("mlpack@3.1.1:", when="+mlpack")
     depends_on("nlohmann-json @3.9.1:", when="@0.14: +json")
+    depends_on("nlohmann-json @3.10.5:", when="@37: +json")
     depends_on("podio @0.6:", when="@25: +edm4hep")
     depends_on("podio @0.16:", when="@30.3: +edm4hep")
+    depends_on("podio @:0", when="@:35 +edm4hep")
     depends_on("podio @0.16:", when="+podio")
+    depends_on("podio @:0", when="@:35 +podio")
     depends_on("pythia8", when="+pythia8")
     depends_on("python", when="+python")
     depends_on("python@3.8:", when="+python @19.11:19")
@@ -357,6 +403,7 @@ class Acts(CMakePackage, CudaPackage):
     depends_on("py-onnxruntime@:1.12", when="+onnx @:23.2")
     depends_on("py-onnxruntime@1.12:", when="+onnx @23.3:")
     depends_on("py-pybind11 @2.6.2:", when="+python @18:")
+    depends_on("py-pybind11 @2.13.1:", when="+python @36:")
     depends_on("py-pytest", when="+python +unit_tests")
 
     with when("+tgeo"):
@@ -368,24 +415,28 @@ class Acts(CMakePackage, CudaPackage):
 
     # ACTS imposes requirements on the C++ standard values used by ROOT
     for _cxxstd in _cxxstd_values:
-        if isinstance(_cxxstd, _ConditionalVariantValues):
-            for _v in _cxxstd:
-                depends_on(
-                    f"geant4 cxxstd={_v.value}", when=f"cxxstd={_v.value} {_v.when} +geant4"
-                )
-                depends_on(
-                    f"geant4 cxxstd={_v.value}", when=f"cxxstd={_v.value} {_v.when} +fatras_geant4"
-                )
-                depends_on(f"root cxxstd={_v.value}", when=f"cxxstd={_v.value} {_v.when} +tgeo")
-        else:
-            depends_on(f"geant4 cxxstd={_v.value}", when=f"cxxstd={_v.value} {_v.when} +geant4")
-            depends_on(
-                f"geant4 cxxstd={_v.value}", when=f"cxxstd={_v.value} {_v.when} +fatras_geant4"
-            )
-            depends_on(f"root cxxstd={_cxxstd}", when=f"cxxstd={_cxxstd} +tgeo")
+        for _v in _cxxstd:
+            depends_on(f"geant4 cxxstd={_v.value}", when=f"cxxstd={_v.value} +geant4")
+            depends_on(f"geant4 cxxstd={_v.value}", when=f"cxxstd={_v.value} +fatras_geant4")
+            depends_on(f"root cxxstd={_v.value}", when=f"cxxstd={_v.value} +tgeo")
+
+    # When the traccc plugin is enabled, detray should match the Acts scalars
+    with when("+traccc"):
+        for _scalar in _scalar_values:
+            depends_on(f"detray scalar={_scalar}", when=f"scalar={_scalar}")
+
+    # ACTS enables certain options anyway based on other options
+    conflicts("~svg", when="+traccc")
+    conflicts("~json", when="+traccc")
 
     # ACTS has been using C++17 for a while, which precludes use of old GCC
     conflicts("%gcc@:7", when="@0.23:")
+    # When using C++20, disable gcc 9 and lower.
+    conflicts("%gcc@:9", when="cxxstd=20")
+    # See https://github.com/acts-project/acts/pull/3512
+    conflicts("^boost@1.85.0")
+    # See https://github.com/acts-project/acts/pull/3921
+    conflicts("^edm4hep@0.99:", when="@:37")
 
     def cmake_args(self):
         spec = self.spec
@@ -451,10 +502,12 @@ class Acts(CMakePackage, CudaPackage):
             plugin_cmake_variant("PODIO", "podio"),
             example_cmake_variant("PYTHIA8", "pythia8"),
             example_cmake_variant("PYTHON_BINDINGS", "python"),
+            self.define_from_variant("ACTS_CUSTOM_SCALARTYPE", "scalar"),
             plugin_cmake_variant("ACTSVG", "svg"),
             plugin_cmake_variant("SYCL", "sycl"),
             plugin_cmake_variant("TGEO", "tgeo"),
             example_cmake_variant("TBB", "tbb", "USE"),
+            plugin_cmake_variant("TRACCC", "traccc"),
             cmake_variant(unit_tests_label, "unit_tests"),
         ]
 
@@ -466,6 +519,8 @@ class Acts(CMakePackage, CudaPackage):
         # Use dependencies provided by spack
         if spec.satisfies("@20.3:"):
             args.append("-DACTS_USE_SYSTEM_LIBS=ON")
+            if spec.satisfies("@35.1:36.0"):
+                args.append("-DACTS_USE_SYSTEM_DFELIBS=OFF")
         else:
             if spec.satisfies("+autodiff"):
                 args.append("-DACTS_USE_SYSTEM_AUTODIFF=ON")
@@ -487,7 +542,7 @@ class Acts(CMakePackage, CudaPackage):
             if spec.satisfies("@14: +vecmem"):
                 args.append("-DACTS_USE_SYSTEM_VECMEM=ON")
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             cuda_arch = spec.variants["cuda_arch"].value
             if cuda_arch != "none":
                 args.append(f"-DCUDA_FLAGS=-arch=sm_{cuda_arch[0]}")

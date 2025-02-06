@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,10 @@ class Veclibfort(Package):
     version("develop", branch="master")
     version("0.4.3", sha256="fe9e7e0596bfb4aa713b2273b21e7d96c0d7a6453ee4b214a8a50050989d5586")
     version("0.4.2", sha256="c61316632bffa1c76e3c7f92b11c9def4b6f41973ecf9e124d68de6ae37fbc85")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+    depends_on("gmake", type="build")
 
     variant("shared", default=True, description="Build shared libraries as well as static libs.")
 

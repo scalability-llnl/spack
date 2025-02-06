@@ -1,10 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import subprocess
 
+import spack.compiler
 from spack.package import *
 
 
@@ -38,6 +38,25 @@ class Mapl(CMakePackage):
     version("develop", branch="develop")
     version("main", branch="main")
 
+    version("2.53.0", sha256="68c24e6c0e3340645b1fb685972c96ef80746d5a289572c9883e520680708ebe")
+    version("2.52.0", sha256="c30be3a6ed3fca40aea903e10ee51e2fb50b4ef2445fdc959d4871baf3c20585")
+    version("2.51.2", sha256="f6df2be24d0c113af3d0424b674d970621660bf11e59a699373f014a14d0716e")
+    version("2.51.1", sha256="337dba3980de1d5e603361ecf8f001c5bf99d0addecbeb5c207f3604183ca623")
+    version("2.51.0", sha256="56213d845f5287e599213aab1dea60bf6b64c29cd8093313639304b270c45676")
+    version("2.50.3", sha256="506f73d511b6a63645bbf953bf04f663da06f5069cb559340786e9fe8eeb170f")
+    version("2.50.2", sha256="1c72f8598cf01bab6ef30c1f461444ba5a13f55c61164b7b3c15efb0cd1096c0")
+    version("2.50.1", sha256="26dd7a3ec82d484d60a559bb90a20ad9a2a717af52c25b6a752dd971aeeb5075")
+    version("2.50.0", sha256="12282e547936f667f85c95d466273dcbaccbd600add72fa5981c0c734ccb1f7d")
+    version("2.49.1", sha256="975e349c7ff8be65d4e63f2a6adf74ca96127628505dbce16c7ba7a3901edc70")
+    version("2.49.0", sha256="fdf4d48bd38abd1059180b123c5d9fdc2781992c783244ddc51ab0f2ef63dd67")
+    version("2.48.0", sha256="60a0fc4fd82b1a05050666ae478da7d79d86305aff1643a57bc09cb5347323b7")
+    version("2.47.1.2", sha256="ae9032b4c833887b9ddc932ea9eb7e59e713829f6c39f3152fee4caf2f3ba21f")
+    version("2.47.1.1", sha256="9553e91e0325dfe57856564e9970b3871069f902fb109fcced6ad87151f95be7")
+    version("2.47.2", sha256="d4ca384bf249b755454cd486a26bae76944a7cae3a706b9a7c9298825077cac0")
+    version("2.47.1", sha256="ca3e94c0caa78a91591fe63603d1836196f5294d4baad7cf1d83b229b3a85916")
+    version("2.47.0", sha256="66c862d2ab8bcd6969e9728091dbca54f1f420e97e41424c4ba93ef606088459")
+    version("2.46.4", sha256="f0c169254727d61bfc83beb3abd14f2562480c4cdbd2ad5bc1fe0419828a0ac2")
+    version("2.46.3", sha256="333e1382ab744302d28b6f39e7f5504c7919d77d2443d70af952f60cbd8f27e7")
     version("2.46.2", sha256="6d397ad73042355967de8ef5b521d6135c004f96e93ae7b215f9ee325e75c6f0")
     version("2.46.1", sha256="f3090281de6293b484259d58f852c45b98759de8291d36a4950e6d348ece6573")
     version("2.46.0", sha256="726d9588b724bd43e5085d1a2f8d806d548f185ed6b22a1b13c0ed06212d7be2")
@@ -59,6 +78,7 @@ class Mapl(CMakePackage):
     version("2.41.0", sha256="1142f9395e161174e3ec1654fba8bda1d0bd93edc7438b1927d8f5d7b42a0a86")
     version("2.40.5", sha256="85b4a4ac0d843398452808b88d7a5c29435aa37b69b91a1f4bee664e9f367b7d")
     version("2.40.4", sha256="fb843b118d6e56cd4fc4b114c4d6f91956d5c8b3d9389ada56da1dfdbc58904f")
+    version("2.40.3.1", sha256="1e5a9d6a84d23febe826b1adcd2c2b1681bcc2e61c2959a8bbf4756357e22187")
     version("2.40.3", sha256="4b82a314c88a035fc2b91395750aa7950d6bee838786178ed16a3f39a1e45519")
     version("2.40.2", sha256="7327f6f5bce6e09e7f7b930013fba86ee7cbfe8ed4c7c087fc9ab5acbf6640fd")
     version("2.40.1", sha256="6f40f946fabea6ba73b0764092e495505d220455b191b4e454736a0a25ee058c")
@@ -137,13 +157,34 @@ class Mapl(CMakePackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")
+    depends_on("fortran", type="build")
+
     # Versions later than 3.14 remove FindESMF.cmake
     # from ESMA_CMake.
     resource(
         name="esma_cmake",
         git="https://github.com/GEOS-ESM/ESMA_cmake.git",
+        tag="v3.55.0",
+        when="@2.51:",
+    )
+    resource(
+        name="esma_cmake",
+        git="https://github.com/GEOS-ESM/ESMA_cmake.git",
+        tag="v3.51.0",
+        when="@2.48:2.50",
+    )
+    resource(
+        name="esma_cmake",
+        git="https://github.com/GEOS-ESM/ESMA_cmake.git",
+        tag="v3.46.0",
+        when="@2.47",
+    )
+    resource(
+        name="esma_cmake",
+        git="https://github.com/GEOS-ESM/ESMA_cmake.git",
         tag="v3.45.2",
-        when="@2.45:",
+        when="@2.45:2.46",
     )
     resource(
         name="esma_cmake",
@@ -210,6 +251,13 @@ class Mapl(CMakePackage):
     # builds with gcc 13 from that version onwards
     conflicts("%gcc@13:", when="@:2.44")
 
+    # MAPL can use ifx only from MAPL 2.51 onwards and only supports
+    # ifx 2025.0 and newer due to bugs in ifx.
+    conflicts("%oneapi@2025:", when="@:2.50")
+    # NOTE there is a further check on oneapi in the cmake_args below
+    # that is hard to conflict since we don't know the fortran compiler
+    # at this point
+
     variant("flap", default=False, description="Build with FLAP support", when="@:2.39")
     variant("pflogger", default=True, description="Build with pFlogger support")
     variant("fargparse", default=True, description="Build with fArgParse support")
@@ -218,6 +266,7 @@ class Mapl(CMakePackage):
     variant("extdata2g", default=True, description="Use ExtData2G")
     variant("pfunit", default=False, description="Build with pFUnit support")
     variant("f2py", default=False, description="Build with f2py support")
+    variant("zstd", default=True, description="Build with ZSTD support", when="@2.49:")
 
     variant(
         "build_type",
@@ -230,12 +279,18 @@ class Mapl(CMakePackage):
     conflicts("+pflogger", when="@:2.40.3 %intel@2021.7:")
     conflicts("+extdata2g", when="@:2.40.3 %intel@2021.7:")
 
-    depends_on("cmake@3.17:", type="build")
+    depends_on("cmake@3.24:", type="build", when="@2.51:")
+    depends_on("cmake@3.23:", type="build", when="@2.50")
+    depends_on("cmake@3.17:", type="build", when="@:2.49")
     depends_on("mpi")
     depends_on("hdf5")
     depends_on("netcdf-c")
+    depends_on("netcdf-c +zstd", when="+zstd")
     depends_on("netcdf-fortran")
+
+    # ESMF dependency
     depends_on("esmf@8.6.1:", when="@2.45:")
+    depends_on("esmf@8.6.1:", when="@=2.40.3.1")
     depends_on("esmf@8.6.0", when="@2.44")
     depends_on("esmf@8.5:", when="@2.40:2.43")
     depends_on("esmf@8.4", when="@2.34:2.39")
@@ -244,46 +299,54 @@ class Mapl(CMakePackage):
     depends_on("esmf~debug", when="~debug")
     depends_on("esmf+debug", when="+debug")
 
-    depends_on("gftl@1.13.0:", when="@2.45:")
+    # udunits dependency from MAPL 2.48 onwards
+    depends_on("udunits", when="@2.48:")
+
+    # gFTL dependency
+    depends_on("gftl@1.14.0:", when="@2.48:")
+    depends_on("gftl@1.13.0:", when="@2.45:2.47")
     depends_on("gftl@1.11.0:", when="@2.44")
     depends_on("gftl@1.10.0:", when="@2.40:2.43")
     depends_on("gftl@1.5.5:1.9", when="@:2.39")
 
-    # There was an interface change in gftl-shared, so we need to control versions
-    # MAPL 2.39 and older can use up to 1.6.0 but MAPL 2.40+ needs 1.6.1 or higher
-    depends_on("gftl-shared@1.8.0:", when="@2.45:")
+    # gFTL-Shared dependency
+    depends_on("gftl-shared@1.9.0:", when="@2.48:")
+    depends_on("gftl-shared@1.8.0:", when="@2.45:2.47")
     depends_on("gftl-shared@1.7.0:", when="@2.44")
     depends_on("gftl-shared@1.6.1:", when="@2.40:2.43")
     depends_on("gftl-shared@1.3.1:1.6.0", when="@:2.39")
 
-    # There was an interface change in yaFyaml, so we need to control versions
-    # MAPL 2.22 and older uses older version, MAPL 2.23+ and higher uses newer
-    # Note that MAPL 2.40+ no longer require yafyaml as we get yaml support
-    # via esmf 8.5.0
-    depends_on("yafyaml@1.0-beta5", when="@:2.22+extdata2g")
+    # yafyaml dependency
+    # Note that MAPL 2.40+ no longer directly requires yafyaml as
+    # extdata2g gets yaml support via esmf 8.5.0, but pflogger will
+    # bring in yafyaml as a dependency.
     depends_on("yafyaml@1.0.4:", when="@2.23:2.39+extdata2g")
+    depends_on("yafyaml@1.0-beta5", when="@:2.22+extdata2g")
 
-    # pFlogger depends on yaFyaml in the same way. MAPL 2.22 and below uses old
-    # yaFyaml so we need to use old pFlogger, but MAPL 2.23+ uses new yaFyaml
-    depends_on("pflogger@:1.6 +mpi", when="@:2.22+pflogger")
-    depends_on("pflogger@1.9.1: +mpi", when="@2.23:2.39+pflogger")
-    depends_on("pflogger@1.9.5: +mpi", when="@2.40:2.43+pflogger")
+    # pflogger dependency
+    depends_on("pflogger@1.15.0: +mpi", when="@2.48:+pflogger")
+    depends_on("pflogger@1.14.0: +mpi", when="@2.45:2.47+pflogger")
     depends_on("pflogger@1.11.0: +mpi", when="@2.44+pflogger")
-    depends_on("pflogger@1.14.0: +mpi", when="@2.45:+pflogger")
+    depends_on("pflogger@1.9.5: +mpi", when="@2.40:2.43+pflogger")
+    depends_on("pflogger@1.9.1: +mpi", when="@2.23:2.39+pflogger")
+    depends_on("pflogger@:1.6 +mpi", when="@:2.22+pflogger")
 
-    # fArgParse v1.4.1 is the first usable version with MAPL
-    # we now require 1.5.0 with MAPL 2.40+
-    depends_on("fargparse@1.7.0:", when="@2.45:+fargparse")
+    # fargparse dependency
+    depends_on("fargparse@1.8.0:", when="@2.48:+fargparse")
+    depends_on("fargparse@1.7.0:", when="@2.45:2.47+fargparse")
     depends_on("fargparse@1.6.0:", when="@2.44+fargparse")
     depends_on("fargparse@1.5.0:", when="@2.40:43+fargparse")
     depends_on("fargparse@1.4.1:1.4", when="@:2.39+fargparse")
 
-    depends_on("pfunit@4.9: +mpi +fhamcrest", when="@2.45:+pfunit")
+    # pfunit dependency
+    depends_on("pfunit@4.10: +mpi +fhamcrest", when="@2.48:+pfunit")
+    depends_on("pfunit@4.9: +mpi +fhamcrest", when="@2.45:2.47+pfunit")
     depends_on("pfunit@4.8: +mpi +fhamcrest", when="@2.44+pfunit")
     depends_on("pfunit@4.7.3: +mpi +fhamcrest", when="@2.40:+pfunit")
     depends_on("pfunit@4.6.1: +mpi +fhamcrest", when="@2.32:+pfunit")
     depends_on("pfunit@4.4.1: +mpi +fhamcrest", when="@2.26:+pfunit")
     depends_on("pfunit@4.2: +mpi +fhamcrest", when="@:2.25+pfunit")
+
     depends_on("flap", when="+flap")
 
     depends_on("ecbuild", type="build")
@@ -327,6 +390,22 @@ class Mapl(CMakePackage):
         if fflags:
             args.append(self.define("CMAKE_Fortran_FLAGS", " ".join(fflags)))
 
+        # If oneapi@:2024 is used and it gets past the conflict above, we might be
+        # using ifx or ifort. If we are using ifx and the MAPL version is 2.50 or older
+        # we need to raise an error
+
+        if self.spec.satisfies("@:2.50 %oneapi@:2024"):
+            # We now need to get which Fortran compiler is used here but there
+            # isn't an easy way like:
+            #   if self.spec["fortran"].name == "ifx":
+            # yet (see https://github.com/spack/spack/pull/45189)
+            # So we need to parse the output of $FC --version
+            output = spack.compiler.get_compiler_version_output(
+                self.compiler.fc, "-diag-disable=10448 --version", ignore_errors=True
+            )
+            if "ifx" in output:
+                raise InstallError("MAPL versions 2.50 and older do not support ifx")
+
         # Scripts often need to know the MPI stack used to setup the environment.
         # Normally, we can autodetect this, but building with Spack does not
         # seem to work. We need to pass in the MPI stack used to CMake
@@ -338,9 +417,13 @@ class Mapl(CMakePackage):
         # - Intel MPI --> intelmpi
         # - MVAPICH --> mvapich
         # - HPE MPT --> mpt
+        # - Cray MPICH --> mpich
+        # - HPC-X --> openmpi
 
         if self.spec.satisfies("^mpich"):
             args.append(self.define("MPI_STACK", "mpich"))
+        elif self.spec.satisfies("^mvapich2"):
+            args.append(self.define("MPI_STACK", "mvapich"))
         elif self.spec.satisfies("^openmpi"):
             args.append(self.define("MPI_STACK", "openmpi"))
         elif self.spec.satisfies("^intel-oneapi-mpi"):
@@ -349,6 +432,10 @@ class Mapl(CMakePackage):
             args.append(self.define("MPI_STACK", "mvapich"))
         elif self.spec.satisfies("^mpt"):
             args.append(self.define("MPI_STACK", "mpt"))
+        elif self.spec.satisfies("^cray-mpich"):
+            args.append(self.define("MPI_STACK", "mpich"))
+        elif self.spec.satisfies("^hpcx-mpi"):
+            args.append(self.define("MPI_STACK", "openmpi"))
         else:
             raise InstallError("Unsupported MPI stack")
 
@@ -370,3 +457,14 @@ class Mapl(CMakePackage):
         # name is common and used all over the place,
         # and if it is set it breaks the mapl build.
         env.unset("BASEDIR")
+
+    # We can run some tests to make sure the build is working
+    # but we can only do it if the pfunit variant is enabled
+    @when("+pfunit")
+    @run_after("build")
+    @on_package_attributes(run_tests=True)
+    def check(self):
+        with working_dir(self.build_directory):
+            # The test suite contains a lot of tests. We select only those
+            # that are cheap. Note this requires MPI and 6 processes
+            ctest("--output-on-failure", "-L", "ESSENTIAL")

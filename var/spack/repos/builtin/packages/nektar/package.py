@@ -1,11 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
-
-import llnl.util.filesystem as fs
 
 from spack.package import *
 
@@ -19,6 +16,9 @@ class Nektar(CMakePackage):
     version("5.5.0", commit="4365d5d7156139f238db962deae5eb25e0437d12", preferred=True)
     version("5.4.0", commit="002bf62648ec667e10524ceb8a98bb1c21804130")
     version("5.3.0", commit="f286f809cfeb26cb73828c90a689a048898971d2")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("mpi", default=True, description="Builds with mpi support")
     variant("fftw", default=True, description="Builds with fftw support")
@@ -165,7 +165,7 @@ class Nektar(CMakePackage):
         super(Nektar, self).install(spec, prefix)
         if "+python" in spec:
             python = which("python")
-            with fs.working_dir(self.build_directory):
+            with working_dir(self.build_directory):
                 python("setup.py", "install", "--prefix", prefix)
 
     def setup_run_environment(self, env):

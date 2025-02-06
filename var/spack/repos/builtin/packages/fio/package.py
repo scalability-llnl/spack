@@ -1,8 +1,6 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
 
 from spack.package import *
 
@@ -35,27 +33,28 @@ class Fio(AutotoolsPackage):
     variant("doc", default=False, description="Generate documentation")
     variant("libaio", default=False, description="Enable libaio engine")
 
+    depends_on("c", type="build")
+    depends_on("pkgconfig", type="build")
+    depends_on("zlib-api")
     depends_on("gtkplus@2.18:", when="+gui")
     depends_on("cairo", when="+gui")
     depends_on("libaio", when="+libaio")
-
     depends_on("py-sphinx", type="build", when="+doc")
 
     conflicts("+libaio", when="platform=darwin", msg="libaio does not support Darwin")
-
+    conflicts("+libaio", when="platform=windows", msg="libaio does not support Windows")
     conflicts("@:3.18", when="%gcc@10:", msg="gcc@10: sets -fno-common by default")
 
     def configure_args(self):
-        config_args = []
-        spec = self.spec
+        config_args = ["--disable-native"]
 
-        if spec.satisfies("+gui"):
+        if self.spec.satisfies("+gui"):
             config_args.append("--enable-gfio")
 
         return config_args
 
     @run_after("build")
     def build_docs(self):
-        if "+doc" in self.spec:
+        if self.spec.satisfies("+doc"):
             make("-C", "doc", "html")
             make("-C", "doc", "man")

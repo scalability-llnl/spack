@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class Iniparser(MakefilePackage):
     version("4.0", sha256="e0bbd664bb3f0d64c21ac2d67a843b1c7a3a9710e96393344d170ab8b33e92ba")
     version("3.2", sha256="4a60b8e29d33d24b458749404e1ff2bcbfedd53ad800757daeed7955599fdce4")
     version("3.1", sha256="73b88632dc16c2839f5d9ac7e6ec7a41415a68e590f75d0580b302af4a5d821d")
+
+    depends_on("c", type="build")  # generated
 
     def install(self, spec, prefix):
         mkdirp(prefix.include)

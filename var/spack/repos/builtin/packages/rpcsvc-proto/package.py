@@ -1,8 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import spack.paths
 from spack.package import *
 
 
@@ -19,6 +19,8 @@ class RpcsvcProto(AutotoolsPackage):
     version("1.4.2", sha256="678851b9f7ddf4410d2859c12016b65a6dd1a0728d478f18aeb54d165352f17c")
     version("1.4.1", sha256="9429e143bb8dd33d34bf0663f571d4d4a1103e1afd7c49791b367b7ae1ef7f35")
     version("1.4", sha256="4149d5f05d8f7224a4d207362fdfe72420989dc1b028b28b7b62b6c2efe22345")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("gettext")
 

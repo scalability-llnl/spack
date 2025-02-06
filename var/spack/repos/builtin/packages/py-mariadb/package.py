@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -21,6 +20,8 @@ class PyMariadb(PythonPackage):
         sha256="79028ba6051173dad1ad0be7518389cab70239f92b4ff8b8813dae55c3f2c53d",
         url="https://www.pypi.org/packages/source/m/mariadb/mariadb-1.0.10.zip",
     )
+
+    depends_on("c", type="build")  # generated
 
     depends_on("py-setuptools", type="build")
     depends_on("py-packaging", type=("build", "run"))

@@ -1,12 +1,9 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 import shutil
-
-import llnl.util.filesystem as fs
 
 from spack.package import *
 
@@ -37,7 +34,7 @@ class PythonVenv(Package):
             # Replace the VIRTUAL_ENV variable in the activate scripts after copying
             if name.lower().startswith("activate"):
                 shutil.copy(src, dst)
-                fs.filter_file(
+                filter_file(
                     self.spec.prefix,
                     os.path.abspath(view.get_projection_for_spec(self.spec)),
                     dst,
@@ -93,6 +90,9 @@ class PythonVenv(Package):
             path = os.path.join(dependent_spec.prefix, directory)
             if os.path.isdir(path):
                 env.prepend_path("PYTHONPATH", path)
+        dep_bin_dir = getattr(dependent_spec.package, "bindir", None)
+        if dep_bin_dir and os.path.isdir(dep_bin_dir):
+            env.prepend_path("PATH", dep_bin_dir)
 
     def setup_dependent_package(self, module, dependent_spec):
         """Called before python modules' install() methods."""
