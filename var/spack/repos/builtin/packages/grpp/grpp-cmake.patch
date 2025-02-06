@@ -16,7 +16,7 @@ index b5cc84f..efd61cf 100644
 +set(VERSION_MINOR 12)
 +set(VERSION_PATCH 25)
 +
-+project(libgrpp
++project(grpp
 +        DESCRIPTION "A library for the evaluation of molecular integrals of the generalized relativistic pseudopotential operator (GRPP) over Gaussian functions."
 +        HOMEPAGE_URL https://github.com/aoleynichenko/libgrpp
 +        VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}
