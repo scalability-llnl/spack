@@ -2150,6 +2150,10 @@ class Spec:
         if not hash.attr:
             return self.spec_hash(hash)[:length]
 
+        # On an abstract spec, the only thing safe to cache is the package hash
+        if not self.concrete and hash.name != ht.package_hash.name:
+            return self.spec_hash(hash)[:length]
+
         hash_string = getattr(self, hash.attr, None)
         if hash_string:
             return hash_string[:length]
@@ -2969,10 +2973,9 @@ class Spec:
 
     def _mark_root_concrete(self, value=True):
         """Mark just this spec (not dependencies) concrete."""
-        if (not value) and self.concrete and self.installed:
-            return
+        if value is True:
+            self._validate_version()
         self._concrete = value
-        self._validate_version()
 
     def _validate_version(self):
         # Specs that were concretized with just a git sha as version, without associated
@@ -2999,13 +3002,9 @@ class Spec:
         Only for internal use -- client code should use "concretize"
         unless there is a need to force a spec to be concrete.
         """
-        # if set to false, clear out all hashes (set to None or remove attr)
-        # may need to change references to respect None
         for s in self.traverse():
-            if (not value) and s.concrete and s.installed:
-                continue
-            elif not value:
-                s.clear_caches()
+            if value is False:
+                s.clear_caches(ignore=(ht.package_hash.attr,))
             s._mark_root_concrete(value)
 
     def _finalize_concretization(self):
