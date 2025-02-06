@@ -13,10 +13,13 @@ class Nwchem(Package):
 
     homepage = "https://nwchemgit.github.io"
     url = "https://github.com/nwchemgit/nwchem/releases/download/v7.2.0-release/nwchem-7.2.0-release.revision-d0d141fd-srconly.2023-03-10.tar.bz2"
+    git = "https://github.com/nwchemgit/nwchem.git"
 
     tags = ["ecp", "ecp-apps"]
 
     maintainers("jeffhammond")
+
+    version("master", branch="master")
 
     version(
         "7.2.3",
