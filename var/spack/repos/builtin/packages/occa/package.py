@@ -2,8 +2,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import os
-
 from spack.build_systems.cmake import CMakeBuilder
 from spack.build_systems.makefile import MakefileBuilder
 from spack.package import *
@@ -68,10 +66,7 @@ class Occa(CMakePackage, MakefilePackage, CudaPackage, ROCmPackage):
 
     @run_after("install")
     def check_install(self):
-        version_cmd = join_path(self.prefix.bin, "occa") + " version"
-        val = os.system(version_cmd)
-        if val != 0:
-            raise RuntimeError("Calling `occa version` failed !")
+        Executable(join_path(self.prefix.bin, "occa"))("version", fail_on_error=True)
 
 
 class SetupEnvironment:
