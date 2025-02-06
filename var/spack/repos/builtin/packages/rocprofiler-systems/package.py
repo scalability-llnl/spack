@@ -122,8 +122,6 @@ class RocprofilerSystems(CMakePackage):
             self.define("SPACK_BUILD", True),
             self.define("ROCPROFSYS_BUILD_PAPI", False),
             self.define("ROCPROFSYS_BUILD_PYTHON", True),
-            self.define("ROCPROFSYS_BUILD_DYNINST", True),
-            self.define("DYNINST_BUILD_TBB", True),
             self.define("ROCPROFSYS_BUILD_LIBUNWIND", False),
             self.define("ROCPROFSYS_BUILD_STATIC_LIBGCC", False),
             self.define("ROCPROFSYS_BUILD_STATIC_LIBSTDCXX", False),
