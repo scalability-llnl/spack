@@ -8,7 +8,6 @@ import spack.paths
 import spack.user_environment
 from spack.package import *
 from spack.pkg.builtin.clingo import Clingo
-from spack.util.environment import EnvironmentModifications
 
 
 class ClingoBootstrap(Clingo):

@@ -226,7 +226,7 @@ class Ginkgo(CMakePackage, CudaPackage, ROCmPackage):
 
         if self.spec.satisfies("+sycl"):
             sycl_compatible_compilers = ["icpx"]
-            if not (os.path.basename(self.compiler.cxx) in sycl_compatible_compilers):
+            if os.path.basename(self.compiler.cxx) not in sycl_compatible_compilers:
                 raise InstallError("ginkgo +sycl requires icpx compiler.")
         return args
 

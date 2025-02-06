@@ -236,22 +236,15 @@ def relocate_elf_binaries(binaries: Iterable[str], prefix_to_prefix: Dict[str, s
             _set_elf_rpaths_and_interpreter(path, rpaths=rpaths, interpreter=interpreter)
 
 
-def _warn_if_link_cant_be_relocated(link: str, target: str):
-    if not os.path.isabs(target):
-        return
-    tty.warn(f'Symbolic link at "{link}" to "{target}" cannot be relocated')
-
-
 def relocate_links(links: Iterable[str], prefix_to_prefix: Dict[str, str]) -> None:
     """Relocate links to a new install prefix."""
     regex = re.compile("|".join(re.escape(p) for p in prefix_to_prefix.keys()))
     for link in links:
         old_target = readlink(link)
+        if not os.path.isabs(old_target):
+            continue
         match = regex.match(old_target)
-
-        # No match.
         if match is None:
-            _warn_if_link_cant_be_relocated(link, old_target)
             continue
 
         new_target = prefix_to_prefix[match.group()] + old_target[match.end() :]

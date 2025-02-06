@@ -5,7 +5,6 @@
 import os
 
 import spack
-import spack.version
 from spack.package import *
 
 
@@ -118,7 +117,7 @@ class SingularityEos(CMakePackage, CudaPackage):
     depends_on("kokkos +wrapper+cuda_lambda", when="+cuda+kokkos")
 
     # fix for older spacks
-    if spack.version.Version(spack.spack_version) >= spack.version.Version("0.17"):
+    if Version(spack.spack_version) >= Version("0.17"):
         depends_on("kokkos-kernels ~shared", when="+kokkos-kernels")
 
     for _flag in list(CudaPackage.cuda_arch_values):
