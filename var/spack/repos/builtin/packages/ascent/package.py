@@ -150,7 +150,11 @@ class Ascent(CMakePackage, CudaPackage):
 
     # patch for fix typo in coord_type
     # https://github.com/Alpine-DAV/ascent/pull/1408
-    patch("ascent-oneapi-coords_type_typo.patch", when="@0.9.3 %oneapi@2025:")
+    patch(
+        "https://github.com/Alpine-DAV/ascent/pull/1408.patch?full_index=1",
+        when="@0.9.3 %oneapi@2025:",
+        sha256="7de7f51e57f3d743c39ad80d8783a4eb482be1def51eb2d3f9259246c661f164"
+    )
 
     ##########################################################################
     # package dependencies
