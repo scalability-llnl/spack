@@ -75,6 +75,8 @@ class SetupEnvironment:
         spec = self.spec
         s_env.set("OCCA_DIR", self.prefix)
         s_env.set("OCCA_CXX", spack_cxx)
+        # Run the tests serially:
+        s_env.set("CTEST_PARALLEL_LEVEL=1")
 
         # Run-time compiler flags:
         cxxflags = spec.compiler_flags["cxxflags"]
@@ -190,12 +192,6 @@ class CMakeBuilder(CMakeBuilder, SetupEnvironment):
 
         return args
 
-    @run_after("build")
-    @on_package_attributes(run_tests=True)
-    def check(self):
-        if self.pkg.run_tests:
-            make("-C", self.prefix, "test", parallel=False)
-
 
 class MakefileBuilder(MakefileBuilder, SetupEnvironment):
     def install(self, pkg, spec, prefix):
@@ -203,8 +199,3 @@ class MakefileBuilder(MakefileBuilder, SetupEnvironment):
         # Copy the source to the installation directory and build OCCA there.
         install_tree(".", prefix)
         make("-C", prefix)
-
-    @run_after("build")
-    @on_package_attributes(run_tests=True)
-    def check(self):
-        make("-C", self.prefix, "test", parallel=False)
