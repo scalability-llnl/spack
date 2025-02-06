@@ -19,9 +19,10 @@ _value_in_varname () {
     sep="$3"
 
     eval "var=\"\${${varname}}\""
+    value_in_varname=1
 
     if  [ "${var#*$value}" != "$var" ]; then
-            value_in_varname=0
+        value_in_varname=0
     fi
 
     return $value_in_varname
@@ -88,7 +89,8 @@ _spack_env_prepend() { # if not exporting then use lowercase
    if _spack_env_varname_is_empty "$varname"; then
         eval "$varname=\"\${value}\""
     else
-        if [ "$(_value_not_in_varname $varname $value $sep)" ] ; then
+        $(_value_in_varname $varname $value $sep)
+        if [ $? -eq 1 ] ; then
             eval "export $varname=$value$sep\${${varname}}"
         fi
     fi
