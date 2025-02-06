@@ -25,7 +25,12 @@ class Warpx(CMakePackage, PythonExtension):
 
     # NOTE: if you update the versions here, also see py-warpx
     version("develop", branch="development")
-    version("24.10", sha256="1fe3a86bf820a2ecef853cdcd9427fba4e0cb1efb05326da7dc9dbf94551202f")
+    version("25.02", sha256="c65385a3598bf43278c0b1c10ae2a5a07c1a46f6fa98deded385ecca2021a1a2")
+    version(
+        "24.10",
+        sha256="1fe3a86bf820a2ecef853cdcd9427fba4e0cb1efb05326da7dc9dbf94551202f",
+        deprecated=True,
+    )
     version(
         "24.08",
         sha256="8da1f2967f613a65a295260260aa4f081ac1d1b7c1d6987d294e02b86099df08",
@@ -245,7 +250,7 @@ class Warpx(CMakePackage, PythonExtension):
     depends_on("c", type="build")
     depends_on("cxx", type="build")
 
-    for v in ["24.10", "24.08", "develop"]:
+    for v in ["25.02", "24.10", "24.08", "develop"]:
         depends_on(
             f"amrex@{v} build_system=cmake +linear_solvers +pic +particles +shared +tiny_profile",
             when=f"@{v}",
@@ -277,6 +282,8 @@ class Warpx(CMakePackage, PythonExtension):
         depends_on("amrex dimensions=3")
     with when("+eb"):
         depends_on("amrex +eb")
+    with when("+fft"):
+        depends_on("amrex +fft", when="@24.11:")
     depends_on("mpi", when="+mpi")
     with when("+mpi"):
         depends_on("amrex +mpi")
@@ -321,6 +328,7 @@ class Warpx(CMakePackage, PythonExtension):
         depends_on("openpmd-api@0.13.1:")
         depends_on("openpmd-api@0.14.2:", when="@21.09:")
         depends_on("openpmd-api@0.15.1:", when="@23.05:")
+        depends_on("openpmd-api@0.16.1:", when="@25.02:")
         depends_on("openpmd-api ~mpi", when="~mpi")
         depends_on("openpmd-api +mpi", when="+mpi")
 
@@ -334,7 +342,8 @@ class Warpx(CMakePackage, PythonExtension):
         depends_on("py-periodictable@1.5:1", type=("build", "run"))
         depends_on("py-picmistandard@0.28.0", type=("build", "run"), when="@23.11:24.07")
         depends_on("py-picmistandard@0.29.0", type=("build", "run"), when="@24.08")
-        depends_on("py-picmistandard@0.30.0", type=("build", "run"), when="@24.09:")
+        depends_on("py-picmistandard@0.30.0", type=("build", "run"), when="@24.09:24.12")
+        depends_on("py-picmistandard@0.33.0", type=("build", "run"), when="@25.01:")
         depends_on("py-pip@23:", type="build")
         depends_on("py-setuptools@42:", type="build")
         depends_on("py-pybind11@2.12.0:", type=("build", "link"))
