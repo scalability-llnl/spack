@@ -11,7 +11,8 @@ class Professor(Package):
 
     homepage = "https://professor.hepforge.org/"
     url = "https://gitlab.com/hepcedar/professor/-/archive/professor-2.5.1/professor-professor-2.5.1.tar.gz"
-
+    tags = ["hep"]
+    
     maintainers("mjk655")
 
     version("2.5.1", sha256="c49174d1e4117da13083928a57e9bd6a52be25b9ccadee620315742f8e6b9430")
