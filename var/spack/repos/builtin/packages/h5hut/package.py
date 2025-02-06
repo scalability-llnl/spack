@@ -50,7 +50,7 @@ class H5hut(AutotoolsPackage):
         build_system_flags = []
         if (
             name == "cflags"
-            and self.spec.satisfies("@:2")
+            and self.spec.satisfies("@:1")
             and self.spec["hdf5"].satisfies("@1.12:")
         ):
             build_system_flags = ["-DH5_USE_110_API"]
