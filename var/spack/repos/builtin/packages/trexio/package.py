@@ -55,10 +55,10 @@ class AutotoolsBuilder(autotools.AutotoolsBuilder):
     def configure_args(self):
         config_args = []
         if "+hdf5" in self.spec:
-            if self.spec("@:2.3.0"):
+            if self.spec.satisfies("@:2.3.0"):
                 config_args.append("LIBS=-lhdf5_hl")
             else:
-                config.args.append("LIBS=-lhdf5")
+                config_args.append("LIBS=-lhdf5")
         else:
             config_args.append("--without-hdf5")
 
