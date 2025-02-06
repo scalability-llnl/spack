@@ -22,10 +22,11 @@ class Context(NamedTuple):
     configuration: spack.config.Configuration
     repo: spack.repo.RepoPath
     store: spack.store.Store
+    binary_index: spack.binary_distribution.BinaryCacheIndex
 
 
 class ContextAnalyzer:
-    """A full Spack context that can be passed around as an object"""
+    """Analyze a Context, to provide information that is useful when setting up concretization"""
 
     def __init__(self, *, context: Context):
         self.context = context
@@ -36,7 +37,8 @@ class ContextAnalyzer:
 
     @lang.memoized
     def buildcache_specs(self) -> List[spack.spec.Spec]:
-        return spack.binary_distribution.update_cache_and_get_specs()
+        self.context.binary_index.update()
+        return self.context.binary_index.get_all_built_specs()
 
     def runtime_pkgs(self) -> Tuple[Set[str], Set[str]]:
         """Returns the runtime packages for this context, and the virtuals they may provide"""

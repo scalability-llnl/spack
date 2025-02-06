@@ -1123,7 +1123,10 @@ class SpackSolverSetup:
 
     def __init__(self, tests: bool = False):
         self.context = Context(
-            configuration=spack.config.CONFIG, repo=spack.repo.PATH, store=spack.store.STORE
+            configuration=spack.config.CONFIG,
+            repo=spack.repo.PATH,
+            store=spack.store.STORE,
+            binary_index=spack.binary_distribution.BINARY_INDEX,
         )
         self.context_analyzer = ContextAnalyzer(context=self.context)
 

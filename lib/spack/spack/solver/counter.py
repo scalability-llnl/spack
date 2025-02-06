@@ -230,7 +230,7 @@ class PossibleDependenciesAnalyzer:
                 ):
                     continue
 
-                if self.context.is_virtual(name) and name in virtuals:
+                if name in virtuals:
                     continue
 
                 dep_names = set()
