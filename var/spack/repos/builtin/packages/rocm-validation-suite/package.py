@@ -63,7 +63,11 @@ class RocmValidationSuite(CMakePackage):
     patch("009-replacing-rocm-path-with-package-path.patch", when="@6.0")
     patch("009-replacing-rocm-path-with-package-path-6.1.patch", when="@6.1:6.2.0")
     patch("009-replacing-rocm-path-with-package-path-6.2.1.patch", when="@6.2.1:6.2.4")
-    patch("009-replacing-rocm-path-with-package-path-6.3.patch", when="@6.3.0:")
+    patch(
+        "https://github.com/ROCm/ROCmValidationSuite/commit/bd63256d43d11ae09a2c203e05cb002c7a730c59.patch?full_index=1",
+        sha256="bd63baeb4dea00ac4104ef7e9fab907bc04a1eccb93036478c005d0ac11034de",
+        when="@6.3.0:",
+    )
     depends_on("cmake@3.5:", type="build")
     depends_on("zlib-api", type="link")
     depends_on("yaml-cpp~shared")
@@ -148,31 +152,33 @@ class RocmValidationSuite(CMakePackage):
     def cmake_args(self):
         args = [
             self.define("RVS_BUILD_TESTS", False),
-            self.define("HIP_PATH", self.spec["hip"].prefix),
-            self.define("HSA_PATH", self.spec["hsa-rocr-dev"].prefix),
-            self.define("ROCM_SMI_DIR", self.spec["rocm-smi-lib"].prefix),
-            self.define("ROCBLAS_DIR", self.spec["rocblas"].prefix),
-            self.define("YAML_CPP_INCLUDE_DIRS", self.spec["yaml-cpp"].prefix.include),
             self.define("UT_INC", self.spec["googletest"].prefix.include),
         ]
-        if self.spec.satisfies("@6.2.1:"):
-            args.append(self.define("HIPRAND_DIR", self.spec["hiprand"].prefix))
-            args.append(self.define("ROCRAND_DIR", self.spec["rocrand"].prefix))
+
+        if self.spec.satisfies("@6.2.1:6.2.4"):
+            args.append(self.define("HIPRAND_DIR", self.spec["hiprand"].prefix)),
+            args.append(self.define("ROCRAND_DIR", self.spec["rocrand"].prefix)),
+
         libloc = self.spec["googletest"].prefix.lib64
         if not os.path.isdir(libloc):
             libloc = self.spec["googletest"].prefix.lib
         args.append(self.define("UT_LIB", libloc))
         if self.spec.satisfies("@:6.2"):
+            args.append(self.define("HIP_PATH", self.spec["hip"].prefix)),
+            args.append(self.define("HSA_PATH", self.spec["hsa-rocr-dev"].prefix)),
+            args.append(self.define("ROCM_SMI_DIR", self.spec["rocm-smi-lib"].prefix)),
+            args.append(self.define("ROCBLAS_DIR", self.spec["rocblas"].prefix)),
+            args.append(
+                self.define("YAML_CPP_INCLUDE_DIRS", self.spec["yaml-cpp"].prefix.include)
+            ),
+
             libloc = self.spec["hsakmt-roct"].prefix.lib64
             if not os.path.isdir(libloc):
                 libloc = self.spec["hsakmt-roct"].prefix.lib
             args.append(self.define("HSAKMT_LIB_DIR", libloc))
-        else:
-            args.append(self.define("HSAKMT_LIB_DIR", self.spec["hsa-rocr-dev"].prefix.lib))
-        libloc = self.spec["yaml-cpp"].prefix.lib64
-        if not os.path.isdir(libloc):
-            libloc = self.spec["yaml-cpp"].prefix.lib
-        args.append(self.define("YAML_CPP_LIB_PATH", libloc))
+
         if self.spec.satisfies("@6.3.0:"):
-            args.append(self.define("HIPBLASLT_DIR", self.spec["hipblaslt"].prefix))
+            args.append(self.define("CMAKE_INSTALL_RPATH", self.spec.prefix.lib)),
+            args.append(self.define("CPACK_PACKAGING_INSTALL_PREFIX", self.spec.prefix)),
+
         return args
