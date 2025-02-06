@@ -13,8 +13,11 @@ class PyPatsy(PythonPackage):
     homepage = "https://github.com/pydata/patsy"
     pypi = "patsy/patsy-0.5.2.tar.gz"
 
+    maintainers("climbfuji")
+
     license("PSF-2.0")
 
+    version("0.5.4", sha256="7dabc527597308de0e8f188faa20af7e06a89bdaa306756dfc7783693ea16af4")
     version("0.5.3", sha256="bdc18001875e319bc91c812c1eb6a10be4bb13cb81eb763f466179dca3b67277")
     version("0.5.2", sha256="5053de7804676aba62783dbb0f23a2b3d74e35e5bfa238b88b7cbf148a38b69d")
     version("0.5.1", sha256="f115cec4201e1465cd58b9866b0b0e7b941caafec129869057405bfe5b5e3991")
