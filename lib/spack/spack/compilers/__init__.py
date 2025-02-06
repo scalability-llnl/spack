@@ -342,43 +342,21 @@ def supported_compilers() -> List[str]:
     return sorted(all_compiler_names())
 
 
-def supported_compilers_for_host_platform() -> List[str]:
-    """Return a set of compiler class objects supported by Spack
-    that are also supported by the current host platform
-    """
-    host_plat = spack.platforms.real_host()
-    return supported_compilers_for_platform(host_plat)
-
-
 def is_supported_compiler_class_for_platform(
     cls_str: str, platform: "spack.platforms.Platform"
 ) -> bool:
-    supported_platform_for_compiler_attr = getattr(
-        spack.repo.PATH.get_pkg_class(cls_str), "is_supported_on_platform", None
-    )
-    if supported_platform_for_compiler_attr:
-        return supported_platform_for_compiler_attr(platform)
-    return False
+    compiler_pkg_cls = spack.repo.PATH.get_pkg_class(cls_str)
+    return compiler_pkg_cls.is_supported_on_platform(platform)
 
 
 def is_supported_compiler_class_for_host_platform(cls_str: str) -> bool:
-    host_plat = spack.platforms.real_host()
-    return is_supported_compiler_class_for_platform(cls_str, host_plat)
-
-
-def supported_compilers_for_platform(platform: "spack.platforms.Platform") -> List[str]:
-    """Return a set of compiler class objects supported by Spack
-    that are also supported by the provided platform
-
-    Args:
-        platform (str): string representation of platform
-            for which compiler compatability should be determined
-    """
-    return [
-        name
-        for name in supported_compilers()
-        if class_for_compiler_name(name).is_supported_on_platform(platform)
-    ]
+    host_plat = spack.platforms.host()
+    # host platfrom can return none, if we can't determine
+    # host platform, don't limit compiler detection
+    # TODO: should we throw if we can't detect a host platform?
+    if host_plat:
+        return is_supported_compiler_class_for_platform(cls_str, host_plat)
+    return True
 
 
 def all_compiler_names() -> List[str]:

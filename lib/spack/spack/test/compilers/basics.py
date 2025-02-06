@@ -13,10 +13,12 @@ import llnl.util.filesystem as fs
 
 import spack.compiler
 import spack.compilers
+import spack.compilers.gcc
 import spack.config
 import spack.spec
 import spack.util.module_cmd
 from spack.compiler import Compiler
+from spack.platforms import Test
 from spack.util.executable import Executable, ProcessError
 from spack.util.file_cache import FileCache
 
@@ -884,6 +886,36 @@ def test_compiler_environment(working_env):
     )
     with compiler.compiler_environment():
         assert os.environ["TEST"] == "yes"
+
+
+@pytest.mark.parametrize(
+    "host_os,expected_compiler", [(Test(), spack.compilers.gcc.Gcc)], indirect=["host_os"]
+)
+def test_compiler_detection_platform_support(
+    mock_executable, monkeypatch, host_os, expected_compiler
+):
+    """Test to ensure compilers are only detected on platforms for which they are supported"""
+
+    # Setup fake compilers for detection
+    gcc_compiler_exe = mock_executable("gcc", output="echo 15.0.0")
+    gcc_prefix = os.path.dirname(gcc_compiler_exe)
+    msvc_compiler_exe = mock_executable(
+        "cl",
+        output="echo Microsoft (R) 32-bit C/C++ Optimizing Compiler Version 15.00.30729.01",
+    )
+    msvc_prefix = os.path.dirname(msvc_compiler_exe)
+    apple_clang_exe = mock_executable(
+        "apple-clang", output="echo Apple clang version 15.0.0 (clang-1500.3.9.4)"
+    )
+    apple_clang_prefix = os.path.dirname(apple_clang_exe)
+    prefix_path = os.pathsep.join([gcc_prefix, msvc_prefix, apple_clang_prefix])
+    monkeypatch.setenv("PATH", prefix_path)
+
+    # run compiler detection
+    compilers = spack.compilers.find_compilers()
+    # for each given platform, we should have only found one compiler
+    assert len(compilers) == 1, "Non platform compatible compilers detected"
+    assert isinstance(compilers[0], expected_compiler)
 
 
 class MockCompilerWithoutExecutables(MockCompiler):

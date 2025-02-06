@@ -1,8 +1,11 @@
 # Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+from typing import Optional
+
 import llnl.util.lang
 
+from ._platform import Platform
 from .darwin import Darwin
 from .freebsd import FreeBSD
 from .linux import Linux
@@ -14,7 +17,7 @@ platforms = [Darwin, Linux, Windows, FreeBSD, Test]
 
 
 @llnl.util.lang.memoized
-def _host():
+def _host() -> Optional[Platform]:
     """Detect and return the platform for this machine or None if detection fails."""
     for platform_cls in sorted(platforms, key=lambda plt: plt.priority):
         if platform_cls.detect():

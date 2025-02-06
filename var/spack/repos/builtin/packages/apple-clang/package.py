@@ -1,9 +1,11 @@
 # Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+from typing import Callable
+
 from spack.package import *
 from spack.pkg.builtin.llvm import LlvmDetection
-from spack.platforms import Darwin
+from spack.platforms import Darwin, Platform
 
 
 class AppleClang(BundlePackage, LlvmDetection, CompilerPackage):
@@ -20,7 +22,7 @@ class AppleClang(BundlePackage, LlvmDetection, CompilerPackage):
     requires("platform=darwin")
 
     # apple-clang is Darwin only
-    is_supported_on_platform = lambda x: isinstance(x, Darwin)
+    is_supported_on_platform: Callable[[Platform], bool] = lambda x: isinstance(x, Darwin)
 
     @classmethod
     def validate_detected_spec(cls, spec, extra_attributes):
