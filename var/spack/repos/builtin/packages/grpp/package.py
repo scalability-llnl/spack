@@ -21,7 +21,7 @@ class Grpp(CMakePackage):
 
     maintainers("mtaillefumier")
 
-    license("MIT-License")
+    license("MIT", checked_by="mtaillefumier")
 
     version("main", branch="main")
     version("2023.12.25", commit="6e63e88f75385b811837efbbb143b2dcd83b00e8")
