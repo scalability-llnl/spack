@@ -1324,44 +1324,47 @@ spack:
         env.concretize()
         env.write()
 
-        repro_dir.mkdir()
-
-        job_spec = env.concrete_roots()[0]
-        with open(repro_dir / "archivefiles.json", "w", encoding="utf-8") as f:
-            f.write(job_spec.to_json(hash=ht.dag_hash))
-
-        artifacts_root = repro_dir / "scratch_dir"
-        pipeline_path = artifacts_root / "pipeline.yml"
-
-        ci_cmd(
-            "generate",
-            "--output-file",
-            str(pipeline_path),
-            "--artifacts-root",
-            str(artifacts_root),
-        )
-
-        job_name = gitlab_generator.get_job_name(job_spec)
-
-        with open(repro_dir / "repro.json", "w", encoding="utf-8") as f:
-            f.write(
-                json.dumps(
-                    {
-                        "job_name": job_name,
-                        "job_spec_json": "archivefiles.json",
-                        "ci_project_dir": str(repro_dir),
-                    }
-                )
-            )
-
-        with open(repro_dir / "install.sh", "w", encoding="utf-8") as f:
-            f.write("#!/bin/sh\n\n#fake install\nspack install blah\n")
-
-        with open(repro_dir / "spack_info.txt", "w", encoding="utf-8") as f:
-            f.write(f"\nMerge {last_two_git_commits[1]} into {last_two_git_commits[0]}\n\n")
-
     def fake_download_and_extract_artifacts(url, work_dir):
-        return "jobs_scratch_dir"
+        with working_dir(tmp_path), ev.Environment(".") as env:
+            if not os.path.exists(repro_dir):
+                repro_dir.mkdir()
+
+            job_spec = env.concrete_roots()[0]
+            with open(repro_dir / "archivefiles.json", "w", encoding="utf-8") as f:
+                f.write(job_spec.to_json(hash=ht.dag_hash))
+                artifacts_root = repro_dir / "jobs_scratch_dir"
+                pipeline_path = artifacts_root / "pipeline.yml"
+
+                ci_cmd(
+                    "generate",
+                    "--output-file",
+                    str(pipeline_path),
+                    "--artifacts-root",
+                    str(artifacts_root),
+                )
+
+                job_name = gitlab_generator.get_job_name(job_spec)
+
+                with open(repro_dir / "repro.json", "w", encoding="utf-8") as f:
+                    f.write(
+                        json.dumps(
+                            {
+                                "job_name": job_name,
+                                "job_spec_json": "archivefiles.json",
+                                "ci_project_dir": str(repro_dir),
+                            }
+                        )
+                    )
+
+                with open(repro_dir / "install.sh", "w", encoding="utf-8") as f:
+                    f.write("#!/bin/sh\n\n#fake install\nspack install blah\n")
+
+                with open(repro_dir / "spack_info.txt", "w", encoding="utf-8") as f:
+                    f.write(
+                        f"\nMerge {last_two_git_commits[1]} into {last_two_git_commits[0]}\n\n"
+                    )
+
+            return "jobs_scratch_dir"
 
     monkeypatch.setattr(ci, "download_and_extract_artifacts", fake_download_and_extract_artifacts)
     rep_out = ci_cmd(
@@ -1376,6 +1379,25 @@ spack:
 
     # Make sure we tell the user where it is when not in interactive mode
     assert f"$ {repro_dir}/start.sh" in rep_out
+
+    # Ensure the correct commits are used
+    assert f"checkout_commit: {last_two_git_commits[0]}" in rep_out
+    assert f"merge_commit: {last_two_git_commits[1]}" in rep_out
+
+    # Test overwriting existing reproduction dir and using a different commit (HEAD)
+    rep_out = ci_cmd(
+        "reproduce-build",
+        "https://example.com/api/v1/projects/1/jobs/2/artifacts",
+        "--overwrite",
+        "--use-local-head",
+        "--working-dir",
+        str(repro_dir),
+        output=str,
+    )
+
+    # Make sure we are checkout out the HEAD commit without a merge commit
+    assert "checkout_commit: HEAD" in rep_out
+    assert "merge_commit: None" in rep_out
 
 
 @pytest.mark.parametrize(
