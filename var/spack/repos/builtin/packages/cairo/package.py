@@ -68,9 +68,19 @@ class Cairo(AutotoolsPackage, MesonPackage):
         variant("dwrite", default=False, description="Microsoft Windows DWrite font backend")
 
         # doesn't exist @1.17.8: but kept as compatibility
-        variant("pdf", default=False, description="+pdf implies +zlib now")
+        variant(
+            "pdf",
+            default=False,
+            description="""+pdf is combined into +zlib now, kept seperate for compatibility.
+              +pdf implies +zlib now. Please use the updated variants""",
+        )
         # svg is combined into png now, kept seperate for compatibility
-        variant("svg", default=False, description="+svg implies +png now")
+        variant(
+            "svg",
+            default=False,
+            description="""+svg is combined into +png now, kept seperate for compatibility.
+              +svg implies +png now. Please use the updated variants""",
+        )
 
         # meson seems to have assumptions about what is enabled/disabled
         # these four compile best if +variant in unison, otherwise various errors happen
@@ -109,20 +119,18 @@ class Cairo(AutotoolsPackage, MesonPackage):
 
         # meson seems to have assumptions about what is enabled/disabled
         # so this protects against incompatible combinations
-        # conflicts("~zlib+png")
-        requires("+zlib", when="+png", msg="+png requires +zlib")
-        requires("+ft", when="+fc", msg="+fc requires +ft")
-        requires("+fc", when="+ft", msg="+fc requires +ft")
-        requires("+zlib", when="+fc+ft", msg="+fc+ft requires +zlib")
-        requires("+png", when="+ft+fc+zlib", msg="+ft+fc+zlib requires +png")
+        conflicts("~zlib+png", msg="+png requires +zlib")
+        conflicts("~ft+fc", msg="+fc requires +ft")
+        conflicts("+ft~fc", msg="+ft requires +fc")
+        conflicts("+ft+fc~zlib", msg="+fc+ft requires +zlib")
+        conflicts("+fc+ft~png+zlib", msg="+ft+fc+zlib requires +png")
 
         # +pdf implies zlib now
         requires("+zlib", when="+pdf")
+        requires("~zlib", when="~pdf", msg="+pdf implies +zlib now")
         # +svg implies png now
         requires("+svg", when="+png")
-
-        requires("~zlib", when="~pdf", msg="+pdf implies +zlib now")
-        requires("~png", when="~png", msg="+svg implies +png now")
+        requires("~png", when="~svg", msg="+svg implies +png now")
 
     # meson also needs this for auto discovery of depends
     depends_on("pkgconfig", type="build")
