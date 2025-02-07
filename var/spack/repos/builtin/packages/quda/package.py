@@ -24,9 +24,21 @@ class Quda(CMakePackage, CudaPackage, ROCmPackage):
     )  # todo: change to release
     version("2025-01-23", preferred=True, commit="18bf43ed40c75ae276e55bb8ddf2f64aa5510c37")
     version("1.1.0", sha256="b4f635c993275010780ea09d8e593e0713a6ca1af1db6cc86c64518714fcc745")
-    version("1.0.0", deprecated=True, sha256="32b883bd4af45b76a832d8a070ab020306c94ff6590410cbe7c3eab3b630b938")
-    version("0.9.0", deprecated=True, sha256="0a9f2e028fb40e4a09f78af51702d2de4099a9bf10fb8ce350eacb2d8327e481")
-    version("0.8.0", deprecated=True, sha256="58d9a94b7fd38ec1f79bea7a0e9b470f0fa517cbf5fce42d5776e1c65607aeda")
+    version(
+        "1.0.0",
+        deprecated=True,
+        sha256="32b883bd4af45b76a832d8a070ab020306c94ff6590410cbe7c3eab3b630b938",
+    )
+    version(
+        "0.9.0",
+        deprecated=True,
+        sha256="0a9f2e028fb40e4a09f78af51702d2de4099a9bf10fb8ce350eacb2d8327e481",
+    )
+    version(
+        "0.8.0",
+        deprecated=True,
+        sha256="58d9a94b7fd38ec1f79bea7a0e9b470f0fa517cbf5fce42d5776e1c65607aeda",
+    )
 
     # build dependencies
     generator("ninja")
