@@ -160,11 +160,7 @@ properties: Dict[str, Any] = {
                     "default": {},
                     "properties": {},
                     "additionalProperties": True,
-                    "patternProperties": {
-                        "^(test|overwrite)": {
-                            "not": {}
-                        }
-                    },
+                    "patternProperties": {"^(test|overwrite)": {"not": {}}},
                 },
                 # If 'get_full_repo' is promoted to a Package-level
                 # attribute, it could be useful to set it here
