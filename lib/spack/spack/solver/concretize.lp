@@ -1236,6 +1236,10 @@ error(100, "Cannot propagate the variant '{0}' from the package: {1} because pac
 % 1. The same flag type is not set on this node
 % 2. This node has the same compilers as the propagation source
 
+compiler_penalty(PackageNode, C-1) :-
+   C = #count { CompilerNode : node_compiler(PackageNode, CompilerNode) },
+   node_compiler(PackageNode, _).
+
 node_compiler(node(X, Package), node(Y, Compiler)) :-
      attr("virtual_on_edge", node(X, Package), node(Y, Compiler), Language),
      attr("version", node(Y, Compiler), Version),
@@ -1673,7 +1677,7 @@ opt_criterion(50, "number of non-default variants (non-roots)").
       build_priority(PackageNode, Priority)
 }.
 
-% Minimize the weights of the providers, i.e. use as much as
+% Minimize the ids of the providers, i.e. use as much as
 % possible the first providers
 opt_criterion(48, "number of duplicate virtuals needed").
 #minimize{ 0@248: #true }.
@@ -1682,6 +1686,16 @@ opt_criterion(48, "number of duplicate virtuals needed").
     Weight@48+Priority,ProviderNode,Virtual
     : provider(ProviderNode, node(Weight, Virtual)),
       build_priority(ProviderNode, Priority)
+}.
+
+% Minimize the number of compilers used on nodes
+opt_criterion(49, "minimize the number of compilers used on the same node").
+#minimize{ 0@249: #true }.
+#minimize{ 0@49: #true }.
+#minimize{
+    Penalty@49+Priority,PackageNode
+    : compiler_penalty(PackageNode, Penalty),
+    build_priority(PackageNode, Priority)
 }.
 
 % Minimize the weights of the providers, i.e. use as much as
@@ -1781,6 +1795,7 @@ opt_criterion(1, "edge wiring").
       not attr("root", PackageNode),
       depends_on(ParentNode, PackageNode)
 }.
+
 
 #minimize{ 0@201: #true }.
 #minimize{ 0@1: #true }.

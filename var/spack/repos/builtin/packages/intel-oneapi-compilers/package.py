@@ -356,8 +356,7 @@ class IntelOneapiCompilers(IntelOneApiPackage, CompilerPackage):
 
     stdcxx_libs = ("-cxxlib",)
 
-    provides("c")
-    provides("cxx")
+    provides("c", "cxx")
     provides("fortran")
 
     def _standard_flag(self, *, language, standard):
