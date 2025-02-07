@@ -189,14 +189,14 @@ def _dev_spec_generator(args, env):
     if not args.spec:
         if args.clone is False:
             raise SpackError("No spec provided to spack develop command")
-        else:
-            for name, entry in env.dev_specs.items():
-                path = entry.get("path", name)
-                abspath = spack.util.path.canonicalize_path(path, default_wd=env.path)
-                # Both old syntax `spack develop pkg@x` and new syntax `spack develop pkg@=x`
-                # are currently supported.
-                spec = spack.spec.parse_with_version_concrete(entry["spec"])
-                yield spec, abspath
+
+        for name, entry in env.dev_specs.items():
+            path = entry.get("path", name)
+            abspath = spack.util.path.canonicalize_path(path, default_wd=env.path)
+            # Both old syntax `spack develop pkg@x` and new syntax `spack develop pkg@=x`
+            # are currently supported.
+            spec = spack.spec.parse_with_version_concrete(entry["spec"])
+            yield spec, abspath
     else:
         specs = spack.cmd.parse_specs(args.spec)
         if (args.path or args.build_directory) and len(specs) > 1:
@@ -204,23 +204,23 @@ def _dev_spec_generator(args, env):
                 "spack develop requires at most one named spec when using the --path or"
                 " --build-directory arguments"
             )
-        else:
-            for spec in specs:
-                if args.recursive:
-                    concrete_specs = env.all_matching_specs(spec)
-                    if not concrete_specs:
-                        tty.warn(
-                            f"{spec.name} has no matching concrete specs in the environment and "
-                            "will be skipped. `spack develop --recursive` requires a concretized"
-                            " environment"
-                        )
-                    else:
-                        for s in concrete_specs:
-                            for node_spec in s.traverse(direction="parents", root=True):
-                                tty.debug(f"Recursive develop for {node_spec.name}")
-                                yield node_spec, _abs_code_path(env, node_spec, args.path)
+        
+        for spec in specs:
+            if args.recursive:
+                concrete_specs = env.all_matching_specs(spec)
+                if not concrete_specs:
+                    tty.warn(
+                        f"{spec.name} has no matching concrete specs in the environment and "
+                        "will be skipped. `spack develop --recursive` requires a concretized"
+                        " environment"
+                    )
                 else:
-                    yield spec, _abs_code_path(env, spec, args.path)
+                    for s in concrete_specs:
+                        for node_spec in s.traverse(direction="parents", root=True):
+                            tty.debug(f"Recursive develop for {node_spec.name}")
+                            yield node_spec, _abs_code_path(env, node_spec, args.path)
+            else:
+                yield spec, _abs_code_path(env, spec, args.path)
 
 
 def develop(parser, args):
