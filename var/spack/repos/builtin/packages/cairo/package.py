@@ -68,21 +68,21 @@ class Cairo(AutotoolsPackage, MesonPackage):
         variant("dwrite", default=False, description="Microsoft Windows DWrite font backend")
 
         # doesn't exist @1.17.8: but kept as compatibility
-        variant("pdf", default=False, description="+pdf implies +zlib now. ~pdf does nothing")
+        variant("pdf", default=False, description="+pdf implies +zlib now")
         # svg is combined into png now, kept seperate for compatibility
-        variant("svg", default=False, description="+svg implies +png now. ~svg does nothing")
+        variant("svg", default=False, description="+svg implies +png now")
 
         # meson seems to have assumptions about what is enabled/disabled
         # these four compile best if +variant in unison, otherwise various errors happen
         # if these aren't in sync. It is  easier to have a sane default. conflicts below
         # to try to protect known incompatibilities
-        variant("png", default=True, description="Enable cairo's PNG and SVG functions feature.")
-        variant("ft", default=True, description="Enable cairo's FreeType font backend feature.")
-        variant("fc", default=True, description="Enable cairo's Fontconfig font backend feature.")
+        variant("png", default=True, description="Enable cairo's PNG and SVG functions feature")
+        variant("ft", default=True, description="Enable cairo's FreeType font backend feature")
+        variant("fc", default=True, description="Enable cairo's Fontconfig font backend feature")
         variant(
             "zlib",
             default=True,
-            description="Enable cairo's script, ps, pdf, xml functions feature.",
+            description="Enable cairo's script, ps, pdf, xml functions feature",
         )
 
         variant("quartz", default=False, description="Enable cairo's Quartz functions feature")
@@ -109,10 +109,20 @@ class Cairo(AutotoolsPackage, MesonPackage):
 
         # meson seems to have assumptions about what is enabled/disabled
         # so this protects against incompatible combinations
-        conflicts("~zlib+png", msg="+png requires +zlib")
-        conflicts("~ft+fc", msg="+fc requires +ft")
-        conflicts("+ft+fc~zlib", msg="+fc+ft requires +zlib")
-        conflicts("+fc+ft~png+zlib", msg="+ft+fc+zlib requires +png")
+        # conflicts("~zlib+png")
+        requires("+zlib", when="+png", msg="+png requires +zlib")
+        requires("+ft", when="+fc", msg="+fc requires +ft")
+        requires("+fc", when="+ft", msg="+fc requires +ft")
+        requires("+zlib", when="+fc+ft", msg="+fc+ft requires +zlib")
+        requires("+png", when="+ft+fc+zlib", msg="+ft+fc+zlib requires +png")
+
+        # +pdf implies zlib now
+        requires("+zlib", when="+pdf")
+        # +svg implies png now
+        requires("+svg", when="+png")
+
+        requires("~zlib", when="~pdf", msg="+pdf implies +zlib now")
+        requires("~png", when="~png", msg="+svg implies +png now")
 
     # meson also needs this for auto discovery of depends
     depends_on("pkgconfig", type="build")
@@ -181,10 +191,6 @@ class MesonBuilder(meson.MesonBuilder):
         args.append(self.enable_or_disable("fontconfig", variant="ft"))
         args.append(self.enable_or_disable("freetype", variant="fc"))
 
-        # +svg implies png now
-        if self.spec.satisfies("+svg"):
-            self.spec.variants["png"].value = True
-
         args.append(self.enable_or_disable("png"))
 
         args.append(self.enable_or_disable("quartz"))
@@ -193,10 +199,6 @@ class MesonBuilder(meson.MesonBuilder):
 
         args.append(self.enable_or_disable("xlib", variant="X"))
         args.append(self.enable_or_disable("xlib-xcb", variant="X"))
-
-        # +pdf implies zlib now
-        if self.spec.satisfies("+pdf"):
-            self.spec.variants["zlib"].value = True
 
         args.append(self.enable_or_disable("zlib"))
 
@@ -208,7 +210,7 @@ class MesonBuilder(meson.MesonBuilder):
 
 
 class AutotoolsBuilder(autotools.AutotoolsBuilder):
-    def autoreconf(self, spec, prefix):
+    def autoreconf(self, pkg, spec, prefix):
         # Regenerate, directing the script *not* to call configure before Spack
         # does
         which("sh")("./autogen.sh", extra_env={"NOCONFIGURE": "1"})
