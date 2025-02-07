@@ -204,7 +204,7 @@ def _dev_spec_generator(args, env):
                 "spack develop requires at most one named spec when using the --path or"
                 " --build-directory arguments"
             )
-        
+
         for spec in specs:
             if args.recursive:
                 concrete_specs = env.all_matching_specs(spec)
