@@ -1466,7 +1466,7 @@ class TestConcretize:
 
         reuse = spack.concretize.concretize_one("libelf")
         assert reuse.installed
-        assert reuse.satisfies("@0.8.13")
+        assert reuse.satisfies("@0.8.13")  # version installed in mutable_database
 
         spack.config.set("concretizer:reuse", {"namespaces": []})
         noreuse = spack.concretize.concretize_one("libelf")
