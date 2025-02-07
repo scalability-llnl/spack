@@ -379,7 +379,10 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
 
     patch("kits_with_catalyst_5_12.patch", when="@5.12.0")
 
+    # https://github.com/Kitware/VTK-m/commit/c805a6039ea500cb96158cfc11271987c9f67aa4
     patch("vtkm-remove-unused-method-from-mir-tables.patch", when="@5.13.2 %oneapi@2025:")
+
+    # https://github.com/Kitware/VTK-m/commit/48e385af319543800398656645327243a29babfb
     patch("vtkm-fix-problems-in-class-member-names.patch", when="@5.13.2 %oneapi@2025:")
 
     generator("ninja", "make", default="ninja")
