@@ -1189,7 +1189,7 @@ from spack.package import *
 class B1(Package):
     version("1.1")
 
-    depends_on("c1")    
+    depends_on("c1")
 
     def install(self, spec, prefix):
         touch(prefix.example)
