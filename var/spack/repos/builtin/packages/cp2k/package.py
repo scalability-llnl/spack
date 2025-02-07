@@ -121,7 +121,6 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     variant("smeagol", default=False, description="Enable libsmeagol support", when="@2025.2:")
     variant("grpp", default=False, description="Enable libgrpp support", when="@2025.2:")
     variant("trexio", default=False, description="Enable Trex-IO support", when="@2025.2:")
-    variant("grpp", default=True, description="Enable Trex-IO support", when="@2025.2: +trexio")
     variant(
         "enable_regtests",
         default=False,
