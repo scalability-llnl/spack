@@ -3986,6 +3986,7 @@ class ReusableSpecsSelector:
         self.configuration = configuration
         self.store = spack.store.create(configuration)
         self.reuse_strategy = ReuseStrategy.ROOTS
+        self.reuse_namespaces = "any"
 
         reuse_yaml = self.configuration.get("concretizer:reuse", False)
         self.reuse_sources = []
@@ -4016,6 +4017,7 @@ class ReusableSpecsSelector:
                 self.reuse_strategy = ReuseStrategy.ROOTS
             else:
                 self.reuse_strategy = ReuseStrategy.DEPENDENCIES
+            self.reuse_namespaces = reuse_yaml.get("namespaces", "any")
             default_include = reuse_yaml.get("include", [])
             default_exclude = reuse_yaml.get("exclude", [])
             default_sources = [{"type": "local"}, {"type": "buildcache"}]
@@ -4082,6 +4084,9 @@ class ReusableSpecsSelector:
         # If we only want to reuse dependencies, remove the root specs
         if self.reuse_strategy == ReuseStrategy.DEPENDENCIES:
             result = [spec for spec in result if not any(root in spec for root in specs)]
+
+        if self.reuse_namespaces != "any":
+            result = [spec for spec in result if spec.namespace in self.reuse_namespaces]
 
         return result
 

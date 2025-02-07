@@ -1460,6 +1460,19 @@ class TestConcretize:
         new2 = spack.concretize.concretize_one("conditional-variant-pkg +two_whens")
         assert new2.satisfies("@2 +two_whens +version_based")
 
+    def test_reuse_by_namespace(self, mutable_database, mock_packages):
+        spack.config.set("concretizer:reuse", True)
+        spack.config.set("packages:libelf", {"version": ["0.8.10"]})
+
+        reuse = spack.concretize.concretize_one("libelf")
+        assert reuse.installed
+        assert reuse.satisfies("@0.8.13")
+
+        spack.config.set("concretizer:reuse", {"namespaces": []})
+        noreuse = spack.concretize.concretize_one("libelf")
+        assert not noreuse.installed
+        assert noreuse.satisfies("@0.8.10")
+
     def test_reuse_with_flags(self, mutable_database, mutable_config):
         spack.config.set("concretizer:reuse", True)
         spec = spack.concretize.concretize_one("pkg-a cflags=-g cxxflags=-g")

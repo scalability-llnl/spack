@@ -25,6 +25,12 @@ properties: Dict[str, Any] = {
                             "roots": {"type": "boolean"},
                             "include": LIST_OF_SPECS,
                             "exclude": LIST_OF_SPECS,
+                            "namespaces": {
+                                "oneOf": [
+                                    {"type": "string", "enum": ["any"]},
+                                    {"type": "array", "items": {"type": "string"}},
+                                ]
+                            },
                             "from": {
                                 "type": "array",
                                 "items": {
