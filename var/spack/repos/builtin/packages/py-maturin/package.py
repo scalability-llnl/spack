@@ -40,7 +40,6 @@ class PyMaturin(PythonPackage):
         ]:
             depends_on(f"rust@{rust}:", when=f"@{maturin}:")
 
-    conflicts("python@3.11:")
     # May be an accidental dependency, remove in the future
     # https://git.alpinelinux.org/aports/commit/?id=7ad298b467403b96a6b97d050170e367f147a75f
     # https://patchwork.yoctoproject.org/project/oe-core/patch/8803dc101b641c948805cab9e5784c38f43b0e51.1702791173.git.tim.orling@konsulko.com/
