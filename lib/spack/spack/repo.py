@@ -50,6 +50,7 @@ import spack.util.spack_yaml as syaml
 ROOT_PYTHON_NAMESPACE = "spack.pkg"
 
 
+# TODO/RepoSplit: Changed from builtin to builtin.mock
 def python_package_for_repo(namespace):
     """Returns the full namespace of a repository, given its relative one
 
@@ -63,6 +64,7 @@ def python_package_for_repo(namespace):
     return "{0}.{1}".format(ROOT_PYTHON_NAMESPACE, namespace)
 
 
+# TODO/RepoSplit: Changed from builtin to builtin.mock
 def namespace_from_fullname(fullname):
     """Return the repository namespace only for the full module name.
 
@@ -181,7 +183,8 @@ def packages_path():
     try:
         return PATH.get_repo("builtin.mock").packages_path
     except UnknownNamespaceError:
-        # TODO/RepoSplit: How will this be handled post-repo split?
+        # TODO/RepoSplit: Will this still be relevant for new package repo?
+        # TODO/RepoSplit: If so, what will the namespace of that repo be?
         return PATH.get_repo("builtin").packages_path
 
 
