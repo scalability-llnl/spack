@@ -47,18 +47,16 @@ class Trexio(AutotoolsPackage, CMakePackage):
     depends_on("hdf5@1.8:+hl", when="@:2.3.0 +hdf5")
     depends_on("hdf5@1.8:", when="+hdf5")
 
-    # Append -lhdf5_hl to LIBS when hdf5 variant is activated
-    # or use --without-hdf5 option otherwise.
-
 
 class AutotoolsBuilder(autotools.AutotoolsBuilder):
     def configure_args(self):
         config_args = []
         if "+hdf5" in self.spec:
             if self.spec.satisfies("@:2.3.0"):
+                # Autotools should take care of adding the necessay flags for HDF5
+                # In older versions, it is not always the case for "hdf5_hl"
+                # Append -lhdf5_hl to LIBS when hdf5 variant is activated
                 config_args.append("LIBS=-lhdf5_hl")
-            else:
-                config_args.append("LIBS=-lhdf5")
         else:
             config_args.append("--without-hdf5")
 
