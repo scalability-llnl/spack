@@ -1165,6 +1165,54 @@ class T0(Package):
 )
 
 
+_pkga1 = (
+    "a1",
+    """\
+from spack.package import *
+
+class A1(Package):
+    version("1.1")
+
+    depends_on("b1")
+
+    def install(self, spec, prefix):
+        touch(prefix.example)
+""",
+)
+
+
+_pkgb1 = (
+    "b1",
+    """\
+from spack.package import *
+
+class B1(Package):
+    version("1.1")
+
+    depends_on("c1")    
+
+    def install(self, spec, prefix):
+        touch(prefix.example)
+""",
+)
+
+
+_pkgc1 = (
+    "c1",
+    """\
+from spack.package import *
+
+class C1(Package):
+    version("1.1")
+
+    variant("shared", default=True)
+
+    def install(self, spec, prefix):
+        touch(prefix.example)
+""",
+)
+
+
 @pytest.fixture
 def _create_test_repo(tmpdir, mutable_config):
     r"""
@@ -1173,8 +1221,12 @@ def _create_test_repo(tmpdir, mutable_config):
       c0  |
       | \ |
       d0 t0
+
+    and
+
+    a1 -> b1 -> c1
     """
-    yield create_test_repo(tmpdir, [_pkga, _pkgb, _pkgc, _pkgd, _pkgt])
+    yield create_test_repo(tmpdir, [_pkga, _pkgb, _pkgc, _pkgd, _pkgt, _pkga1, _pkgb1, _pkgc1])
 
 
 @pytest.fixture
@@ -1213,6 +1265,26 @@ packages:
     assert bool(os.listdir(c0_spec.prefix.share.c0.src))
 
     assert "Tested b0" in logs("b0")
+
+
+def test_install_args_cfg_cache_control(
+    mutable_mock_env_path, mutable_config, concretize_scope, test_repo, mock_fetch, mock_archive
+):
+    with spack.config.override("config:checksum", False):
+        install("a1 ^c1+shared")
+
+    conf_str = """\
+packages:
+  c1:
+    install_args:
+      package_cache_only: true
+      dependencies_cache_only: true
+"""
+    update_packages_config(conf_str)
+    with spack.config.override("config:checksum", False):
+        output = install("a1 ^c1~shared", fail_on_error=False)
+        expected_msg = "No binary found when cache-only was specified"
+        assert expected_msg in output
 
 
 @pytest.mark.skipif(True, reason="Not handled yet")

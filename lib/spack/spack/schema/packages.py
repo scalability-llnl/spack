@@ -161,7 +161,7 @@ properties: Dict[str, Any] = {
                     "properties": {},
                     "additionalProperties": True,
                     "patternProperties": {
-                        "^(test|overwrite|package_cache_only|dependencies_cache_only)": {
+                        "^(test|overwrite)": {
                             "not": {}
                         }
                     },
