@@ -25,6 +25,7 @@ class Reframe(Package):
     license("BSD-3-Clause")
 
     version("develop", branch="develop")
+    version("4.7.3", sha256="74b8f56dc622d1c75fc1152d15d45e00edab9d2db1f6bc8fd7290125d69c74dd")
     version("4.7.2", sha256="90e04eaaa21afd5c29a9c6218204c3df4503f624f21f2fe773f90e148d30c152")
     version("4.7.1", sha256="ed693368d8b47327981a0db2b984c88d7dd703add1ffe736c95f9193ef727baf")
     version("4.7.0", sha256="4a2604616cd492ab21b09f8234482239eff1a07e1ee61f4e4493fd973e7d5dc2")
@@ -137,6 +138,8 @@ class Reframe(Package):
     depends_on("py-pyyaml", when="@3.4.1:", type="run")
     depends_on("py-requests", when="@3.4.1:", type="run")
     depends_on("py-semver", when="@3.4.2:", type="run")
+    depends_on("py-filelock", when="@4.7:", type="run")
+    depends_on("py-tabulate", when="@4.7:", type="run")
 
     # extension dependencies
     depends_on("py-pygelf", when="+gelf", type="run")
