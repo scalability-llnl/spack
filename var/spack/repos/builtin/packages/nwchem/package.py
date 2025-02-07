@@ -72,6 +72,9 @@ class Nwchem(Package):
         "elpa", default=False, description="Enable optimised diagonalisation routines from ELPA"
     )
 
+    # https://github.com/nwchemgit/nwchem/pull/1034
+    patch("oneapi2025.patch", when="@7.2.3 %oneapi@2025:")
+
     # This patch is for the modification of the build system (e.g. compiler flags) and
     # Fortran syntax to enable the compilation with Fujitsu compilers. The modification
     # will be merged to the next release of NWChem (see https://github.com/nwchemgit/nwchem/issues/347
