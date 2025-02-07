@@ -32,6 +32,7 @@ class Collier(CMakePackage):
     version("1.0", sha256="54f40c1ed07a6829230af400abfe48791e74e56eac2709c0947cec3410a4473d")
 
     depends_on("c", type="build")
+    depends_on("cxx", type="build")
     depends_on("fortran", type="build")
 
     @property
