@@ -9,9 +9,11 @@ spack:
     all:
       require:
       - target=x86_64_v3
-      prefer:
       - '%oneapi'
       providers:
+        c: [intel-oneapi-compilers, gcc]
+        cxx: [intel-oneapi-compilers, gcc]
+        fortran: [intel-oneapi-compilers, gcc]
         blas: [openblas]
         tbb: [intel-tbb]
       variants: +mpi
