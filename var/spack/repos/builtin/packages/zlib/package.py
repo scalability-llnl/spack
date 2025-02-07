@@ -86,7 +86,7 @@ class Zlib(MakefilePackage, Package):
     def libs(self):
         shared = "+shared" in self.spec
         libnames = ["libz"]
-        if sys.platform == "win32":
+        if self.spec.satisfies("platform=windows"):
             libnames.append("zdll" if shared else "zlib")
         return find_libraries(
             libnames, root=self.prefix, recursive=True, shared=shared, runtime=False
