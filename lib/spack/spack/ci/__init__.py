@@ -999,7 +999,7 @@ def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime):
         )
 
         # Attempt to create a unique name for the reproducer container
-        container_suffix = "_" + reproducer_spec.dag_hash if reproducer_spec else ""
+        container_suffix = "_" + reproducer_spec.dag_hash() if reproducer_spec else ""
         docker_command = [
             runtime,
             "run",
