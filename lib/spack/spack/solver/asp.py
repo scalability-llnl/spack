@@ -95,7 +95,7 @@ def default_clingo_control():
     control = clingo().Control()
     control.configuration.configuration = "tweety"
     control.configuration.solver.heuristic = "Domain"
-    control.configuration.solver.opt_strategy = "usc,one"
+    control.configuration.solver.opt_strategy = "usc,one,1"
     return control
 
 
