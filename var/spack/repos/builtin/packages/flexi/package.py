@@ -63,7 +63,7 @@ class Flexi(CMakePackage):
         "parabolic",
         default=True,
         description=(
-            "Defines whether the parabolic part of the chosen system " "should be included or not"
+            "Defines whether the parabolic part of the chosen system should be included or not"
         ),
     )
     variant(

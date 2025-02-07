@@ -351,7 +351,7 @@ class Charmpp(Package):
                 # This is a Charm++ limitation; it would lead to a
                 # build error
                 raise InstallError(
-                    "The +tcp variant requires " "the backend=netlrts communication mechanism"
+                    "The +tcp variant requires the backend=netlrts communication mechanism"
                 )
             options.append("tcp")
         if spec.satisfies("+omp"):

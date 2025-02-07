@@ -121,7 +121,7 @@ class Salmon(CMakePackage):
         if self.spec.satisfies("@0.8.2:0.9.1"):
             filter_file(
                 "${FAST_MALLOC_LIB}",
-                "${FAST_MALLOC_LIB}\n" "${CMAKE_DL_LIBS}",
+                "${FAST_MALLOC_LIB}\n${CMAKE_DL_LIBS}",
                 "src/CMakeLists.txt",
                 string=True,
             )

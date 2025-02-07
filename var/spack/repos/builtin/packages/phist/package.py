@@ -138,7 +138,7 @@ class Phist(CMakePackage):
     variant(
         "fortran",
         default=True,
-        description="generate Fortran 2003 bindings (requires Python3 and " "a Fortran compiler)",
+        description="generate Fortran 2003 bindings (requires Python3 and a Fortran compiler)",
     )
 
     # Build error with LLVM and recent Trilinos, fixed in phist-1.12.1

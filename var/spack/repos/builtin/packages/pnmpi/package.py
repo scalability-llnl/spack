@@ -38,7 +38,7 @@ class Pnmpi(CMakePackage):
         if self.spec.satisfies("+fortran"):
             if is_no_fortran_compiler:
                 raise InstallError(
-                    "pnmpi+fortran requires Fortran compiler " "but no Fortran compiler found!"
+                    "pnmpi+fortran requires Fortran compiler but no Fortran compiler found!"
                 )
 
     def cmake_args(self):

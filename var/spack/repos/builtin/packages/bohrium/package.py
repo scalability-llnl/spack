@@ -40,9 +40,7 @@ class Bohrium(CMakePackage, CudaPackage):
     variant("node", default=True, description="Build the node vector engine manager")
     variant("proxy", default=False, description="Build the proxy vector engine manager")
     variant(
-        "python",
-        default=True,
-        description="Build the numpy-like bridge " "to enable use from python",
+        "python", default=True, description="Build the numpy-like bridge to enable use from python"
     )
     variant("cbridge", default=True, description="Build the bridge interface towards plain C")
 

@@ -39,7 +39,7 @@ class Elemental(CMakePackage):
     variant(
         "int64_blas",
         default=False,
-        description="Use 64bit integers for BLAS." " Requires local build of BLAS library.",
+        description="Use 64bit integers for BLAS. Requires local build of BLAS library.",
     )
     variant("scalapack", default=False, description="Build with ScaLAPACK library")
     variant(
@@ -57,7 +57,7 @@ class Elemental(CMakePackage):
     variant(
         "mpfr",
         default=False,
-        description="Support GNU MPFR's" "arbitrary-precision floating-point arithmetic",
+        description="Support GNU MPFR's arbitrary-precision floating-point arithmetic",
     )
 
     # Note that #1712 forces us to enumerate the different blas variants

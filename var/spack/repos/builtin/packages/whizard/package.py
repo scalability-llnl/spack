@@ -79,7 +79,7 @@ class Whizard(AutotoolsPackage):
     depends_on("qgraf", when="+gosam")
 
     depends_on(
-        "openloops@2.0.0: +compile_extra num_jobs=1 " "processes=eett,eevvjj,ppllj,tbw",
+        "openloops@2.0.0: +compile_extra num_jobs=1 processes=eett,eevvjj,ppllj,tbw",
         when="+openloops",
     )
     depends_on("texlive", when="+latex")

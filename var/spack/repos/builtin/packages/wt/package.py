@@ -40,9 +40,7 @@ class Wt(CMakePackage):
     variant("postgresql", default=False, description="create PostgreSQL DBO")
     # variant('firebird', default=False, description='create Firebird DBO')
     variant(
-        "pango",
-        default=True,
-        description="improved font support in PDF and raster image " "painting",
+        "pango", default=True, description="improved font support in PDF and raster image painting"
     )
     variant("zlib", default=True, description="compression in the built-in httpd")
     # variant('fastcgi', default=False,

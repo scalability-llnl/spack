@@ -44,7 +44,7 @@ class Povray(AutotoolsPackage):
     variant(
         "io-restrictions",
         default=True,
-        description="Enable POV-Rays mechanism for control of I/O " "operations",
+        description="Enable POV-Rays mechanism for control of I/O operations",
     )
     variant("jpeg", default=True, description="Build with jpeg support")
     variant("libpng", default=True, description="Build with libpng support")

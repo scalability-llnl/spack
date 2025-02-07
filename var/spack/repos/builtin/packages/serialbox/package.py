@@ -40,7 +40,7 @@ class Serialbox(CMakePackage):
     variant(
         "std-filesystem",
         default=True,
-        description="use std::experimental::filesystem (no dependency on " "compiled boost libs)",
+        description="use std::experimental::filesystem (no dependency on compiled boost libs)",
     )
 
     depends_on("cmake@3.12:", type="build")
@@ -73,12 +73,12 @@ class Serialbox(CMakePackage):
     conflicts(
         "+ftg",
         when="~fortran",
-        msg="the FortranTestGenerator frontend requires the Fortran " "interface",
+        msg="the FortranTestGenerator frontend requires the Fortran interface",
     )
     conflicts(
         "+ftg",
         when="@:2.2.999",
-        msg="the FortranTestGenerator frontend is supported only " "starting version 2.3.0",
+        msg="the FortranTestGenerator frontend is supported only starting version 2.3.0",
     )
     conflicts("+sdb", when="~python", msg="the stencil debugger requires the Python interface")
     conflicts("+fortran", when="~c", msg="the Fortran interface requires the C interface")

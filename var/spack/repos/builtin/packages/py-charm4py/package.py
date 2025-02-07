@@ -27,7 +27,7 @@ class PyCharm4py(PythonPackage):
     variant(
         "mpi",
         default=True,
-        description="build Charm++ library with the MPI instead of TCP" " communication layer",
+        description="build Charm++ library with the MPI instead of TCP communication layer",
     )
 
     # Builds its own charm++, so no charmpp dependency

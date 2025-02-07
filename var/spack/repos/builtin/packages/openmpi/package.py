@@ -473,7 +473,7 @@ class Openmpi(AutotoolsPackage, CudaPackage):
         values=disjoint_sets(
             ("auto",), FABRICS  # shared memory transports
         ).with_non_feature_values("auto", "none"),
-        description="List of fabrics that are enabled; " "'auto' lets openmpi determine",
+        description="List of fabrics that are enabled; 'auto' lets openmpi determine",
     )
 
     SCHEDULERS = ("alps", "lsf", "tm", "slurm", "sge", "loadleveler")
@@ -694,7 +694,7 @@ with '-Wl,-commons,use_dylibs' and without
     conflicts(
         "schedulers=loadleveler",
         when="@3:",
-        msg="The loadleveler scheduler is not supported with " "openmpi(>=3).",
+        msg="The loadleveler scheduler is not supported with openmpi(>=3).",
     )
 
     # According to this comment on github:

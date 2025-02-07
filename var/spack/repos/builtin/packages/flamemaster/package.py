@@ -31,12 +31,12 @@ class Flamemaster(CMakePackage):
     variant(
         "bilin_omega",
         default=True,
-        description="Compile with bilinear interpolation" "for collision integrals (omega)",
+        description="Compile with bilinear interpolation for collision integrals (omega)",
     )
     variant(
         "combustion",
         default=False,
-        description="Integrate comustion libraries" "for kinetics, thermodynamics, and transport",
+        description="Integrate comustion libraries for kinetics, thermodynamics, and transport",
     )
     variant(
         "fortran_code",
@@ -109,7 +109,7 @@ class Flamemaster(CMakePackage):
     variant(
         "tests",
         default=False,
-        description="Install google-test framework for unit tests" "and enable units tests.",
+        description="Install google-test framework for unit tests and enable units tests.",
     )
     variant(
         "third_party_in_build_dir",

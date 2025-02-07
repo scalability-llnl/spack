@@ -418,18 +418,16 @@ class Dealii(CMakePackage, CudaPackage):
     conflicts(
         "+adol-c",
         when="^trilinos+chaco",
-        msg="Symbol clash between the ADOL-C library and " "Trilinos SEACAS Chaco.",
+        msg="Symbol clash between the ADOL-C library and Trilinos SEACAS Chaco.",
     )
     conflicts(
         "+adol-c",
         when="^trilinos+exodus",
-        msg="Symbol clash between the ADOL-C library and " "Trilinos Netcdf.",
+        msg="Symbol clash between the ADOL-C library and Trilinos Netcdf.",
     )
 
     conflicts(
-        "+slepc",
-        when="~petsc",
-        msg="It is not possible to enable slepc interfaces " "without petsc.",
+        "+slepc", when="~petsc", msg="It is not possible to enable slepc interfaces without petsc."
     )
 
     def cmake_args(self):

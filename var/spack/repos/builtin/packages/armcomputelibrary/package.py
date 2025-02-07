@@ -54,7 +54,7 @@ class Armcomputelibrary(SConsPackage):
     variant(
         "multi_isa",
         default=False,
-        description="Build Multi ISA binary version of library." " Note works only for armv8.2-a.",
+        description="Build Multi ISA binary version of library. Note works only for armv8.2-a.",
     )
     variant(
         "target_arch",

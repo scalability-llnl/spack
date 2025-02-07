@@ -376,9 +376,7 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
         if "+fortran" in spec and self.is_fortran_compiler("xlf"):
             # Grab lib directory for the current fortran compiler
             libdir = pjoin(os.path.dirname(os.path.dirname(self.compiler.fc)), "lib")
-            description = (
-                "Adds a missing rpath for libraries " "associated with the fortran compiler"
-            )
+            description = "Adds a missing rpath for libraries associated with the fortran compiler"
 
             linker_flags = "${BLT_EXE_LINKER_FLAGS} -Wl,-rpath," + libdir
 

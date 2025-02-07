@@ -31,11 +31,9 @@ class Cnvnator(MakefilePackage):
         # Replace -fopenmp with self.compiler.openmp_flag
         makefile.filter("-fopenmp", self.compiler.openmp_flag)
         # Replace CXX with CXXFLAGS
+        cxx11_flag = self.compiler.cxx11_flag
         makefile.filter(
-            "CXX.*=.*",
-            r"CXXFLAGS = -DCNVNATOR_VERSION=\"$(VERSION)\""
-            " $(OMPFLAGS)"
-            " {0}".format(self.compiler.cxx11_flag),
+            "CXX.*=.*", rf"CXXFLAGS = -DCNVNATOR_VERSION=\"$(VERSION)\" $(OMPFLAGS) {cxx11_flag}"
         )
         makefile.filter("$(CXX)", "$(CXX) $(CXXFLAGS)", string=True)
         # Replace -I$(SAMDIR) with -I$(SAMINC)

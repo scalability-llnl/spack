@@ -123,13 +123,13 @@ class Eccodes(CMakePackage):
     conflicts(
         "+netcdf",
         when="~tools",
-        msg="Cannot enable the NetCDF conversion tool " "when the command line tools are disabled",
+        msg="Cannot enable the NetCDF conversion tool when the command line tools are disabled",
     )
 
     conflicts(
         "~tools",
         when="@:2.18.0",
-        msg="The command line tools can be disabled " "only starting version 2.19.0",
+        msg="The command line tools can be disabled only starting version 2.19.0",
     )
 
     for center, definitions in _definitions.items():

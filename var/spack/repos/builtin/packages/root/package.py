@@ -204,7 +204,7 @@ class Root(CMakePackage):
     variant(
         "gminimal",
         default=True,
-        description="Ignore most of Root's feature defaults except for " "basic graphic options",
+        description="Ignore most of Root's feature defaults except for basic graphic options",
     )
     variant("gsl", default=True, description="Enable linking against shared libraries for GSL")
     variant("http", default=False, description="Enable HTTP server support")
@@ -227,7 +227,7 @@ class Root(CMakePackage):
     variant(
         "mlp",
         default=False,
-        description="Enable support for TMultilayerPerceptron " "classes' federation",
+        description="Enable support for TMultilayerPerceptron classes' federation",
     )
     variant("mysql", default=False, description="Enable support for MySQL databases")
     variant("opengl", default=True, description="Enable OpenGL support")

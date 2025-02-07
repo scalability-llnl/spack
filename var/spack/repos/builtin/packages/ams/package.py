@@ -140,8 +140,7 @@ class Ams(CMakePackage, CudaPackage):
         if spec.satisfies("+torch"):
             args.append("-DWITH_TORCH=On")
             args.append(
-                "-DTorch_DIR={0}/lib/python{1}/site-packages"
-                "/torch/share/cmake/Torch".format(
+                "-DTorch_DIR={0}/lib/python{1}/site-packages/torch/share/cmake/Torch".format(
                     spec["py-torch"].prefix, spec["python"].version.up_to(2)
                 )
             )

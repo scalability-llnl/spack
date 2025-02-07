@@ -35,9 +35,7 @@ class Freeipmi(AutotoolsPackage):
     def configure_args(self):
         # FIXME: If root checking of root installation is added fix this:
         # Discussed in issue  #4432
-        tty.warn(
-            "Requires 'root' for bmc-watchdog.service installation to" " /lib/systemd/system/ !"
-        )
+        tty.warn("Requires 'root' for bmc-watchdog.service installation to /lib/systemd/system/ !")
 
         args = [
             "--prefix={0}".format(prefix),

@@ -78,9 +78,7 @@ class Cosmomc(Package):
         # rewrite the Makefile to use Spack's options all the time
         if spec.satisfies("%gcc"):
             if not spec.satisfies("%gcc@6:"):
-                raise InstallError(
-                    "When using GCC, " "CosmoMC requires version gcc@6: for building"
-                )
+                raise InstallError("When using GCC, CosmoMC requires version gcc@6: for building")
             choosecomp = "ifortErr=1"  # choose gfortran
         elif spec.satisfies("%intel"):
             if not spec.satifies("%intel@14:"):

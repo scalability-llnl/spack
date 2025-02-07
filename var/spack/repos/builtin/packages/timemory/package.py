@@ -40,7 +40,7 @@ class Timemory(CMakePackage, PythonExtension):
     variant(
         "python_hatchet",
         default=False,
-        description="Build Python hatchet submodule " "(does not conflict with py-hatchet)",
+        description="Build Python hatchet submodule (does not conflict with py-hatchet)",
     )
     variant(
         "python_line_profiler",
@@ -77,9 +77,7 @@ class Timemory(CMakePackage, PythonExtension):
     variant(
         "kokkos_tools",
         default=False,
-        description=(
-            "Build generic kokkos-tools libraries, e.g. " "kp_timemory, kp_timemory_filter"
-        ),
+        description=("Build generic kokkos-tools libraries, e.g. kp_timemory, kp_timemory_filter"),
     )
     variant(
         "kokkos_build_config",
@@ -122,7 +120,7 @@ class Timemory(CMakePackage, PythonExtension):
     variant(
         "cpu_target",
         default="auto",
-        description=("Build for specific cpu architecture (specify " "cpu-model)"),
+        description=("Build for specific cpu architecture (specify cpu-model)"),
     )
     variant(
         "use_arch",
@@ -143,7 +141,7 @@ class Timemory(CMakePackage, PythonExtension):
     variant(
         "statistics",
         default=True,
-        description=("Build components w/ support for statistics " "(min/max/stddev)"),
+        description=("Build components w/ support for statistics (min/max/stddev)"),
     )
     variant(
         "extra_optimizations",
@@ -179,7 +177,7 @@ class Timemory(CMakePackage, PythonExtension):
     variant(
         "require_packages",
         default=True,
-        description=("find_package(...) resulting in NOTFOUND " "generates error"),
+        description=("find_package(...) resulting in NOTFOUND generates error"),
     )
     variant("compiler", default=True, description="Enable compiler instrumentation support")
     variant(

@@ -48,7 +48,7 @@ class Express(CMakePackage):
                     )
             edit = FileFilter("CMakeLists.txt")
             edit.filter(
-                r"\${CMAKE_CURRENT_SOURCE_DIR}/../bamtools/lib/" "libbamtools.a",
+                r"\${CMAKE_CURRENT_SOURCE_DIR}/../bamtools/lib/libbamtools.a",
                 "%s" % self.spec["bamtools"].libs,
             )
 

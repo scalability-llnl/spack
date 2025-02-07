@@ -53,7 +53,7 @@ class Bzip2(Package, SourcewarePackage):
     @classmethod
     def determine_version(cls, exe):
         output = Executable(exe)("--help", output=str, error=str)
-        match = re.search(r"bzip2, a block-sorting file compressor." "  Version ([^,]+)", output)
+        match = re.search(r"bzip2, a block-sorting file compressor.  Version ([^,]+)", output)
         return match.group(1) if match else None
 
     # override default implementation

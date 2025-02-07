@@ -42,7 +42,7 @@ class Bcftools(AutotoolsPackage):
     variant(
         "libgsl",
         default=False,
-        description="build options that require the GNU scientific " "library",
+        description="build options that require the GNU scientific library",
     )
 
     variant(

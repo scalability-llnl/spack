@@ -813,9 +813,10 @@ class MakefileBuilder(makefile.MakefileBuilder):
                 mkf.write("include {0}\n".format(self.pkg["plumed"].plumed_inc))
 
             mkf.write("\n# COMPILER, LINKER, TOOLS\n\n")
-            mkf.write(
-                "FC  = {0}\n" "CC  = {1}\n" "CXX = {2}\n" "LD  = {3}\n".format(fc, cc, cxx, fc)
-            )
+            mkf.write(f"FC  = {fc}\n")
+            mkf.write(f"CC  = {cc}\n")
+            mkf.write(f"CXX = {cxx}\n")
+            mkf.write(f"LD  = {fc}\n")
 
             if spec.satisfies("%intel"):
                 intel_bin_dir = ancestor(pkg.compiler.cc)
