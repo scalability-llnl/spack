@@ -1,7 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+import os
 
 from spack.package import *
 
@@ -15,6 +16,7 @@ class Leptonica(CMakePackage):
 
     license("custom")
 
+    version("1.85.0", sha256="c01376bce0379d4ea4bc2ec5d5cbddaa49e2f06f88242619ab8c059e21adf233")
     version("1.84.1", sha256="ecd7a868403b3963c4e33623595d77f2c87667e2cfdd9b370f87729192061bef")
     version("1.83.1", sha256="4289d0a4224b614010072253531c0455a33a4d7c7a0017fe7825ed382290c0da")
     version("1.81.0", sha256="70ebc04ff8b9684205bd1d01843c635a8521255b74813bf7cce9a33368f7952c")
@@ -37,3 +39,9 @@ class Leptonica(CMakePackage):
         args = [self.define("BUILD_SHARED_LIBS", "ON")]
 
         return args
+
+    @run_after("install")
+    def pkgconfig_fixup(self):
+        with working_dir(self.prefix.lib.pkgconfig):
+            if not os.path.exists("lept.pc"):
+                symlink(f"lept_{self.spec.variants['build_type'].value}.pc", "lept.pc")

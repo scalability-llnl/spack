@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,6 +24,12 @@ class IntelOneapiMkl(IntelOneApiLibraryPackage):
         "https://software.intel.com/content/www/us/en/develop/tools/oneapi/components/onemkl.html"
     )
 
+    version(
+        "2025.0.1",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/246ea40e-5aa7-42a4-81fa-0c029dc8650f/intel-onemkl-2025.0.1.16_offline.sh",
+        sha256="bd86677aa17499c89ca7a3c3c83b73f0644147e4f1d2a218b45a7349cf582f4a",
+        expand=False,
+    )
     version(
         "2025.0.0",
         url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/79153e0f-74d7-45af-b8c2-258941adf58a/intel-onemkl-2025.0.0.940_offline.sh",

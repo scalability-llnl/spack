@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -42,7 +41,7 @@ class Fasta(MakefilePackage):
         elif self.spec.satisfies("platform=linux target=x86_64:"):
             name = "Makefile.linux64_sse2"
         else:
-            tty.die(
+            raise InstallError(
                 """Unsupported platform/target, must be
 Darwin (assumes 64-bit)
 Linux x86_64

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -47,7 +46,7 @@ def _process_ld_so_conf_queue(queue):
         try:
             with open(p, "rb") as f:
                 lines = f.readlines()
-        except (IOError, OSError):
+        except OSError:
             continue
 
         for line in lines:
@@ -133,7 +132,7 @@ def host_dynamic_linker_search_paths():
 
             if os.path.exists(possible_conf):
                 conf_file = possible_conf
-    except (IOError, OSError, elf_utils.ElfParsingError):
+    except (OSError, elf_utils.ElfParsingError):
         pass
 
     # Note: ld_so_conf doesn't error if the file does not exist.

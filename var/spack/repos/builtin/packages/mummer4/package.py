@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,3 +25,6 @@ class Mummer4(AutotoolsPackage):
     depends_on("perl@5.6.0:", type=("build", "run"))
     depends_on("awk", type="run")
     depends_on("sed", type="run")
+
+    # Adds missing inclusion of <cstdint>
+    patch("48bit_index.patch", level=0, when="%gcc@13:")

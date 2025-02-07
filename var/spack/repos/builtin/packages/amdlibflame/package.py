@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 # ----------------------------------------------------------------------------\
@@ -203,8 +202,8 @@ class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
             args.append("--enable-void-return-complex")
 
         if spec.satisfies("@3.0:3.1 %aocc"):
-            """To enabled Fortran to C calling convention for
-            complex types when compiling with aocc flang"""
+            # To enable Fortran to C calling convention for complex types when compiling with
+            # aocc flang
             args.append("--enable-f2c-dotc")
 
         if spec.satisfies("@3.0.1: +ilp64"):

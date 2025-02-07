@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,7 +10,7 @@ class PyOwslib(PythonPackage):
     Consortium (OGC) web service (hence OWS) interface standards, and their
     related content models."""
 
-    homepage = "http://http://geopython.github.io/OWSLib/#installation"
+    homepage = "https://owslib.readthedocs.io/en/latest/"
     pypi = "OWSLib/OWSLib-0.16.0.tar.gz"
 
     license("BSD-3-Clause")

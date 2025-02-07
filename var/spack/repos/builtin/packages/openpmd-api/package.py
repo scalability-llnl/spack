@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,7 +9,7 @@ class OpenpmdApi(CMakePackage):
     """C++ & Python API for Scientific I/O"""
 
     homepage = "https://www.openPMD.org"
-    url = "https://github.com/openPMD/openPMD-api/archive/0.16.0.tar.gz"
+    url = "https://github.com/openPMD/openPMD-api/archive/0.16.1.tar.gz"
     git = "https://github.com/openPMD/openPMD-api.git"
 
     maintainers("ax3l", "franzpoeschel")
@@ -21,6 +20,7 @@ class OpenpmdApi(CMakePackage):
 
     # C++17 up until here
     version("develop", branch="dev")
+    version("0.16.1", sha256="a029a1779351949f41c1f36d0e75c698e59c5d284f080d5e4c2b8650779d2d58")
     version("0.16.0", sha256="b52222a4ab2511f9e3f6e21af222f57ab4fb6228623024fc5d982066333e104f")
     version("0.15.2", sha256="fbe3b356fe6f4589c659027c8056844692c62382e3ec53b953bed1c87e58ba13")
     version("0.15.1", sha256="0e81652152391ba4d2b62cfac95238b11233a4f89ff45e1fcffcc7bcd79dabe1")
@@ -41,7 +41,8 @@ class OpenpmdApi(CMakePackage):
     version("0.12.0", tag="0.12.0-alpha", commit="23be484dd2570b5277779eafcc5f1eb70c6d98f2")
     version("0.11.1", tag="0.11.1-alpha", commit="c40292aafbf564807710424d106304f9670a8304")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("shared", default=True, description="Build a shared version of the library")
     variant("mpi", default=True, description="Enable parallel I/O")
@@ -60,6 +61,7 @@ class OpenpmdApi(CMakePackage):
     depends_on("mpark-variant@1.4.0:", when="@:0.14")  # pre C++17 releases
     depends_on("toml11@3.7.1:3", when="@0.15")
     depends_on("toml11@3.7.1:", when="@0.16:")
+    depends_on("toml11@4.2.0: cxx_std=17", when="@0.16.1:")
     with when("+hdf5"):
         depends_on("hdf5@1.8.13:")
         depends_on("hdf5@1.8.13: ~mpi", when="~mpi")

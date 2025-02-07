@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -108,6 +107,8 @@ class PySphinx(PythonPackage):
         depends_on("python@3.10:", when="@8:")
         depends_on("python@3.9:", when="@7.2:")
         depends_on("python@3.8:", when="@6:")
+        # https://github.com/sphinx-doc/sphinx/issues/10440
+        depends_on("python@:3.12", when="@:6.1")
         depends_on("py-sphinxcontrib-applehelp@1.0.7:", when="@8.1:")
         depends_on("py-sphinxcontrib-applehelp", when="@2:")
         depends_on("py-sphinxcontrib-devhelp@1.0.6:", when="@8.1:")

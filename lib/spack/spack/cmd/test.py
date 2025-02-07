@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -178,16 +177,15 @@ def test_run(args):
         matching = spack.store.STORE.db.query_local(spec, hashes=hashes, explicit=explicit)
         if spec and not matching:
             tty.warn("No {0}installed packages match spec {1}".format(explicit_str, spec))
-            """
-            TODO: Need to write out a log message and/or CDASH Testing
-              output that package not installed IF continue to process
-              these issues here.
 
-            if args.log_format:
-                # Proceed with the spec assuming the test process
-                # to ensure report package as skipped (e.g., for CI)
-                specs_to_test.append(spec)
-            """
+            # TODO: Need to write out a log message and/or CDASH Testing
+            #   output that package not installed IF continue to process
+            #   these issues here.
+
+            # if args.log_format:
+            #     # Proceed with the spec assuming the test process
+            #     # to ensure report package as skipped (e.g., for CI)
+            #     specs_to_test.append(spec)
 
         specs_to_test.extend(matching)
 
@@ -346,7 +344,7 @@ def _report_suite_results(test_suite, args, constraints):
         tty.msg("{0} for test suite '{1}'{2}:".format(results_desc, test_suite.name, matching))
 
         results = {}
-        with open(test_suite.results_file, "r") as f:
+        with open(test_suite.results_file, "r", encoding="utf-8") as f:
             for line in f:
                 pkg_id, status = line.split()
                 results[pkg_id] = status
@@ -371,7 +369,7 @@ def _report_suite_results(test_suite, args, constraints):
                     spec = test_specs[pkg_id]
                     log_file = test_suite.log_file_for_spec(spec)
                     if os.path.isfile(log_file):
-                        with open(log_file, "r") as f:
+                        with open(log_file, "r", encoding="utf-8") as f:
                             msg += "\n{0}".format("".join(f.readlines()))
                 tty.msg(msg)
 

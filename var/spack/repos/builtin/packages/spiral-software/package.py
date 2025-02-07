@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,7 +25,8 @@ class SpiralSoftware(CMakePackage):
     version("8.4.0", sha256="d0c58de65c678130eeee6b8b8b48061bbe463468990f66d9b452225ce46dee19")
     version("8.3.0", sha256="41cf0e7f14f9497e98353baa1ef4ca6204ce5ca525db8093f5bb44e89992abdf")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     extendable = True
 

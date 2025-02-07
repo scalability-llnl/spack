@@ -1,17 +1,17 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import collections
 import datetime
+import email.message
 import errno
 import functools
 import inspect
+import io
 import itertools
 import json
 import os
-import os.path
 import pathlib
 import re
 import shutil
@@ -37,6 +37,7 @@ import spack.bootstrap.core
 import spack.caches
 import spack.compiler
 import spack.compilers
+import spack.concretize
 import spack.config
 import spack.directives_meta
 import spack.environment as ev
@@ -107,7 +108,7 @@ def last_two_git_commits(git):
 
 
 def write_file(filename, contents):
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(contents)
 
 
@@ -620,7 +621,7 @@ def linux_os():
     platform = spack.platforms.host()
     name, version = "debian", "6"
     if platform.name == "linux":
-        current_os = platform.operating_system("default_os")
+        current_os = platform.default_operating_system()
         name, version = current_os.name, current_os.version
     LinuxOS = collections.namedtuple("LinuxOS", ["name", "version"])
     return LinuxOS(name=name, version=version)
@@ -634,11 +635,6 @@ def ensure_debug(monkeypatch):
     yield
 
     tty.set_debug(current_debug_level)
-
-
-@pytest.fixture(autouse=sys.platform == "win32", scope="session")
-def platform_config():
-    spack.config.add_default_platform_scope(spack.platforms.real_host().name)
 
 
 @pytest.fixture
@@ -671,7 +667,7 @@ def mock_uarch_configuration(mock_uarch_json):
     """Create mock dictionaries for the archspec.cpu."""
 
     def load_json():
-        with open(mock_uarch_json) as f:
+        with open(mock_uarch_json, encoding="utf-8") as f:
             return json.load(f)
 
     targets_json = load_json()
@@ -684,7 +680,6 @@ def mock_uarch_configuration(mock_uarch_json):
 def mock_targets(mock_uarch_configuration, monkeypatch):
     """Use this fixture to enable mock uarch targets for testing."""
     targets_json, targets = mock_uarch_configuration
-
     monkeypatch.setattr(archspec.cpu.schema, "TARGETS_JSON", targets_json)
     monkeypatch.setattr(archspec.cpu.microarchitecture, "TARGETS", targets)
 
@@ -855,7 +850,7 @@ def _populate(mock_db):
     """
 
     def _install(spec):
-        s = spack.spec.Spec(spec).concretized()
+        s = spack.concretize.concretize_one(spec)
         PackageInstaller([s.package], fake=True, explicit=True).install()
 
     _install("mpileaks ^mpich")
@@ -893,20 +888,25 @@ def mock_store(
     """
     store_path, store_cache = _store_dir_and_cache
 
+    # Make the DB filesystem read-only to ensure constructors don't modify anything in it.
+    # We want Spack to be able to point to a DB on a read-only filesystem easily.
+    store_path.chmod(mode=0o555, rec=1)
+
     # If the cache does not exist populate the store and create it
     if not os.path.exists(str(store_cache.join(".spack-db"))):
         with spack.config.use_configuration(*mock_configuration_scopes):
             with spack.store.use_store(str(store_path)) as store:
                 with spack.repo.use_repositories(mock_repo_path):
+                    # make the DB filesystem writable only while we populate it
+                    store_path.chmod(mode=0o755, rec=1)
                     _populate(store.db)
-        copy_tree(str(store_path), str(store_cache))
+                    store_path.chmod(mode=0o555, rec=1)
 
-    # Make the DB filesystem read-only to ensure we can't modify entries
-    store_path.join(".spack-db").chmod(mode=0o555, rec=1)
+        store_cache.chmod(mode=0o755, rec=1)
+        copy_tree(str(store_path), str(store_cache))
+        store_cache.chmod(mode=0o555, rec=1)
 
     yield store_path
-
-    store_path.join(".spack-db").chmod(mode=0o755, rec=1)
 
 
 @pytest.fixture(scope="function")
@@ -933,7 +933,7 @@ def mutable_database(database_mutable_config, _store_dir_and_cache):
     """
     # Make the database writeable, as we are going to modify it
     store_path, store_cache = _store_dir_and_cache
-    store_path.join(".spack-db").chmod(mode=0o755, rec=1)
+    store_path.chmod(mode=0o755, rec=1)
 
     yield database_mutable_config
 
@@ -941,7 +941,7 @@ def mutable_database(database_mutable_config, _store_dir_and_cache):
     # the store and making the database read-only
     store_path.remove(rec=1)
     copy_tree(str(store_cache), str(store_path))
-    store_path.join(".spack-db").chmod(mode=0o555, rec=1)
+    store_path.chmod(mode=0o555, rec=1)
 
 
 @pytest.fixture()
@@ -1045,7 +1045,8 @@ def temporary_store(tmpdir, request):
     temporary_store_path = tmpdir.join("opt")
     with spack.store.use_store(str(temporary_store_path)) as s:
         yield s
-    temporary_store_path.remove()
+    if temporary_store_path.exists():
+        temporary_store_path.remove()
 
 
 @pytest.fixture()
@@ -1100,7 +1101,7 @@ class ConfigUpdate:
 
     def __call__(self, filename):
         file = os.path.join(self.root_for_conf, filename + ".yaml")
-        with open(file) as f:
+        with open(file, encoding="utf-8") as f:
             config_settings = syaml.load_config(f)
         spack.config.set("modules:default", config_settings)
         mock_config = MockConfig(config_settings, self.writer_key)
@@ -1174,7 +1175,7 @@ def mock_archive(request, tmpdir_factory):
 
     # Create the configure script
     configure_path = str(tmpdir.join(spack.stage._source_path_subdir, "configure"))
-    with open(configure_path, "w") as f:
+    with open(configure_path, "w", encoding="utf-8") as f:
         f.write(
             "#!/bin/sh\n"
             "prefix=$(echo $1 | sed 's/--prefix=//')\n"
@@ -1676,12 +1677,6 @@ def conflict_spec(request):
     return request.param
 
 
-@pytest.fixture(params=["conflict%~"])
-def invalid_spec(request):
-    """Specs that do not parse cleanly due to invalid formatting."""
-    return request.param
-
-
 @pytest.fixture(scope="module")
 def mock_test_repo(tmpdir_factory):
     """Create an empty repository."""
@@ -1874,7 +1869,7 @@ def mock_curl_configs(mock_config_data, monkeypatch):
                 if basename in config_files:
                     filename = os.path.join(config_data_dir, basename)
 
-                    with open(filename, "r") as f:
+                    with open(filename, "r", encoding="utf-8") as f:
                         lines = f.readlines()
                         write_file(os.path.basename(filename), "".join(lines))
 
@@ -1989,7 +1984,9 @@ def default_mock_concretization(config, mock_packages, concretized_specs_cache):
     def _func(spec_str, tests=False):
         key = spec_str, tests
         if key not in concretized_specs_cache:
-            concretized_specs_cache[key] = spack.spec.Spec(spec_str).concretized(tests=tests)
+            concretized_specs_cache[key] = spack.concretize.concretize_one(
+                spack.spec.Spec(spec_str), tests=tests
+            )
         return concretized_specs_cache[key].copy()
 
     return _func
@@ -2064,7 +2061,7 @@ def create_test_repo(tmpdir, pkg_name_content_tuples):
 
     repo_path = str(tmpdir)
     repo_yaml = tmpdir.join("repo.yaml")
-    with open(str(repo_yaml), "w") as f:
+    with open(str(repo_yaml), "w", encoding="utf-8") as f:
         f.write(
             f"""\
 repo:
@@ -2078,7 +2075,7 @@ repo:
     for pkg_name, pkg_str in pkg_name_content_tuples:
         pkg_dir = packages_dir.ensure(pkg_name, dir=True)
         pkg_file = pkg_dir.join("package.py")
-        with open(str(pkg_file), "w") as f:
+        with open(str(pkg_file), "w", encoding="utf-8") as f:
             f.write(pkg_str)
 
     repo_cache = spack.util.file_cache.FileCache(str(tmpdir.join("cache")))
@@ -2131,3 +2128,46 @@ def mock_test_cache(tmp_path_factory):
     cache_dir = tmp_path_factory.mktemp("cache")
     print(cache_dir)
     return spack.util.file_cache.FileCache(str(cache_dir))
+
+
+class MockHTTPResponse(io.IOBase):
+    """This is a mock HTTP response, which implements part of http.client.HTTPResponse"""
+
+    def __init__(self, status, reason, headers=None, body=None):
+        self.msg = None
+        self.version = 11
+        self.url = None
+        self.headers = email.message.EmailMessage()
+        self.status = status
+        self.code = status
+        self.reason = reason
+        self.debuglevel = 0
+        self._body = body
+
+        if headers is not None:
+            for key, value in headers.items():
+                self.headers[key] = value
+
+    @classmethod
+    def with_json(cls, status, reason, headers=None, body=None):
+        """Create a mock HTTP response with JSON string as body"""
+        body = io.BytesIO(json.dumps(body).encode("utf-8"))
+        return cls(status, reason, headers, body)
+
+    def read(self, *args, **kwargs):
+        return self._body.read(*args, **kwargs)
+
+    def getheader(self, name, default=None):
+        self.headers.get(name, default)
+
+    def getheaders(self):
+        return self.headers.items()
+
+    def fileno(self):
+        return 0
+
+    def getcode(self):
+        return self.status
+
+    def info(self):
+        return self.headers

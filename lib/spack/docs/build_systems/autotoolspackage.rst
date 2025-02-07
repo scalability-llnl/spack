@@ -1,5 +1,4 @@
-.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-   Spack Project Developers. See the top-level COPYRIGHT file for details.
+.. Copyright Spack Project Developers. See COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -273,9 +272,9 @@ often lists dependencies and the flags needed to locate them. The
 "environment variables" section lists environment variables that the
 build system uses to pass flags to the compiler and linker.
 
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-Addings flags to configure
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^
+Adding flags to configure
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For most of the flags you encounter, you will want a variant to
 optionally enable/disable them. You can then optionally pass these
@@ -286,7 +285,7 @@ function like so:
 
    def configure_args(self):
        args = []
-
+       ...
        if self.spec.satisfies("+mpi"):
            args.append("--enable-mpi")
        else:
@@ -300,7 +299,10 @@ Alternatively, you can use the :ref:`enable_or_disable  <autotools_enable_or_dis
 .. code-block:: python
 
    def configure_args(self):
-       return [self.enable_or_disable("mpi")]
+       args = []
+       ...
+       args.extend(self.enable_or_disable("mpi"))
+       return args
 
 
 Note that we are explicitly disabling MPI support if it is not
@@ -345,7 +347,14 @@ typically used to enable or disable some feature within the package.
        default=False,
        description="Memchecker support for debugging [degrades performance]"
    )
-   config_args.extend(self.enable_or_disable("memchecker"))
+   ...
+
+   def configure_args(self):
+       args = []
+       ...
+       args.extend(self.enable_or_disable("memchecker"))
+
+       return args
 
 In this example, specifying the variant ``+memchecker`` will generate
 the following configuration options:

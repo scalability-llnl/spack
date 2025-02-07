@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,6 +10,7 @@ import pytest
 
 from llnl.util.filesystem import mkdirp, touch, working_dir
 
+import spack.concretize
 import spack.config
 import spack.error
 import spack.fetch_strategy
@@ -186,8 +186,9 @@ def test_adhoc_version_submodules(
     monkeypatch.setitem(pkg_class.versions, Version("git"), t.args)
     monkeypatch.setattr(pkg_class, "git", "file://%s" % mock_git_repository.path, raising=False)
 
-    spec = Spec("git-test@{0}".format(mock_git_repository.unversioned_commit))
-    spec.concretize()
+    spec = spack.concretize.concretize_one(
+        Spec("git-test@{0}".format(mock_git_repository.unversioned_commit))
+    )
     spec.package.do_stage()
     collected_fnames = set()
     for root, dirs, files in os.walk(spec.package.stage.source_path):

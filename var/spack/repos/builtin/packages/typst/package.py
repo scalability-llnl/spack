@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,7 +22,7 @@ class Typst(CargoPackage):
 
     depends_on("rust@1.81.0:")
     depends_on("openssl")
-    depends_on("pkgconf", type="build")
+    depends_on("pkgconfig", type="build")
 
     @classmethod
     def determine_version(cls, exe):

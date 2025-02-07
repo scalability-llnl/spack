@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -8,6 +7,7 @@
 import base64
 import json
 import re
+import socket
 import time
 import urllib.error
 import urllib.parse
@@ -20,8 +20,8 @@ from urllib.request import Request
 import llnl.util.lang
 
 import spack.config
-import spack.mirror
-import spack.parser
+import spack.mirrors.mirror
+import spack.tokenize
 import spack.util.web
 
 from .image import ImageReference
@@ -57,7 +57,7 @@ quoted_pair = rf"\\([{HTAB}{SP}{VCHAR}{obs_text}])"
 quoted_string = rf'"(?:({qdtext}*)|{quoted_pair})*"'
 
 
-class TokenType(spack.parser.TokenBase):
+class WwwAuthenticateTokens(spack.tokenize.TokenBase):
     AUTH_PARAM = rf"({token}){BWS}={BWS}({token}|{quoted_string})"
     # TOKEN68 = r"([A-Za-z0-9\-._~+/]+=*)"  # todo... support this?
     TOKEN = rf"{tchar}+"
@@ -68,9 +68,7 @@ class TokenType(spack.parser.TokenBase):
     ANY = r"."
 
 
-TOKEN_REGEXES = [rf"(?P<{token}>{token.regex})" for token in TokenType]
-
-ALL_TOKENS = re.compile("|".join(TOKEN_REGEXES))
+WWW_AUTHENTICATE_TOKENIZER = spack.tokenize.Tokenizer(WwwAuthenticateTokens)
 
 
 class State(Enum):
@@ -79,18 +77,6 @@ class State(Enum):
     AUTH_PARAM = auto()
     NEXT_IN_LIST = auto()
     AUTH_PARAM_OR_SCHEME = auto()
-
-
-def tokenize(input: str):
-    scanner = ALL_TOKENS.scanner(input)  # type: ignore[attr-defined]
-
-    for match in iter(scanner.match, None):  # type: ignore[var-annotated]
-        yield spack.parser.Token(
-            TokenType.__members__[match.lastgroup],  # type: ignore[attr-defined]
-            match.group(),  # type: ignore[attr-defined]
-            match.start(),  # type: ignore[attr-defined]
-            match.end(),  # type: ignore[attr-defined]
-        )
 
 
 class Challenge:
@@ -128,7 +114,7 @@ def parse_www_authenticate(input: str):
     unquote = lambda s: _unquote(r"\1", s[1:-1])
 
     mode: State = State.CHALLENGE
-    tokens = tokenize(input)
+    tokens = WWW_AUTHENTICATE_TOKENIZER.tokenize(input)
 
     current_challenge = Challenge()
 
@@ -141,36 +127,36 @@ def parse_www_authenticate(input: str):
         return key, value
 
     while True:
-        token: spack.parser.Token = next(tokens)
+        token: spack.tokenize.Token = next(tokens)
 
         if mode == State.CHALLENGE:
-            if token.kind == TokenType.EOF:
+            if token.kind == WwwAuthenticateTokens.EOF:
                 raise ValueError(token)
-            elif token.kind == TokenType.TOKEN:
+            elif token.kind == WwwAuthenticateTokens.TOKEN:
                 current_challenge.scheme = token.value
                 mode = State.AUTH_PARAM_LIST_START
             else:
                 raise ValueError(token)
 
         elif mode == State.AUTH_PARAM_LIST_START:
-            if token.kind == TokenType.EOF:
+            if token.kind == WwwAuthenticateTokens.EOF:
                 challenges.append(current_challenge)
                 break
-            elif token.kind == TokenType.COMMA:
+            elif token.kind == WwwAuthenticateTokens.COMMA:
                 # Challenge without param list, followed by another challenge.
                 challenges.append(current_challenge)
                 current_challenge = Challenge()
                 mode = State.CHALLENGE
-            elif token.kind == TokenType.SPACE:
+            elif token.kind == WwwAuthenticateTokens.SPACE:
                 # A space means it must be followed by param list
                 mode = State.AUTH_PARAM
             else:
                 raise ValueError(token)
 
         elif mode == State.AUTH_PARAM:
-            if token.kind == TokenType.EOF:
+            if token.kind == WwwAuthenticateTokens.EOF:
                 raise ValueError(token)
-            elif token.kind == TokenType.AUTH_PARAM:
+            elif token.kind == WwwAuthenticateTokens.AUTH_PARAM:
                 key, value = extract_auth_param(token.value)
                 current_challenge.params.append((key, value))
                 mode = State.NEXT_IN_LIST
@@ -178,22 +164,22 @@ def parse_www_authenticate(input: str):
                 raise ValueError(token)
 
         elif mode == State.NEXT_IN_LIST:
-            if token.kind == TokenType.EOF:
+            if token.kind == WwwAuthenticateTokens.EOF:
                 challenges.append(current_challenge)
                 break
-            elif token.kind == TokenType.COMMA:
+            elif token.kind == WwwAuthenticateTokens.COMMA:
                 mode = State.AUTH_PARAM_OR_SCHEME
             else:
                 raise ValueError(token)
 
         elif mode == State.AUTH_PARAM_OR_SCHEME:
-            if token.kind == TokenType.EOF:
+            if token.kind == WwwAuthenticateTokens.EOF:
                 raise ValueError(token)
-            elif token.kind == TokenType.TOKEN:
+            elif token.kind == WwwAuthenticateTokens.TOKEN:
                 challenges.append(current_challenge)
                 current_challenge = Challenge(token.value)
                 mode = State.AUTH_PARAM_LIST_START
-            elif token.kind == TokenType.AUTH_PARAM:
+            elif token.kind == WwwAuthenticateTokens.AUTH_PARAM:
                 key, value = extract_auth_param(token.value)
                 current_challenge.params.append((key, value))
                 mode = State.NEXT_IN_LIST
@@ -367,11 +353,11 @@ class OCIAuthHandler(urllib.request.BaseHandler):
 
 
 def credentials_from_mirrors(
-    domain: str, *, mirrors: Optional[Iterable[spack.mirror.Mirror]] = None
+    domain: str, *, mirrors: Optional[Iterable[spack.mirrors.mirror.Mirror]] = None
 ) -> Optional[UsernamePassword]:
     """Filter out OCI registry credentials from a list of mirrors."""
 
-    mirrors = mirrors or spack.mirror.MirrorCollection().values()
+    mirrors = mirrors or spack.mirrors.mirror.MirrorCollection().values()
 
     for mirror in mirrors:
         # Prefer push credentials over fetch. Unlikely that those are different
@@ -397,6 +383,7 @@ def create_opener():
     """Create an opener that can handle OCI authentication."""
     opener = urllib.request.OpenerDirector()
     for handler in [
+        urllib.request.ProxyHandler(),
         urllib.request.UnknownHandler(),
         urllib.request.HTTPSHandler(context=spack.util.web.ssl_create_default_context()),
         spack.util.web.SpackHTTPDefaultErrorHandler(),
@@ -425,7 +412,7 @@ def default_retry(f, retries: int = 5, sleep=None):
         for i in range(retries):
             try:
                 return f(*args, **kwargs)
-            except (urllib.error.URLError, TimeoutError) as e:
+            except OSError as e:
                 # Retry on internal server errors, and rate limit errors
                 # Potentially this could take into account the Retry-After header
                 # if registries support it
@@ -435,9 +422,10 @@ def default_retry(f, retries: int = 5, sleep=None):
                         and (500 <= e.code < 600 or e.code == 429)
                     )
                     or (
-                        isinstance(e, urllib.error.URLError) and isinstance(e.reason, TimeoutError)
+                        isinstance(e, urllib.error.URLError)
+                        and isinstance(e.reason, socket.timeout)
                     )
-                    or isinstance(e, TimeoutError)
+                    or isinstance(e, socket.timeout)
                 ):
                     # Exponential backoff
                     sleep(2**i)

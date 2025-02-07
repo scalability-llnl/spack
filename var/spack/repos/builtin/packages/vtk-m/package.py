@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -239,7 +238,7 @@ class VtkM(CMakePackage, CudaPackage, ROCmPackage):
                 os.environ["TBB_ROOT"] = spec["tbb"].prefix
 
             if "+kokkos" in spec and "+rocm" in spec and spec.satisfies("^kokkos@4:"):
-                options.append(f"-DCMAKE_CXX_COMPILER:BOOL={spec['hip'].prefix.bin.hipcc}")
+                options.append(f"-DCMAKE_CXX_COMPILER:FILEPATH={spec['hip'].prefix.bin.hipcc}")
 
             # Support for relocatable code
             if "~shared" in spec and "+fpic" in spec:

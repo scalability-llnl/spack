@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,6 +10,8 @@ import shutil
 import stat
 import sys
 from typing import Callable, Dict, Optional
+
+from typing_extensions import Literal
 
 from llnl.string import comma_or
 from llnl.util import tty
@@ -34,7 +35,6 @@ from llnl.util.tty.color import colorize
 
 import spack.config
 import spack.directory_layout
-import spack.paths
 import spack.projections
 import spack.relocate
 import spack.schema.projections
@@ -43,7 +43,6 @@ import spack.store
 import spack.util.spack_json as s_json
 import spack.util.spack_yaml as s_yaml
 from spack.error import SpackError
-from spack.hooks import sbang
 
 __all__ = ["FilesystemView", "YamlFilesystemView"]
 
@@ -90,16 +89,10 @@ def view_copy(
     if stat.S_ISLNK(src_stat.st_mode):
         spack.relocate.relocate_links(links=[dst], prefix_to_prefix=prefix_to_projection)
     elif spack.relocate.is_binary(dst):
-        spack.relocate.relocate_text_bin(binaries=[dst], prefixes=prefix_to_projection)
+        spack.relocate.relocate_text_bin(binaries=[dst], prefix_to_prefix=prefix_to_projection)
     else:
         prefix_to_projection[spack.store.STORE.layout.root] = view._root
-
-        # This is vestigial code for the *old* location of sbang.
-        prefix_to_projection[f"#!/bin/bash {spack.paths.spack_root}/bin/sbang"] = (
-            sbang.sbang_shebang_line()
-        )
-
-        spack.relocate.relocate_text(files=[dst], prefixes=prefix_to_projection)
+        spack.relocate.relocate_text(files=[dst], prefix_to_prefix=prefix_to_projection)
 
     # The os module on Windows does not have a chown function.
     if sys.platform != "win32":
@@ -108,6 +101,9 @@ def view_copy(
         except OSError:
             tty.debug(f"Can't change the permissions for {dst}")
 
+
+#: Type alias for link types
+LinkType = Literal["hardlink", "hard", "copy", "relocate", "add", "symlink", "soft"]
 
 #: supported string values for `link_type` in an env, mapped to canonical values
 _LINK_TYPES = {
@@ -123,7 +119,7 @@ _LINK_TYPES = {
 _VALID_LINK_TYPES = sorted(set(_LINK_TYPES.values()))
 
 
-def canonicalize_link_type(link_type: str) -> str:
+def canonicalize_link_type(link_type: LinkType) -> str:
     """Return canonical"""
     canonical = _LINK_TYPES.get(link_type)
     if not canonical:
@@ -133,7 +129,7 @@ def canonicalize_link_type(link_type: str) -> str:
     return canonical
 
 
-def function_for_link_type(link_type: str) -> LinkCallbackType:
+def function_for_link_type(link_type: LinkType) -> LinkCallbackType:
     link_type = canonicalize_link_type(link_type)
     if link_type == "hardlink":
         return view_hardlink
@@ -142,7 +138,7 @@ def function_for_link_type(link_type: str) -> LinkCallbackType:
     elif link_type == "copy":
         return view_copy
 
-    assert False, "invalid link type"  # need mypy Literal values
+    assert False, "invalid link type"
 
 
 class FilesystemView:
@@ -166,7 +162,7 @@ class FilesystemView:
         projections: Optional[Dict] = None,
         ignore_conflicts: bool = False,
         verbose: bool = False,
-        link_type: str = "symlink",
+        link_type: LinkType = "symlink",
     ):
         """
         Initialize a filesystem view under the given `root` directory with
@@ -292,7 +288,7 @@ class YamlFilesystemView(FilesystemView):
         projections: Optional[Dict] = None,
         ignore_conflicts: bool = False,
         verbose: bool = False,
-        link_type: str = "symlink",
+        link_type: LinkType = "symlink",
     ):
         super().__init__(
             root,
@@ -326,12 +322,12 @@ class YamlFilesystemView(FilesystemView):
     def write_projections(self):
         if self.projections:
             mkdirp(os.path.dirname(self.projections_path))
-            with open(self.projections_path, "w") as f:
+            with open(self.projections_path, "w", encoding="utf-8") as f:
                 f.write(s_yaml.dump_config({"projections": self.projections}))
 
     def read_projections(self):
         if os.path.exists(self.projections_path):
-            with open(self.projections_path, "r") as f:
+            with open(self.projections_path, "r", encoding="utf-8") as f:
                 projections_data = s_yaml.load(f)
                 spack.config.validate(projections_data, spack.schema.projections.schema)
                 return projections_data["projections"]
@@ -429,9 +425,9 @@ class YamlFilesystemView(FilesystemView):
                 self.get_path_meta_folder(spec), spack.store.STORE.layout.manifest_file_name
             )
             try:
-                with open(manifest_file, "r") as f:
+                with open(manifest_file, "r", encoding="utf-8") as f:
                     manifest = s_json.load(f)
-            except (OSError, IOError):
+            except OSError:
                 # if we can't load it, assume it doesn't know about the file.
                 manifest = {}
             return test_path in manifest
@@ -833,9 +829,9 @@ class SimpleFilesystemView(FilesystemView):
 #####################
 def get_spec_from_file(filename):
     try:
-        with open(filename, "r") as f:
+        with open(filename, "r", encoding="utf-8") as f:
             return spack.spec.Spec.from_yaml(f)
-    except IOError:
+    except OSError:
         return None
 
 

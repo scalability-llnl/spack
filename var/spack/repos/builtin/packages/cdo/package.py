@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,11 @@ class Cdo(AutotoolsPackage):
 
     maintainers("skosukhin", "Try2Code")
 
+    version(
+        "2.5.0",
+        sha256="e865c05c1b52fd76b80e33421554db81b38b75210820bdc40e8690f4552f68e2",
+        url="https://code.mpimet.mpg.de/attachments/download/29786/cdo-2.5.0.tar.gz",
+    )
     version(
         "2.4.4",
         sha256="49f50bd18dacd585e9518cfd4f55548f692426edfb3b27ddcd1c653eab53d063",

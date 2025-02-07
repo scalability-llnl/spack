@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,9 +11,12 @@ from llnl.util.filesystem import working_dir
 from llnl.util.symlink import resolve_link_target_relative_to_the_link
 
 import spack.caches
+import spack.concretize
 import spack.config
 import spack.fetch_strategy
-import spack.mirror
+import spack.mirrors.layout
+import spack.mirrors.mirror
+import spack.mirrors.utils
 import spack.patch
 import spack.stage
 import spack.util.executable
@@ -42,7 +44,7 @@ def set_up_package(name, repository, url_attr):
     2. Point the package's version args at that repo.
     """
     # Set up packages to point at mock repos.
-    s = Spec(name).concretized()
+    s = spack.concretize.concretize_one(name)
     repos[name] = repository
 
     # change the fetch args of the first (only) version.
@@ -59,8 +61,8 @@ def check_mirror():
         mirrors = {"spack-mirror-test": url_util.path_to_file_url(mirror_root)}
         with spack.config.override("mirrors", mirrors):
             with spack.config.override("config:checksum", False):
-                specs = [Spec(x).concretized() for x in repos]
-                spack.mirror.create(mirror_root, specs)
+                specs = [spack.concretize.concretize_one(x) for x in repos]
+                spack.mirrors.utils.create(mirror_root, specs)
 
             # Stage directory exists
             assert os.path.isdir(mirror_root)
@@ -68,13 +70,15 @@ def check_mirror():
             for spec in specs:
                 fetcher = spec.package.fetcher
                 per_package_ref = os.path.join(spec.name, "-".join([spec.name, str(spec.version)]))
-                mirror_layout = spack.mirror.default_mirror_layout(fetcher, per_package_ref)
+                mirror_layout = spack.mirrors.layout.default_mirror_layout(
+                    fetcher, per_package_ref
+                )
                 expected_path = os.path.join(mirror_root, mirror_layout.path)
                 assert os.path.exists(expected_path)
 
             # Now try to fetch each package.
             for name, mock_repo in repos.items():
-                spec = Spec(name).concretized()
+                spec = spack.concretize.concretize_one(name)
                 pkg = spec.package
 
                 with spack.config.override("config:checksum", False):
@@ -135,16 +139,16 @@ def test_all_mirror(mock_git_repository, mock_svn_repository, mock_hg_repository
 @pytest.mark.parametrize(
     "mirror",
     [
-        spack.mirror.Mirror(
+        spack.mirrors.mirror.Mirror(
             {"fetch": "https://example.com/fetch", "push": "https://example.com/push"}
         )
     ],
 )
-def test_roundtrip_mirror(mirror: spack.mirror.Mirror):
+def test_roundtrip_mirror(mirror: spack.mirrors.mirror.Mirror):
     mirror_yaml = mirror.to_yaml()
-    assert spack.mirror.Mirror.from_yaml(mirror_yaml) == mirror
+    assert spack.mirrors.mirror.Mirror.from_yaml(mirror_yaml) == mirror
     mirror_json = mirror.to_json()
-    assert spack.mirror.Mirror.from_json(mirror_json) == mirror
+    assert spack.mirrors.mirror.Mirror.from_json(mirror_json) == mirror
 
 
 @pytest.mark.parametrize(
@@ -152,14 +156,14 @@ def test_roundtrip_mirror(mirror: spack.mirror.Mirror):
 )
 def test_invalid_yaml_mirror(invalid_yaml):
     with pytest.raises(SpackYAMLError, match="error parsing YAML") as e:
-        spack.mirror.Mirror.from_yaml(invalid_yaml)
+        spack.mirrors.mirror.Mirror.from_yaml(invalid_yaml)
     assert invalid_yaml in str(e.value)
 
 
 @pytest.mark.parametrize("invalid_json, error_message", [("{13:", "Expecting property name")])
 def test_invalid_json_mirror(invalid_json, error_message):
     with pytest.raises(sjson.SpackJSONError) as e:
-        spack.mirror.Mirror.from_json(invalid_json)
+        spack.mirrors.mirror.Mirror.from_json(invalid_json)
     exc_msg = str(e.value)
     assert exc_msg.startswith("error parsing JSON mirror:")
     assert error_message in exc_msg
@@ -168,9 +172,9 @@ def test_invalid_json_mirror(invalid_json, error_message):
 @pytest.mark.parametrize(
     "mirror_collection",
     [
-        spack.mirror.MirrorCollection(
+        spack.mirrors.mirror.MirrorCollection(
             mirrors={
-                "example-mirror": spack.mirror.Mirror(
+                "example-mirror": spack.mirrors.mirror.Mirror(
                     "https://example.com/fetch", "https://example.com/push"
                 ).to_dict()
             }
@@ -179,9 +183,15 @@ def test_invalid_json_mirror(invalid_json, error_message):
 )
 def test_roundtrip_mirror_collection(mirror_collection):
     mirror_collection_yaml = mirror_collection.to_yaml()
-    assert spack.mirror.MirrorCollection.from_yaml(mirror_collection_yaml) == mirror_collection
+    assert (
+        spack.mirrors.mirror.MirrorCollection.from_yaml(mirror_collection_yaml)
+        == mirror_collection
+    )
     mirror_collection_json = mirror_collection.to_json()
-    assert spack.mirror.MirrorCollection.from_json(mirror_collection_json) == mirror_collection
+    assert (
+        spack.mirrors.mirror.MirrorCollection.from_json(mirror_collection_json)
+        == mirror_collection
+    )
 
 
 @pytest.mark.parametrize(
@@ -189,40 +199,42 @@ def test_roundtrip_mirror_collection(mirror_collection):
 )
 def test_invalid_yaml_mirror_collection(invalid_yaml):
     with pytest.raises(SpackYAMLError, match="error parsing YAML") as e:
-        spack.mirror.MirrorCollection.from_yaml(invalid_yaml)
+        spack.mirrors.mirror.MirrorCollection.from_yaml(invalid_yaml)
     assert invalid_yaml in str(e.value)
 
 
 @pytest.mark.parametrize("invalid_json, error_message", [("{13:", "Expecting property name")])
 def test_invalid_json_mirror_collection(invalid_json, error_message):
     with pytest.raises(sjson.SpackJSONError) as e:
-        spack.mirror.MirrorCollection.from_json(invalid_json)
+        spack.mirrors.mirror.MirrorCollection.from_json(invalid_json)
     exc_msg = str(e.value)
     assert exc_msg.startswith("error parsing JSON mirror collection:")
     assert error_message in exc_msg
 
 
 def test_mirror_archive_paths_no_version(mock_packages, mock_archive):
-    spec = Spec("trivial-install-test-package@=nonexistingversion").concretized()
+    spec = spack.concretize.concretize_one(
+        Spec("trivial-install-test-package@=nonexistingversion")
+    )
     fetcher = spack.fetch_strategy.URLFetchStrategy(url=mock_archive.url)
-    spack.mirror.default_mirror_layout(fetcher, "per-package-ref", spec)
+    spack.mirrors.layout.default_mirror_layout(fetcher, "per-package-ref", spec)
 
 
 def test_mirror_with_url_patches(mock_packages, monkeypatch):
-    spec = Spec("patch-several-dependencies").concretized()
+    spec = spack.concretize.concretize_one("patch-several-dependencies")
     files_cached_in_mirror = set()
 
     def record_store(_class, fetcher, relative_dst, cosmetic_path=None):
         files_cached_in_mirror.add(os.path.basename(relative_dst))
 
     def successful_fetch(_class):
-        with open(_class.stage.save_filename, "w"):
+        with open(_class.stage.save_filename, "w", encoding="utf-8"):
             pass
 
     def successful_expand(_class):
         expanded_path = os.path.join(_class.stage.path, spack.stage._source_path_subdir)
         os.mkdir(expanded_path)
-        with open(os.path.join(expanded_path, "test.patch"), "w"):
+        with open(os.path.join(expanded_path, "test.patch"), "w", encoding="utf-8"):
             pass
 
     def successful_apply(*args, **kwargs):
@@ -238,10 +250,12 @@ def test_mirror_with_url_patches(mock_packages, monkeypatch):
         monkeypatch.setattr(spack.fetch_strategy.URLFetchStrategy, "expand", successful_expand)
         monkeypatch.setattr(spack.patch, "apply_patch", successful_apply)
         monkeypatch.setattr(spack.caches.MirrorCache, "store", record_store)
-        monkeypatch.setattr(spack.mirror.DefaultLayout, "make_alias", successful_make_alias)
+        monkeypatch.setattr(
+            spack.mirrors.layout.DefaultLayout, "make_alias", successful_make_alias
+        )
 
         with spack.config.override("config:checksum", False):
-            spack.mirror.create(mirror_root, list(spec.traverse()))
+            spack.mirrors.utils.create(mirror_root, list(spec.traverse()))
 
         assert {
             "abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234",
@@ -256,7 +270,7 @@ class MockFetcher:
 
     @staticmethod
     def archive(dst):
-        with open(dst, "w"):
+        with open(dst, "w", encoding="utf-8"):
             pass
 
 
@@ -268,7 +282,7 @@ def test_mirror_layout_make_alias(tmpdir):
     alias = os.path.join("zlib", "zlib-1.2.11.tar.gz")
     path = os.path.join("_source-cache", "archive", "c3", "c3e5.tar.gz")
     cache = spack.caches.MirrorCache(root=str(tmpdir), skip_unstable_versions=False)
-    layout = spack.mirror.DefaultLayout(alias, path)
+    layout = spack.mirrors.layout.DefaultLayout(alias, path)
 
     cache.store(MockFetcher(), layout.path)
     layout.make_alias(cache.root)
@@ -288,7 +302,7 @@ def test_mirror_layout_make_alias(tmpdir):
 )
 def test_get_all_versions(specs, expected_specs):
     specs = [Spec(s) for s in specs]
-    output_list = spack.mirror.get_all_versions(specs)
+    output_list = spack.mirrors.utils.get_all_versions(specs)
     output_list = [str(x) for x in output_list]
     # Compare sets since order is not important
     assert set(output_list) == set(expected_specs)
@@ -296,14 +310,14 @@ def test_get_all_versions(specs, expected_specs):
 
 def test_update_1():
     # No change
-    m = spack.mirror.Mirror("https://example.com")
+    m = spack.mirrors.mirror.Mirror("https://example.com")
     assert not m.update({"url": "https://example.com"})
     assert m.to_dict() == "https://example.com"
 
 
 def test_update_2():
     # Change URL, shouldn't expand to {"url": ...} dict.
-    m = spack.mirror.Mirror("https://example.com")
+    m = spack.mirrors.mirror.Mirror("https://example.com")
     assert m.update({"url": "https://example.org"})
     assert m.to_dict() == "https://example.org"
     assert m.fetch_url == "https://example.org"
@@ -312,7 +326,7 @@ def test_update_2():
 
 def test_update_3():
     # Change fetch url, ensure minimal config
-    m = spack.mirror.Mirror("https://example.com")
+    m = spack.mirrors.mirror.Mirror("https://example.com")
     assert m.update({"url": "https://example.org"}, "fetch")
     assert m.to_dict() == {"url": "https://example.com", "fetch": "https://example.org"}
     assert m.fetch_url == "https://example.org"
@@ -321,7 +335,7 @@ def test_update_3():
 
 def test_update_4():
     # Change push url, ensure minimal config
-    m = spack.mirror.Mirror("https://example.com")
+    m = spack.mirrors.mirror.Mirror("https://example.com")
     assert m.update({"url": "https://example.org"}, "push")
     assert m.to_dict() == {"url": "https://example.com", "push": "https://example.org"}
     assert m.push_url == "https://example.org"
@@ -331,7 +345,7 @@ def test_update_4():
 @pytest.mark.parametrize("direction", ["fetch", "push"])
 def test_update_connection_params(direction, tmpdir, monkeypatch):
     """Test whether new connection params expand the mirror config to a dict."""
-    m = spack.mirror.Mirror("https://example.com", "example")
+    m = spack.mirrors.mirror.Mirror("https://example.com", "example")
 
     assert m.update(
         {
