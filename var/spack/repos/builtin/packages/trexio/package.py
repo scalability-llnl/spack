@@ -53,7 +53,7 @@ class AutotoolsBuilder(autotools.AutotoolsBuilder):
         config_args = []
         if "+hdf5" in self.spec:
             if self.spec.satisfies("@:2.3.0"):
-                # Autotools should take care of adding the necessay flags for HDF5
+                # Autotools should take care of adding the necessary flags for HDF5
                 # In older versions, it is not always the case for "hdf5_hl"
                 # Append -lhdf5_hl to LIBS when hdf5 variant is activated
                 config_args.append("LIBS=-lhdf5_hl")
