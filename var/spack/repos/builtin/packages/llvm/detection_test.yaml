@@ -16,6 +16,7 @@ paths:
         c: ".*/bin/clang-3.9$"
         cxx: ".*/bin/clang[+][+]-3.9$"
 
+# flang-new detection: flang-new generates slightly-different output than clang
 - layout:
   - executables:
     - "bin/clang"
