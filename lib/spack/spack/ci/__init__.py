@@ -773,7 +773,7 @@ def setup_spack_repro_version(repro_dir, checkout_commit, merge_commit=None):
     return True
 
 
-def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime):
+def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime, overwrite, use_local_head):
     """Given a url to gitlab artifacts.zip from a failed 'spack ci rebuild' job,
     attempt to setup an environment in which the failure can be reproduced
     locally.  This entails the following:
@@ -787,6 +787,9 @@ def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime):
     commands to run to reproduce the build once inside the container.
     """
     work_dir = os.path.realpath(work_dir)
+    if overwrite and os.path.exists(work_dir):
+        shutil.rmtree(work_dir)
+
     platform_script_ext = "ps1" if IS_WINDOWS else "sh"
     artifact_root = download_and_extract_artifacts(url, work_dir)
 
@@ -913,17 +916,20 @@ def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime):
     commit_regex = re.compile(r"commit\s+([^\s]+)")
     merge_commit_regex = re.compile(r"Merge\s+([^\s]+)\s+into\s+([^\s]+)")
 
-    # Try the more specific merge commit regex first
-    m = merge_commit_regex.search(spack_info)
-    if m:
-        # This was a merge commit and we captured the parents
-        commit_1 = m.group(1)
-        commit_2 = m.group(2)
+    if use_local_head:
+        commit_1 = "HEAD"
     else:
-        # Not a merge commit, just get the commit sha
-        m = commit_regex.search(spack_info)
+        # Try the more specific merge commit regex first
+        m = merge_commit_regex.search(spack_info)
         if m:
+            # This was a merge commit and we captured the parents
             commit_1 = m.group(1)
+            commit_2 = m.group(2)
+        else:
+            # Not a merge commit, just get the commit sha
+            m = commit_regex.search(spack_info)
+            if m:
+                commit_1 = m.group(1)
 
     setup_result = False
     if commit_1:

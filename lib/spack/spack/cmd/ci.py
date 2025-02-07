@@ -176,6 +176,14 @@ def setup_parser(subparser):
     reproduce.add_argument(
         "-s", "--autostart", help="Run docker reproducer automatically", action="store_true"
     )
+    reproduce.add_argument(
+        "--overwrite", help="Overwrite the working dir if it exists", action="store_true"
+    )
+    reproduce.add_argument(
+        "--use-local-head",
+        help="Use the HEAD of the local Spack instead of reproducing a commit",
+        action="store_true",
+    )
     gpg_group = reproduce.add_mutually_exclusive_group(required=False)
     gpg_group.add_argument(
         "--gpg-file", help="Path to public GPG key for validating binary cache installs"
@@ -608,7 +616,13 @@ def ci_reproduce(args):
         gpg_key_url = None
 
     return spack_ci.reproduce_ci_job(
-        args.job_url, args.working_dir, args.autostart, gpg_key_url, args.runtime
+        args.job_url,
+        args.working_dir,
+        args.autostart,
+        gpg_key_url,
+        args.runtime,
+        args.overwrite,
+        args.use_local_head,
     )
 
 
