@@ -66,6 +66,7 @@ def test_repo_unknown_pkg(mutable_mock_repo):
 
 
 # TODO/RepoSplit: This was changed to only run against the mock package repo
+@pytest.mark.not_on_windows("mtime granularity issues on windows")
 def test_repo_last_mtime(mock_packages):
     latest_mtime = max(
         os.path.getmtime(p.module.__file__) for p in spack.repo.PATH.all_package_classes()
