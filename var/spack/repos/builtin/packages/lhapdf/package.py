@@ -31,8 +31,9 @@ class Lhapdf(AutotoolsPackage):
     version("6.3.0", sha256="864468439c7662bbceed6c61c7132682ec83381a23c9c9920502fdd7329dd816")
     version("6.2.3", sha256="37200a1ab70247250a141dfed7419d178f9a83bd23a4f8a38e203d4e27b41308")
 
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
 
     variant("python", default=True, description="Build python bindings")
 
