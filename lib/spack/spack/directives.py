@@ -58,6 +58,8 @@ from spack.version import (
 
 __all__ = [
     "DirectiveError",
+    "remove_all_versions",
+    "remove_versions",
     "version",
     "conditional",
     "conflicts",
@@ -135,6 +137,53 @@ def _make_when_spec(value: WhenType) -> Optional[spack.spec.Spec]:
 
 SubmoduleCallback = Callable[[spack.package_base.PackageBase], Union[str, List[str], bool]]
 directive = DirectiveMeta.directive
+
+@directive("versions")
+def remove_versions(versions):
+    """
+    Removes specific versions from a package.
+
+    Args:
+        versions (list or str): A list of versions or a single version to remove.
+    """
+    if not isinstance(versions, (list, tuple)):
+        versions = [versions]
+    versions = [Version(version) for version in versions]
+    def _remove_versions(pkg):
+        for version in versions:
+            try:
+                del pkg.versions[version]
+            except KeyError:
+                pass
+    return _remove_versions
+
+
+@directive("versions")
+def remove_all_versions():
+    """
+    Removes all versions from a package.
+    """
+    def _remove_all_versions(pkg):
+        pkg.versions.clear()
+    return _remove_all_versions
+
+@directive("versions")
+def remove_versions(versions=[]):
+    if not isinstance(versions, (list, tuple)):
+        versions = [versions]
+    versions = [Version(version) for version in versions]
+    def _remove_versions(pkg):
+        if len(versions) == 0:
+            pkg.versions.clear()
+        else:
+            for version in versions:
+                try:
+                    del pkg.versions[version]
+                except KeyError:
+                    pass
+
+    return _remove_versions
+
 
 
 @directive("versions")

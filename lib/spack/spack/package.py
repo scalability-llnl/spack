@@ -121,6 +121,8 @@ from spack.directives import (
     patch,
     provides,
     redistribute,
+    remove_all_versions,
+    remove_versions,
     requires,
     resource,
     variant,

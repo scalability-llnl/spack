@@ -230,3 +230,36 @@ def test_redistribute_override_when():
     spack.directives._execute_redistribute(cls, source=None, binary=False, when="@1.0")
     assert cls.disable_redistribute[spec_key].binary
     assert cls.disable_redistribute[spec_key].source
+
+
+_pkgx = (
+    "x",
+    """\
+from spack.package import *
+
+class X(Package):
+    version("1.3")
+    version("1.2")
+    remove_all_versions()
+""",
+)
+def test_remove_all_versions(test_repo):
+    cls = spack.repo.PATH.get_pkg_class(_pkgx[0])
+    assert len(cls.versions) == 0
+
+_pkgx = (
+    "x",
+    """\
+from spack.package import *
+
+class X(Package):
+    version("1.3")
+    version("1.2")
+    version("1.1")
+    remove_versions(["1.3", "1.1"])
+""",
+)
+def test_remove_versions(test_repo):
+    cls = spack.repo.PATH.get_pkg_class(_pkgx[0])
+    print(f"{cls.versions=}")
+    assert cls.versions == {spack.version.Version("1.2"): {}}
