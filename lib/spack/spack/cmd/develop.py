@@ -144,8 +144,6 @@ def update_env(
     """
     tty.debug(f"Updating develop config for {env.name} transactionally")
 
-    # this check has to happen outside the write transaction otherwise updates don't seem to happen
-    # correctly
     if not specified_path:
         dev_entry = env.dev_specs.get(spec.name)
         if dev_entry:
