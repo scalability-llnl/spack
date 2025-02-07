@@ -353,7 +353,7 @@ class StaticAnalyzer(ContextInspector):
 
 
 def create_inspector(context: Context) -> ContextInspector:
-    static_analysis = context.configuration.get("concretizer:static_analysis:enable", False)
+    static_analysis = context.configuration.get("concretizer:static_analysis", False)
     if static_analysis:
         return StaticAnalyzer(context=context)
     return ContextInspector(context=context)

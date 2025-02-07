@@ -10,8 +10,7 @@ spack:
   concretizer:
     unify: true
     reuse: false
-    static_analysis:
-      enable: true
+    static_analysis: true
 
   definitions:
   - default_specs:

@@ -87,7 +87,7 @@ properties: Dict[str, Any] = {
                     "strategy": {"type": "string", "enum": ["none", "minimal", "full"]}
                 },
             },
-            "static_analysis": {"type": "object", "properties": {"enable": {"type": "boolean"}}},
+            "static_analysis": {"type": "boolean"},
             "timeout": {"type": "integer", "minimum": 0},
             "error_on_timeout": {"type": "boolean"},
             "os_compatible": {"type": "object", "additionalProperties": {"type": "array"}},
