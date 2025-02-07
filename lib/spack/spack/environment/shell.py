@@ -57,7 +57,7 @@ def activate_header(env, shell, prompt=None, view: Optional[str] = None):
             cmds += "$Env:SPACK_ENV_VIEW='%s'\n" % view
         if prompt:
             cmds += (
-                'function global:prompt { $pth = $(Convert-Path $(Get-Location))'
+                "function global:prompt { $pth = $(Convert-Path $(Get-Location))"
                 ' | Split-Path -leaf; if(!"$Env:SPACK_OLD_PROMPT") '
                 '{$Env:SPACK_OLD_PROMPT="[spack] PS $pth>"}; '
                 '"%s PS $pth>"}\n' % prompt
@@ -123,10 +123,10 @@ def deactivate_header(shell):
         cmds += "Set-Item -Path Env:SPACK_ENV\n"
         cmds += "Set-Item -Path Env:SPACK_ENV_VIEW\n"
         cmds += (
-            'function global:prompt { $pth = $(Convert-Path $(Get-Location))'
+            "function global:prompt { $pth = $(Convert-Path $(Get-Location))"
             ' | Split-Path -leaf; $spack_prompt = "[spack] $pth >"; '
             'if("$Env:SPACK_OLD_PROMPT") {$spack_prompt=$Env:SPACK_OLD_PROMPT};'
-            ' $spack_prompt}\n'
+            " $spack_prompt}\n"
         )
     else:
         cmds += "if [ ! -z ${SPACK_ENV+x} ]; then\n"
