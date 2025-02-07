@@ -140,7 +140,7 @@ jobs:
     - name: Install dependencies
       run: |
           dnf install -y \
-              bzip2 curl file gcc-c++ gcc gcc-gfortran git gnupg2 gzip \
+              bzip2 curl gcc-c++ gcc gcc-gfortran git gnupg2 gzip \
               make patch tcl unzip which xz
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
     - name: Setup repo and non-root user

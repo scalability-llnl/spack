@@ -1,5 +1,4 @@
-.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-   Spack Project Developers. See the top-level COPYRIGHT file for details.
+.. Copyright Spack Project Developers. See COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -544,10 +543,10 @@ With either interpreter you can run a single command:
 
 .. code-block:: console
 
-   $ spack python -c 'from spack.spec import Spec; Spec("python").concretized()'
+   $ spack python -c 'from spack.concretize import concretize_one; concretize_one("python")'
    ...
 
-   $ spack python -i ipython -c 'from spack.spec import Spec; Spec("python").concretized()'
+   $ spack python -i ipython -c 'from spack.concretize import concretize_one; concretize_one("python")'
    Out[1]: ...
 
 or a file:

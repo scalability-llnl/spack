@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -133,7 +132,8 @@ def test_reporters_extract_skipped(state):
     parts = spack.reporters.extract.extract_test_parts("fake", outputs)
 
     assert len(parts) == 1
-    parts[0]["completed"] == expected
+
+    assert parts[0]["completed"] == spack.reporters.extract.completed["skipped"]
 
 
 def test_reporters_skip_new():

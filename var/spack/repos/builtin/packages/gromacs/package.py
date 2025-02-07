@@ -1,11 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
-
-import llnl.util.filesystem as fs
 
 import spack.build_systems.cmake
 from spack.package import *
@@ -262,9 +259,9 @@ class Gromacs(CMakePackage, CudaPackage):
         deprecated=True,
     )
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build", when="@:4.5.5")  # No core Fortran code since 4.6
 
     variant(
         "mpi", default=True, description="Activate MPI support (disable for Thread-MPI support)"
@@ -435,7 +432,7 @@ class Gromacs(CMakePackage, CudaPackage):
     # and switching tags.
 
     # Versions without minor release number, such as `2023` and `2021`,
-    # require exact specifcation using `@=`, starting from Spack v0.20.0,
+    # require exact specification using `@=`, starting from Spack v0.20.0,
     # see https://github.com/spack/spack/releases/tag/v0.20.0
 
     plumed_patches = {
@@ -586,7 +583,7 @@ class Gromacs(CMakePackage, CudaPackage):
             )
 
         if self.spec.satisfies("+plumed"):
-            self.spec["plumed"].package.apply_patch(self)
+            self["plumed"].apply_patch(self)
 
         if self.spec.satisfies("%nvhpc"):
             # Disable obsolete workaround
@@ -661,7 +658,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
         not be intended with ``--test``.
         """
         if self.pkg.run_tests:
-            with fs.working_dir(self.build_directory):
+            with working_dir(self.build_directory):
                 make("tests")
 
     def check(self):
@@ -670,7 +667,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
         Override the standard CMakeBuilder behavior. GROMACS has both `test`
         and `check` targets, but we are only interested in the latter.
         """
-        with fs.working_dir(self.build_directory):
+        with working_dir(self.build_directory):
             if self.generator == "Unix Makefiles":
                 make("check")
             elif self.generator == "Ninja":
@@ -914,7 +911,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
             options.append(f"-DNVSHMEM_ROOT={nvshmem_root}")
 
         if self.spec["lapack"].name in INTEL_MATH_LIBRARIES:
-            # fftw-api@3 is provided by intel-mkl or intel-parllel-studio
+            # fftw-api@3 is provided by intel-mkl or intel-parallel-studio
             # we use the mkl interface of gromacs
             options.append("-DGMX_FFT_LIBRARY=mkl")
             if self.spec.satisfies("@:2022"):

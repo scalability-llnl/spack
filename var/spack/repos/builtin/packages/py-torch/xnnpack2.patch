@@ -1,0 +1,34 @@
+diff --git a/src/reference/unary-elementwise.cc b/src/reference/unary-elementwise.cc
+index bd95ded6c..da892d8be 100644
+--- a/src/reference/unary-elementwise.cc
++++ b/src/reference/unary-elementwise.cc
+@@ -127,6 +127,16 @@ struct ConvertOp {
+   }
+ };
+ 
++#ifdef XNN_HAVE_FLOAT16
++template <>
++struct ConvertOp<xnn_bfloat16, _Float16> {
++  explicit ConvertOp(const xnn_unary_uparams*) {}
++  _Float16 operator()(xnn_bfloat16 x) const {
++    return static_cast<_Float16>(static_cast<float>(x));
++  }
++};
++#endif
++
+ template <typename TIn, typename TOut>
+ const xnn_unary_elementwise_config* get_convert_config(
+     std::true_type /*input_quantized*/, std::true_type /*output_quantized*/) {
+diff --git a/src/xnnpack/simd/s16-neon.h b/src/xnnpack/simd/s16-neon.h
+index 4e8ebcfbd..e8392f4e9 100644
+--- a/src/xnnpack/simd/s16-neon.h
++++ b/src/xnnpack/simd/s16-neon.h
+@@ -70,7 +70,7 @@ static XNN_INLINE void xnn_store_tail_s16(int16_t* output, xnn_simd_s16_t v,
+     v_low = vget_high_s16(v);
+   }
+   if (num_elements & 2) {
+-    vst1_lane_s32((void*) output, vreinterpret_s32_s16(v_low), 0);
++    vst1_lane_s32((int32_t*) output, vreinterpret_s32_s16(v_low), 0);
+     output += 2;
+     v_low = vext_s16(v_low, v_low, 2);
+   }

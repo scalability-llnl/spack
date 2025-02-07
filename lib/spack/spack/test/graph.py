@@ -1,11 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import io
 
+import spack.concretize
 import spack.graph
-import spack.spec
 
 
 def test_dynamic_dot_graph_mpileaks(default_mock_concretization):
@@ -39,7 +38,7 @@ def test_dynamic_dot_graph_mpileaks(default_mock_concretization):
 
 def test_ascii_graph_mpileaks(config, mock_packages, monkeypatch):
     monkeypatch.setattr(spack.graph.AsciiGraph, "_node_label", lambda self, node: node.name)
-    s = spack.spec.Spec("mpileaks").concretized()
+    s = spack.concretize.concretize_one("mpileaks")
 
     stream = io.StringIO()
     graph = spack.graph.AsciiGraph()

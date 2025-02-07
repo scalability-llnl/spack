@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,7 @@ class Hipsparse(CMakePackage, CudaPackage, ROCmPackage):
     libraries = ["libhipsparse"]
 
     license("MIT")
+    version("6.3.1", sha256="d64bc48e0aa5ec2f48853272a9c554b37ec98cb0724135e45f21b1340df7bccb")
     version("6.3.0", sha256="550fd5a480490e631507e8c34b2b0cf9cbc2ad2a5bf84e8ea0a8fad96eecb25a")
     version("6.2.4", sha256="0ecc0ff1eeb99e9a9ac419e49e9be9ec4cd23a117d819710114ee2f35aefe88b")
     version("6.2.1", sha256="5a3241c857f705b1e5c64b3f5163575726e64a8d19f3957f7326622fda277710")
@@ -90,6 +90,7 @@ class Hipsparse(CMakePackage, CudaPackage, ROCmPackage):
         "6.2.1",
         "6.2.4",
         "6.3.0",
+        "6.3.1",
     ]:
         depends_on(f"rocm-cmake@{ver}:", type="build", when=f"@{ver}")
         depends_on(f"rocsparse@{ver}", when=f"+rocm @{ver}")

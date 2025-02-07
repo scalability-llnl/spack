@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -62,8 +61,7 @@ class Wgl(Package):
     depends_on("win-sdk@10.0.14393", when="@10.0.14393")
 
     # WGL has no meaning on other platforms, should not be able to spec
-    for plat in ["linux", "darwin"]:
-        conflicts("platform=%s" % plat)
+    requires("platform=windows")
 
     @classmethod
     def determine_version(cls, lib):
@@ -111,9 +109,7 @@ class Wgl(Package):
 
     def install(self, spec, prefix):
         raise RuntimeError(
-            "This package is not installable from Spack\
-            and should be installed on the system prior to Spack use.\
-                If not installed this package should be installed via\
-                    the Visual Studio installer in order to use the \
-                        MSVC compiler on Windows."
+            "This package is not installable from Spack and should be installed on the system "
+            "prior to Spack use. If not installed this package should be installed via the Visual "
+            "Studio installer in order to use the MSVC compiler on Windows."
         )

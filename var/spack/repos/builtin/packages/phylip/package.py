@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,8 @@ class Phylip(Package):
     maintainers("snehring")
 
     version("3.697", sha256="9a26d8b08b8afea7f708509ef41df484003101eaf4beceb5cf7851eb940510c1")
+
+    depends_on("gmake", type="build")
 
     def patch(self):
         with working_dir("src"):

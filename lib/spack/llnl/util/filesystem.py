@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections
@@ -76,7 +75,6 @@ __all__ = [
     "install_tree",
     "is_exe",
     "join_path",
-    "last_modification_time_recursive",
     "library_extensions",
     "mkdirp",
     "partition_path",
@@ -670,7 +668,7 @@ def copy(src, dest, _permissions=False):
         _permissions (bool): for internal use only
 
     Raises:
-        IOError: if *src* does not match any files or directories
+        OSError: if *src* does not match any files or directories
         ValueError: if *src* matches multiple files but *dest* is
             not a directory
     """
@@ -681,7 +679,7 @@ def copy(src, dest, _permissions=False):
 
     files = glob.glob(src)
     if not files:
-        raise IOError("No such file or directory: '{0}'".format(src))
+        raise OSError("No such file or directory: '{0}'".format(src))
     if len(files) > 1 and not os.path.isdir(dest):
         raise ValueError(
             "'{0}' matches multiple files but '{1}' is not a directory".format(src, dest)
@@ -712,7 +710,7 @@ def install(src, dest):
         dest (str): the destination file or directory
 
     Raises:
-        IOError: if *src* does not match any files or directories
+        OSError: if *src* does not match any files or directories
         ValueError: if *src* matches multiple files but *dest* is
             not a directory
     """
@@ -750,7 +748,7 @@ def copy_tree(
         _permissions (bool): for internal use only
 
     Raises:
-        IOError: if *src* does not match any files or directories
+        OSError: if *src* does not match any files or directories
         ValueError: if *src* is a parent directory of *dest*
     """
     if _permissions:
@@ -764,7 +762,7 @@ def copy_tree(
 
     files = glob.glob(src)
     if not files:
-        raise IOError("No such file or directory: '{0}'".format(src))
+        raise OSError("No such file or directory: '{0}'".format(src))
 
     # For Windows hard-links and junctions, the source path must exist to make a symlink. Add
     # all symlinks to this list while traversing the tree, then when finished, make all
@@ -845,7 +843,7 @@ def install_tree(src, dest, symlinks=True, ignore=None):
         ignore (typing.Callable): function indicating which files to ignore
 
     Raises:
-        IOError: if *src* does not match any files or directories
+        OSError: if *src* does not match any files or directories
         ValueError: if *src* is a parent directory of *dest*
     """
     copy_tree(src, dest, symlinks=symlinks, ignore=ignore, _permissions=True)
@@ -1471,15 +1469,36 @@ def set_executable(path):
 
 
 @system_path_filter
-def last_modification_time_recursive(path):
-    path = os.path.abspath(path)
-    times = [os.stat(path).st_mtime]
-    times.extend(
-        os.lstat(os.path.join(root, name)).st_mtime
-        for root, dirs, files in os.walk(path)
-        for name in dirs + files
-    )
-    return max(times)
+def recursive_mtime_greater_than(path: str, time: float) -> bool:
+    """Returns true if any file or dir recursively under `path` has mtime greater than `time`."""
+    # use bfs order to increase likelihood of early return
+    queue: Deque[str] = collections.deque([path])
+
+    if os.stat(path).st_mtime > time:
+        return True
+
+    while queue:
+        current = queue.popleft()
+
+        try:
+            entries = os.scandir(current)
+        except OSError:
+            continue
+
+        with entries:
+            for entry in entries:
+                try:
+                    st = entry.stat(follow_symlinks=False)
+                except OSError:
+                    continue
+
+                if st.st_mtime > time:
+                    return True
+
+                if entry.is_dir(follow_symlinks=False):
+                    queue.append(entry.path)
+
+    return False
 
 
 @system_path_filter
@@ -1741,8 +1760,7 @@ def find(
 
 
 def _log_file_access_issue(e: OSError, path: str) -> None:
-    errno_name = errno.errorcode.get(e.errno, "UNKNOWN")
-    tty.debug(f"find must skip {path}: {errno_name} {e}")
+    tty.debug(f"find must skip {path}: {e}")
 
 
 def _file_id(s: os.stat_result) -> Tuple[int, int]:

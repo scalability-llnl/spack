@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -229,8 +228,7 @@ class Scorep(AutotoolsPackage):
         # but add similar spec.satisfies clauses for any that you need.
         # -- wrwilliams 12/2024
         if spec.satisfies("^binutils"):
-            config_args.append("--with-libbfd-lib=%s" % spec["binutils"].prefix.lib)
-            config_args.append("--with-libbfd-include=%s" % spec["binutils"].prefix.include)
+            config_args.append("--with-libbfd=%s" % spec["binutils"].prefix)
 
         config_args.extend(
             [

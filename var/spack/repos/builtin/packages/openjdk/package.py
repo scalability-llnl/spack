@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -8,7 +7,6 @@ import platform
 import re
 
 from spack.package import *
-from spack.util.prefix import Prefix
 
 # If you need to add a new version, please be aware that:
 #  - versions in the following dict are automatically added to the package

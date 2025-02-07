@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,7 @@ class Spherepack(Package):
     version("3.2", sha256="7f5497e77101a4423cee887294f873048f6ff6bc8d0e908c8a89ece677ee19ea")
 
     depends_on("fortran", type="build")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         if self.compiler.fc is None:

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,8 @@ import json
 import os
 
 import pytest
+
+import archspec.cpu
 
 import spack
 import spack.cmd
@@ -99,11 +100,8 @@ class JsonCompilerEntry:
 
 @pytest.fixture
 def _common_arch(test_platform):
-    return JsonArchEntry(
-        platform=test_platform.name,
-        os=test_platform.front_os,
-        target=test_platform.target("fe").name,
-    )
+    generic = archspec.cpu.TARGETS[test_platform.default].family
+    return JsonArchEntry(platform=test_platform.name, os="redhat6", target=generic.name)
 
 
 @pytest.fixture

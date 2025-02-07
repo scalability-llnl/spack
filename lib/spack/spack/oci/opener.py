@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -8,6 +7,7 @@
 import base64
 import json
 import re
+import socket
 import time
 import urllib.error
 import urllib.parse
@@ -383,6 +383,7 @@ def create_opener():
     """Create an opener that can handle OCI authentication."""
     opener = urllib.request.OpenerDirector()
     for handler in [
+        urllib.request.ProxyHandler(),
         urllib.request.UnknownHandler(),
         urllib.request.HTTPSHandler(context=spack.util.web.ssl_create_default_context()),
         spack.util.web.SpackHTTPDefaultErrorHandler(),
@@ -411,7 +412,7 @@ def default_retry(f, retries: int = 5, sleep=None):
         for i in range(retries):
             try:
                 return f(*args, **kwargs)
-            except (urllib.error.URLError, TimeoutError) as e:
+            except OSError as e:
                 # Retry on internal server errors, and rate limit errors
                 # Potentially this could take into account the Retry-After header
                 # if registries support it
@@ -421,9 +422,10 @@ def default_retry(f, retries: int = 5, sleep=None):
                         and (500 <= e.code < 600 or e.code == 429)
                     )
                     or (
-                        isinstance(e, urllib.error.URLError) and isinstance(e.reason, TimeoutError)
+                        isinstance(e, urllib.error.URLError)
+                        and isinstance(e.reason, socket.timeout)
                     )
-                    or isinstance(e, TimeoutError)
+                    or isinstance(e, socket.timeout)
                 ):
                     # Exponential backoff
                     sleep(2**i)

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections.abc
@@ -12,6 +11,7 @@ from itertools import chain
 from typing import Any, List, Optional, Tuple
 
 import llnl.util.filesystem as fs
+from llnl.util import tty
 from llnl.util.lang import stable_partition
 
 import spack.builder
@@ -455,18 +455,27 @@ class CMakeBuilder(BuilderWithDefaults):
         return []
 
     def cmake(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: CMakePackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Runs ``cmake`` in the build directory"""
 
-        # skip cmake phase if it is an incremental develop build
-        if spec.is_develop and os.path.isfile(
-            os.path.join(self.build_directory, "CMakeCache.txt")
-        ):
-            return
+        if spec.is_develop:
+            # skip cmake phase if it is an incremental develop build
+
+            # Determine the files that will re-run CMake that are generated from a successful
+            # configure step based on state
+            primary_generator = _extract_primary_generator(self.generator)
+            configure_artifact = "Makefile"
+            if primary_generator == "Ninja":
+                configure_artifact = "ninja.build"
+
+            if os.path.isfile(os.path.join(self.build_directory, configure_artifact)):
+                tty.msg(
+                    "Incremental build criteria satisfied."
+                    "Skipping CMake configure step. To force configuration run"
+                    f" `spack clean {pkg.name}`"
+                )
+                return
 
         options = self.std_cmake_args
         options += self.cmake_args()
@@ -475,10 +484,7 @@ class CMakeBuilder(BuilderWithDefaults):
             pkg.module.cmake(*options)
 
     def build(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: CMakePackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Make the build targets"""
         with fs.working_dir(self.build_directory):
@@ -489,10 +495,7 @@ class CMakeBuilder(BuilderWithDefaults):
                 pkg.module.ninja(*self.build_targets)
 
     def install(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: CMakePackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Make the install targets"""
         with fs.working_dir(self.build_directory):

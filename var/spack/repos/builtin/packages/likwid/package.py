@@ -1,12 +1,9 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import glob
 import os
-
-import llnl.util.tty as tty
 
 import spack.tengine
 from spack.package import *
@@ -107,6 +104,7 @@ class Likwid(Package):
     # depends_on('gnuplot', type='run')
 
     depends_on("perl", type=("build", "run"))
+    depends_on("gmake", type="build")
 
     def patch(self):
         files = glob.glob("perl/*.*") + glob.glob("bench/perl/*.*")
@@ -168,10 +166,7 @@ class Likwid(Package):
             supported_compilers = {"gcc": "GCCPOWER"}
         if self.compiler.name not in supported_compilers:
             raise RuntimeError(
-                "{0} is not a supported compiler \
-            to compile Likwid".format(
-                    self.compiler.name
-                )
+                "{0} is not a supported compiler to compile Likwid".format(self.compiler.name)
             )
 
         filter_file(

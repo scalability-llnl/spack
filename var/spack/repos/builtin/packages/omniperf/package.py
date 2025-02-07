@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,7 +17,7 @@ class Omniperf(CMakePackage):
     maintainers("afzpatel", "srekolam", "renjithravindrankannath")
 
     license("MIT")
-
+    version("6.3.1", sha256="2b79cb3ecced9a40f6871286967d00b1ab87f9cdff8283819fd7ae44b230d4bf")
     version("6.3.0", sha256="f8e9703b5f78abba6f4a61f69ffc73225d1bb47b591cf33a26ed98060efd65d1")
     version("6.2.4", sha256="2230260fce0838583899f4969b936ca047b30985a0fffad276ea353232538770")
     version("6.2.1", sha256="56b795d471adad8ee9d7025544269e23929da31524d73db6f54396d3aca1445a")
@@ -31,7 +30,7 @@ class Omniperf(CMakePackage):
     depends_on("py-pyyaml")
     depends_on("py-matplotlib")
     depends_on("py-pandas@1.4.3:")
-    depends_on("py-numpy@1.17.5")
+    depends_on("py-numpy@1.17.5:")
     depends_on("py-pymongo")
     depends_on("py-tabulate")
     depends_on("py-tqdm")

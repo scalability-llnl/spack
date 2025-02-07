@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections.abc
@@ -65,7 +64,7 @@ class Mirror:
     @staticmethod
     def from_url(url: str):
         """Create an anonymous mirror by URL. This method validates the URL."""
-        if not urllib.parse.urlparse(url).scheme in supported_url_schemes:
+        if urllib.parse.urlparse(url).scheme not in supported_url_schemes:
             raise ValueError(
                 f'"{url}" is not a valid mirror URL. '
                 f"Scheme must be one of {supported_url_schemes}."

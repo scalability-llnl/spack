@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,6 +8,7 @@ import pytest
 
 import archspec.cpu
 
+import spack.concretize
 import spack.config
 import spack.environment as ev
 import spack.main
@@ -436,7 +436,7 @@ class TestLmod:
             module_configuration("with_view")
             install("--add", "cmake")
 
-            spec = spack.spec.Spec("cmake").concretized()
+            spec = spack.concretize.concretize_one("cmake")
 
             content = modulefile_content("cmake")
             expected = e.default_view.get_projection_for_spec(spec)
@@ -456,7 +456,7 @@ class TestLmod:
         """Tests the addition and removal of hide command in modulerc."""
         module_configuration("hide_implicits")
 
-        spec = spack.spec.Spec("mpileaks@2.3").concretized()
+        spec = spack.concretize.concretize_one("mpileaks@2.3")
 
         # mpileaks is defined as implicit, thus hide command should appear in modulerc
         writer = writer_cls(spec, "default", False)
@@ -508,8 +508,8 @@ class TestLmod:
         # three versions of mpileaks are implicit
         writer = writer_cls(spec, "default", False)
         writer.write(overwrite=True)
-        spec_alt1 = spack.spec.Spec("mpileaks@2.2").concretized()
-        spec_alt2 = spack.spec.Spec("mpileaks@2.1").concretized()
+        spec_alt1 = spack.concretize.concretize_one("mpileaks@2.2")
+        spec_alt2 = spack.concretize.concretize_one("mpileaks@2.1")
         writer_alt1 = writer_cls(spec_alt1, "default", False)
         writer_alt1.write(overwrite=True)
         writer_alt2 = writer_cls(spec_alt2, "default", False)

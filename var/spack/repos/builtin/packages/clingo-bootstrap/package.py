@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import glob
@@ -9,7 +8,6 @@ import spack.paths
 import spack.user_environment
 from spack.package import *
 from spack.pkg.builtin.clingo import Clingo
-from spack.util.environment import EnvironmentModifications
 
 
 class ClingoBootstrap(Clingo):
@@ -109,7 +107,9 @@ class ClingoBootstrap(Clingo):
         # Run spack solve --fresh hdf5 with instrumented clingo.
         python_runtime_env = EnvironmentModifications()
         python_runtime_env.extend(
-            spack.user_environment.environment_modifications_for_specs(self.spec)
+            spack.user_environment.environment_modifications_for_specs(
+                self.spec, set_package_py_globals=False
+            )
         )
         python_runtime_env.unset("SPACK_ENV")
         python_runtime_env.unset("SPACK_PYTHON")

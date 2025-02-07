@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,13 +12,11 @@ import sys
 from shutil import copy
 from typing import Dict, List
 
-import llnl.util.tty as tty
 from llnl.util.lang import dedupe
 
 import spack.paths
 from spack.build_environment import dso_suffix, stat_suffix
 from spack.package import *
-from spack.util.prefix import Prefix
 
 
 def make_pyvenv_cfg(python_spec: Spec, venv_prefix: str) -> str:
@@ -60,7 +57,9 @@ class Python(Package):
 
     license("0BSD")
 
+    version("3.13.1", sha256="1513925a9f255ef0793dbf2f78bb4533c9f184bdd0ad19763fd7f47a400a7c55")
     version("3.13.0", sha256="12445c7b3db3126c41190bfdc1c8239c39c719404e844babbd015a1bc3fafcd4")
+    version("3.12.8", sha256="5978435c479a376648cb02854df3b892ace9ed7d32b1fead652712bee9d03a45")
     version("3.12.5", sha256="38dc4e2c261d49c661196066edbfb70fdb16be4a79cc8220c224dfeb5636d405")
     version("3.12.4", sha256="01b3c1c082196f3b33168d344a9c85fb07bfe0e7ecfe77fee4443420d1ce2ad9")
     version("3.12.3", sha256="a6b9459f45a6ebbbc1af44f5762623fa355a0c87208ed417628b379d762dddb0")
@@ -364,7 +363,7 @@ class Python(Package):
                 variants += "~tix"
 
         # Some modules are platform-dependent
-        if sys.platform != "win32":
+        if sys.platform != "win32" and Version(version_str) < Version("3.13"):
             try:
                 python("-c", "import crypt", error=os.devnull)
                 variants += "+crypt"

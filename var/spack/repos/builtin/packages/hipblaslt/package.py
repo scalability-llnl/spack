@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,7 @@ class Hipblaslt(CMakePackage):
     maintainers("srekolam", "afzpatel", "renjithravindrankannath")
 
     license("MIT")
+    version("6.3.1", sha256="9a18a2e44264a21cfe58ed102fd3e34b336f23d6c191ca2da726e8e0883ed663")
     version("6.3.0", sha256="e570996037ea42eeca4c9b8b0b77a202d40be1a16068a6245595c551d80bdcad")
     version("6.2.4", sha256="b8a72cb1ed4988b0569817c6387fb2faee4782795a0d8f49b827b32b52572cfd")
     version("6.2.1", sha256="9b062b1d6d945349c31828030c8c1d99fe57d14a1837196ff9aa67bf10ef43f1")
@@ -27,7 +27,9 @@ class Hipblaslt(CMakePackage):
     version("6.0.2", sha256="e281a1a7760fab8c3e0baafe17950cf43c422184e3226e3c14eb06e50c69d421")
     version("6.0.0", sha256="6451b6fdf7f24787628190bbe8f2208c929546b68b692d8355d2f18bea7ca7db")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("cmake@3.25.2:", type="build", when="@6.2.0:")
 
     amdgpu_targets = ROCmPackage.amdgpu_targets
 
@@ -38,8 +40,18 @@ class Hipblaslt(CMakePackage):
         sticky=True,
     )
     variant("asan", default=False, description="Build with address-sanitizer enabled or disabled")
-
-    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4", "6.3.0"]:
+    for ver in [
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
+    ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"llvm-amdgpu@{ver}", when=f"@{ver}")
         depends_on(f"rocm-openmp-extras@{ver}", type="test", when=f"@{ver}")
@@ -47,8 +59,9 @@ class Hipblaslt(CMakePackage):
     for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4"]:
         depends_on(f"hipblas@{ver}", when=f"@{ver}")
 
-    depends_on("hipblas-common@6.3.0", when="@6.3.0")
-    depends_on("rocm-smi-lib@6.3.0", when="@6.3.0")
+    for ver in ["6.3.0", "6.3.1"]:
+        depends_on(f"hipblas-common@{ver}", when=f"@{ver}")
+        depends_on(f"rocm-smi-lib@{ver}", when=f"@{ver}")
 
     depends_on("msgpack-c")
     depends_on("py-joblib", type=("build", "link"))

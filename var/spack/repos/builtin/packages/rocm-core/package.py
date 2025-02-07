@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,7 @@ class RocmCore(CMakePackage):
     libraries = ["librocm-core"]
 
     license("MIT")
+    version("6.3.1", sha256="f8196f3aafe03bd93ae2947162f34098fd08ddbad4eb3deaf92acd434b480304")
     version("6.3.0", sha256="4fa981335426195028dd6b3a05228a2ebe8e601023a1e99130bba1b14bf60178")
     version("6.2.4", sha256="46dcfb5d20d242cd0ce6d02ba64d92bdd3ea59c103cf47b665c7d7a4ea7dc7f1")
     version("6.2.1", sha256="35cb5f6dfb1847469930bf0fa0913499b6c3f59b2b573a9f598b0956104ba5e2")
@@ -44,7 +44,7 @@ class RocmCore(CMakePackage):
 
     depends_on("cxx", type="build")  # generated
 
-    for ver in ["6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4", "6.3.0"]:
+    for ver in ["6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4", "6.3.0", "6.3.1"]:
         depends_on("llvm-amdgpu", when=f"@{ver}+asan")
 
     def setup_build_environment(self, env):

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,7 @@ class PyTorchaudio(PythonPackage):
     maintainers("adamjstewart")
 
     version("main", branch="main")
+    version("2.6.0", tag="v2.6.0", commit="d8831425203385077a03c1d92cfbbe3bf2106008")
     version("2.5.1", tag="v2.5.1", commit="1661daf10599ca8889f092ec37814fabbe202bb0")
     version("2.5.0", tag="v2.5.0", commit="56bc006d56a0d4960de6a1e0b6340cba4eda05cd")
     version("2.4.1", tag="v2.4.1", commit="e8cbe17769796ce963fbc71b8990f1474774e6d2")
@@ -67,7 +67,8 @@ class PyTorchaudio(PythonPackage):
 
     with default_args(type=("build", "link", "run")):
         # Based on PyPI wheel availability
-        depends_on("python@3.9:3.12", when="@2.5:")
+        depends_on("python@3.9:3.13", when="@2.6:")
+        depends_on("python@3.9:3.12", when="@2.5")
         depends_on("python@3.8:3.12", when="@2.2:2.4")
         depends_on("python@3.8:3.11", when="@2.0:2.1")
         depends_on("python@:3.10", when="@0.12:0")
@@ -75,6 +76,7 @@ class PyTorchaudio(PythonPackage):
         depends_on("python@:3.8", when="@:0.7.0")
 
         depends_on("py-torch@main", when="@main")
+        depends_on("py-torch@2.6.0", when="@2.6.0")
         depends_on("py-torch@2.5.1", when="@2.5.1")
         depends_on("py-torch@2.5.0", when="@2.5.0")
         depends_on("py-torch@2.4.1", when="@2.4.1")
@@ -127,7 +129,7 @@ class PyTorchaudio(PythonPackage):
     patch(
         "https://github.com/pytorch/audio/pull/3811.patch?full_index=1",
         sha256="34dce3403abb03f62827e8a1efcdb2bf7742477a01f155ebb9c7fefe9588b132",
-        when="@2.2:",
+        when="@2.2:2.5",
     )
     conflicts("^cuda@12.5:", when="@:2.1")
 

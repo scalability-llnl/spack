@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -309,7 +308,7 @@ class LinkTree:
 
     def __init__(self, source_root):
         if not os.path.exists(source_root):
-            raise IOError("No such file or directory: '%s'", source_root)
+            raise OSError("No such file or directory: '%s'", source_root)
 
         self._root = source_root
 

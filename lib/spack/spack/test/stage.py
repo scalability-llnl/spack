@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -126,7 +125,7 @@ def check_expand_archive(stage, stage_name, expected_file_list):
 
         assert os.path.isfile(fn)
         with open(fn, encoding="utf-8") as _file:
-            _file.read() == contents
+            assert _file.read() == contents
 
 
 def check_fetch(stage, stage_name):

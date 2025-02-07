@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,6 +27,7 @@ class Rpp(CMakePackage):
 
     maintainers("srekolam", "afzpatel")
     license("MIT")
+    version("6.3.1", sha256="6e7da82bf7b6d642d605370329e4e719af10bb5c6af30079b5d0b60cdcb91a48")
     version("6.3.0", sha256="130a6bd2fc4278956c6450a3c49243651576b1031e6a485aa62453b9dc3b4d51")
     version("6.2.4", sha256="e733350e938ce8d2f7d6d43d2bfd0febd270d52673bafa0265ed97bb850289de")
     version("6.2.1", sha256="5ae9d0c6733ba0e00be1cda13003e98acebd3f86de59e6f1969e297d673f124e")
@@ -169,6 +169,7 @@ class Rpp(CMakePackage):
                 "6.2.1",
                 "6.2.4",
                 "6.3.0",
+                "6.3.1",
             ]:
                 depends_on("hip@" + ver, when="@" + ver)
         with when("@:1.2"):

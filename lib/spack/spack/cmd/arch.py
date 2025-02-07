@@ -1,9 +1,9 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import collections
+import warnings
 
 import archspec.cpu
 
@@ -52,10 +52,10 @@ def setup_parser(subparser):
         "-t", "--target", action="store_true", default=False, help="print only the target"
     )
     parts2.add_argument(
-        "-f", "--frontend", action="store_true", default=False, help="print frontend"
+        "-f", "--frontend", action="store_true", default=False, help="print frontend (DEPRECATED)"
     )
     parts2.add_argument(
-        "-b", "--backend", action="store_true", default=False, help="print backend"
+        "-b", "--backend", action="store_true", default=False, help="print backend (DEPRECATED)"
     )
 
 
@@ -99,15 +99,14 @@ def arch(parser, args):
         display_targets(archspec.cpu.TARGETS)
         return
 
-    os_args, target_args = "default_os", "default_target"
     if args.frontend:
-        os_args, target_args = "frontend", "frontend"
+        warnings.warn("the argument --frontend is deprecated, and will be removed in Spack v1.0")
     elif args.backend:
-        os_args, target_args = "backend", "backend"
+        warnings.warn("the argument --backend is deprecated, and will be removed in Spack v1.0")
 
     host_platform = spack.platforms.host()
-    host_os = host_platform.operating_system(os_args)
-    host_target = host_platform.target(target_args)
+    host_os = host_platform.default_operating_system()
+    host_target = host_platform.default_target()
     if args.family:
         host_target = host_target.family
     elif args.generic:

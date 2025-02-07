@@ -1,24 +1,21 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import codecs
 import copy
 import json
 import os
 import re
-import ssl
 import sys
 import time
 from collections import deque
 from enum import Enum
 from typing import Dict, Generator, List, Optional, Set, Tuple
 from urllib.parse import quote, urlencode, urlparse
-from urllib.request import HTTPHandler, HTTPSHandler, Request, build_opener
+from urllib.request import Request
 
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
-from llnl.util.lang import Singleton, memoized
+from llnl.util.lang import memoized
 
 import spack.binary_distribution as bindist
 import spack.config as cfg
@@ -36,32 +33,11 @@ from spack.reporters import CDash, CDashConfiguration
 from spack.reporters.cdash import SPACK_CDASH_TIMEOUT
 from spack.reporters.cdash import build_stamp as cdash_build_stamp
 
-
-def _urlopen():
-    error_handler = web_util.SpackHTTPDefaultErrorHandler()
-
-    # One opener with HTTPS ssl enabled
-    with_ssl = build_opener(
-        HTTPHandler(), HTTPSHandler(context=web_util.ssl_create_default_context()), error_handler
-    )
-
-    # One opener with HTTPS ssl disabled
-    without_ssl = build_opener(
-        HTTPHandler(), HTTPSHandler(context=ssl._create_unverified_context()), error_handler
-    )
-
-    # And dynamically dispatch based on the config:verify_ssl.
-    def dispatch_open(fullurl, data=None, timeout=None, verify_ssl=True):
-        opener = with_ssl if verify_ssl else without_ssl
-        timeout = timeout or cfg.get("config:connect_timeout", 1)
-        return opener.open(fullurl, data, timeout)
-
-    return dispatch_open
-
-
 IS_WINDOWS = sys.platform == "win32"
 SPACK_RESERVED_TAGS = ["public", "protected", "notary"]
-_dyn_mapping_urlopener = Singleton(_urlopen)
+
+# this exists purely for testing purposes
+_urlopen = web_util.urlopen
 
 
 def copy_files_to_artifacts(src, artifacts_dir):
@@ -233,8 +209,10 @@ class CDashHandler:
 
         Returns: (str) given spec's CDash build name."""
         if spec:
-            build_name = f"{spec.name}@{spec.version}%{spec.compiler} \
-hash={spec.dag_hash()} arch={spec.architecture} ({self.build_group})"
+            build_name = (
+                f"{spec.name}@{spec.version}%{spec.compiler} "
+                f"hash={spec.dag_hash()} arch={spec.architecture} ({self.build_group})"
+            )
             tty.debug(f"Generated CDash build name ({build_name}) from the {spec.name}")
             return build_name
 
@@ -278,26 +256,25 @@ hash={spec.dag_hash()} arch={spec.architecture} ({self.build_group})"
         reports = fs.join_path(source, "*_Test*.xml")
         copy_files_to_artifacts(reports, dest)
 
-    def create_buildgroup(self, opener, headers, url, group_name, group_type):
+    def create_buildgroup(self, headers, url, group_name, group_type):
         data = {"newbuildgroup": group_name, "project": self.project, "type": group_type}
 
         enc_data = json.dumps(data).encode("utf-8")
 
         request = Request(url, data=enc_data, headers=headers)
 
-        response = opener.open(request, timeout=SPACK_CDASH_TIMEOUT)
-        response_code = response.getcode()
-
-        if response_code not in [200, 201]:
-            msg = f"Creating buildgroup failed (response code = {response_code})"
-            tty.warn(msg)
+        try:
+            response_text = _urlopen(request, timeout=SPACK_CDASH_TIMEOUT).read()
+        except OSError as e:
+            tty.warn(f"Failed to create CDash buildgroup: {e}")
             return None
 
-        response_text = response.read()
-        response_json = json.loads(response_text)
-        build_group_id = response_json["id"]
-
-        return build_group_id
+        try:
+            response_json = json.loads(response_text)
+            return response_json["id"]
+        except (json.JSONDecodeError, KeyError) as e:
+            tty.warn(f"Failed to parse CDash response: {e}")
+            return None
 
     def populate_buildgroup(self, job_names):
         url = f"{self.url}/api/v1/buildgroup.php"
@@ -307,16 +284,11 @@ hash={spec.dag_hash()} arch={spec.architecture} ({self.build_group})"
             "Content-Type": "application/json",
         }
 
-        opener = build_opener(HTTPHandler)
-
-        parent_group_id = self.create_buildgroup(opener, headers, url, self.build_group, "Daily")
-        group_id = self.create_buildgroup(
-            opener, headers, url, f"Latest {self.build_group}", "Latest"
-        )
+        parent_group_id = self.create_buildgroup(headers, url, self.build_group, "Daily")
+        group_id = self.create_buildgroup(headers, url, f"Latest {self.build_group}", "Latest")
 
         if not parent_group_id or not group_id:
-            msg = f"Failed to create or retrieve buildgroups for {self.build_group}"
-            tty.warn(msg)
+            tty.warn(f"Failed to create or retrieve buildgroups for {self.build_group}")
             return
 
         data = {
@@ -328,15 +300,12 @@ hash={spec.dag_hash()} arch={spec.architecture} ({self.build_group})"
 
         enc_data = json.dumps(data).encode("utf-8")
 
-        request = Request(url, data=enc_data, headers=headers)
-        request.get_method = lambda: "PUT"
+        request = Request(url, data=enc_data, headers=headers, method="PUT")
 
-        response = opener.open(request, timeout=SPACK_CDASH_TIMEOUT)
-        response_code = response.getcode()
-
-        if response_code != 200:
-            msg = f"Error response code ({response_code}) in populate_buildgroup"
-            tty.warn(msg)
+        try:
+            _urlopen(request, timeout=SPACK_CDASH_TIMEOUT)
+        except OSError as e:
+            tty.warn(f"Failed to populate CDash buildgroup: {e}")
 
     def report_skipped(self, spec: spack.spec.Spec, report_dir: str, reason: Optional[str]):
         """Explicitly report skipping testing of a spec (e.g., it's CI
@@ -734,9 +703,6 @@ class SpackCIConfig:
                 for value in header.values():
                     value = os.path.expandvars(value)
 
-                verify_ssl = mapping.get("verify_ssl", spack.config.get("config:verify_ssl", True))
-                timeout = mapping.get("timeout", spack.config.get("config:connect_timeout", 1))
-
                 required = mapping.get("require", [])
                 allowed = mapping.get("allow", [])
                 ignored = mapping.get("ignore", [])
@@ -770,18 +736,14 @@ class SpackCIConfig:
                         endpoint_url._replace(query=query).geturl(), headers=header, method="GET"
                     )
                     try:
-                        response = _dyn_mapping_urlopener(
-                            request, verify_ssl=verify_ssl, timeout=timeout
-                        )
+                        response = _urlopen(request)
+                        config = json.load(response)
                     except Exception as e:
                         # For now just ignore any errors from dynamic mapping and continue
                         # This is still experimental, and failures should not stop CI
                         # from running normally
-                        tty.warn(f"Failed to fetch dynamic mapping for query:\n\t{query}")
-                        tty.warn(f"{e}")
+                        tty.warn(f"Failed to fetch dynamic mapping for query:\n\t{query}: {e}")
                         continue
-
-                    config = json.load(codecs.getreader("utf-8")(response))
 
                     # Strip ignore keys
                     if ignored:

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -109,7 +108,7 @@ class Camp(CMakePackage, CudaPackage, ROCmPackage):
         if spec.satisfies("+rocm"):
             options.append("-DHIP_ROOT_DIR={0}".format(spec["hip"].prefix))
 
-            archs = self.spec.variants["amdgpu_target"].value
+            archs = ";".join(self.spec.variants["amdgpu_target"].value)
             options.append("-DCMAKE_HIP_ARCHITECTURES={0}".format(archs))
             options.append("-DGPU_TARGETS={0}".format(archs))
             options.append("-DAMDGPU_TARGETS={0}".format(archs))

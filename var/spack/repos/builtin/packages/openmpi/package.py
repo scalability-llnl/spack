@@ -1,18 +1,13 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
-import itertools
 import os
 import re
 import sys
 
-import llnl.util.tty as tty
-
 import spack.compilers
-import spack.version
 from spack.package import *
 
 
@@ -33,6 +28,7 @@ class Openmpi(AutotoolsPackage, CudaPackage):
     url = "https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.0.tar.bz2"
     list_url = "https://www.open-mpi.org/software/ompi/"
     git = "https://github.com/open-mpi/ompi.git"
+    cxxname = "mpic++"
 
     maintainers("hppritcha", "naughtont3")
 
@@ -737,7 +733,7 @@ with '-Wl,-commons,use_dylibs' and without
                 variants.append("+atomics")
 
             # java
-            if version in spack.version.ver("1.7.4:"):
+            if version in ver("1.7.4:"):
                 match = re.search(r"\bJava bindings: (\S+)", output)
                 if match and is_enabled(match.group(1)):
                     variants.append("+java")
@@ -755,7 +751,7 @@ with '-Wl,-commons,use_dylibs' and without
                 variants.append("~static")
 
             # sqlite
-            if version in spack.version.ver("1.7.3:1"):
+            if version in ver("1.7.3:1"):
                 if re.search(r"\bMCA db: sqlite", output):
                     variants.append("+sqlite3")
                 else:
@@ -766,7 +762,7 @@ with '-Wl,-commons,use_dylibs' and without
                 variants.append("+vt")
 
             # thread_multiple
-            if version in spack.version.ver("1.5.4:2"):
+            if version in ver("1.5.4:2"):
                 match = re.search(r"MPI_THREAD_MULTIPLE: (\S+?),?", output)
                 if match and is_enabled(match.group(1)):
                     variants.append("+thread_multiple")
@@ -783,7 +779,7 @@ with '-Wl,-commons,use_dylibs' and without
                 variants.append("~cuda")
 
             # wrapper-rpath
-            if version in spack.version.ver("1.7.4:"):
+            if version in ver("1.7.4:"):
                 match = re.search(r"\bWrapper compiler rpath: (\S+)", output)
                 if match and is_enabled(match.group(1)):
                     variants.append("+wrapper-rpath")
@@ -791,7 +787,7 @@ with '-Wl,-commons,use_dylibs' and without
                     variants.append("~wrapper-rpath")
 
             # cxx
-            if version in spack.version.ver(":4"):
+            if version in ver(":4"):
                 match = re.search(r"\bC\+\+ bindings: (\S+)", output)
                 if match and match.group(1) == "yes":
                     variants.append("+cxx")
@@ -799,7 +795,7 @@ with '-Wl,-commons,use_dylibs' and without
                     variants.append("~cxx")
 
             # cxx_exceptions
-            if version in spack.version.ver(":4"):
+            if version in ver(":4"):
                 match = re.search(r"\bC\+\+ exceptions: (\S+)", output)
                 if match and match.group(1) == "yes":
                     variants.append("+cxx_exceptions")
@@ -807,7 +803,7 @@ with '-Wl,-commons,use_dylibs' and without
                     variants.append("~cxx_exceptions")
 
             # singularity
-            if version in spack.version.ver(":4"):
+            if version in ver(":4"):
                 if re.search(r"--with-singularity", output):
                     variants.append("+singularity")
 
@@ -823,7 +819,7 @@ with '-Wl,-commons,use_dylibs' and without
                 variants.append("~memchecker")
 
             # pmi
-            if version in spack.version.ver("1.5.5:4"):
+            if version in ver("1.5.5:4"):
                 if re.search(r"\bMCA (?:ess|prrte): pmi", output):
                     variants.append("+pmi")
                 else:
@@ -886,7 +882,7 @@ with '-Wl,-commons,use_dylibs' and without
         # Because MPI is both a runtime and a compiler, we have to setup the
         # compiler components as part of the run environment.
         env.set("MPICC", join_path(self.prefix.bin, "mpicc"))
-        env.set("MPICXX", join_path(self.prefix.bin, "mpic++"))
+        env.set("MPICXX", join_path(self.prefix.bin, self.cxxname))
         env.set("MPIF77", join_path(self.prefix.bin, "mpif77"))
         env.set("MPIF90", join_path(self.prefix.bin, "mpif90"))
         # Open MPI also has had mpifort since v1.7, so we can set MPIFC to that
@@ -928,13 +924,9 @@ with '-Wl,-commons,use_dylibs' and without
 
     def setup_dependent_package(self, module, dependent_spec):
         self.spec.mpicc = join_path(self.prefix.bin, "mpicc")
-        self.spec.mpicxx = join_path(self.prefix.bin, "mpic++")
+        self.spec.mpicxx = join_path(self.prefix.bin, self.cxxname)
         self.spec.mpifc = join_path(self.prefix.bin, "mpif90")
         self.spec.mpif77 = join_path(self.prefix.bin, "mpif77")
-        self.spec.mpicxx_shared_libs = [
-            join_path(self.prefix.lib, "libmpi_cxx.{0}".format(dso_suffix)),
-            join_path(self.prefix.lib, "libmpi.{0}".format(dso_suffix)),
-        ]
 
     # Most of the following with_or_without methods might seem redundant
     # because Spack compiler wrapper adds the required -I and -L flags, which
@@ -1038,11 +1030,6 @@ with '-Wl,-commons,use_dylibs' and without
         # https://github.com/open-mpi/ompi/issues/12427
         if spec.satisfies("@:4.1.6,5.0.0:5.0.3 %apple-clang@15:"):
             config_args.append("--with-wrapper-fcflags=-Wl,-ld_classic")
-
-        # All rpath flags should be appended with self.compiler.cc_rpath_arg.
-        # Later, we might need to update share/openmpi/mpic++-wrapper-data.txt
-        # and mpifort-wrapper-data.txt (see filter_rpaths()).
-        wrapper_ldflags = []
 
         config_args.extend(self.enable_or_disable("builtin-atomics", variant="atomics"))
 
@@ -1186,25 +1173,12 @@ with '-Wl,-commons,use_dylibs' and without
             # filter_pc_files()):
             if spec.satisfies("@3.0.5:"):
                 config_args.append("--disable-wrapper-runpath")
-
-            # Add extra_rpaths and implicit_rpaths into the wrappers.
-            wrapper_ldflags.extend(
-                [
-                    self.compiler.cc_rpath_arg + path
-                    for path in itertools.chain(
-                        self.compiler.extra_rpaths, self.compiler.implicit_rpaths()
-                    )
-                ]
-            )
         else:
             config_args.append("--disable-wrapper-rpath")
             config_args.append("--disable-wrapper-runpath")
 
         config_args.extend(self.enable_or_disable("mpi-cxx", variant="cxx"))
         config_args.extend(self.enable_or_disable("cxx-exceptions", variant="cxx_exceptions"))
-
-        if wrapper_ldflags:
-            config_args.append("--with-wrapper-ldflags={0}".format(" ".join(wrapper_ldflags)))
 
         #
         # the Spack path padding feature causes issues with Open MPI's lex based parsing system
@@ -1243,53 +1217,6 @@ with '-Wl,-commons,use_dylibs' and without
         config_args += self.enable_or_disable("debug")
 
         return config_args
-
-    @run_after("install", when="+wrapper-rpath")
-    def filter_rpaths(self):
-        def filter_lang_rpaths(lang_tokens, rpath_arg):
-            if self.compiler.cc_rpath_arg == rpath_arg:
-                return
-
-            files = find(
-                self.spec.prefix.share.openmpi,
-                ["*{0}-wrapper-data*".format(t) for t in lang_tokens],
-            )
-            files.extend(
-                find(
-                    self.spec.prefix.lib.pkgconfig, ["ompi-{0}.pc".format(t) for t in lang_tokens]
-                )
-            )
-
-            x = FileFilter(*[f for f in files if not os.path.islink(f)])
-
-            # Replace self.compiler.cc_rpath_arg, which have been added as
-            # '--with-wrapper-ldflags', with rpath_arg in the respective
-            # language-specific wrappers and pkg-config files.
-            x.filter(self.compiler.cc_rpath_arg, rpath_arg, string=True, backup=False)
-
-            if self.spec.satisfies("@:1.10.3,2:2.1.1"):
-                # Replace Libtool-style RPATH prefixes '-Wl,-rpath -Wl,' with
-                # rpath_arg for old version of OpenMPI, which assumed that CXX
-                # and FC had the same prefixes as CC.
-                x.filter("-Wl,-rpath -Wl,", rpath_arg, string=True, backup=False)
-
-        filter_lang_rpaths(["c++", "CC", "cxx"], self.compiler.cxx_rpath_arg)
-        filter_lang_rpaths(["fort", "f77", "f90"], self.compiler.fc_rpath_arg)
-
-    @run_after("install", when="@:3.0.4+wrapper-rpath")
-    def filter_pc_files(self):
-        files = find(self.spec.prefix.lib.pkgconfig, "*.pc")
-        x = FileFilter(*[f for f in files if not os.path.islink(f)])
-
-        # Remove this linking flag if present (it turns RPATH into RUNPATH)
-        x.filter(
-            "{0}--enable-new-dtags".format(self.compiler.linker_arg), "", string=True, backup=False
-        )
-
-        # NAG compiler is usually mixed with GCC, which has a different
-        # prefix for linker arguments.
-        if self.compiler.name == "nag":
-            x.filter("-Wl,--enable-new-dtags", "", string=True, backup=False)
 
     # For v4 and lower
     @run_after("install")

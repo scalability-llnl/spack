@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,7 @@ class Pika(CMakePackage, CudaPackage, ROCmPackage):
 
     license("BSL-1.0")
 
+    version("0.32.0", sha256="19217e3eecff30a7038f5712b6e161db09f12d7077550e8f66add74b3e524d29")
     version("0.31.0", sha256="bdbd8e36afb367cc2c7172e5a819c756e4ee20e74dfdec4905f2e84bf097eb7c")
     version("0.30.1", sha256="b0f3689a3edd30f8d674e19b5134fc5013813f843c45797c1015163e51989ac0")
     version("0.30.0", sha256="1798bf7de2505bc707bf95716fda8de5630b2e2ae54a6c4ef59f9931394d31cc")
@@ -150,8 +150,6 @@ class Pika(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("apex", when="+apex")
     depends_on("cuda@11:", when="+cuda")
     depends_on("hip@5.2:", when="@0.8: +rocm")
-    # https://github.com/pika-org/pika/issues/1238
-    conflicts("%gcc@13:", when="+rocm")
     depends_on("hipblas", when="@:0.8 +rocm")
     depends_on("mpi", when="+mpi")
     with when("+stdexec"):

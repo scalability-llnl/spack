@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -114,7 +113,7 @@ class NetlibScalapack(ScalapackBase):
     """
 
     homepage = "https://www.netlib.org/scalapack/"
-    url = "https://www.netlib.org/scalapack/scalapack-2.0.2.tgz"
+    url = "https://github.com/Reference-ScaLAPACK/scalapack/archive/refs/tags/v2.2.2.tar.gz"
     git = "https://github.com/Reference-ScaLAPACK/scalapack"
     tags = ["e4s"]
 
@@ -122,8 +121,9 @@ class NetlibScalapack(ScalapackBase):
 
     license("BSD-3-Clause-Open-MPI")
 
-    version("2.2.0", sha256="40b9406c20735a9a3009d863318cb8d3e496fb073d201c5463df810e01ab2a57")
-    version("2.1.0", sha256="61d9216cf81d246944720cfce96255878a3f85dec13b9351f1fa0fd6768220a6")
+    version("2.2.2", sha256="a2f0c9180a210bf7ffe126c9cb81099cf337da1a7120ddb4cbe4894eb7b7d022")
+    version("2.2.0", sha256="8862fc9673acf5f87a474aaa71cd74ae27e9bbeee475dbd7292cec5b8bcbdcf3")
+    version("2.1.0", sha256="f03fda720a152030b582a237f8387014da878b84cbd43c568390e9f05d24617f")
     version("2.0.2", sha256="0c74aeae690fe5ee4db7926f49c5d0bb69ce09eea75beb915e00bba07530395c")
     version("2.0.1", sha256="a9b34278d4e10b40cbe084c6d87d09af8845e874250719bfbbc497b2a88bfde1")
     version("2.0.0", sha256="e51fbd9c3ef3a0dbd81385b868e2355900148eea689bf915c5383d72daf73114")
@@ -133,3 +133,9 @@ class NetlibScalapack(ScalapackBase):
     depends_on("fortran", type="build")  # generated
     # versions before 2.0.0 are not using cmake and requires blacs as
     # a separated package
+
+    def url_for_version(self, version):
+        if self.spec.satisfies("@2.2:"):
+            return super().url_for_version(version)
+        url_fmt = "https://www.netlib.org/scalapack/scalapack-{0}.tgz"
+        return url_fmt.format(version)

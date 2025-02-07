@@ -14,10 +14,10 @@ default:
   image: { "name": "ghcr.io/spack/e4s-ubuntu-18.04:v2021-10-18", "entrypoint": [""] }
 
 # CI Platform-Arch
-.cray_rhel_zen4:
+.cray_rhel_x86_64_v3:
   variables:
     SPACK_TARGET_PLATFORM: "cray-rhel"
-    SPACK_TARGET_ARCH: "zen4"
+    SPACK_TARGET_ARCH: "x86_64_v3"
 
 .cray_sles_zen4:
   variables:
@@ -58,11 +58,6 @@ default:
   variables:
     SPACK_TARGET_PLATFORM: "linux"
     SPACK_TARGET_ARCH: "aarch64"
-
-.linux_power:
-  variables:
-    SPACK_TARGET_PLATFORM: "linux"
-    SPACK_TARGET_ARCH: "ppc64le"
 
 .win64-msvc2019:
   variables:
@@ -352,35 +347,6 @@ e4s-oneapi-build:
     - artifacts: True
       job: e4s-oneapi-generate
 
-########################################
-# E4S on Power
-########################################
-.e4s-power-generate-tags-and-image:
-  image: { "name": "ghcr.io/spack/ubuntu20.04-runner-ppc64-gcc-11.4:2023.08.01", "entrypoint": [""] }
-  tags: ["spack", "public", "large", "ppc64le"]
-
-.e4s-power:
-  extends: [".linux_power"]
-  variables:
-    SPACK_CI_STACK_NAME: e4s-power
-
-e4s-power-generate:
-  extends: [ ".e4s-power", ".generate-x86_64", ".e4s-power-generate-tags-and-image"]
-  variables:
-    # Override concretization pool for metal runners
-    SPACK_CONCRETIZE_JOBS: 16
-
-e4s-power-build:
-  extends: [ ".e4s-power", ".build" ]
-  trigger:
-    include:
-      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
-        job: e4s-power-generate
-    strategy: depend
-  needs:
-    - artifacts: True
-      job: e4s-power-generate
-
 #########################################
 # Build tests for different build-systems
 #########################################
@@ -574,57 +540,6 @@ data-vis-sdk-build:
       job: data-vis-sdk-generate
 
 ########################################
-# AWS ISC Applications (x86_64)
-########################################
-
-# Call this AFTER .*-generate
-.aws-isc-overrides:
-  # This controls image for generate step; build step is controlled by spack.yaml
-  # Note that generator emits OS info for build so these should be the same.
-  image: { "name": "ghcr.io/spack/e4s-amazonlinux-2:v2023-03-09", "entrypoint": [""] }
-
-.aws-isc:
-  extends: [ ".linux_x86_64_v3" ]
-  variables:
-    SPACK_CI_STACK_NAME: aws-isc
-
-aws-isc-generate:
-  extends: [ ".aws-isc", ".generate-x86_64", ".aws-isc-overrides", ".tags-x86_64_v4" ]
-
-aws-isc-build:
-  extends: [ ".aws-isc", ".build" ]
-  trigger:
-    include:
-      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
-        job: aws-isc-generate
-    strategy: depend
-  needs:
-    - artifacts: True
-      job: aws-isc-generate
-
-# Parallel Pipeline for aarch64 (reuses override image, but generates and builds on aarch64)
-
-.aws-isc-aarch64:
-  extends: [ ".linux_aarch64" ]
-  variables:
-    SPACK_CI_STACK_NAME: aws-isc-aarch64
-
-aws-isc-aarch64-generate:
-  extends: [ ".aws-isc-aarch64", ".generate-aarch64", ".aws-isc-overrides" ]
-
-aws-isc-aarch64-build:
-  extends: [ ".aws-isc-aarch64", ".build" ]
-  trigger:
-    include:
-      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
-        job: aws-isc-aarch64-generate
-    strategy: depend
-  needs:
-    - artifacts: True
-      job: aws-isc-aarch64-generate
-
-
-########################################
 # Spack Tutorial
 ########################################
 .tutorial:
@@ -786,6 +701,29 @@ ml-darwin-aarch64-mps-build:
       job: ml-darwin-aarch64-mps-generate
 
 ########################################
+# High Energy Physics (HEP) - Linux x86_64 (CPU)
+########################################
+.hep:
+  extends: [ ".linux_x86_64_v3" ]
+  variables:
+    SPACK_CI_STACK_NAME: hep
+
+hep-generate:
+  extends: [ ".hep", ".generate-x86_64"]
+  image: ghcr.io/spack/spack/ubuntu22.04-runner-amd64-gcc-11.4:2024.03.01
+
+hep-build:
+  extends: [ ".hep", ".build" ]
+  trigger:
+    include:
+      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
+        job: hep-generate
+    strategy: depend
+  needs:
+    - artifacts: True
+      job: hep-generate
+
+########################################
 # AWS ParallelCluster
 ########################################
 
@@ -861,7 +799,7 @@ aws-pcluster-build-neoverse_v1:
     - cat /proc/meminfo | grep 'MemTotal\|MemFree' || true
 
 .generate-cray-rhel:
-  tags: [ "cray-rhel-zen4", "public" ]
+  tags: [ "cray-rhel-x86_64_v3", "public" ]
   extends: [ ".generate-cray" ]
 
 .generate-cray-sles:
@@ -873,7 +811,7 @@ aws-pcluster-build-neoverse_v1:
 # E4S - Cray RHEL
 #######################################
 .e4s-cray-rhel:
-  extends: [ ".cray_rhel_zen4" ]
+  extends: [ ".cray_rhel_x86_64_v3" ]
   variables:
     SPACK_CI_STACK_NAME: e4s-cray-rhel
 
@@ -881,7 +819,6 @@ e4s-cray-rhel-generate:
   extends: [ ".generate-cray-rhel", ".e4s-cray-rhel" ]
 
 e4s-cray-rhel-build:
-  allow_failure: true  # libsci_cray.so broken, misses DT_NEEDED for libdl.so
   extends: [ ".build", ".e4s-cray-rhel" ]
   trigger:
     include:
@@ -900,10 +837,10 @@ e4s-cray-rhel-build:
   variables:
     SPACK_CI_STACK_NAME: e4s-cray-sles
 
-e4s-cray-sles-generate:
+.e4s-cray-sles-generate:
   extends: [ ".generate-cray-sles", ".e4s-cray-sles" ]
 
-e4s-cray-sles-build:
+.e4s-cray-sles-build:
   allow_failure: true  # libsci_cray.so broken, misses DT_NEEDED for libdl.so
   extends: [ ".build", ".e4s-cray-sles" ]
   trigger:

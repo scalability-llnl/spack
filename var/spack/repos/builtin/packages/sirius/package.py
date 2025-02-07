@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,7 @@ class Sirius(CMakePackage, CudaPackage, ROCmPackage):
     version("develop", branch="develop")
     version("master", branch="master")
 
+    version("7.6.2", sha256="1ba92942aa39b49771677cc8bf1c94a0b4350eb45bf3009318a6c2350b46a276")
     version("7.6.1", sha256="16a114dc17e28697750585820e69718a96e6929f88406d266c75cf9a7cdbdaaa")
     version("7.6.0", sha256="e424206fecb35bb2082b5c87f0865a9536040e984b88b041e6f7d531f8a65b20")
     version("7.5.2", sha256="9ae01935578532c84f1d0d673dbbcdd490e26be22efa6c4acf7129f9dc1a0c60")
@@ -131,7 +131,7 @@ class Sirius(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("fftw-api@3")
     depends_on("libxc@3.0.0:")
     depends_on("libxc@4.0.0:", when="@7.2.0:")
-    depends_on("libxc@:6", when="@:7.6.1")
+    depends_on("libxc@:7", when="@:7.5")
     depends_on("spglib")
     depends_on("hdf5+hl")
     depends_on("pkgconfig", type="build")
@@ -164,6 +164,13 @@ class Sirius(CMakePackage, CudaPackage, ROCmPackage):
         depends_on("spla+rocm", when="+rocm")
         # spla removed the openmp option in 1.6.0
         conflicts("^spla@:1.5~openmp", when="+openmp")
+
+    patch("libxc7.patch", when="@7.6.0:7.6.1")
+    patch(
+        "https://github.com/electronic-structure/SIRIUS/commit/dd07010f7b49f31b7e3bb1b4e47f3d9ac3a0c0b4.patch?full_index=1",
+        sha256="dd680f8c47a0fc29097cae5cd1e72dfdbcf95f93089f73fb3f2fe9e750125d6f",
+        when="@7.6.0:7.6.1 +pugixml",
+    )
 
     depends_on("nlcglib", when="+nlcglib")
     depends_on("nlcglib+rocm", when="+nlcglib+rocm")

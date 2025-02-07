@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,13 +17,17 @@ class PyTorchNvidiaApex(PythonPackage, CudaPackage):
     license("BSD-3-Clause")
 
     version("master", branch="master")
-    version("24.04.01", sha256="065bc5c0146ee579d5db2b38ca3949da4dc799b871961a2c9eb19e18892166ce")
+    version(
+        "24.04.01",
+        sha256="065bc5c0146ee579d5db2b38ca3949da4dc799b871961a2c9eb19e18892166ce",
+        preferred=True,
+    )
     version("23.08", tag="23.08")
     version("23.07", tag="23.07")
     version("23.06", tag="23.06")
     version("23.05", tag="23.05")
     version("22.03", tag="22.03")
-    version("2020-10-19", commit="8a1ed9e8d35dfad26fb973996319965e4224dcdd")
+    version("2020-10-19", commit="8a1ed9e8d35dfad26fb973996319965e4224dcdd", deprecated=True)
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
@@ -76,6 +79,17 @@ class PyTorchNvidiaApex(PythonPackage, CudaPackage):
     # https://github.com/NVIDIA/apex/issues/1498
     # https://github.com/NVIDIA/apex/pull/1499
     patch("1499.patch", when="@2020-10-19")
+    patch(
+        "https://github.com/NVIDIA/apex/pull/1879.patch?full_index=1",
+        sha256="8e2e21aa883d93e6c0ea0fecb812c8de906b2e77bcffeeb716adabd1dd76650e",
+        when="@23.05:2019",
+    )
+
+    patch(
+        "https://github.com/NVIDIA/apex/pull/1855.patch?full_index=1",
+        sha256="8481b1234a9ce1e8bef4e57a259d8528107761e1843777489e815ec3727397fd",
+        when="@:24.10",
+    )
 
     conflicts(
         "cuda_arch=none",

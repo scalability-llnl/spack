@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,7 +14,6 @@ import importlib.util
 import inspect
 import itertools
 import os
-import os.path
 import random
 import re
 import shutil
@@ -1043,7 +1041,7 @@ class Repo:
 
                 return yaml_data["repo"]
 
-        except IOError:
+        except OSError:
             tty.die(f"Error reading {self.config_file} when opening {self.root}")
 
     def get(self, spec: "spack.spec.Spec") -> "spack.package_base.PackageBase":
@@ -1371,7 +1369,7 @@ def create_repo(root, namespace=None, subdir=packages_dir_name):
             if subdir != packages_dir_name:
                 config.write(f"  subdirectory: '{subdir}'\n")
 
-    except (IOError, OSError) as e:
+    except OSError as e:
         # try to clean up.
         if existed:
             shutil.rmtree(config_path, ignore_errors=True)

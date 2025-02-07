@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -392,7 +391,7 @@ class Lock:
 
             return True
 
-        except IOError as e:
+        except OSError as e:
             # EAGAIN and EACCES == locked by another process (so try again)
             if e.errno not in (errno.EAGAIN, errno.EACCES):
                 raise

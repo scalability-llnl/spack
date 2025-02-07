@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -205,13 +204,13 @@ def test_no_editor():
     def assert_exec(exe, args):
         assert False
 
-    with pytest.raises(EnvironmentError, match=r"No text editor found.*"):
+    with pytest.raises(OSError, match=r"No text editor found.*"):
         ed.editor("/path/to/file", exec_fn=assert_exec)
 
     def assert_exec(exe, args):
         return False
 
-    with pytest.raises(EnvironmentError, match=r"No text editor found.*"):
+    with pytest.raises(OSError, match=r"No text editor found.*"):
         ed.editor("/path/to/file", exec_fn=assert_exec)
 
 
@@ -221,5 +220,5 @@ def test_exec_fn_executable(editor_var, good_exe, bad_exe):
     assert ed.editor(exec_fn=ed.executable)
 
     os.environ[editor_var] = bad_exe
-    with pytest.raises(EnvironmentError, match=r"No text editor found.*"):
+    with pytest.raises(OSError, match=r"No text editor found.*"):
         ed.editor(exec_fn=ed.executable)

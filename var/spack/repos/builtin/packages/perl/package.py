@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -332,7 +331,7 @@ class Perl(Package):  # Perl doesn't use Autotools, it should subclass Package
             try:
                 perm = os.stat(filename).st_mode
                 os.chmod(filename, perm | 0o200)
-            except IOError:
+            except OSError:
                 continue
 
     def nmake_arguments(self):

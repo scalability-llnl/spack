@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,7 @@ class PyTorchvision(PythonPackage):
     license("BSD-3-Clause")
 
     version("main", branch="main")
+    version("0.21.0", sha256="0a4a967bbb7f9810f792cd0289a07fb98c8fb5d1303fae8b63e3a6b05d720058")
     version("0.20.1", sha256="7e08c7f56e2c89859310e53d898f72bccc4987cd83e08cfd6303513da15a9e71")
     version("0.20.0", sha256="b59d9896c5c957c6db0018754bbd17d079c5102b82b9be0b438553b40a7b6029")
     version("0.19.1", sha256="083e75c467285595ec3eb3c7aa8493c19e53d7eb42f13046fb56a07c8897e5a8")
@@ -86,8 +86,6 @@ class PyTorchvision(PythonPackage):
     variant("png", default=True, description=desc.format("PNG"))
     variant("jpeg", default=True, description=desc.format("JPEG"))
     variant("webp", default=False, description=desc.format("WEBP"), when="@0.20:")
-    variant("heic", default=False, description=desc.format("HEIC"), when="@0.20:")
-    variant("avif", default=False, description=desc.format("AVIF"), when="@0.20:")
     variant("nvjpeg", default=False, description=desc.format("NVJPEG"))
     variant("video_codec", default=False, description=desc.format("video_codec"))
     variant("ffmpeg", default=False, description=desc.format("FFMPEG"))
@@ -98,8 +96,8 @@ class PyTorchvision(PythonPackage):
 
     with default_args(type=("build", "link", "run")):
         # Based on PyPI wheel availability
-        depends_on("python@3.9:3.13", when="@0.20:")
-        depends_on("python@3.8:3.12", when="@0.17:0.19")
+        depends_on("python@3.9:3.13", when="@0.21:")
+        depends_on("python@3.8:3.12", when="@0.17:0.20")
         depends_on("python@3.8:3.11", when="@0.15:0.16")
         depends_on("python@:3.10", when="@0.12:0.14")
         depends_on("python@:3.9", when="@0.8.2:0.11")
@@ -107,6 +105,7 @@ class PyTorchvision(PythonPackage):
 
         # https://github.com/pytorch/vision#installation
         depends_on("py-torch@main", when="@main")
+        depends_on("py-torch@2.6.0", when="@0.21.0")
         depends_on("py-torch@2.5.1", when="@0.20.1")
         depends_on("py-torch@2.5.0", when="@0.20.0")
         depends_on("py-torch@2.4.1", when="@0.19.1")
@@ -157,8 +156,6 @@ class PyTorchvision(PythonPackage):
     depends_on("libpng@1.6:", when="+png")
     depends_on("jpeg", when="+jpeg")
     depends_on("libwebp", when="+webp")
-    depends_on("libheif", when="+heic")
-    depends_on("libavif", when="+avif")
     depends_on("cuda", when="+nvjpeg")
     depends_on("cuda", when="+video_codec")
     depends_on("ffmpeg@3.1:", when="+ffmpeg")
@@ -215,7 +212,7 @@ class PyTorchvision(PythonPackage):
         for gpu in ["cuda", "mps"]:
             env.set(f"FORCE_{gpu.upper()}", int(f"+{gpu}" in self.spec["py-torch"]))
 
-        extensions = ["png", "jpeg", "webp", "heic", "avif", "nvjpeg", "video_codec", "ffmpeg"]
+        extensions = ["png", "jpeg", "webp", "nvjpeg", "video_codec", "ffmpeg"]
         for extension in extensions:
             env.set(f"TORCHVISION_USE_{extension.upper()}", int(f"+{extension}" in self.spec))
 

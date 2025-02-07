@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -105,6 +104,9 @@ class Tau(Package):
     variant(
         "rocprofv2", default=False, description="Activates ROCm rocprofiler support", when="@2.34:"
     )
+    variant(
+        "salt", default=False, description="Activates SALT source instrumentation", when="@2.34:"
+    )
     variant("opencl", default=False, description="Activates OpenCL support")
     variant("fortran", default=darwin_default, description="Activates Fortran support")
     variant("io", default=True, description="Activates POSIX I/O support")
@@ -168,6 +170,7 @@ class Tau(Package):
     depends_on("hsa-rocr-dev", when="+rocm")
     depends_on("rocm-smi-lib", when="@2.32.1: +rocm")
     depends_on("rocm-core", when="@2.34: +rocm")
+    depends_on("salt", when="+salt", type="run")
     depends_on("hip", when="@2.34: +roctracer")
     depends_on("java", type="run")  # for paraprof
     depends_on("oneapi-level-zero", when="+level_zero")
@@ -324,8 +327,8 @@ class Tau(Package):
                 env["F77"] = spec["mpi"].mpif77
                 env["FC"] = spec["mpi"].mpifc
             if spec["mpi"].name == "intel-oneapi-mpi":
-                options.append("-mpiinc=%s/include" % spec["mpi"].package.component_prefix)
-                options.append("-mpilib=%s/lib" % spec["mpi"].package.component_prefix)
+                options.append("-mpiinc=%s/include" % self["mpi"].component_prefix)
+                options.append("-mpilib=%s/lib" % self["mpi"].component_prefix)
             else:
                 options.append("-mpiinc=%s" % spec["mpi"].prefix.include)
                 options.append("-mpilib=%s" % spec["mpi"].prefix.lib)

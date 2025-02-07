@@ -1,13 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import itertools
 import os
 import platform
 import sys
-
-import llnl.util.tty as tty
 
 from spack.operating_systems.linux_distro import kernel_version
 from spack.operating_systems.mac_os import macos_version
@@ -33,6 +30,7 @@ class Qt(Package):
 
     license("LGPL-3.0-only")
 
+    version("5.15.16", sha256="efa99827027782974356aceff8a52bd3d2a8a93a54dd0db4cca41b5e35f1041c")
     version("5.15.15", sha256="b423c30fe3ace7402e5301afbb464febfb3da33d6282a37a665be1e51502335e")
     version("5.15.14", sha256="fdd3a4f197d2c800ee0085c721f4bef60951cbda9e9c46e525d1412f74264ed7")
     version("5.15.13", sha256="9550ec8fc758d3d8d9090e261329700ddcd712e2dda97e5fcfeabfac22bea2ca")
@@ -208,6 +206,8 @@ class Qt(Package):
             depends_on("assimp@5.0.0:5", when="@5.5:+opengl")
             depends_on("sqlite+column_metadata", when="+sql", type=("build", "run"))
             depends_on("inputproto", when="@:5.8")
+            depends_on("gmake", type="build")
+
     for plat in ["linux", "freebsd"]:
         with when(f"platform={plat} +gui"):
             depends_on("fontconfig")

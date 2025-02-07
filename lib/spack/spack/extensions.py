@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Service functions and classes to implement the hooks
@@ -188,7 +187,7 @@ def path_for_extension(target_name: str, *, paths: List[str]) -> str:
         if name == target_name:
             return path
     else:
-        raise IOError('extension "{0}" not found'.format(target_name))
+        raise OSError('extension "{0}" not found'.format(target_name))
 
 
 def get_module(cmd_name):
