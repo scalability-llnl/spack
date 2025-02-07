@@ -1751,7 +1751,6 @@ def test_package_hash_affects_dunder_and_dag_hash(mock_packages, default_mock_co
 
     assert hash(a1) == hash(a2)
     assert a1.dag_hash() == a2.dag_hash()
-    assert a1.process_hash() == a2.process_hash()
 
     a1.clear_caches()
     a2.clear_caches()
@@ -1764,7 +1763,6 @@ def test_package_hash_affects_dunder_and_dag_hash(mock_packages, default_mock_co
 
     assert hash(a1) != hash(a2)
     assert a1.dag_hash() != a2.dag_hash()
-    assert a1.process_hash() != a2.process_hash()
 
 
 def test_intersects_and_satisfies_on_concretized_spec(default_mock_concretization):

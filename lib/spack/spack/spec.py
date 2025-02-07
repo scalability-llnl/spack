@@ -1507,7 +1507,7 @@ class Spec:
         self.abstract_hash = None
 
         # initial values for all spec hash types
-        for h in ht.hashes:
+        for h in ht.HASHES:
             setattr(self, h.attr, None)
 
         # cache for spec's prefix, computed lazily by prefix property
@@ -2174,29 +2174,15 @@ class Spec:
     def dag_hash(self, length=None):
         """This is Spack's default hash, used to identify installations.
 
-        Same as the full hash (includes package hash and build/link/run deps).
-        Tells us when package files and any dependencies have changes.
-
         NOTE: Versions of Spack prior to 0.18 only included link and run deps.
+        NOTE: Versions of Spack prior to 1.0 only did not include test deps.
 
         """
         return self._cached_hash(ht.dag_hash, length)
 
-    def process_hash(self, length=None):
-        """Hash used to transfer specs among processes.
-
-        This hash includes build and test dependencies and is only used to
-        serialize a spec and pass it around among processes.
-        """
-        return self._cached_hash(ht.process_hash, length)
-
     def dag_hash_bit_prefix(self, bits):
         """Get the first <bits> bits of the DAG hash as an integer type."""
         return spack.util.hash.base32_prefix_bits(self.dag_hash(), bits)
-
-    def process_hash_bit_prefix(self, bits):
-        """Get the first <bits> bits of the DAG hash as an integer type."""
-        return spack.util.hash.base32_prefix_bits(self.process_hash(), bits)
 
     def _lookup_hash(self):
         """Lookup just one spec with an abstract hash, returning a spec from the the environment,
@@ -3662,11 +3648,11 @@ class Spec:
 
         if self._concrete:
             self._dunder_hash = other._dunder_hash
-            for h in ht.hashes:
+            for h in ht.HASHES:
                 setattr(self, h.attr, getattr(other, h.attr, None))
         else:
             self._dunder_hash = None
-            for h in ht.hashes:
+            for h in ht.HASHES:
                 setattr(self, h.attr, None)
 
         return changed
@@ -3861,16 +3847,6 @@ class Spec:
         # DAG hash means a different spec. Here we ensure that two otherwise identical specs, one
         # serialized before the hash change and one after, are considered different.
         yield self.dag_hash() if self.concrete else None
-
-        # This needs to be in _cmp_iter so that no specs with different process hashes
-        # are considered the same by `__hash__` or `__eq__`.
-        #
-        # TODO: We should eventually unify the `_cmp_*` methods with `to_node_dict` so
-        # TODO: there aren't two sources of truth, but this needs some thought, since
-        # TODO: they exist for speed.  We should benchmark whether it's really worth
-        # TODO: having two types of hashing now that we use `json` instead of `yaml` for
-        # TODO: spec hashing.
-        yield self.process_hash() if self.concrete else None
 
         def deps():
             for dep in sorted(itertools.chain.from_iterable(self._dependencies.values())):
@@ -4525,7 +4501,7 @@ class Spec:
         """
         Clears all cached hashes in a Spec, while preserving other properties.
         """
-        for h in ht.hashes:
+        for h in ht.HASHES:
             if h.attr not in ignore:
                 if hasattr(self, h.attr):
                     setattr(self, h.attr, None)
@@ -4534,18 +4510,12 @@ class Spec:
                 setattr(self, attr, None)
 
     def __hash__(self):
-        # If the spec is concrete, we leverage the process hash and just use
-        # a 64-bit prefix of it. The process hash has the advantage that it's
-        # computed once per concrete spec, and it's saved -- so if we read
-        # concrete specs we don't need to recompute the whole hash. This is
-        # good for large, unchanging specs.
-        #
-        # We use the process hash instead of the DAG hash here because the DAG
-        # hash includes the package hash, which can cause infinite recursion,
-        # and which isn't defined unless the spec has a known package.
+        # If the spec is concrete, we leverage the dag hash and just use a 64-bit prefix of it.
+        # The dag hash has the advantage that it's computed once per concrete spec, and it's saved
+        # -- so if we read concrete specs we don't need to recompute the whole hash.
         if self.concrete:
             if not self._dunder_hash:
-                self._dunder_hash = self.process_hash_bit_prefix(64)
+                self._dunder_hash = self.dag_hash_bit_prefix(64)
             return self._dunder_hash
 
         # This is the normal hash for lazy_lexicographic_ordering. It's
@@ -4554,7 +4524,7 @@ class Spec:
         return hash(lang.tuplify(self._cmp_iter))
 
     def __reduce__(self):
-        return Spec.from_dict, (self.to_dict(hash=ht.process_hash),)
+        return Spec.from_dict, (self.to_dict(hash=ht.dag_hash),)
 
     def attach_git_version_lookup(self):
         # Add a git lookup method for GitVersions
@@ -4867,7 +4837,7 @@ class SpecfileReaderBase:
         spec = Spec()
 
         name, node = cls.name_and_data(node)
-        for h in ht.hashes:
+        for h in ht.HASHES:
             setattr(spec, h.attr, node.get(h.name, None))
 
         spec.name = name
@@ -5050,7 +5020,7 @@ class SpecfileV1(SpecfileReaderBase):
         """
         for dep_name, elt in deps.items():
             if isinstance(elt, dict):
-                for h in ht.hashes:
+                for h in ht.HASHES:
                     if h.name in elt:
                         dep_hash, deptypes = elt[h.name], elt["type"]
                         hash_type = h.name
@@ -5093,7 +5063,7 @@ class SpecfileV2(SpecfileReaderBase):
             dep_name = dep["name"]
             if isinstance(elt, dict):
                 # new format: elements of dependency spec are keyed.
-                for h in ht.hashes:
+                for h in ht.HASHES:
                     if h.name in elt:
                         dep_hash, deptypes, hash_type, virtuals = cls.extract_info_from_dep(elt, h)
                         break
