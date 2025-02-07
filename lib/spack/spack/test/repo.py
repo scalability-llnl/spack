@@ -65,8 +65,7 @@ def test_repo_unknown_pkg(mutable_mock_repo):
         mutable_mock_repo.get_pkg_class("builtin.mock.nonexistentpackage")
 
 
-# TODO/RepoSplit: Should this span builtin and mock repositories instead?
-@pytest.mark.maybeslow
+# TODO/RepoSplit: This was changed to only run against the mock package repo
 def test_repo_last_mtime(mock_packages):
     latest_mtime = max(
         os.path.getmtime(p.module.__file__) for p in spack.repo.PATH.all_package_classes()
@@ -91,16 +90,44 @@ def test_namespace_hasattr(attr_name, exists, mutable_mock_repo):
     assert hasattr(nms, attr_name) == exists
 
 
-# TODO/RepoSplit: Should this span builtin and mock repositories instead?
+# TODO/RepoSplit: This was changed to only run against the mock package repo
 @pytest.mark.regression("24552")
 def test_all_package_names_is_cached_correctly(mock_packages):
     assert "mpi" in spack.repo.all_package_names(include_virtuals=True)
     assert "mpi" not in spack.repo.all_package_names(include_virtuals=False)
 
 
-# TODO/RepoSplit: Adjust as needed based on builtin repository handling
+# TODO/RepoSplit: Created a separate mock repo with the desired package.
+@pytest.fixture()
+def repo_with_mock_zlib(tmp_path_factory, mutable_mock_repo):
+    namespace = "mock2"
+    repo_dir = tmp_path_factory.mktemp(namespace)
+    (repo_dir / "repo.yaml").write_text(
+        f"""
+repo:
+    namespace: {namespace}
+"""
+    )
+
+    packages_dir = repo_dir / "packages"
+    zlib_pkg_str = """
+from spack.package import *
+
+class Zlib(Package):
+    version("1.0", sha256="abcde")
+"""
+
+    package_py = packages_dir / "zlib" / "package.py"
+    package_py.parent.mkdir(parents=True)
+    package_py.write_text(zlib_pkg_str)
+
+    with spack.repo.use_repositories(str(repo_dir), override=False):
+        yield repo_dir
+
+
+# TODO/RepoSplit: This has been modified to use only mock package repos.
 @pytest.mark.regression("29203")
-def test_use_repositories_doesnt_change_class():
+def test_use_repositories_doesnt_change_class(mock_packages):
     """Test that we don't create the same package module and class multiple times
     when swapping repositories.
     """
@@ -169,19 +196,26 @@ def test_repo_dump_virtuals(tmpdir, mutable_mock_repo, mock_packages, ensure_deb
     assert "package.py" in os.listdir(tmpdir), "Expected the virtual's package to be copied"
 
 
-# TODO/RepoSplit: Adjust as needed based on builtin repository handling
-@pytest.mark.parametrize(
-    "repo_paths,namespaces",
-    [
-        ([spack.paths.packages_path], ["builtin"]),
-        ([spack.paths.mock_packages_path], ["builtin.mock"]),
-        ([spack.paths.packages_path, spack.paths.mock_packages_path], ["builtin", "builtin.mock"]),
-        ([spack.paths.mock_packages_path, spack.paths.packages_path], ["builtin.mock", "builtin"]),
-    ],
-)
-def test_repository_construction_doesnt_use_globals(
-    nullify_globals, tmp_path, repo_paths, namespaces
-):
+# TODO/RepoSplit: This test has changed to use up to two mock repositories.
+@pytest.mark.parametrize("repos", [["mock"], ["extra"], ["mock", "extra"], ["extra", "mock"]])
+def test_repository_construction_doesnt_use_globals(nullify_globals, tmp_path, repos):
+    def _repo_paths(repos):
+        repo_paths, namespaces = [], []
+        for entry in repos:
+            if entry == "mock":
+                repo_paths.append(spack.paths.mock_packages_path)
+                namespaces.append("builtin.mock")
+            if entry == "extra":
+                name = "extra.mock"
+                repo_dir = tmp_path / name
+                repo_dir.mkdir()
+                _ = spack.repo.MockRepositoryBuilder(repo_dir, name)
+                repo_paths.append(str(repo_dir))
+                namespaces.append(name)
+        return repo_paths, namespaces
+
+    repo_paths, namespaces = _repo_paths(repos)
+
     repo_cache = spack.util.file_cache.FileCache(str(tmp_path / "cache"))
     repo_path = spack.repo.RepoPath(*repo_paths, cache=repo_cache)
     assert len(repo_path.repos) == len(namespaces)
