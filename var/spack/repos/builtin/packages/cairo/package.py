@@ -138,6 +138,7 @@ class Cairo(AutotoolsPackage, MesonPackage):
         requires("+svg", when="+png")
         requires("~png", when="~svg", msg="+svg implies +png now")
 
+        # https://gitlab.freedesktop.org/cairo/cairo/-/blob/1.18.2/meson.build?ref_type=tags#L2
         depends_on("meson@1.3.0:", type="build")
 
     # both autotools and meson need this for auto discovery of depends
