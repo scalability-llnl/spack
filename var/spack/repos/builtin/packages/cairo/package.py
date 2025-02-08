@@ -44,7 +44,7 @@ class Cairo(AutotoolsPackage, MesonPackage):
     variant("X", default=False, description="Build with X11 support")
     variant("gobject", default=False, description="Enable cairo's gobject functions feature")
 
-    with when("@:1.17.6"):
+    with when("build_system=autotools"):
         variant("png", default=False, description="Enable cairo's PNG functions feature")
         variant("svg", default=False, description="Enable cairo's SVG functions feature")
         variant("pic", default=True, description="Enable position-independent code (PIC)")
@@ -61,10 +61,16 @@ class Cairo(AutotoolsPackage, MesonPackage):
         variant("shared", default=True, description="Build shared libraries")
         conflicts("+shared~pic")
 
+        depends_on("automake", type="build")
+        depends_on("autoconf", type="build")
+        depends_on("libtool", type="build")
+        depends_on("m4", type="build")
+        depends_on("which", type="build")
+
     # meson is the only build system from now
     # these names follow those listed here
     # https://gitlab.freedesktop.org/cairo/cairo/-/blob/1.18.2/meson_options.txt
-    with when("@1.17.8:"):
+    with when("build_system=meson"):
         variant("dwrite", default=False, description="Microsoft Windows DWrite font backend")
 
         # doesn't exist @1.17.8: but kept as compatibility
@@ -132,7 +138,9 @@ class Cairo(AutotoolsPackage, MesonPackage):
         requires("+svg", when="+png")
         requires("~png", when="~svg", msg="+svg implies +png now")
 
-    # meson also needs this for auto discovery of depends
+        depends_on("meson@1.3.0:", type="build")
+
+    # both autotools and meson need this for auto discovery of depends
     depends_on("pkgconfig", type="build")
 
     # lzo is not strictly required, but cannot be disabled and may be pulled in accidentally
@@ -141,28 +149,19 @@ class Cairo(AutotoolsPackage, MesonPackage):
     depends_on("lzo", when="@1.17.6: build_system=meson")
 
     with when("@:1.17.6"):
-        depends_on("automake", type="build")
-        depends_on("autoconf", type="build")
-        depends_on("libtool", type="build")
-
-        depends_on("m4", type="build")
-
         depends_on("pixman@0.36.0:", when="@1.17.2:")
-        depends_on("freetype build_system=autotools", when="+ft")
-        depends_on("fontconfig@2.10.91:", when="+fc")  # Require newer version of fontconfig.
+        depends_on("freetype", when="+ft")
+        depends_on("fontconfig@2.10.91:", when="+fc")
         depends_on("libpng", when="+png")
         depends_on("glib")
-        depends_on("which", type="build")
 
     with when("@1.17.8:"):
-        depends_on("meson@1.3.0:")
+        depends_on("binutils", when="+symbol-lookup")
         depends_on("freetype@2.13.0:", when="+ft")
         depends_on("libpng@1.4.0:", when="+png")
-
         depends_on("glib@2.14:", when="+gobject")
         depends_on("pixman@0.40.0:")
         depends_on("fontconfig@2.13.0:", when="+fc")
-        depends_on("binutils", when="+symbol-lookup")
 
     with when("+X"):
         depends_on("libx11")
