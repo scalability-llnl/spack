@@ -312,10 +312,7 @@ class X(Package):
 @pytest.mark.parametrize("_create_test_repo", [(_pkgx,)], indirect=True)
 def test_remove_conflict(test_repo):
     cls = spack.repo.PATH.get_pkg_class(_pkgx[0])
-    assert cls.conflicts == {
-        spack.spec.Spec("@1.0"): [(spack.spec.Spec("%gcc"), None)],
-        spack.spec.Spec(): [],
-    }
+    assert cls.conflicts == {spack.spec.Spec("@1.0"): [(spack.spec.Spec("%gcc"), None)]}
 
 
 _pkgx = (

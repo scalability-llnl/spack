@@ -1000,6 +1000,8 @@ def remove_conflict(conflict_spec: SpecType, when: WhenType = None):
                 for spec, msg in pkg.conflicts[conflict_when_spec]
                 if spec != conflict_spec
             ]
+            if len(pkg.conflicts[conflict_when_spec]) == 0:
+                del pkg.conflicts[conflict_when_spec]
         except KeyError:
             pass
 
