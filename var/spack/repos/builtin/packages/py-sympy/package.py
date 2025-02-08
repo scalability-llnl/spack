@@ -12,6 +12,7 @@ class PySympy(PythonPackage):
 
     license("BSD-3-Clause")
 
+    version("1.13.1", sha256="9cebf7e04ff162015ce31c9c6c9144daa34a93bd082f54fd8f12deca4f47515f")
     version("1.13.0", sha256="3b6af8f4d008b9a1a6a4268b335b984b23835f26d1d60b0526ebc71d48a25f57")
     version("1.12", sha256="ebf595c8dac3e0fdc4152c51878b498396ec7f30e7a914d6071e674d49420fb8")
     version("1.11.1", sha256="e32380dce63cb7c0108ed525570092fd45168bdae2faa17e528221ef72e88658")
@@ -29,13 +30,6 @@ class PySympy(PythonPackage):
     version("1.0", sha256="3eacd210d839e4db911d216a9258a3ac6f936992f66db211e22767983297ffae")
     version("0.7.6", sha256="dfa3927e9befdfa7da7a18783ccbc2fe489ce4c46aa335a879e49e48fc03d7a7")
 
-    depends_on("python@2.7:2.8,3.4:", when="@:1.4", type=("build", "run"))
-    depends_on("python@2.7:2.8,3.5:", when="@1.5", type=("build", "run"))
-    depends_on("python@3.5:", when="@1.6", type=("build", "run"))
-    depends_on("python@3.6:", when="@1.7:", type=("build", "run"))
-    depends_on("python@3.8:", when="@1.11.1:", type=("build", "run"))
-
-    # pip silently replaces distutils with setuptools
     depends_on("py-setuptools", type="build")
     depends_on("py-mpmath@0.19:", when="@1.0:1.12", type=("build", "run"))
     depends_on("py-mpmath@1.1.0:1.3", when="@1.13.0:", type=("build", "run"))

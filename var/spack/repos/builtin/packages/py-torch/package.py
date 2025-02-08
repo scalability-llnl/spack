@@ -169,6 +169,7 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
         depends_on("py-typing-extensions@4.8:", when="@2.2:")
         depends_on("py-typing-extensions@3.6.2.1:", when="@1.7:")
         depends_on("py-setuptools")
+        depends_on("py-sympy@1.13.1", when="@2.5:")
         depends_on("py-sympy", when="@2:")
         depends_on("py-networkx", when="@2:")
         depends_on("py-jinja2", when="@2:")
