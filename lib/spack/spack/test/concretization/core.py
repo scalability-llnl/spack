@@ -3238,3 +3238,31 @@ def test_spec_unification(unify, mutable_config, mock_packages):
     maybe_fails = pytest.raises if unify is True else llnl.util.lang.nullcontext
     with maybe_fails(spack.solver.asp.UnsatisfiableSpecError):
         _ = spack.cmd.parse_specs([a_restricted, b], concretize=True)
+
+
+@pytest.mark.usefixtures("mutable_config", "mock_packages", "do_not_check_runtimes_on_reuse")
+@pytest.mark.parametrize(
+    "spec_str, should_pass, error_type",
+    [
+        (f"git-ref-package@main commit={'a' *40}", True, None),
+        (f"git-ref-package@main commit={'a' *39}", False, AssertionError),
+        # TODO only versions with git refs should allow the commit variant
+    ],
+)
+def test_spec_containing_commit_variant(spec_str, should_pass, error_type):
+    spec = spack.spec.Spec(spec_str)
+    if should_pass:
+        spec.concretize()
+    else:
+        with pytest.raises(error_type):
+            spec.concretize()
+
+
+@pytest.mark.usefixtures("mutable_config", "mock_packages", "do_not_check_runtimes_on_reuse")
+@pytest.mark.parametrize("version_str", [f"git.{'a' *40}=main", "git.2.1.5=main"])
+def test_relationship_git_versions_and_commit_variant(version_str):
+    spec = spack.spec.Spec(f"git-ref-package@{version_str}").concretized()
+    if spec.version.commit_sha:
+        assert spec.version.commit_sha == spec.variants["commit"].value
+    else:
+        assert "commit" not in spec.variants
