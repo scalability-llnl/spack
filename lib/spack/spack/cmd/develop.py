@@ -33,7 +33,6 @@ def setup_parser(subparser):
         "--no-clone",
         action="store_false",
         dest="clone",
-        default=None,
         help="do not clone, the package already exists at the source path",
     )
     clone_group.add_argument(
@@ -88,7 +87,7 @@ def assure_concrete_spec(env: spack.environment.Environment, spec: spack.spec.Sp
             version = matching_specs[0].version
             test_spec = spack.spec.Spec(f"{spec}@{version}")
             for m_spec in matching_specs:
-                if not test_spec.satisfies(m_spec):
+                if not m_spec.satisfies(test_spec):
                     raise SpackError(
                         f"{spec.name}: has multiple concrete instances in the graph that can't be"
                         " satisified by a single develop spec. To use `spack develop` ensure one"
@@ -110,8 +109,6 @@ def setup_src_code(spec: spack.spec.Spec, src_path: str, clone: bool = True, for
     Handle checking, cloning or overwriting source code
     """
     assert spec.versions
-    if clone is None:
-        clone = not os.path.exists(src_path)
 
     if clone:
         _clone(spec, src_path, force)
