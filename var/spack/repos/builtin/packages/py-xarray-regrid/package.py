@@ -19,6 +19,8 @@ class PyXarrayRegrid(PythonPackage):
 
     depends_on("py-hatchling", type="build")
 
+    depends_on("python@3.10:")
+
     depends_on("py-numpy", type=("build", "run"))
     depends_on("py-xarray", type=("build", "run"))
     depends_on("py-flox", type=("build", "run"))

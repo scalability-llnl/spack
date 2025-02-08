@@ -20,6 +20,8 @@ class PyFlox(PythonPackage):
     depends_on("py-setuptools@61:", type="build")
     depends_on("py-setuptools-scm@7.0: +toml", type="build")
 
+    depends_on("python@3.10:")
+
     depends_on("py-pandas@1.5:", type=("build", "run"))
     depends_on("py-packaging@21.3:", type=("build", "run"))
     depends_on("py-numpy@1.22:", type=("build", "run"))
