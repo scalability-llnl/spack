@@ -53,6 +53,8 @@ class CbtfKrell(CMakePackage):
     # Dependencies for cbtf-krell
     depends_on("cmake@3.0.2:", type="build")
 
+    depends_on("gotcha")
+
     # For rpcgen
     depends_on("rpcsvc-proto", type="build")
 
