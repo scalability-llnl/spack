@@ -886,7 +886,7 @@ class PyclingoDriver:
         result.satisfiable = solve_result.satisfiable
 
         if result.satisfiable:
-            timer.start("construct_specs")
+            timer.start("construct")
             # get the best model
             builder = SpecBuilder(specs, hash_lookup=setup.reusable_and_possible)
             min_cost, best_model = min(models)
@@ -4180,14 +4180,22 @@ class Solver:
 
         input_specs = specs
         output = OutputConfiguration(timers=timers, stats=stats, out=out, setup_only=False)
+        round = 0
         while True:
-            result, _, _ = self.driver.solve(
+            round += 1
+            result, timers, _ = self.driver.solve(
                 setup,
                 input_specs,
                 reuse=reusable_specs,
                 output=output,
                 allow_deprecated=allow_deprecated,
             )
+
+            unsolved_specs = result.unsolved_specs
+            tty.msg(f"Concretization: round {round}, # unsolved specs {len(unsolved_specs)}")
+            if tty.is_verbose():
+                timers.write_tty()
+
             yield result
 
             # If we don't have unsolved specs we are done
