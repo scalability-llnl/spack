@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import spack.paths
 from spack.package import *
 
 
@@ -35,6 +34,6 @@ class RpcsvcProto(AutotoolsPackage):
         # Add 'cpp' path for rpcgen
         filter_file(
             "rpcgen/rpcgen",
-            f"rpcgen/rpcgen -Y {spack.paths.spack_root}/lib/spack/env",
+            f"rpcgen/rpcgen -Y {self['compiler-wrapper'].bin_dir()}",
             "rpcsvc/Makefile",
         )
