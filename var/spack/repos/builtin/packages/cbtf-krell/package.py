@@ -52,7 +52,7 @@ class CbtfKrell(CMakePackage):
 
     # Fix build errors with gcc >= 10
     patch(
-        "https://github.com/OpenSpeedShop/cbtf-krell/commit/7d47761c6cd9110883bff9ca1e694af1475676f5.patch",
+        "https://github.com/OpenSpeedShop/cbtf-krell/commit/7d47761c6cd9110883bff9ca1e694af1475676f5.patch?full_index=1",
         sha256="64ed80d18163ca04a67be4a13ac2d2553243fc24c6274d26981472e6e2050b8a",
     )
 
