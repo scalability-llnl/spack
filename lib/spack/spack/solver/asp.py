@@ -71,6 +71,7 @@ GitOrStandardVersion = Union[spack.version.GitVersion, spack.version.StandardVer
 
 TransformFunction = Callable[[spack.spec.Spec, List[AspFunction]], List[AspFunction]]
 
+
 class OutputConfiguration(NamedTuple):
     """Data class that contains configuration on what a clingo solve should output."""
 
@@ -82,7 +83,6 @@ class OutputConfiguration(NamedTuple):
     out: Optional[io.IOBase]
     #: If True, stop after setup and don't solve
     setup_only: bool
-
 
 #: Default output configuration for a solve
 DEFAULT_OUTPUT_CONFIGURATION = OutputConfiguration(
