@@ -28,6 +28,12 @@ The available directives are:
   * ``version``
   * ``requires``
   * ``redistribute``
+  * ``remove_all_versions``
+  * ``remove_all_conflicts``
+  * ``remove_all_depends_on```
+  * ``remove_conflict``
+  * ``remove_depends_on``
+  * ``remove_version``
 
 """
 import collections
@@ -58,8 +64,6 @@ from spack.version import (
 
 __all__ = [
     "DirectiveError",
-    "remove_all_versions",
-    "remove_versions",
     "version",
     "conditional",
     "conflicts",
@@ -75,6 +79,12 @@ __all__ = [
     "requires",
     "redistribute",
     "can_splice",
+    "remove_all_conflicts",
+    "remove_all_depends_on",
+    "remove_all_versions",
+    "remove_conflict",
+    "remove_depends_on",
+    "remove_version",
 ]
 
 _patch_order_index = 0
@@ -137,53 +147,6 @@ def _make_when_spec(value: WhenType) -> Optional[spack.spec.Spec]:
 
 SubmoduleCallback = Callable[[spack.package_base.PackageBase], Union[str, List[str], bool]]
 directive = DirectiveMeta.directive
-
-@directive("versions")
-def remove_versions(versions):
-    """
-    Removes specific versions from a package.
-
-    Args:
-        versions (list or str): A list of versions or a single version to remove.
-    """
-    if not isinstance(versions, (list, tuple)):
-        versions = [versions]
-    versions = [Version(version) for version in versions]
-    def _remove_versions(pkg):
-        for version in versions:
-            try:
-                del pkg.versions[version]
-            except KeyError:
-                pass
-    return _remove_versions
-
-
-@directive("versions")
-def remove_all_versions():
-    """
-    Removes all versions from a package.
-    """
-    def _remove_all_versions(pkg):
-        pkg.versions.clear()
-    return _remove_all_versions
-
-@directive("versions")
-def remove_versions(versions=[]):
-    if not isinstance(versions, (list, tuple)):
-        versions = [versions]
-    versions = [Version(version) for version in versions]
-    def _remove_versions(pkg):
-        if len(versions) == 0:
-            pkg.versions.clear()
-        else:
-            for version in versions:
-                try:
-                    del pkg.versions[version]
-                except KeyError:
-                    pass
-
-    return _remove_versions
-
 
 
 @directive("versions")
@@ -973,6 +936,112 @@ def _language(lang_spec_str: str, *, when: Optional[Union[str, bool]] = None):
         languages.add(lang_spec_str)
 
     return _execute_languages
+
+
+@directive("conflicts")
+def remove_all_conflicts():
+    """Removes all conflicts from a package.
+
+    This is typically used when inheriting from another package if the author
+    desires different conflicts than those available in the parent package.
+    """
+
+    def _remove_all_conflicts(pkg):
+        pkg.conflicts.clear()
+
+    return _remove_all_conflicts
+
+
+@directive("dependencies")
+def remove_all_depends_on():
+    """Removes all depends_on from a package.
+
+    This is typically used when inheriting from another package if the author
+    desires different dependencies than those available in the parent package.
+    """
+
+    def _remove_all_depends_on(pkg):
+        pkg.dependencies.clear()
+
+    return _remove_all_depends_on
+
+
+@directive("versions")
+def remove_all_versions():
+    """Removes all versions from a package.
+
+    This is typically used when inheriting from another package if the author
+    desires different versions than those available in the parent package.
+    """
+
+    def _remove_all_versions(pkg):
+        pkg.versions.clear()
+
+    return _remove_all_versions
+
+
+@directive("conflicts")
+def remove_conflict(conflict_spec: SpecType, when: WhenType = None):
+    """Remove a conflict from a package.
+
+    This is typically used when inheriting from another package if the author
+    desires to keep some of the conflicts in the parent package but delete others.
+
+    This code will not throw an error if the user inputs a conflict to delete
+    that does not exist.
+    """
+    conflict_when_spec = _make_when_spec(when)
+    conflict_spec = spack.spec.Spec(conflict_spec)
+
+    def _remove_conflict(pkg):
+        try:
+            pkg.conflicts[conflict_when_spec] = [
+                (spec, msg)
+                for spec, msg in pkg.conflicts[conflict_when_spec]
+                if spec != conflict_spec
+            ]
+        except KeyError:
+            pass
+
+    return _remove_conflict
+
+
+@directive("dependencies")
+def remove_depends_on(dependency_spec: SpecType, when: WhenType = None):
+    """Remove a dependency from a package.
+
+    This is typically used when inheriting from another package if the author
+    desires to keep some of the dependencies in the parent package but delete others.
+
+    This code will not throw an error if the user inputs a dependency to delete
+    that does not exist.
+    """
+    dependency_when_spec = _make_when_spec(when)
+    dependency_spec = spack.spec.Spec(dependency_spec)
+
+    def _remove_dependency(pkg):
+        try:
+            del pkg.dependencies[dependency_when_spec][dependency_spec.name]
+            if len(pkg.dependencies[dependency_when_spec]) == 0:
+                del pkg.dependencies[dependency_when_spec]
+        except KeyError:
+            pass
+
+    return _remove_dependency
+
+
+@directive("versions")
+def remove_version(ver: Union[str, int]):
+    """Try to remove a specific version from a package."""
+    version = Version(ver)
+
+    def _remove_version(pkg):
+        try:
+            del pkg.versions[version]
+        except KeyError:
+            pass
+
+    return _remove_version
 
 
 class DependencyError(DirectiveError):

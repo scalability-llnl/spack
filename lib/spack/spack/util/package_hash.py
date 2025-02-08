@@ -74,7 +74,7 @@ class RemoveDirectives(ast.NodeTransformer):
         # opposed to function calls through a variable callback). We remove them.
         #
         # Note that changes to directives (e.g., a preferred version change or a hash
-        # chnage on an archive) are already represented in the spec *outside* the
+        # change on an archive) are already represented in the spec *outside* the
         # package hash.
         return (
             None
