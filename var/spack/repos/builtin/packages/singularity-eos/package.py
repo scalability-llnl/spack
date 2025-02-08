@@ -111,7 +111,6 @@ class SingularityEos(CMakePackage, CudaPackage):
     for _flag in ("~cuda", "+cuda", "~openmp", "+openmp"):
         depends_on("kokkos ~shared" + _flag, when="+kokkos" + _flag)
         depends_on("kokkos-kernels" + _flag, when="+kokkos-kernels" + _flag)
-        depends_on("spiner" + _flag, when="+kokkos" + _flag)
 
     # specfic specs when using GPU/cuda offloading
     depends_on("kokkos +wrapper+cuda_lambda", when="+cuda+kokkos")
@@ -123,7 +122,6 @@ class SingularityEos(CMakePackage, CudaPackage):
     for _flag in list(CudaPackage.cuda_arch_values):
         depends_on("kokkos cuda_arch=" + _flag, when="+cuda+kokkos cuda_arch=" + _flag)
         depends_on("kokkos-kernels cuda_arch=" + _flag, when="+cuda+kokkos cuda_arch=" + _flag)
-        depends_on("spiner cuda_arch=" + _flag, when="+cuda+kokkos cuda_arch=" + _flag)
 
     conflicts("cuda_arch=none", when="+cuda", msg="CUDA architecture is required")
 

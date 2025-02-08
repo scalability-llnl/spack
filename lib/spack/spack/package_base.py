@@ -2284,14 +2284,6 @@ env_flags = PackageBase.env_flags
 build_system_flags = PackageBase.build_system_flags
 
 
-def use_cray_compiler_names():
-    """Compiler names for builds that rely on cray compiler names."""
-    os.environ["CC"] = "cc"
-    os.environ["CXX"] = "CC"
-    os.environ["FC"] = "ftn"
-    os.environ["F77"] = "ftn"
-
-
 def possible_dependencies(
     *pkg_or_spec: Union[str, spack.spec.Spec, typing.Type[PackageBase]],
     transitive: bool = True,
