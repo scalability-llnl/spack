@@ -471,17 +471,27 @@ class MinimalDuplicatesCounter(NoDuplicatesCounter):
         gen.newline()
 
         gen.h2("Packages with at multiple possible nodes (build-tools)")
+        default = spack.config.CONFIG.get("concretizer:duplicates:max_dupes:default", 2)
         for package_name in sorted(self.possible_dependencies() & build_tools):
-            gen.fact(fn.max_dupes(package_name, 2))
-            gen.fact(fn.multiple_unification_sets(package_name))
+            max_dupes = spack.config.CONFIG.get(
+                f"concretizer:duplicates:max_dupes:{package_name}", default
+            )
+            gen.fact(fn.max_dupes(package_name, max_dupes))
+            if max_dupes > 1:
+                gen.fact(fn.multiple_unification_sets(package_name))
         gen.newline()
 
-        gen.h2("Maximum number of nodes (virtual packages)")
+        gen.h2("Maximum number of nodes (link-run virtuals)")
         for package_name in sorted(self._link_run_virtuals):
             gen.fact(fn.max_dupes(package_name, 1))
         gen.newline()
+
+        gen.h2("Maximum number of nodes (other virtuals)")
         for package_name in sorted(self.possible_virtuals() - self._link_run_virtuals):
-            gen.fact(fn.max_dupes(package_name, 2))
+            max_dupes = spack.config.CONFIG.get(
+                f"concretizer:duplicates:max_dupes:{package_name}", default
+            )
+            gen.fact(fn.max_dupes(package_name, max_dupes))
         gen.newline()
 
         gen.h2("Possible package in link-run subDAG")
