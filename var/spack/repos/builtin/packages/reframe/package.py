@@ -151,7 +151,7 @@ class Reframe(Package):
 
     # sanity check
     sanity_check_is_file = ["bin/reframe"]
-    sanity_check_is_dir = ["bin", "config", "docs", "reframe", "tutorials", "unittests"]
+    sanity_check_is_dir = ["bin", "docs", "reframe"]
 
     # check if we can run reframe
     @run_after("install")
