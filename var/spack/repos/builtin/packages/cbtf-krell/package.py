@@ -74,8 +74,8 @@ class CbtfKrell(CMakePackage):
     depends_on("boost@1.70.0:+filesystem+graph+program_options+python+test+thread")
 
     # For Dyninst
-    depends_on("dyninst@10.1.0", when="@develop")
-    depends_on("dyninst@10.1.0", when="@1.9.3:9999")
+    depends_on("dyninst@10.1.0:", when="@develop")
+    depends_on("dyninst@10.1.0:", when="@1.9.3:9999")
 
     # For MRNet
     depends_on("mrnet@5.0.1-3:+lwthreads", when="@develop", type=("build", "link", "run"))
