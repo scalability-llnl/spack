@@ -149,6 +149,7 @@ class Cairo(AutotoolsPackage, MesonPackage):
     # https://github.com/microsoft/vcpkg/pull/38313
     depends_on("lzo", when="@1.17.6: build_system=meson")
 
+    # versions that use (the old) autotools build
     with when("@:1.17.6"):
         depends_on("pixman@0.36.0:", when="@1.17.2:")
         depends_on("freetype", when="+ft")
@@ -156,6 +157,7 @@ class Cairo(AutotoolsPackage, MesonPackage):
         depends_on("libpng", when="+png")
         depends_on("glib")
 
+    # versions that use (the new) meson build
     with when("@1.17.8:"):
         depends_on("binutils", when="+symbol-lookup")
         depends_on("freetype@2.13.0:", when="+ft")
@@ -164,6 +166,7 @@ class Cairo(AutotoolsPackage, MesonPackage):
         depends_on("pixman@0.40.0:")
         depends_on("fontconfig@2.13.0:", when="+fc")
 
+    # needed for both meson and autotools builds
     with when("+X"):
         depends_on("libx11")
         depends_on("libxext")
