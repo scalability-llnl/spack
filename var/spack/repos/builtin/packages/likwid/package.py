@@ -5,8 +5,6 @@
 import glob
 import os
 
-import llnl.util.tty as tty
-
 import spack.tengine
 from spack.package import *
 

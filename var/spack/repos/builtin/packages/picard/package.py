@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import glob
-import os.path
+import os
 import re
 
 from spack.package import *

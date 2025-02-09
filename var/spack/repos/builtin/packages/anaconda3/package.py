@@ -7,7 +7,6 @@ import os.path as osp
 
 from spack.error import UnsupportedPlatformError
 from spack.package import *
-from spack.util.environment import EnvironmentModifications
 
 
 class Anaconda3(Package):

@@ -180,6 +180,18 @@ def test_dev_build_fails_no_version(mock_packages):
     assert "dev-build spec must have a single, concrete version" in output
 
 
+def test_dev_build_can_parse_path_with_at_symbol(tmpdir, install_mockery):
+    special_char_dir = tmpdir.mkdir("tmp@place")
+    spec = spack.spec.Spec(f'dev-build-test-install@0.0.0 dev_path="{special_char_dir}"')
+    spec.concretize()
+
+    with special_char_dir.as_cwd():
+        with open(spec.package.filename, "w", encoding="utf-8") as f:
+            f.write(spec.package.original_string)
+        dev_build("dev-build-test-install@0.0.0")
+    assert spec.package.filename in os.listdir(spec.prefix)
+
+
 def test_dev_build_env(tmpdir, install_mockery, mutable_mock_env_path):
     """Test Spack does dev builds for packages in develop section of env."""
     # setup dev-build-test-install package for dev build

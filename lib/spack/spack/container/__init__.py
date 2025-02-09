@@ -6,6 +6,8 @@ generate container recipes from a Spack environment
 """
 import warnings
 
+import jsonschema
+
 import spack.environment as ev
 import spack.schema.env as env
 import spack.util.spack_yaml as syaml
@@ -30,8 +32,6 @@ def validate(configuration_file):
     Returns:
         A sanitized copy of the configuration stored in the input file
     """
-    import jsonschema
-
     with open(configuration_file, encoding="utf-8") as f:
         config = syaml.load(f)
 
@@ -57,7 +57,7 @@ def validate(configuration_file):
     # Set the default value of the concretization strategy to unify and
     # warn if the user explicitly set another value
     env_dict.setdefault("concretizer", {"unify": True})
-    if not env_dict["concretizer"]["unify"] is True:
+    if env_dict["concretizer"]["unify"] is not True:
         warnings.warn(
             '"concretizer:unify" is not set to "true", which means the '
             "generated image may contain different variants of the same "
