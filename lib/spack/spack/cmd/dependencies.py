@@ -11,7 +11,7 @@ import spack.cmd
 import spack.environment as ev
 import spack.store
 from spack.cmd.common import arguments
-from spack.solver.context import default_inspector
+from spack.solver.context import create_graph_analyzer
 
 description = "show dependencies of a package"
 section = "basic"
@@ -68,7 +68,7 @@ def dependencies(parser, args):
 
     else:
         spec = specs[0]
-        dependencies, virtuals, _ = default_inspector().possible_dependencies(
+        dependencies, virtuals, _ = create_graph_analyzer().possible_dependencies(
             spec,
             transitive=args.transitive,
             expand_virtuals=args.expand_virtuals,

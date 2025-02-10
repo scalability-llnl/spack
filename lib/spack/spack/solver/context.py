@@ -19,13 +19,6 @@ from spack.error import SpackError
 RUNTIME_TAG = "runtime"
 
 
-class Context(NamedTuple):
-    configuration: spack.config.Configuration
-    repo: spack.repo.RepoPath
-    store: spack.store.Store
-    binary_index: spack.binary_distribution.BinaryCacheIndex
-
-
 class PossibleGraph(NamedTuple):
     real_pkgs: Set[str]
     virtuals: Set[str]
@@ -72,12 +65,13 @@ class NoStaticAnalysis(PossibleDependencyGraph):
     answers), rather than trying to reduce the ASP problem size with more complex analysis.
     """
 
-    def __init__(self, *, context: Context):
-        self.context = context
-        self.runtime_pkgs = set(self.context.repo.packages_with_tags(RUNTIME_TAG))
+    def __init__(self, *, configuration: spack.config.Configuration, repo: spack.repo.RepoPath):
+        self.configuration = configuration
+        self.repo = repo
+        self.runtime_pkgs = set(self.repo.packages_with_tags(RUNTIME_TAG))
         self.runtime_virtuals = set()
         for x in self.runtime_pkgs:
-            pkg_class = self.context.repo.get_pkg_class(x)
+            pkg_class = self.repo.get_pkg_class(x)
             self.runtime_virtuals.update(pkg_class.provided_virtual_names())
 
         try:
@@ -85,30 +79,13 @@ class NoStaticAnalysis(PossibleDependencyGraph):
         except spack.repo.UnknownPackageError:
             self.libc_pkgs = []
 
-    @property
-    def configuration(self):
-        return self.context.configuration
-
-    @property
-    def repo(self):
-        return self.context.repo
-
-    @property
-    def store(self):
-        return self.context.store
-
-    @lang.memoized
-    def buildcache_specs(self) -> List[spack.spec.Spec]:
-        self.context.binary_index.update()
-        return self.context.binary_index.get_all_built_specs()
-
     def is_virtual(self, name: str) -> bool:
-        return self.context.repo.is_virtual(name)
+        return self.repo.is_virtual(name)
 
     @lang.memoized
     def is_allowed_on_this_platform(self, *, pkg_name: str) -> bool:
         """Returns true if a package is allowed on the current host"""
-        pkg_cls = self.context.repo.get_pkg_class(pkg_name)
+        pkg_cls = self.repo.get_pkg_class(pkg_name)
         platform_condition = (
             f"platform={spack.platforms.host()} target={archspec.cpu.host().family}:"
         )
@@ -123,7 +100,7 @@ class NoStaticAnalysis(PossibleDependencyGraph):
 
     def providers_for(self, virtual_str: str) -> List[spack.spec.Spec]:
         """Returns a list of possible providers for the virtual string in input."""
-        return self.context.repo.providers_for(virtual_str)
+        return self.repo.providers_for(virtual_str)
 
     def can_be_installed(self, *, pkg_name) -> bool:
         """Returns True if a package can be installed, False otherwise."""
@@ -142,8 +119,8 @@ class NoStaticAnalysis(PossibleDependencyGraph):
 
         # Construct the list of targets which are compatible with the host
         candidate_targets = [default_target] + default_target.ancestors
-        granularity = self.context.configuration.get("concretizer:targets:granularity")
-        host_compatible = self.context.configuration.get("concretizer:targets:host_compatible")
+        granularity = self.configuration.get("concretizer:targets:granularity")
+        host_compatible = self.configuration.get("concretizer:targets:host_compatible")
 
         # Add targets which are not compatible with the current host
         if not host_compatible:
@@ -189,7 +166,7 @@ class NoStaticAnalysis(PossibleDependencyGraph):
             if pkg_name in self.libc_pkgs:
                 continue
 
-            pkg_cls = self.context.repo.get_pkg_class(pkg_name=pkg_name)
+            pkg_cls = self.repo.get_pkg_class(pkg_name=pkg_name)
             for name, conditions in pkg_cls.dependencies_by_name(when=True).items():
                 if all(self.unreachable(pkg_name=pkg_name, when_spec=x) for x in conditions):
                     tty.debug(
@@ -245,7 +222,7 @@ class NoStaticAnalysis(PossibleDependencyGraph):
             if isinstance(current_spec, str):
                 current_spec = spack.spec.Spec(current_spec)
 
-            if self.context.repo.is_virtual(current_spec.name):
+            if self.repo.is_virtual(current_spec.name):
                 stack.extend([p.name for p in self.providers_for(current_spec.name)])
                 continue
 
@@ -278,6 +255,18 @@ class StaticAnalysis(NoStaticAnalysis):
     especially when requirements restrict the possible choices for providers.
     """
 
+    def __init__(
+        self,
+        *,
+        configuration: spack.config.Configuration,
+        repo: spack.repo.RepoPath,
+        store: spack.store.Store,
+        binary_index: spack.binary_distribution.BinaryCacheIndex,
+    ):
+        super().__init__(configuration=configuration, repo=repo)
+        self.store = store
+        self.binary_index = binary_index
+
     @lang.memoized
     def providers_for(self, virtual_str: str) -> List[spack.spec.Spec]:
         candidates = super().providers_for(virtual_str)
@@ -289,14 +278,19 @@ class StaticAnalysis(NoStaticAnalysis):
         return result
 
     @lang.memoized
+    def buildcache_specs(self) -> List[spack.spec.Spec]:
+        self.binary_index.update()
+        return self.binary_index.get_all_built_specs()
+
+    @lang.memoized
     def can_be_installed(self, *, pkg_name) -> bool:
-        if self.context.configuration.get(f"packages:{pkg_name}:buildable", True):
+        if self.configuration.get(f"packages:{pkg_name}:buildable", True):
             return True
 
-        if self.context.configuration.get(f"packages:{pkg_name}:externals", []):
+        if self.configuration.get(f"packages:{pkg_name}:externals", []):
             return True
 
-        reuse = self.context.configuration.get("concretizer:reuse")
+        reuse = self.configuration.get("concretizer:reuse")
         if reuse is not False and self.store.db.query(pkg_name):
             return True
 
@@ -326,7 +320,7 @@ class StaticAnalysis(NoStaticAnalysis):
         """Returns true if the context can determine that the condition cannot ever
         be met on pkg_name.
         """
-        candidates = self.context.configuration.get(f"packages:{pkg_name}:require", [])
+        candidates = self.configuration.get(f"packages:{pkg_name}:require", [])
         if not candidates and pkg_name != "all":
             return self.unreachable(pkg_name="all", when_spec=when_spec)
 
@@ -352,21 +346,13 @@ class StaticAnalysis(NoStaticAnalysis):
         return False
 
 
-def create_inspector(context: Context) -> PossibleDependencyGraph:
-    static_analysis = context.configuration.get("concretizer:static_analysis", False)
+def create_graph_analyzer() -> PossibleDependencyGraph:
+    static_analysis = spack.config.CONFIG.get("concretizer:static_analysis", False)
     if static_analysis:
-        return StaticAnalysis(context=context)
-    return NoStaticAnalysis(context=context)
-
-
-def default_context() -> Context:
-    return Context(
-        configuration=spack.config.CONFIG,
-        repo=spack.repo.PATH,
-        store=spack.store.STORE,
-        binary_index=spack.binary_distribution.BINARY_INDEX,
-    )
-
-
-def default_inspector() -> PossibleDependencyGraph:
-    return create_inspector(default_context())
+        return StaticAnalysis(
+            configuration=spack.config.CONFIG,
+            repo=spack.repo.PATH,
+            store=spack.store.STORE,
+            binary_index=spack.binary_distribution.BINARY_INDEX,
+        )
+    return NoStaticAnalysis(configuration=spack.config.CONFIG, repo=spack.repo.PATH)

@@ -27,7 +27,7 @@ import spack.spec
 import spack.store
 from spack.build_systems.generic import Package
 from spack.error import InstallError
-from spack.solver.context import Context, NoStaticAnalysis, StaticAnalysis
+from spack.solver.context import NoStaticAnalysis, StaticAnalysis
 
 
 @pytest.fixture()
@@ -52,13 +52,14 @@ def mpileaks_possible_deps(mock_packages, mpi_names):
 @pytest.fixture(params=[NoStaticAnalysis, StaticAnalysis])
 def mock_inspector(config, mock_packages, request):
     inspector_cls = request.param
-    context = Context(
+    if inspector_cls is NoStaticAnalysis:
+        return inspector_cls(configuration=config, repo=mock_packages)
+    return inspector_cls(
         configuration=config,
         repo=mock_packages,
         store=spack.store.STORE,
         binary_index=spack.binary_distribution.BINARY_INDEX,
     )
-    return inspector_cls(context=context)
 
 
 @pytest.fixture

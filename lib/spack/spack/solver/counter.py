@@ -21,9 +21,9 @@ class Counter:
     """
 
     def __init__(
-        self, specs: List["spack.spec.Spec"], tests: bool, context: PossibleDependencyGraph
+        self, specs: List["spack.spec.Spec"], tests: bool, possible_graph: PossibleDependencyGraph
     ) -> None:
-        self.inspector = context
+        self.possible_graph = possible_graph
         self.specs = specs
         self.link_run_types: dt.DepFlag = dt.LINK | dt.RUN | dt.TEST
         self.all_types: dt.DepFlag = dt.ALL
@@ -60,7 +60,7 @@ class Counter:
 
 class NoDuplicatesCounter(Counter):
     def _compute_cache_values(self) -> None:
-        self._possible_dependencies, virtuals, _ = self.inspector.possible_dependencies(
+        self._possible_dependencies, virtuals, _ = self.possible_graph.possible_dependencies(
             *self.specs, allowed_deps=self.all_types
         )
         self._possible_virtuals.update(virtuals)
@@ -82,28 +82,28 @@ class NoDuplicatesCounter(Counter):
 
 class MinimalDuplicatesCounter(NoDuplicatesCounter):
     def __init__(
-        self, specs: List["spack.spec.Spec"], tests: bool, context: PossibleDependencyGraph
+        self, specs: List["spack.spec.Spec"], tests: bool, possible_graph: PossibleDependencyGraph
     ) -> None:
-        super().__init__(specs, tests, context)
+        super().__init__(specs, tests, possible_graph)
         self._link_run: Set[str] = set()
         self._direct_build: Set[str] = set()
         self._total_build: Set[str] = set()
         self._link_run_virtuals: Set[str] = set()
 
     def _compute_cache_values(self) -> None:
-        self._link_run, virtuals, _ = self.inspector.possible_dependencies(
+        self._link_run, virtuals, _ = self.possible_graph.possible_dependencies(
             *self.specs, allowed_deps=self.link_run_types
         )
         self._possible_virtuals.update(virtuals)
         self._link_run_virtuals.update(virtuals)
         for x in self._link_run:
-            reals, virtuals, _ = self.inspector.possible_dependencies(
+            reals, virtuals, _ = self.possible_graph.possible_dependencies(
                 x, allowed_deps=dt.BUILD, transitive=False, strict_depflag=True
             )
             self._possible_virtuals.update(virtuals)
             self._direct_build.update(reals)
 
-        self._total_build, virtuals, _ = self.inspector.possible_dependencies(
+        self._total_build, virtuals, _ = self.possible_graph.possible_dependencies(
             *self._direct_build, allowed_deps=self.all_types
         )
         self._possible_virtuals.update(virtuals)

@@ -49,7 +49,7 @@ import spack.version as vn
 import spack.version.git_ref_lookup
 from spack import traverse
 
-from .context import Context, PossibleDependencyGraph, create_inspector
+from .context import PossibleDependencyGraph, create_graph_analyzer
 from .core import (
     AspFunction,
     AspVar,
@@ -272,13 +272,15 @@ def remove_node(spec: spack.spec.Spec, facts: List[AspFunction]) -> List[AspFunc
     return list(filter(lambda x: x.args[0] not in ("node", "virtual_node"), facts))
 
 
-def _create_counter(specs: List[spack.spec.Spec], tests: bool, context: PossibleDependencyGraph):
-    strategy = context.configuration.get("concretizer:duplicates:strategy", "none")
+def _create_counter(
+    specs: List[spack.spec.Spec], tests: bool, possible_graph: PossibleDependencyGraph
+):
+    strategy = spack.config.CONFIG.get("concretizer:duplicates:strategy", "none")
     if strategy == "full":
-        return FullDuplicatesCounter(specs, tests=tests, context=context)
+        return FullDuplicatesCounter(specs, tests=tests, possible_graph=possible_graph)
     if strategy == "minimal":
-        return MinimalDuplicatesCounter(specs, tests=tests, context=context)
-    return NoDuplicatesCounter(specs, tests=tests, context=context)
+        return MinimalDuplicatesCounter(specs, tests=tests, possible_graph=possible_graph)
+    return NoDuplicatesCounter(specs, tests=tests, possible_graph=possible_graph)
 
 
 def all_libcs() -> Set[spack.spec.Spec]:
@@ -1122,13 +1124,7 @@ class SpackSolverSetup:
     """Class to set up and run a Spack concretization solve."""
 
     def __init__(self, tests: bool = False):
-        self.context = Context(
-            configuration=spack.config.CONFIG,
-            repo=spack.repo.PATH,
-            store=spack.store.STORE,
-            binary_index=spack.binary_distribution.BINARY_INDEX,
-        )
-        self.possible_graph = create_inspector(self.context)
+        self.possible_graph = create_graph_analyzer()
 
         # these are all initialized in setup()
         self.gen: "ProblemInstanceBuilder" = ProblemInstanceBuilder()
@@ -2675,7 +2671,7 @@ class SpackSolverSetup:
         """
         check_packages_exist(specs)
 
-        node_counter = _create_counter(specs, tests=self.tests, context=self.possible_graph)
+        node_counter = _create_counter(specs, tests=self.tests, possible_graph=self.possible_graph)
         self.possible_virtuals = node_counter.possible_virtuals()
         self.pkgs = node_counter.possible_dependencies()
         self.libcs = sorted(all_libcs())  # type: ignore[type-var]

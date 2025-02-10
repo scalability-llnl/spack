@@ -45,7 +45,7 @@ import spack.deptypes as dt
 import spack.spec
 import spack.tengine
 import spack.traverse
-from spack.solver.context import default_inspector
+from spack.solver.context import create_graph_analyzer
 
 
 def find(seq, predicate):
@@ -537,7 +537,7 @@ class DAGWithDependencyTypes(DotGraphBuilder):
 
 def _static_edges(specs, depflag):
     for spec in specs:
-        *_, edges = default_inspector().possible_dependencies(
+        *_, edges = create_graph_analyzer().possible_dependencies(
             spec.name, expand_virtuals=True, allowed_deps=depflag
         )
 
