@@ -184,8 +184,24 @@ class Tau(Package):
     depends_on("dyninst@12.3.0:", when="+dyninst")
 
     # subpackages for TAU
-    depends_on("apex", when="+apex")
-    depends_on("zerosum", when="+zerosum")
+    with when("+apex"):
+        depends_on("apex")
+        depends_on("apex+cuda", when="+cuda")
+        depends_on("apex+hip", when="+rocm")
+        depends_on("apex+sycl", when="+level_zero")
+        depends_on("apex+mpi", when="+mpi")
+        depends_on("apex+openmp", when="+openmp")
+        depends_on("apex+papi", when="+papi")
+        depends_on("apex+otf2", when="+otf2")
+        depends_on("apex+opencl", when="+opencl")
+    with when("+zerosum"):
+        depends_on("zerosum")
+        depends_on("zerosum+cuda", when="+cuda")
+        depends_on("zerosum+hip", when="+rocm")
+        depends_on("zerosum+sycl", when="+level_zero")
+        # Handle inverted variants that are enabled by default
+        depends_on("zerosum~mpi", when="~mpi")
+        depends_on("zerosum~openmp", when="~openmp")
 
     # Elf only required from 2.28.1 on
     conflicts("+elf", when="@:2.28.0")
