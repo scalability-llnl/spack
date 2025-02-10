@@ -10,7 +10,7 @@ import sys
 from spack.package import *
 
 
-class MvapichPlus(AutotoolsPackage):
+class MvapichPlus(AutotoolsPackage, CudaPackage, ROCmPackage):
     """Mvapich is a High-Performance MPI Library for clusters with diverse
     networks (InfiniBand, Omni-Path, Ethernet/iWARP, and RoCE) and computing
     platforms (x86 (Intel and AMD), ARM and OpenPOWER)"""
@@ -33,8 +33,6 @@ class MvapichPlus(AutotoolsPackage):
     variant("wrapperrpath", default=True, description="Enable wrapper rpath")
     variant("debug", default=False, description="Enable debug info and error messages at run-time")
 
-    variant("cuda", default=True, description="Enable CUDA extension")
-
     variant("regcache", default=True, description="Enable memory registration cache")
 
     # Accepted values are:
@@ -49,13 +47,6 @@ class MvapichPlus(AutotoolsPackage):
         values=("single", "funneled", "serialized", "multiple"),
         multi=False,
         description="Control the level of thread support",
-    )
-    variant(
-        "nvidia_arch",
-        default="Volta",
-        values=("Volta", "Ampere", "Hopper"),
-        multi=False,
-        description="Nvidia GPU Arch",
     )
     # 32 is needed when job size exceeds 32768 cores
     variant(
@@ -102,7 +93,6 @@ class MvapichPlus(AutotoolsPackage):
         description="List of the ROMIO file systems to activate",
         values=auto_or_any_combination_of("lustre", "gpfs", "nfs", "ufs"),
     )
-    variant("rocm", description="Enable/Disable support for ROCM", default=False)
 
     depends_on("findutils", type="build")
     depends_on("bison", type="build")
@@ -110,20 +100,16 @@ class MvapichPlus(AutotoolsPackage):
     depends_on("zlib-api")
     depends_on("libpciaccess", when=(sys.platform != "darwin"))
     depends_on("libxml2")
-    depends_on("cuda", when="+cuda", type=("build", "link"))
+    depends_on("rccl", when="^hip")
     depends_on("libfabric", when="netmod=ofi")
     depends_on("slurm", when="process_managers=slurm")
     depends_on("ucx", when="netmod=ucx")
-    depends_on("hip@3.9.0:", when="+rocm")
-    depends_on("rccl", when="+rocm")
     depends_on("c", type="build")
     depends_on("cxx", type="build")
     depends_on("fortran", type="build")
-    conflicts("+cuda +rocm", msg="MVAPICH2-GDR can only be built with either CUDA or ROCm")
-    conflicts("~cuda ~rocm", msg="MVAPICH2-GDR must be built with either CUDA or ROCm")
     conflicts(
         "process_managers=slurm pmi_version=simple",
-        msg="MVAPICH2-GDR can not be built with slurm and simple pmi",
+        msg="MVAPICH-Plus can not be built with slurm and simple pmi",
     )
 
     with when("process_managers=slurm"):
@@ -211,14 +197,13 @@ class MvapichPlus(AutotoolsPackage):
                 if flags is None:
                     flags = []
                 flags.append("-fallow-argument-mismatch")
-
-        return (flags, None, None)
+        return (None, flags, None)
 
     def setup_build_environment(self, env):
         # mvapich2 configure fails when F90 and F90FLAGS are set
         env.unset("F90")
         env.unset("F90FLAGS")
-        if self.spec.satifsfies("+cuda"):
+        if self.spec.satisfies("^cuda"):
             env.prepend_path("PATH", self.spec["cuda"].prefix + "/bin")
             env.prepend_path("LIBRARY_PATH", self.spec["cuda"].prefix + "/lib")
             env.prepend_path("LD_LIBRARY_PATH", self.spec["cuda"].prefix + "/lib")
@@ -229,7 +214,7 @@ class MvapichPlus(AutotoolsPackage):
             env.prepend_path("CPLUS_INCLUDE_PATH", self.spec["cuda"].prefix + "/include")
             env.set("CUDA_HOME", self.spec["cuda"].prefix)
             env.set("CUDA_ROOT", self.spec["cuda"].prefix)
-        if self.spec.satisfies("+rocm"):
+        if self.spec.satisfies("^hip"):
             env.prepend_path("PATH", self.spec["hip"].prefix + "/bin")
             env.prepend_path("LIBRARY_PATH", self.spec["hip"].prefix + "/lib")
             env.prepend_path("LD_LIBRARY_PATH", self.spec["hip"].prefix + "/lib")
@@ -329,18 +314,7 @@ class MvapichPlus(AutotoolsPackage):
         else:
             args.append("--enable-fast=all")
         if self.spec.satisfies("+cuda"):
-            gpu_map = {"Volta": "70", "Ampere": "80", "Hopper": "90"}
-            args.extend(
-                [
-                    "--enable-cuda",
-                    f"--with-cuda={(spec['cuda'].prefix)}",
-                    f"NVCCFLAGS=-gencode=arch=\
-                    compute_{gpu_map[spec.variants['nvidia_arch'].value]},\
-                    code=sm_{gpu_map[spec.variants['nvidia_arch'].value]}",
-                    f"CFLAGS=-I{spec['cuda'].prefix + '/include'}",
-                    f"CXXFLAGS=-I{spec['cuda'].prefix + '/include'}",
-                ]
-            )
+            args.extend(["--enable-cuda", f"--with-cuda={(spec['cuda'].prefix)}"])
         if self.spec.satisfies("+rocm"):
             args.extend(
                 ["--enable-rocm", f"--with-rocm={spec['hip'].prefix}", "--enable-hip=basic"]
