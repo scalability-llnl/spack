@@ -1486,8 +1486,8 @@ class TestConcretize:
         # Expected behavior same as second concretization
         spack.config.set("concretizer:reuse", {"namespaces": ["foobar"]})
         noreuse = spack.concretize.concretize_one("libelf")
-        assert noreuse.installed
-        assert noreuse.satisfies("@0.8.13")
+        assert not noreuse.installed
+        assert noreuse.satisfies("@0.8.10")
 
     def test_reuse_with_flags(self, mutable_database, mutable_config):
         spack.config.set("concretizer:reuse", True)
