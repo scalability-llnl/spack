@@ -1,2 +1,4 @@
 repo:
   namespace: builtin
+  version: 0
+  required_spack_version: '0.23:1.0.0.dev0'

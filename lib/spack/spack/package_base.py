@@ -31,6 +31,7 @@ import llnl.util.filesystem as fsys
 import llnl.util.tty as tty
 from llnl.util.lang import classproperty, memoized
 
+import spack
 import spack.compilers
 import spack.config
 import spack.dependency
@@ -60,6 +61,7 @@ from spack.stage import DevelopStage, ResourceStage, Stage, StageComposite, comp
 from spack.util.package_hash import package_hash
 from spack.util.typing import SupportsRichComparison
 from spack.version import GitVersion, StandardVersion
+from spack.version import ver as version_from_str
 
 FLAG_HANDLER_RETURN_TYPE = Tuple[
     Optional[Iterable[str]], Optional[Iterable[str]], Optional[Iterable[str]]
@@ -731,9 +733,21 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
     #: TestSuite instance used to manage stand-alone tests for 1+ specs.
     test_suite: Optional[Any] = None
 
+    #: compatibility requirements with Spack
+    #: if value is ``None``, requirements from repo are still applied
+    required_spack_version = None
+
     def __init__(self, spec):
         # this determines how the package should be built.
         self.spec: spack.spec.Spec = spec
+
+        # is this package more restrictive in compatibility than the repo is
+        if self.required_spack_version:
+            spack_version = version_from_str(spack.spack_version)
+            required_version = version_from_str(self.required_spack_version)
+            if not spack_version.satisfies(required_version):
+                msg = f"Package {self.name} requires Spack version {self.required_spack_version}."
+                raise PackageError(msg)
 
         # Allow custom staging paths for packages
         self.path = None

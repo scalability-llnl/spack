@@ -32,6 +32,7 @@ import llnl.util.lang
 import llnl.util.tty as tty
 from llnl.util.filesystem import working_dir
 
+import spack
 import spack.caches
 import spack.config
 import spack.error
@@ -40,6 +41,7 @@ import spack.provider_index
 import spack.spec
 import spack.tag
 import spack.tengine
+import spack.version
 import spack.util.file_cache
 import spack.util.git
 import spack.util.naming as nm
@@ -48,6 +50,11 @@ import spack.util.spack_yaml as syaml
 
 #: Package modules are imported as spack.pkg.<repo-namespace>.<pkg-name>
 ROOT_PYTHON_NAMESPACE = "spack.pkg"
+
+_required_repo_version = "0:"
+
+#: Version of the repo interface that this version of Spack is compatible with
+required_repo_version = spack.version.ver(_required_repo_version)
 
 
 def python_package_for_repo(namespace):
@@ -951,7 +958,7 @@ class Repo:
         self.config_file = os.path.join(self.root, repo_config_name)
         check(os.path.isfile(self.config_file), f"No {repo_config_name} found in '{root}'")
 
-        # Read configuration and validate namespace
+        # Read configuration and validate
         config = self._read_config()
         check(
             "namespace" in config,
@@ -963,6 +970,19 @@ class Repo:
             re.match(r"[a-zA-Z][a-zA-Z0-9_.]+", self.namespace),
             f"Invalid namespace '{self.namespace}' in repo '{self.root}'. "
             "Namespaces must be valid python identifiers separated by '.'",
+        )
+
+        required_version = spack.version.ver(config.get("required_spack_version", ":"))
+        spack_version = spack.version.ver(spack.spack_version)
+        check(
+            spack_version.satisfies(required_version),
+            f"Repo {self.namespace} requires Spack version {required_version}",
+        )
+
+        repo_version = spack.version.ver(config.get("version", "0"))
+        check(
+            repo_version.satisfies(required_repo_version),
+            f"Spack requires repo version {required_repo_version}",
         )
 
         # Set up 'full_namespace' to include the super-namespace
