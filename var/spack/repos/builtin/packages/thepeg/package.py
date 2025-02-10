@@ -64,7 +64,6 @@ class Thepeg(AutotoolsPackage):
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
-    depends_on("fortran", type="build")
 
     depends_on("gsl")
     depends_on("lhapdf")
