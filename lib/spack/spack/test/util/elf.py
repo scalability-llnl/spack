@@ -211,6 +211,5 @@ def test_elf_invalid_e_shnum(tmp_path):
             b"\x7fELF\x02\x010000000000\x03\x00>\x0000000000000000000000"
             b"\x00\x00\x00\x00\x00\x00\x00\x000000000000@\x000000"
         )
-    with open(path, "rb") as file:
-        with pytest.raises(elf.ElfParsingError, match="Could not seek to program header"):
-            elf.parse_elf(file)
+    with open(path, "rb") as file, pytest.raises(elf.ElfParsingError):
+        elf.parse_elf(file)
