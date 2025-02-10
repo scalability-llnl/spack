@@ -27,7 +27,7 @@ import spack.spec
 import spack.store
 from spack.build_systems.generic import Package
 from spack.error import InstallError
-from spack.solver.context import NoStaticAnalysis, StaticAnalysis
+from spack.solver.input_analysis import NoStaticAnalysis, StaticAnalysis
 
 
 @pytest.fixture()

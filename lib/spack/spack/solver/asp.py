@@ -49,7 +49,6 @@ import spack.version as vn
 import spack.version.git_ref_lookup
 from spack import traverse
 
-from .context import PossibleDependencyGraph, create_graph_analyzer
 from .core import (
     AspFunction,
     AspVar,
@@ -63,7 +62,13 @@ from .core import (
     parse_files,
     parse_term,
 )
-from .counter import FullDuplicatesCounter, MinimalDuplicatesCounter, NoDuplicatesCounter
+from .input_analysis import (
+    FullDuplicatesCounter,
+    MinimalDuplicatesCounter,
+    NoDuplicatesCounter,
+    PossibleDependencyGraph,
+    create_graph_analyzer,
+)
 from .requirements import RequirementKind, RequirementParser, RequirementRule
 from .version_order import concretization_version_order
 

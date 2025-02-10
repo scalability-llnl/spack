@@ -11,7 +11,7 @@ import spack.cmd
 import spack.environment as ev
 import spack.store
 from spack.cmd.common import arguments
-from spack.solver.context import create_graph_analyzer
+from spack.solver.input_analysis import create_graph_analyzer
 
 description = "show dependencies of a package"
 section = "basic"

@@ -45,7 +45,7 @@ import spack.deptypes as dt
 import spack.spec
 import spack.tengine
 import spack.traverse
-from spack.solver.context import create_graph_analyzer
+from spack.solver.input_analysis import create_graph_analyzer
 
 
 def find(seq, predicate):
