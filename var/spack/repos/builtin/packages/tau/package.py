@@ -192,8 +192,9 @@ class Tau(Package):
         depends_on("apex+mpi", when="+mpi")
         depends_on("apex+openmp", when="+openmp")
         depends_on("apex+papi", when="+papi")
-        depends_on("apex+otf2", when="+otf2")
         depends_on("apex+opencl", when="+opencl")
+        # Handle inverted variants that are enabled by default
+        depends_on("apex~otf2", when="~otf2")
     with when("+zerosum"):
         depends_on("zerosum")
         depends_on("zerosum+cuda", when="+cuda")
