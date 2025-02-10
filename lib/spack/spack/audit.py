@@ -1223,6 +1223,7 @@ def _when_conditions_are_satisfiable_by_some_version(pkgs, error_cls):
         range = spack.version.VersionRange(
             min(pkg_cls.versions), spack.version.StandardVersion.typemax()
         )
+        details = []
         for attr in attrs:
             if attr == "patches":
                 # Patches should strictly apply to some known version
@@ -1239,14 +1240,16 @@ def _when_conditions_are_satisfiable_by_some_version(pkgs, error_cls):
                 unsatisfiable = [
                     when for when in getattr(pkg_cls, attr) if not range.intersects(when.versions)
                 ]
-            if unsatisfiable:
-                errors.append(
-                    error_cls(
-                        summary=f"{filename}: `{attr}` when conditions are not satisfiable by "
-                        f"any known version of {pkg_cls.name}",
-                        details=[f'when="{x}"' for x in unsatisfiable],
-                    )
+            details.extend(f'when="{x}"' for x in unsatisfiable)
+
+        if details:
+            errors.append(
+                error_cls(
+                    summary=f"{filename}: `{attr}` when conditions are not satisfiable by "
+                    f"any known version of {pkg_cls.name}",
+                    details=details,
                 )
+            )
 
     return errors
 
