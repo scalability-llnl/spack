@@ -14,6 +14,7 @@ import subprocess
 import sys
 import tempfile
 from datetime import date
+from typing import Optional
 
 import llnl.util.tty as tty
 from llnl.util.lang import memoized
@@ -235,7 +236,7 @@ def add_padding(path, length):
     return os.path.join(path, padding)
 
 
-def canonicalize_path(path, default_wd=None):
+def canonicalize_path(path: str, default_wd: Optional[str] = None) -> str:
     """Same as substitute_path_variables, but also take absolute path.
 
     If the string is a yaml object with file annotations, make absolute paths
@@ -243,11 +244,13 @@ def canonicalize_path(path, default_wd=None):
     Otherwise, use ``default_wd`` if specified, otherwise ``os.getcwd()``
 
     Arguments:
-        path (str): path being converted as needed
+        path: path being converted as needed
 
-    Returns:
-        (str): An absolute path with path variable substitution
+    Returns: An absolute path or non-file URL with path variable substitution
     """
+    import urllib.parse
+    import urllib.request
+
     # Get file in which path was written in case we need to make it absolute
     # relative to that path.
     filename = None
@@ -256,13 +259,23 @@ def canonicalize_path(path, default_wd=None):
         assert path._start_mark.name == path._end_mark.name
 
     path = substitute_path_variables(path)
+
+    # TODO: Can't use spack.util.url.local_file_path() without immediate
+    # TODO:   curcular import problem so handle it here.
+    url = urllib.parse.urlparse(path)
+    url_path = urllib.request.url2pathname(url.path)
+    if url.scheme and url.scheme != "file":
+        # Have a remote URL so simply return it with substitutions
+        return path
+
+    path = url_path
     if not os.path.isabs(path):
         if filename:
             path = os.path.join(filename, path)
         else:
             base = default_wd or os.getcwd()
             path = os.path.join(base, path)
-            tty.debug("Using working directory %s as base for abspath" % base)
+            tty.debug(f"Using working directory {base} as base for abspath")
 
     return os.path.normpath(path)
 
