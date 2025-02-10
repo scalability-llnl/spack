@@ -306,30 +306,9 @@ class StaticAnalyzer(ContextInspector):
         be met on pkg_name.
         """
         candidates = self.context.configuration.get(f"packages:{pkg_name}:require", [])
-        if not candidates:
-            return self._default_unreachable(when_spec=when_spec)
+        if not candidates and pkg_name != "all":
+            return self.unreachable(pkg_name="all", when_spec=when_spec)
 
-        if isinstance(candidates, str):
-            candidates = [candidates]
-
-        union_requirement = spack.spec.Spec()
-        for c in candidates:
-            if not isinstance(c, str):
-                continue
-            try:
-                union_requirement.constrain(c)
-            except SpackError:
-                # Less optimized, but shouldn't fail
-                pass
-
-        if not union_requirement.intersects(when_spec):
-            return True
-
-        return False
-
-    @lang.memoized
-    def _default_unreachable(self, *, when_spec: spack.spec.Spec) -> bool:
-        candidates = self.context.configuration.get("packages:all:require", [])
         if not candidates:
             return False
 
