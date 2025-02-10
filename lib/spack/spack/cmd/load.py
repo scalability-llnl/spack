@@ -12,7 +12,6 @@ import spack.hooks.cache_shell_script as shell_script
 import spack.store
 from spack.cmd.common import arguments
 
-
 description = "add package to the user environment"
 section = "user environment"
 level = "short"
