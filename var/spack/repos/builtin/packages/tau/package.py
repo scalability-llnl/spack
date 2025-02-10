@@ -120,6 +120,13 @@ class Tau(Package):
         default=False,
         description="Generate profiles with parameter mapped event data",
     )
+    variant("apex", default=True, description="Install APEX measurement for tasking runtimes")
+    zerosum_default = platform.system() != "darwin"
+    variant(
+        "zerosum",
+        default=zerosum_default,
+        description="Install ZeroSum measurement allocation monitoring",
+    )
 
     # Support cross compiling.
     # This is a _reasonable_ subset of the full set of TAU
@@ -175,6 +182,10 @@ class Tau(Package):
     depends_on("java", type="run")  # for paraprof
     depends_on("oneapi-level-zero", when="+level_zero")
     depends_on("dyninst@12.3.0:", when="+dyninst")
+
+    # subpackages for TAU
+    depends_on("apex", when="+apex")
+    depends_on("zerosum", when="+zerosum")
 
     # Elf only required from 2.28.1 on
     conflicts("+elf", when="@:2.28.0")
