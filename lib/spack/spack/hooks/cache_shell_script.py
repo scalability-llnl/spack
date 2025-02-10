@@ -32,7 +32,6 @@ def path_to_unload_shell_script(spec, shell):
     return os.path.join(spec.prefix, ".spack", f"unload.{shell}")
 
 
-
 def post_install(spec, explicit=None):
     """Creates and writes a cached shell script in for all available shells
 
@@ -59,7 +58,6 @@ def post_install(spec, explicit=None):
 
         with open(shell_script_path, "w") as f:
             f.write(mods)
-
 
     # Unload TODO: Write better comment
     env_mods = uenv.environment_modifications_for_specs(spec).reversed()

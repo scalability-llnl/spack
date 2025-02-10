@@ -258,7 +258,7 @@ class NameModifier:
         """Apply the modification to the mapping passed as input"""
         raise NotImplementedError("must be implemented by derived classes")
 
-    def _cache_str(self, ):
+    def _cache_str(self):
         raise NotImplementedError("must be implemented by derived classes")
 
 
@@ -288,7 +288,7 @@ class NameValueModifier:
         """Apply the modification to the mapping passed as input"""
         raise NotImplementedError("must be implemented by derived classes")
 
-    def _cache_str(self, ):
+    def _cache_str(self):
         raise NotImplementedError("must be implemented by derived classes")
 
 
