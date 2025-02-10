@@ -202,3 +202,11 @@ class MirrorError(SpackError):
 
     def __init__(self, msg, long_msg=None):
         super().__init__(msg, long_msg)
+
+
+class RepoError(SpackError):
+    """Superclass for repository-related errors."""
+
+
+class UnknownEntityError(RepoError):
+    """Raised when we encounter a package spack doesn't have."""

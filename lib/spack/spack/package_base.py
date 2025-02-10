@@ -36,14 +36,14 @@ import spack.dependency
 import spack.deptypes as dt
 import spack.directives_meta
 import spack.error
-import spack.fetch_strategy as fs
+import spack.fetch_strategy
 import spack.hooks
 import spack.mirrors.layout
 import spack.mirrors.mirror
 import spack.multimethod
 import spack.patch
 import spack.phase_callbacks
-import spack.repo
+import spack.repo_utils
 import spack.spec
 import spack.store
 import spack.url
@@ -838,7 +838,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
     @classproperty
     def namespace(cls):
         """Spack namespace for the package, which identifies its repo."""
-        return spack.repo.namespace_from_fullname(cls.__module__)
+        return spack.repo_utils.namespace_from_fullname(cls.__module__)
 
     @classproperty
     def fullname(cls):
@@ -1098,7 +1098,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         )
 
     def _download_search(self):
-        dynamic_fetcher = fs.from_list_url(self)
+        dynamic_fetcher = spack.fetch_strategy.from_list_url(self)
         return [dynamic_fetcher] if dynamic_fetcher else []
 
     def _make_root_stage(self, fetcher):
@@ -1267,7 +1267,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         if not self.spec.versions.concrete:
             raise ValueError("Cannot retrieve fetcher for package without concrete version.")
         if not self._fetcher:
-            self._fetcher = fs.for_package_version(self)
+            self._fetcher = spack.fetch_strategy.for_package_version(self)
         return self._fetcher
 
     @fetcher.setter
@@ -1659,8 +1659,11 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         # TODO: resources
         if self.spec.versions.concrete:
             try:
-                source_id = fs.for_package_version(self).source_id()
-            except (fs.ExtrapolationError, fs.InvalidArgsError):
+                source_id = spack.fetch_strategy.for_package_version(self).source_id()
+            except (
+                spack.fetch_strategy.ExtrapolationError,
+                spack.fetch_strategy.InvalidArgsError,
+            ):
                 # ExtrapolationError happens if the package has no fetchers defined.
                 # InvalidArgsError happens when there are version directives with args,
                 #     but none of them identifies an actual fetcher.
@@ -2010,7 +2013,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         # Try to get the package for the spec
         try:
             pkg = spec.package
-        except spack.repo.UnknownEntityError:
+        except spack.error.UnknownEntityError:
             pkg = None
 
         # Pre-uninstall hook runs first.
