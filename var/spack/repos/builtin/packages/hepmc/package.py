@@ -27,7 +27,6 @@ class Hepmc(CMakePackage):
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
-    depends_on("fortran", type="build")
 
     variant("length", default="MM", values=("CM", "MM"), multi=False, description="Unit of length")
     variant(
