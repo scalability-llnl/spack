@@ -258,6 +258,9 @@ class NameModifier:
         """Apply the modification to the mapping passed as input"""
         raise NotImplementedError("must be implemented by derived classes")
 
+    def _cache_str(self, ):
+        raise NotImplementedError("must be implemented by derived classes")
+
 
 class NameValueModifier:
     """Base class for modifiers that modify the value of an environment variable."""
