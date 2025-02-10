@@ -67,12 +67,9 @@ class PossibleDependencyGraph:
         raise NotImplementedError
 
 
-class ContextInspector(PossibleDependencyGraph):
-    """Inspects a context, to return information used when setting up concretization.
-
-    This class defines the public interface for more specialized inspectors, and defaults to
-    minimize the setup time (i.e. defaults to give fast answers), rather than trying to reduce
-    the ASP problem size with more complex analysis.
+class NoStaticAnalysis(PossibleDependencyGraph):
+    """Implementation that tries to minimize the setup time (i.e. defaults to give fast
+    answers), rather than trying to reduce the ASP problem size with more complex analysis.
     """
 
     def __init__(self, *, context: Context):
@@ -273,12 +270,12 @@ class ContextInspector(PossibleDependencyGraph):
             return False
 
 
-class StaticAnalyzer(ContextInspector):
+class StaticAnalysis(NoStaticAnalysis):
     """Performs some static analysis of the configuration, store, etc. to provide more precise
     answers on whether some packages can be installed, or used as a provider.
 
-    It increases the setup time, but might decrease the grounding and solve time considerably
-    in cases with strict requirements.
+    It increases the setup time, but might decrease the grounding and solve time considerably,
+    especially when requirements restrict the possible choices for providers.
     """
 
     @lang.memoized
@@ -358,8 +355,8 @@ class StaticAnalyzer(ContextInspector):
 def create_inspector(context: Context) -> PossibleDependencyGraph:
     static_analysis = context.configuration.get("concretizer:static_analysis", False)
     if static_analysis:
-        return StaticAnalyzer(context=context)
-    return ContextInspector(context=context)
+        return StaticAnalysis(context=context)
+    return NoStaticAnalysis(context=context)
 
 
 def default_context() -> Context:
