@@ -8,7 +8,7 @@ import spack.deptypes as dt
 import spack.repo
 import spack.spec
 
-from .context import ContextInspector
+from .context import PossibleDependencyGraph
 
 
 class Counter:
@@ -21,7 +21,7 @@ class Counter:
     """
 
     def __init__(
-        self, specs: List["spack.spec.Spec"], tests: bool, context: ContextInspector
+        self, specs: List["spack.spec.Spec"], tests: bool, context: PossibleDependencyGraph
     ) -> None:
         self.inspector = context
         self.specs = specs
@@ -82,7 +82,7 @@ class NoDuplicatesCounter(Counter):
 
 class MinimalDuplicatesCounter(NoDuplicatesCounter):
     def __init__(
-        self, specs: List["spack.spec.Spec"], tests: bool, context: ContextInspector
+        self, specs: List["spack.spec.Spec"], tests: bool, context: PossibleDependencyGraph
     ) -> None:
         super().__init__(specs, tests, context)
         self._link_run: Set[str] = set()

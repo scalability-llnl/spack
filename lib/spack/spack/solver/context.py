@@ -32,7 +32,42 @@ class PossibleGraph(NamedTuple):
     edges: Dict[str, Set[str]]
 
 
-class ContextInspector:
+class PossibleDependencyGraph:
+    """Returns information needed to set up an ASP problem"""
+
+    def unreachable(self, *, pkg_name: str, when_spec: spack.spec.Spec) -> bool:
+        """Returns true if the context can determine that the condition cannot ever
+        be met on pkg_name.
+        """
+        raise NotImplementedError
+
+    def candidate_targets(self) -> List[archspec.cpu.Microarchitecture]:
+        """Returns a list of targets that are candidate for concretization"""
+        raise NotImplementedError
+
+    def possible_dependencies(
+        self,
+        *specs: Union[spack.spec.Spec, str],
+        allowed_deps: dt.DepFlag,
+        transitive: bool = True,
+        strict_depflag: bool = False,
+        expand_virtuals: bool = True,
+    ) -> PossibleGraph:
+        """Returns the set of possible dependencies, and the set of possible virtuals.
+
+        Both sets always include runtime packages, which may be injected by compilers.
+
+        Args:
+            transitive: return transitive dependencies if True, only direct dependencies if False
+            allowed_deps: dependency types to consider
+            strict_depflag: if True, only the specific dep type is considered, if False any
+                deptype that intersects with allowed deptype is considered
+            expand_virtuals: expand virtual dependencies into all possible implementations
+        """
+        raise NotImplementedError
+
+
+class ContextInspector(PossibleDependencyGraph):
     """Inspects a context, to return information used when setting up concretization.
 
     This class defines the public interface for more specialized inspectors, and defaults to
@@ -140,17 +175,6 @@ class ContextInspector:
         strict_depflag: bool = False,
         expand_virtuals: bool = True,
     ) -> PossibleGraph:
-        """Returns the set of possible dependencies, and the set of possible virtuals.
-
-        Both sets always include runtime packages, which may be injected by compilers.
-
-        Args:
-            transitive: return transitive dependencies if True, only direct dependencies if False
-            allowed_deps: dependency types to consider
-            strict_depflag: if True, only the specific dep type is considered, if False any
-                deptype that intersects with allowed deptype is considered
-            expand_virtuals: expand virtual dependencies into all possible implementations
-        """
         stack = [x for x in self._package_list(specs)]
         virtuals: Set[str] = set()
         edges: Dict[str, Set[str]] = {}
@@ -331,7 +355,7 @@ class StaticAnalyzer(ContextInspector):
         return False
 
 
-def create_inspector(context: Context) -> ContextInspector:
+def create_inspector(context: Context) -> PossibleDependencyGraph:
     static_analysis = context.configuration.get("concretizer:static_analysis", False)
     if static_analysis:
         return StaticAnalyzer(context=context)
@@ -347,5 +371,5 @@ def default_context() -> Context:
     )
 
 
-def default_inspector() -> ContextInspector:
+def default_inspector() -> PossibleDependencyGraph:
     return create_inspector(default_context())

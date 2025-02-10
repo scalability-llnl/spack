@@ -49,7 +49,7 @@ import spack.version as vn
 import spack.version.git_ref_lookup
 from spack import traverse
 
-from .context import Context, ContextInspector, create_inspector
+from .context import Context, PossibleDependencyGraph, create_inspector
 from .core import (
     AspFunction,
     AspVar,
@@ -272,7 +272,7 @@ def remove_node(spec: spack.spec.Spec, facts: List[AspFunction]) -> List[AspFunc
     return list(filter(lambda x: x.args[0] not in ("node", "virtual_node"), facts))
 
 
-def _create_counter(specs: List[spack.spec.Spec], tests: bool, context: ContextInspector):
+def _create_counter(specs: List[spack.spec.Spec], tests: bool, context: PossibleDependencyGraph):
     strategy = context.configuration.get("concretizer:duplicates:strategy", "none")
     if strategy == "full":
         return FullDuplicatesCounter(specs, tests=tests, context=context)
@@ -1128,7 +1128,7 @@ class SpackSolverSetup:
             store=spack.store.STORE,
             binary_index=spack.binary_distribution.BINARY_INDEX,
         )
-        self.context_inspector = create_inspector(self.context)
+        self.possible_graph = create_inspector(self.context)
 
         # these are all initialized in setup()
         self.gen: "ProblemInstanceBuilder" = ProblemInstanceBuilder()
@@ -2408,23 +2408,18 @@ class SpackSolverSetup:
         """Add facts about targets and target compatibility."""
         self.gen.h2("Target compatibility")
 
-        platform = spack.platforms.host()
-        uarch = archspec.cpu.TARGETS.get(platform.default)
-        host_compatible = self.context_inspector.configuration.get(
-            "concretizer:targets:host_compatible"
-        )
-
         # Add targets explicitly requested from specs
         candidate_targets = []
-        for x in self.context_inspector.candidate_targets():
+        for x in self.possible_graph.candidate_targets():
             if all(
-                self.context_inspector.unreachable(pkg_name=pkg_name, when_spec=f"target={x}")
+                self.possible_graph.unreachable(pkg_name=pkg_name, when_spec=f"target={x}")
                 for pkg_name in self.pkgs
             ):
                 tty.debug(f"[{__name__}] excluding target={x}, cause no package can use it")
                 continue
             candidate_targets.append(x)
 
+        host_compatible = spack.config.CONFIG.get("concretizer:targets:host_compatible")
         for spec in specs:
             if not spec.architecture or not spec.architecture.target:
                 continue
@@ -2440,6 +2435,8 @@ class SpackSolverSetup:
                     if ancestor not in candidate_targets:
                         candidate_targets.append(ancestor)
 
+        platform = spack.platforms.host()
+        uarch = archspec.cpu.TARGETS.get(platform.default)
         best_targets = {uarch.family.name}
         for compiler_id, known_compiler in enumerate(self.possible_compilers):
             if not known_compiler.available:
@@ -2678,7 +2675,7 @@ class SpackSolverSetup:
         """
         check_packages_exist(specs)
 
-        node_counter = _create_counter(specs, tests=self.tests, context=self.context_inspector)
+        node_counter = _create_counter(specs, tests=self.tests, context=self.possible_graph)
         self.possible_virtuals = node_counter.possible_virtuals()
         self.pkgs = node_counter.possible_dependencies()
         self.libcs = sorted(all_libcs())  # type: ignore[type-var]
