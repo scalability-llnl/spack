@@ -1199,19 +1199,18 @@ def _version_constraints_are_satisfiable_by_some_version_in_repo(pkgs, error_cls
 def _when_conditions_are_satisfiable_by_some_version(pkgs, error_cls):
     """Report if versions in when conditions used in directives are not satisfiable"""
     errors = []
-    attrs = [
-        "conflicts",
-        "dependencies",
-        "languages",
-        "licenses",
-        "patches",
-        "provided_together",
-        "provided",
-        "requirements",
-        "resources",
-        "splice_specs",
-        "variants",
-    ]
+    attrs = {
+        "conflicts": "conflicts",
+        "dependencies": "depends_on",
+        "licenses": "license",
+        "patches": "patch",
+        "provided_together": "provides",
+        "provided": "provides",
+        "requirements": "requires",
+        "resources": "resource",
+        "splice_specs": "can_splice",
+        "variants": "variant",
+    }
     host_architecture = spack.spec.ArchSpec.default_arch()
     for pkg_name in pkgs:
         pkg_cls = spack.repo.PATH.get_pkg_class(pkg_name)
@@ -1224,7 +1223,7 @@ def _when_conditions_are_satisfiable_by_some_version(pkgs, error_cls):
             min(pkg_cls.versions), spack.version.StandardVersion.typemax()
         )
         details = []
-        for attr in attrs:
+        for attr, directive in attrs.items():
             if attr == "patches":
                 # Patches should strictly apply to some known version
                 unsatisfiable = [
@@ -1240,12 +1239,12 @@ def _when_conditions_are_satisfiable_by_some_version(pkgs, error_cls):
                 unsatisfiable = [
                     when for when in getattr(pkg_cls, attr) if not range.intersects(when.versions)
                 ]
-            details.extend(f'when="{x}"' for x in unsatisfiable)
+            details.extend(f'{directive}(..., when="{x}")' for x in unsatisfiable)
 
         if details:
             errors.append(
                 error_cls(
-                    summary=f"{filename}: `{attr}` when conditions are not satisfiable by "
+                    summary=f"{filename}: when conditions are not satisfiable by "
                     f"any known version of {pkg_cls.name}",
                     details=details,
                 )
