@@ -1324,7 +1324,7 @@ spack:
         env.concretize()
         env.write()
 
-    def fake_download_and_extract_artifacts(url, work_dir):
+    def fake_download_and_extract_artifacts(url, work_dir, merge_commit_test=True):
         with working_dir(tmp_path), ev.Environment(".") as env:
             if not os.path.exists(repro_dir):
                 repro_dir.mkdir()
@@ -1360,9 +1360,12 @@ spack:
                     f.write("#!/bin/sh\n\n#fake install\nspack install blah\n")
 
                 with open(repro_dir / "spack_info.txt", "w", encoding="utf-8") as f:
-                    f.write(
-                        f"\nMerge {last_two_git_commits[1]} into {last_two_git_commits[0]}\n\n"
-                    )
+                    if merge_commit_test:
+                        f.write(
+                            f"\nMerge {last_two_git_commits[1]} into {last_two_git_commits[0]}\n\n"
+                        )
+                    else:
+                        f.write(f"\ncommit {last_two_git_commits[1]}\n\n")
 
             return "jobs_scratch_dir"
 
@@ -1397,6 +1400,31 @@ spack:
 
     # Make sure we are checkout out the HEAD commit without a merge commit
     assert "checkout_commit: HEAD" in rep_out
+    assert "merge_commit: None" in rep_out
+
+    # Test the case where the spack_info.txt is not a merge commit
+    monkeypatch.setattr(
+        ci,
+        "download_and_extract_artifacts",
+        lambda url, wd: fake_download_and_extract_artifacts(url, wd, False),
+    )
+    rep_out = ci_cmd(
+        "reproduce-build",
+        "https://example.com/api/v1/projects/1/jobs/2/artifacts",
+        # Overwrite needed to prevent erroring on duplicate reproduction dir
+        "--overwrite",
+        "--working-dir",
+        str(repro_dir),
+        output=str,
+    )
+    # Make sure the script was generated
+    assert (repro_dir / "start.sh").exists()
+
+    # Make sure we tell the user where it is when not in interactive mode
+    assert f"$ {repro_dir}/start.sh" in rep_out
+
+    # Ensure the correct commit is used (different than HEAD)
+    assert f"checkout_commit: {last_two_git_commits[1]}" in rep_out
     assert "merge_commit: None" in rep_out
 
 
