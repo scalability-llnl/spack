@@ -26,7 +26,6 @@ paths:
       echo "Target: x86_64-unknown-linux-gnu"
       echo "Thread model: posix"
       echo "InstalledDir: /path/to/spack/install/llvm/bin"
-      echo "Configuration file: /path/to/spack/install/llvm/bin/clang.cfg"
   - executables:
     - "bin/flang-new"
     script: |
@@ -34,7 +33,6 @@ paths:
       echo "Target: x86_64-unknown-linux-gnu"
       echo "Thread model: posix"
       echo "InstalledDir: /path/to/spack/install/llvm/bin"
-      echo "Configuration file: /path/to/spack/install/llvm/bin/flang.cfg"
   platforms: ["darwin", "linux"]
   results:
   - spec: 'llvm@19.1.6 +flang+clang~lld~lldb'
@@ -50,22 +48,20 @@ paths:
     - "bin/clang"
     - "bin/clang++"
     script: |
-      echo "clang version 20.0.0 (I made this up)"
+      echo "clang version 20.1.0-rc1 (https://github.com/llvm/llvm-project af7f483a9d801252247b6c72e3763c1f55c5a506)"
       echo "Target: x86_64-unknown-linux-gnu"
       echo "Thread model: posix"
-      echo "InstalledDir: /path/to/spack/install/llvm/bin"
-      echo "Configuration file: /path/to/spack/install/llvm/bin/clang.cfg"
+      echo "InstalledDir: /tmp/clang/LLVM-20.1.0-rc1-Linux-X64/bin"
   - executables:
     - "bin/flang"
     script: |
-      echo "flang version 20.0.0 (I made this up)"
+      echo "flang version 20.1.0-rc1 (https://github.com/llvm/llvm-project af7f483a9d801252247b6c72e3763c1f55c5a506)"
       echo "Target: x86_64-unknown-linux-gnu"
       echo "Thread model: posix"
-      echo "InstalledDir: /path/to/spack/install/llvm/bin"
-      echo "Configuration file: /path/to/spack/install/llvm/bin/flang.cfg"
+      echo "InstalledDir: /tmp/clang/LLVM-20.1.0-rc1-Linux-X64/bin"
   platforms: ["darwin", "linux"]
   results:
-  - spec: 'llvm@20.0.0 +flang+clang~lld~lldb'
+  - spec: 'llvm@20.1.0 +flang+clang~lld~lldb'
     extra_attributes:
       compilers:
         c: ".*/bin/clang"
