@@ -8,9 +8,9 @@ import sys
 import spack.cmd
 import spack.cmd.common
 import spack.environment as ev
+import spack.hooks.cache_shell_script as shell_script
 import spack.store
 from spack.cmd.common import arguments
-import spack.hooks.cache_shell_script as shell_script
 
 
 description = "add package to the user environment"
@@ -106,6 +106,6 @@ def load(parser, args):
         shell = args.shell if args.shell else os.environ.get("SPACK_SHELL")
 
     for spec in specs:  # reversed specs?
-        shell_script_file = shell_script.path_to_cached_shell_script(spec, shell)
+        shell_script_file = shell_script.path_to_load_shell_script(spec, shell)
 
         print(f"source {shell_script_file}")
