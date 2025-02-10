@@ -862,8 +862,7 @@ def include_path_scope(include: IncludePath) -> Optional[ConfigScope]:
     if (not include.when) or spack.spec.eval_conditional(include.when):
         # canonicalize_path does variable expansion and resolves relative paths
         include_path = spack.util.path.canonicalize_path(include.path)
-        config_path = rfc_util.local_path(include_path, _include_cache_location())
-
+        config_path = rfc_util.local_path(include_path, _include_cache_location)
         if not config_path:
             raise ConfigFileError(f"Unable to fetch remote configuration {config_path}")
 
