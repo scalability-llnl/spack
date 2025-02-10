@@ -46,7 +46,7 @@ class Occa(CMakePackage, MakefilePackage, CudaPackage, ROCmPackage):
     build_system(
         conditional("cmake", when="@1.1.0:"),
         conditional("makefile", when="@:1.0.9"),
-        default="makefile",
+        default="cmake",
     )
 
     variant("openmp", default=False, description="Enable support for OpenMP")
