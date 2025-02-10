@@ -511,3 +511,14 @@ class FullDuplicatesCounter(MinimalDuplicatesCounter):
         for pkg, count in sorted(counter.items(), key=lambda x: (x[1], x[0])):
             gen.fact(fn.max_dupes(pkg, count))
         gen.newline()
+
+
+def create_counter(
+    specs: List[spack.spec.Spec], tests: bool, possible_graph: PossibleDependencyGraph
+) -> Counter:
+    strategy = spack.config.CONFIG.get("concretizer:duplicates:strategy", "none")
+    if strategy == "full":
+        return FullDuplicatesCounter(specs, tests=tests, possible_graph=possible_graph)
+    if strategy == "minimal":
+        return MinimalDuplicatesCounter(specs, tests=tests, possible_graph=possible_graph)
+    return NoDuplicatesCounter(specs, tests=tests, possible_graph=possible_graph)

@@ -62,13 +62,7 @@ from .core import (
     parse_files,
     parse_term,
 )
-from .input_analysis import (
-    FullDuplicatesCounter,
-    MinimalDuplicatesCounter,
-    NoDuplicatesCounter,
-    PossibleDependencyGraph,
-    create_graph_analyzer,
-)
+from .input_analysis import create_counter, create_graph_analyzer
 from .requirements import RequirementKind, RequirementParser, RequirementRule
 from .version_order import concretization_version_order
 
@@ -275,17 +269,6 @@ def specify(spec):
 def remove_node(spec: spack.spec.Spec, facts: List[AspFunction]) -> List[AspFunction]:
     """Transformation that removes all "node" and "virtual_node" from the input list of facts."""
     return list(filter(lambda x: x.args[0] not in ("node", "virtual_node"), facts))
-
-
-def _create_counter(
-    specs: List[spack.spec.Spec], tests: bool, possible_graph: PossibleDependencyGraph
-):
-    strategy = spack.config.CONFIG.get("concretizer:duplicates:strategy", "none")
-    if strategy == "full":
-        return FullDuplicatesCounter(specs, tests=tests, possible_graph=possible_graph)
-    if strategy == "minimal":
-        return MinimalDuplicatesCounter(specs, tests=tests, possible_graph=possible_graph)
-    return NoDuplicatesCounter(specs, tests=tests, possible_graph=possible_graph)
 
 
 def all_libcs() -> Set[spack.spec.Spec]:
@@ -2676,7 +2659,7 @@ class SpackSolverSetup:
         """
         check_packages_exist(specs)
 
-        node_counter = _create_counter(specs, tests=self.tests, possible_graph=self.possible_graph)
+        node_counter = create_counter(specs, tests=self.tests, possible_graph=self.possible_graph)
         self.possible_virtuals = node_counter.possible_virtuals()
         self.pkgs = node_counter.possible_dependencies()
         self.libcs = sorted(all_libcs())  # type: ignore[type-var]
