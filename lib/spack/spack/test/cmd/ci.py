@@ -22,6 +22,9 @@ import spack.environment as ev
 import spack.hash_types as ht
 import spack.main
 import spack.paths as spack_paths
+import spack.repo
+import spack.spec
+import spack.stage
 import spack.util.spack_yaml as syaml
 from spack.ci import gitlab as gitlab_generator
 from spack.ci.common import PipelineDag, PipelineOptions, SpackCIConfig
@@ -1782,10 +1785,7 @@ def fetch_versions_match(monkeypatch):
 
     def get_checksums_for_versions(url_by_version, package_name, **kwargs):
         pkg_cls = spack.repo.PATH.get_pkg_class(package_name)
-        return {
-            v: pkg_cls.versions[v]["sha256"]
-            for v in url_by_version
-        }
+        return {v: pkg_cls.versions[v]["sha256"] for v in url_by_version}
 
     monkeypatch.setattr(spack.stage, "get_checksums_for_versions", get_checksums_for_versions)
 
@@ -1811,7 +1811,7 @@ def test_ci_validate_standard_versions_valid(mock_packages, fetch_versions_match
     versions = pkg_cls.versions
 
     all_valid = spack.cmd.ci.validate_standard_versions(pkg, versions)
-    assert all_valid == True
+    assert all_valid
 
 
 def test_ci_validate_standard_versions_invalid(mock_packages, fetch_versions_invalid):
@@ -1822,4 +1822,4 @@ def test_ci_validate_standard_versions_invalid(mock_packages, fetch_versions_inv
     versions = pkg_cls.versions
 
     all_valid = spack.cmd.ci.validate_standard_versions(pkg, versions)
-    assert all_valid == False
+    assert not all_valid
