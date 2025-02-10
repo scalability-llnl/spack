@@ -61,6 +61,7 @@ import spack.spec
 import spack.util.crypto
 import spack.util.spack_yaml as syaml
 import spack.variant
+import spack.version
 
 #: Map an audit tag to a list of callables implementing checks
 CALLBACKS = {}
@@ -1137,10 +1138,23 @@ def _ensure_variants_have_descriptions(pkgs, error_cls):
     return errors
 
 
+def _skip_version_audit(host_arch: spack.spec.ArchSpec, pkg_cls) -> bool:
+    """The version audit is skipped if a package defines skip_version_audit as True or if the
+    host architecture satisfies any of the archs in the list skip_version_audit."""
+    skip_conditions = getattr(pkg_cls, "skip_version_audit", False)
+    if type(skip_conditions) is bool:
+        return skip_conditions
+    for condition in skip_conditions:
+        if host_arch.satisfies(spack.spec.Spec(condition).architecture):
+            return True
+    return False
+
+
 @package_directives
 def _version_constraints_are_satisfiable_by_some_version_in_repo(pkgs, error_cls):
     """Report if version constraints used in directives are not satisfiable"""
     errors = []
+    host_architecture = spack.spec.ArchSpec.default_arch()
     for pkg_name in pkgs:
         pkg_cls = spack.repo.PATH.get_pkg_class(pkg_name)
         filename = spack.repo.PATH.filename_for_package_name(pkg_name)
@@ -1156,20 +1170,13 @@ def _version_constraints_are_satisfiable_by_some_version_in_repo(pkgs, error_cls
 
                 dependencies_to_check.append(dep.spec)
 
-        host_architecture = spack.spec.ArchSpec.default_arch()
         for s in dependencies_to_check:
             dependency_pkg_cls = None
             try:
                 dependency_pkg_cls = spack.repo.PATH.get_pkg_class(s.name)
                 # Some packages have hacks that might cause failures on some platform
                 # Allow to explicitly set conditions to skip version checks in that case
-                skip_conditions = getattr(dependency_pkg_cls, "skip_version_audit", [])
-                skip_version_check = False
-                for condition in skip_conditions:
-                    if host_architecture.satisfies(spack.spec.Spec(condition).architecture):
-                        skip_version_check = True
-                        break
-                assert skip_version_check or any(
+                assert _skip_version_audit(host_architecture, dependency_pkg_cls) or any(
                     v.intersects(s.versions) for v in list(dependency_pkg_cls.versions)
                 )
             except Exception:
@@ -1184,6 +1191,62 @@ def _version_constraints_are_satisfiable_by_some_version_in_repo(pkgs, error_cls
                         )
                     )
                 errors.append(error_cls(summary=summary, details=details))
+
+    return errors
+
+
+@package_directives
+def _when_conditions_are_satisfiable_by_some_version(pkgs, error_cls):
+    """Report if versions in when conditions used in directives are not satisfiable"""
+    errors = []
+    attrs = [
+        "conflicts",
+        "dependencies",
+        "languages",
+        "licenses",
+        "patches",
+        "provided_together",
+        "provided",
+        "requirements",
+        "resources",
+        "splice_specs",
+        "variants",
+    ]
+    host_architecture = spack.spec.ArchSpec.default_arch()
+    for pkg_name in pkgs:
+        pkg_cls = spack.repo.PATH.get_pkg_class(pkg_name)
+        filename = spack.repo.PATH.filename_for_package_name(pkg_name)
+        if _skip_version_audit(host_architecture, pkg_cls):
+            continue
+        if not pkg_cls.versions:
+            continue
+        range = spack.version.VersionRange(
+            min(pkg_cls.versions), spack.version.StandardVersion.typemax()
+        )
+        for attr in attrs:
+            if attr == "patches":
+                # Patches should strictly apply to some known version
+                unsatisfiable = [
+                    when
+                    for when in getattr(pkg_cls, attr)
+                    if not any(y.intersects(when.versions) for y in pkg_cls.versions)
+                ]
+            else:
+                # Other directives should just be in the range of min known version to infinity.
+                # The reason being sometimes people add depends_on("foo@1.1", when="@1.1") because
+                # it's copied, even though only 1.0 and 1.2 are registered in Spack. It's too
+                # annoying to complain about that.
+                unsatisfiable = [
+                    when for when in getattr(pkg_cls, attr) if not range.intersects(when.versions)
+                ]
+            if unsatisfiable:
+                errors.append(
+                    error_cls(
+                        summary=f"{filename}: `{attr}` when conditions are not satisfiable by "
+                        f"any known version of {pkg_cls.name}",
+                        details=[f'when="{x}"' for x in unsatisfiable],
+                    )
+                )
 
     return errors
 
