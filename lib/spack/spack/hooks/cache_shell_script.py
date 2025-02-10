@@ -8,12 +8,23 @@ import sys
 import spack.user_environment as uenv
 
 
-def post_install(spec, explicit=None):
-    """What this does
+def path_to_cached_shell_script(spec, shell):
+    """Returns to path to the shell script of the specified spec and
+    shell of the user
 
     Args:
-        spec:
-        explicit:
+        spec: The spec whose shell script we are returning the path of
+        shell: The shell that the user is running on
+    """
+
+    return os.path.join(spec.prefix, ".spack", f"load.{shell}")
+
+def post_install(spec, explicit=None):
+    """Creates and writes a cached shell script in for all available shells
+
+    Args:
+        spec: The spec the requires the shell scripts
+        explicit: TODO: because I have no idea
     """
 
     if spec.external:
@@ -29,7 +40,7 @@ def post_install(spec, explicit=None):
     for shell in shells_avail:
         mods = env_mods.shell_modifications(shell)
 
-        shell_script_path = os.path.join(spec.prefix, ".spack", f"load.{shell}")
+        shell_script_path = path_to_cached_shell_script(spec, shell)
 
         with open(shell_script_path, "w") as f:
             f.write(mods)

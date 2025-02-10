@@ -306,7 +306,7 @@ fi
 _spack_pathadd PATH "${_sp_prefix%/}/bin"
 
 # These are needed for environment modifications in spack load & spack unload
-. $SPACK_ROOT/share/spack/shell_commands.sh
+. $_sp_share_dir/shell_commands.sh
 
 # Set shell being used
 export SPACK_SHELL="sh"
@@ -401,6 +401,3 @@ fi
 # done: unset sentinel variable as we're no longer initializing
 unset _sp_initializing
 export _sp_initializing
-
-# TODO: There is probably a better place to put this
-source $_sp_share_dir/shell_commands.sh
