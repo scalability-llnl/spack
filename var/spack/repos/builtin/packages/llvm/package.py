@@ -996,14 +996,19 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
                 cmake_args.append(define("LIBOMPTARGET_NVPTX_ENABLE_BCLIB", True))
         else:
             # still build libomptarget but disable cuda
-            cmake_args.extend(
-                [
-                    define("CUDA_TOOLKIT_ROOT_DIR", "IGNORE"),
-                    define("CUDA_SDK_ROOT_DIR", "IGNORE"),
-                    define("CUDA_NVCC_EXECUTABLE", "IGNORE"),
-                    define("LIBOMPTARGET_DEP_CUDA_DRIVER_LIBRARIES", "IGNORE"),
-                ]
-            )
+            if spec.satisfies("@:13"):
+                cmake_args.extend(
+                    [
+                        define("CUDA_TOOLKIT_ROOT_DIR", "IGNORE"),
+                        define("CUDA_SDK_ROOT_DIR", "IGNORE"),
+                        define("CUDA_NVCC_EXECUTABLE", "IGNORE"),
+                        define("LIBOMPTARGET_DEP_CUDA_DRIVER_LIBRARIES", "IGNORE"),
+                    ]
+                )
+            elif spec.satisfies("@14:18"):
+                cmake_args.append(define("LIBOMPTARGET_BUILD_CUDA_PLUGIN", False))
+            elif spec.satisfies("@19:"):
+                cmake_args.append(define("LIBOMPTARGET_PLUGINS_TO_BUILD", "host"))
 
         cmake_args.append(from_variant("LIBOMPTARGET_ENABLE_DEBUG", "libomptarget_debug"))
 
