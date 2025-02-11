@@ -68,6 +68,7 @@ def configuration(module_set_name):
 
 #: Valid tokens for naming scheme and env variable names
 _valid_tokens = (
+    "hash",
     "name",
     "version",
     "compiler",
