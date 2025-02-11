@@ -214,6 +214,10 @@ def get_path_from_module_contents(text, module_name):
         pattern = r"MANPATH"
         match_pattern_and_strip(line, pattern, man_endings)
 
+        # Check entries that update the MODULEPATH variable
+        pattern = r'\WMODULEPATH'
+        match_pattern_and_strip(line, pattern, bin_endings)
+
         # Check entries that add a `-rpath` flag to a variable
         match_flag_and_strip(line, "-rpath", lib_endings)
 
