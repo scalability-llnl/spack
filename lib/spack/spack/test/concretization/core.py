@@ -1243,7 +1243,7 @@ class TestConcretize:
     def test_conditional_provides_or_depends_on(self):
         # Check that we can concretize correctly a spec that can either
         # provide a virtual or depend on it based on the value of a variant
-        s = spack.concretize.concretize_one("conditional-provider +disable-v1")
+        s = spack.concretize.concretize_one("v1-consumer ^conditional-provider +disable-v1")
         assert "v1-provider" in s
         assert s["v1"].name == "v1-provider"
         assert s["v2"].name == "conditional-provider"
