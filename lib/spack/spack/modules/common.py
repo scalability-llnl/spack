@@ -862,8 +862,10 @@ class BaseModuleFileWriter:
         # If the directory where the module should reside does not exist
         # create it
         module_dir = os.path.dirname(self.layout.filename)
+        parent_dir = os.path.dirname(self.layout.dirname())
+        perms = os.stat(parent_dir).st_mode
         if not os.path.exists(module_dir):
-            llnl.util.filesystem.mkdirp(module_dir)
+            llnl.util.filesystem.mkdirp(module_dir, mode=perms)
 
         # Get the template for the module
         template_name = self._get_template()
