@@ -213,6 +213,12 @@ class KokkosKernels(CMakePackage, CudaPackage):
     # kokkos-kernels requires KOKKOS_LAMBDA to be available since 4.0.00
     depends_on("kokkos+cuda_lambda", when="@4.0.00:+cuda")
 
+    # Propagate cuda_arch to kokkos
+    for (_arch,) in CudaPackage.cuda_arch_values:
+        depends_on(
+            "kokkos +cuda cuda_arch={0}".format(_arch), when="+cuda cuda_arch={0}".format(_arch)
+        )
+
     numeric_etis = {
         "ordinals": (
             "int",
