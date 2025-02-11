@@ -284,6 +284,17 @@ def clean_test_environment():
     ev.deactivate()
 
 
+@pytest.fixture(scope="function", autouse=True)
+def sandbox_test_env():
+    saved_env = os.environ.copy()
+    yield
+    # os.environ = saved_env doesn't work
+    # it causes module_parsing::test_module_function to fail
+    # when it's run after any test using this fixutre
+    os.environ.clear()
+    os.environ.update(saved_env)
+
+
 def _host():
     """Mock archspec host so there is no inconsistency on the Windows platform
     This function cannot be local as it needs to be pickleable"""
