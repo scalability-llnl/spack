@@ -1,0 +1,44 @@
+diff --git a/src/backend/cuda/platform.cpp b/src/backend/cuda/platform.cpp
+index 52a22cdbaf..911774d48e 100644
+--- a/src/backend/cuda/platform.cpp
++++ b/src/backend/cuda/platform.cpp
+@@ -49,6 +49,7 @@
+ #include <stdexcept>
+ #include <string>
+ #include <thread>
++#include <type_traits>
+ 
+ using std::call_once;
+ using std::make_unique;
+@@ -124,7 +125,7 @@ unique_handle<cudnnHandle_t> *nnManager(const int deviceId) {
+     });
+     if (error) {
+         string error_msg = fmt::format("Error initializing cuDNN({}): {}.",
+-                                       error, errorString(error));
++                                       static_cast<std::underlying_type<cudnnStatus_t>::type>(error), errorString(error));
+         AF_ERROR(error_msg, AF_ERR_RUNTIME);
+     }
+     CUDNN_CHECK(getCudnnPlugin().cudnnSetStream(cudnnHandles[deviceId],
+
+From 44c156a6267b89c5fd41e764b564e8d4ca8fac6e Mon Sep 17 00:00:00 2001
+From: errata-c <erratachem@gmail.com>
+Date: Sun, 5 Nov 2023 14:21:24 -0500
+Subject: [PATCH 2/2] Fixed call to dependency_check with too few arguments
+
+---
+ test/CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/test/CMakeLists.txt b/test/CMakeLists.txt
+index cf7e66255f..f019bf078e 100644
+--- a/test/CMakeLists.txt
++++ b/test/CMakeLists.txt
+@@ -20,7 +20,7 @@ if(AF_TEST_WITH_MTX_FILES)
+ endif()
+ 
+ if(AF_WITH_EXTERNAL_PACKAGES_ONLY)
+-    dependency_check(GTest_FOUND)
++    dependency_check(GTest_FOUND  "GTest not found.")
+ elseif(NOT TARGET GTest::gtest)
+   af_dep_check_and_populate(${gtest_prefix}
+     URI https://github.com/google/googletest.git

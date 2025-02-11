@@ -1,0 +1,11 @@
+--- CMakeLists.txt.orig	2024-09-19 17:48:51.000000000 +0000
++++ CMakeLists.txt	2024-09-19 17:49:11.668924088 +0000
+@@ -310,7 +310,7 @@
+     URI https://github.com/martinmoene/span-lite
+     REF "ccf2351"
+     )
+-  add_subdirectory(${span-lite_SOURCE_DIR} EXCLUDE_FROM_ALL)
++  add_subdirectory(${span-lite_SOURCE_DIR} build EXCLUDE_FROM_ALL)
+   get_property(span_include_dir
+     TARGET span-lite
+     PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
