@@ -78,6 +78,7 @@ class Xgboost(CMakePackage, CudaPackage):
             self.define_from_variant("USE_CUDA", "cuda"),
             self.define_from_variant("USE_NCCL", "nccl"),
             self.define_from_variant("USE_OPENMP", "openmp"),
+            self.define("CMAKE_CXX_FLAGS", "-std=c++17"),
         ]
 
         if "+cuda" in self.spec:
@@ -106,3 +107,7 @@ class Xgboost(CMakePackage, CudaPackage):
             ]
 
         return args
+
+    def setup_build_environment(self, env):
+        env.set("CXXFLAGS", "-std=c++17")
+        env.set("SPACK_CXXFLAGS", "-std=c++17")
