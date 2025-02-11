@@ -27,6 +27,8 @@ import http.client
 import os
 import re
 import shutil
+import subprocess
+import sys
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -712,7 +714,6 @@ class GitFetchStrategy(VCSFetchStrategy):
     git_version_re = r"git version (\S+)"
 
     def __init__(self, **kwargs):
-
         self.commit: Optional[str] = None
         self.tag: Optional[str] = None
         self.branch: Optional[str] = None
@@ -1216,6 +1217,11 @@ class SvnFetchStrategy(VCSFetchStrategy):
 
         with temp_cwd():
             self.svn(*args)
+            if sys.platform == "win32":
+                # On Windows, ensure that the checkout is not set to read-only to prevent
+                # PermissionsError when shutil.move attempts to copy-then-delete the temp
+                # directory when working on muliple drives.
+                subprocess.run("attrib -h -r /d /s", check=True, shell=True)
             repo_name = get_single_file(".")
             self.stage.srcdir = repo_name
             shutil.move(repo_name, self.stage.source_path)
