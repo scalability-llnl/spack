@@ -398,6 +398,13 @@ class Python(Package):
         ff.filter(
             r"^(.*)setup\.py(.*)((build)|(install))(.*)$", r"\1setup.py\2 --no-user-cfg \3\6"
         )
+        # NOTE: Python<=3.11's setup.py uses ldd to find the terminfo/cap library
+        # that its libreadline uses. In the case of a split libtinfo, this fails.
+        # To solve this, we add the tinfo library to the list of libraries that
+        # setup.py searches for when looking for a curses terminal library.
+        # This fixes using external and internal curses builds with split libtinfo:
+        if os.path.exists("setup.py"):  # 3.12.0+ replaced setup.py:
+            filter_file(r"(n\?curses)", r"(\1|tinfo)", "setup.py")
 
         # disable building the nis module (there is no flag to disable it).
         if self.spec.satisfies("@3.8:3.10"):
