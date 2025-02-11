@@ -43,6 +43,7 @@ class HipRocclr(CMakePackage):
     depends_on("cmake@3:", type="build")
     depends_on("gl@4.5:", type="link")
     depends_on("numactl", type="link")
+    requires("^[virtuals=gl] glx")
 
     for ver in ["5.3.0", "5.3.3", "5.4.0", "5.4.3", "5.5.0", "5.5.1", "5.6.0", "5.6.1", "master"]:
         depends_on(f"hsakmt-roct@{ver}", when=f"@{ver}")
