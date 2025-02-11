@@ -1,0 +1,27 @@
+From 5a9f3c8fd7c132b1591bb34b85bebc59d4dfcb24 Mon Sep 17 00:00:00 2001
+From: Roland Fehrenbacher <rf@q-leap.de>
+Date: Thu, 25 Jan 2024 20:04:43 +0100
+Subject: [PATCH 1/2] Fix CUDA_INCLUDE_DIRS
+
+---
+ CMakeLists.txt | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 886af19c6..89a178b9b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -198,9 +198,7 @@ if(CUDA_FOUND)
+     include_directories(${NvToolExt_INCLUDE_DIR})
+     link_libraries(${NvToolExt_LIBRARIES})
+ 
+-
+-    find_package(CUB REQUIRED)
+-    include_directories(${CUB_INCLUDE_DIR})
++    include_directories(${CUDA_INCLUDE_DIRS})
+ endif()
+ 
+ add_definitions(-DKALDI_NO_PORTAUDIO=1)
+-- 
+2.34.1
+

@@ -22,6 +22,7 @@ class Kaldi(Package):  # Does not use Autotools
     license("Apache-2.0")
 
     version("master")
+    version("2024-01-31", commit="8c451e28582f5d91f84ea3d64bb76c794c3b1683")
     version("2021-11-16", commit="6e03a3f5f99d6d8c22494d90b7e7f9ceb0117ac8")
     version("2019-09-29", commit="6ffde4b41c58de778245149690927d592cd5956a")
     version("2019-07-29", commit="7637de77e0a77bf280bef9bf484e4f37c4eb9475")
@@ -47,7 +48,8 @@ class Kaldi(Package):  # Does not use Autotools
     depends_on("gmake", type="build")
 
     patch("openfst-1.4.1.patch", when="@2015-10-07")
-    patch("0001_CMakeLists_txt.patch", when="+cuda@11:")
+    patch("0001_CMakeLists_txt.patch", when="@:2021-11-16")
+    patch("0001-Fix-CUDA_INCLUDE_DIRS.patch", when="@2024-01-31:")
 
     # Change process of version analysis when using Fujitsu compiler.
     patch("fujitsu_fix_version_analysis.patch", when="@2018-07-11:%fj")
