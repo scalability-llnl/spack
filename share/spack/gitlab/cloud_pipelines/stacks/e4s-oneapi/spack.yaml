@@ -16,6 +16,26 @@ spack:
       variants: +mpi
     gl:
       require: osmesa
+    boost:
+      prefer:
+      - "+atomic"
+      - "+chrono"
+      - "+date_time"
+      - "+exception"
+      - "+filesystem"
+      - "+graph"
+      - "+iostreams"
+      - "+locale"
+      - "+log"
+      - "+math"
+      - "+random"
+      - "+regex"
+      - "+serialization"
+      - "+signals"
+      - "+system"
+      - "+thread"
+      - "+timer"
+      - "+wave"
     elfutils:
       variants: ~nls
     gcc-runtime:
