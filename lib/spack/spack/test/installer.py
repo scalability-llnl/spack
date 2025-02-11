@@ -1186,33 +1186,41 @@ def test_install_implicit(install_mockery, mock_fetch):
     assert create_build_task(pkg, {"explicit": [pkg.spec.dag_hash()]}).explicit
     assert not create_build_task(pkg).explicit
 
-
+#### WIP ##### 
 def test_overwrite_install_backup_success(temporary_store, config, mock_packages, tmpdir):
     """
     When doing an overwrite install that fails, Spack should restore the backup
     of the original prefix, and leave the original spec marked installed.
     """
-    # Get a build task. TODO: refactor this to avoid calling internal methods
+    # call overwrite_install and have it fail
+
+    # active the error handling
+
+    # ensure that the backup is restored
+
+    # ensure that the original spec is still installed
+    
+    
+    # Get a build task. TODO: Refactor this to avoid calling internal methods.
     installer = create_installer(["pkg-b"])
     installer._init_queue()
-    task = installer._pop_ready_task()
-
+    task = installer._pop_task()
+ 
     # Make sure the install prefix exists with some trivial file
     installed_file = os.path.join(task.pkg.prefix, "some_file")
     fs.touchp(installed_file)
-
-    class InstallerThatWipesThePrefixDir:
-        def install(self):
-            shutil.rmtree(task.pkg.prefix, ignore_errors=True)
-            fs.mkdirp(task.pkg.prefix)
-            raise Exception("Some fatal install error")
-
-    class FakeDatabase:
+    
+    # Install that wipes the prefix directory
+    def wiped_installer():
+        shutil.rmtree(task.pkg.prefix)
+    
+    class FakeDatabase():
         called = False
 
         def remove(self, spec):
             self.called = True
-
+    
+    
     fake_installer = InstallerThatWipesThePrefixDir()
     fake_db = FakeDatabase()
     overwrite_install = inst.OverwriteInstall(fake_installer, fake_db, task, None)
