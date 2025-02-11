@@ -86,6 +86,16 @@ default:
         SPACK_COPY_BUILDCACHE: "${PROTECTED_MIRROR_PUSH_DOMAIN}/${CI_COMMIT_REF_NAME}"
         SPACK_REQUIRE_SIGNING: "True"
         OIDC_TOKEN_AUDIENCE: "protected_binary_mirror"
+    - if: $CI_COMMIT_TAG =~ /^develop-re-[\d]{4}-[\d]{2}-[\d]{2}$/
+      # Pipelines to test rebuilding everything on develop.
+      when: always
+      variables:
+        SPACK_PIPELINE_TYPE: "spack_protected_branch"
+        SPACK_COPY_BUILDCACHE: "${PROTECTED_MIRROR_PUSH_DOMAIN}/${CI_COMMIT_REF_NAME}"
+        SPACK_PRUNE_UNTOUCHED: "False"
+        SPACK_PRUNE_UP_TO_DATE: "False"
+        SPACK_REQUIRE_SIGNING: "True"
+        OIDC_TOKEN_AUDIENCE: "protected_binary_mirror"
     - if: $CI_COMMIT_TAG =~ /^develop-[\d]{4}-[\d]{2}-[\d]{2}$/ || $CI_COMMIT_TAG =~ /^v.*/
       # Pipelines on tags (release or dev snapshots) only copy binaries from one mirror to another
       when: always
