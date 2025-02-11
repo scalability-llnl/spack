@@ -42,6 +42,7 @@ import spack.spec
 import spack.store
 import spack.util.crypto
 import spack.util.libc
+import spack.util.module_cmd as md
 import spack.util.path
 import spack.util.timer
 import spack.variant as vt
@@ -3689,11 +3690,11 @@ class SpecBuilder:
         roots = [spec.root for spec in self._specs.values()]
         roots = dict((id(r), r) for r in roots)
         for root in roots.values():
-            spack.spec.Spec.inject_patches_variant(root)
+            _inject_patches_variant(root)
 
         # Add external paths to specs with just external modules
         for s in self._specs.values():
-            spack.spec.Spec.ensure_external_path_if_external(s)
+            _ensure_external_path_if_external(s)
 
         for s in self._specs.values():
             _develop_specs_from_env(s, ev.active_environment())
@@ -3763,6 +3764,90 @@ class SpecBuilder:
             specs[new_key] = current_spec
 
         return specs
+
+
+def _inject_patches_variant(root: spack.spec.Spec) -> None:
+    # This dictionary will store object IDs rather than Specs as keys
+    # since the Spec __hash__ will change as patches are added to them
+    spec_to_patches = {}
+    for s in root.traverse():
+        # After concretizing, assign namespaces to anything left.
+        # Note that this doesn't count as a "change".  The repository
+        # configuration is constant throughout a spack run, and
+        # normalize and concretize evaluate Packages using Repo.get(),
+        # which respects precedence.  So, a namespace assignment isn't
+        # changing how a package name would have been interpreted and
+        # we can do it as late as possible to allow as much
+        # compatibility across repositories as possible.
+        if s.namespace is None:
+            s.namespace = spack.repo.PATH.repo_for_pkg(s.name).namespace
+
+        if s.concrete:
+            continue
+
+        # Add any patches from the package to the spec.
+        patches = set()
+        for cond, patch_list in spack.repo.PATH.get_pkg_class(s.fullname).patches.items():
+            if s.satisfies(cond):
+                for patch in patch_list:
+                    patches.add(patch)
+        if patches:
+            spec_to_patches[id(s)] = patches
+
+    # Also record all patches required on dependencies by
+    # depends_on(..., patch=...)
+    for dspec in root.traverse_edges(deptype=dt.ALL, cover="edges", root=False):
+        if dspec.spec.concrete:
+            continue
+
+        pkg_deps = spack.repo.PATH.get_pkg_class(dspec.parent.fullname).dependencies
+
+        patches = []
+        for cond, deps_by_name in pkg_deps.items():
+            if not dspec.parent.satisfies(cond):
+                continue
+
+            dependency = deps_by_name.get(dspec.spec.name)
+            if not dependency:
+                continue
+
+            for pcond, patch_list in dependency.patches.items():
+                if dspec.spec.satisfies(pcond):
+                    patches.extend(patch_list)
+
+        if patches:
+            all_patches = spec_to_patches.setdefault(id(dspec.spec), set())
+            for patch in patches:
+                all_patches.add(patch)
+
+    for spec in root.traverse():
+        if id(spec) not in spec_to_patches:
+            continue
+
+        patches = list(llnl.util.lang.dedupe(spec_to_patches[id(spec)]))
+        mvar = spec.variants.setdefault("patches", vt.MultiValuedVariant("patches", ()))
+        mvar.value = tuple(p.sha256 for p in patches)
+        # FIXME: Monkey patches mvar to store patches order
+        full_order_keys = list(tuple(p.ordering_key) + (p.sha256,) for p in patches)
+        ordered_hashes = sorted(full_order_keys)
+        tty.debug(
+            "Ordered hashes [{0}]: ".format(spec.name)
+            + ", ".join("/".join(str(e) for e in t) for t in ordered_hashes)
+        )
+        mvar._patches_in_order_of_appearance = list(t[-1] for t in ordered_hashes)
+
+
+def _ensure_external_path_if_external(external_spec: spack.spec.Spec) -> None:
+    if not external_spec.external_modules or external_spec.external_path:
+        return
+
+    # Get the path from the module the package can override the default
+    # (this is mostly needed for Cray)
+    pkg_cls = spack.repo.PATH.get_pkg_class(external_spec.name)
+    package = pkg_cls(external_spec)
+    external_spec.external_path = getattr(package, "external_prefix") or md.path_from_modules(
+        external_spec.external_modules
+    )
 
 
 def _develop_specs_from_env(spec, env):
