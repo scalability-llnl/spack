@@ -838,7 +838,10 @@ class Python(Package):
         file_extension = "" if sys.platform != "win32" else ".exe"
         patterns = [f"python{ver}{file_extension}" for ver in suffixes]
         root = self.prefix.bin if sys.platform != "win32" else self.prefix
-        path = find_first(root, files=patterns)
+        for pattern in patterns:
+            path = find_first(root, files=pattern)
+            if path is not None:
+                break
 
         if path is not None:
             return Executable(path)
