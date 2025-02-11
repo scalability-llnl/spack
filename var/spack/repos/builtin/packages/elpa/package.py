@@ -136,6 +136,20 @@ class Elpa(AutotoolsPackage, CudaPackage, ROCmPackage):
     build_directory = "spack-build"
     parallel = False
 
+    def flag_handler(self, name, flags):
+        if self.spec.satisfies("+rocm"):
+            if name == "ldlibs":
+                # NOTE: hipcc may be used to build some files but the final link
+                # step is not done using hipcc. We must provide the libs.
+                # SPACK_LINK_DIRS already contains the library path.
+                flags.extend(
+                    [
+                        "-l{}".format(library.split("lib")[1])
+                        for library in self.spec["hip"].package.libraries
+                    ]
+                )
+        return flags, None, None
+
     def configure_args(self):
         spec = self.spec
         options = []
