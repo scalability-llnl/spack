@@ -791,7 +791,7 @@ _spack_compiler_list() {
 _spack_compiler_info() {
     if $list_options
     then
-        SPACK_COMPREPLY="-h --help --scope"
+        SPACK_COMPREPLY="-h --help --scope --json"
     else
         _installed_compilers
     fi

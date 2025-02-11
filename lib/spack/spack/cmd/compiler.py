@@ -13,6 +13,7 @@ from llnl.util.tty.color import colorize
 import spack.compilers
 import spack.config
 import spack.spec
+import spack.util.spack_json as sjson
 from spack.cmd.common import arguments
 
 description = "manage compilers"
@@ -73,6 +74,7 @@ def setup_parser(subparser):
     info_parser.add_argument(
         "--scope", action=arguments.ConfigScope, help="configuration scope to read from"
     )
+    info_parser.add_argument("--json", action="store_true", help="output info in JSON format")
 
 
 def compiler_find(args):
@@ -125,27 +127,30 @@ def compiler_info(args):
     if not compilers:
         tty.die("No compilers match spec %s" % cspec)
     else:
-        for c in compilers:
-            print(c.spec.display_str + ":")
-            print("\tpaths:")
-            for cpath in ["cc", "cxx", "f77", "fc"]:
-                print("\t\t%s = %s" % (cpath, getattr(c, cpath, None)))
-            if c.flags:
-                print("\tflags:")
-                for flag, flag_value in c.flags.items():
-                    print("\t\t%s = %s" % (flag, flag_value))
-            if len(c.environment) != 0:
-                if len(c.environment.get("set", {})) != 0:
-                    print("\tenvironment:")
-                    print("\t    set:")
-                    for key, value in c.environment["set"].items():
-                        print("\t        %s = %s" % (key, value))
-            if c.extra_rpaths:
-                print("\tExtra rpaths:")
-                for extra_rpath in c.extra_rpaths:
-                    print("\t\t%s" % extra_rpath)
-            print("\tmodules  = %s" % c.modules)
-            print("\toperating system  = %s" % c.operating_system)
+        if args.json:
+            print(sjson.dump([c.to_dict() for c in compilers]))
+        else:
+            for c in compilers:
+                print(c.spec.display_str + ":")
+                print("\tpaths:")
+                for cpath in ["cc", "cxx", "f77", "fc"]:
+                    print("\t\t%s = %s" % (cpath, getattr(c, cpath, None)))
+                if c.flags:
+                    print("\tflags:")
+                    for flag, flag_value in c.flags.items():
+                        print("\t\t%s = %s" % (flag, flag_value))
+                if len(c.environment) != 0:
+                    if len(c.environment.get("set", {})) != 0:
+                        print("\tenvironment:")
+                        print("\t    set:")
+                        for key, value in c.environment["set"].items():
+                            print("\t        %s = %s" % (key, value))
+                if c.extra_rpaths:
+                    print("\tExtra rpaths:")
+                    for extra_rpath in c.extra_rpaths:
+                        print("\t\t%s" % extra_rpath)
+                print("\tmodules  = %s" % c.modules)
+                print("\toperating system  = %s" % c.operating_system)
 
 
 def compiler_list(args):

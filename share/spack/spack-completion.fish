@@ -1125,12 +1125,14 @@ complete -c spack -n '__fish_spack_using_command compiler list' -l scope -r -f -
 complete -c spack -n '__fish_spack_using_command compiler list' -l scope -r -d 'configuration scope to read from'
 
 # spack compiler info
-set -g __fish_spack_optspecs_spack_compiler_info h/help scope=
+set -g __fish_spack_optspecs_spack_compiler_info h/help scope= json
 complete -c spack -n '__fish_spack_using_command_pos 0 compiler info' -f -a '(__fish_spack_installed_compilers)'
 complete -c spack -n '__fish_spack_using_command compiler info' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command compiler info' -s h -l help -d 'show this help message and exit'
 complete -c spack -n '__fish_spack_using_command compiler info' -l scope -r -f -a '_builtin defaults system site user command_line'
 complete -c spack -n '__fish_spack_using_command compiler info' -l scope -r -d 'configuration scope to read from'
+complete -c spack -n '__fish_spack_using_command compiler info' -l json -f -a json
+complete -c spack -n '__fish_spack_using_command compiler info' -l json -d 'output info in JSON format'
 
 # spack compilers
 set -g __fish_spack_optspecs_spack_compilers h/help scope=
