@@ -3831,7 +3831,7 @@ def _is_reusable(spec: spack.spec.Spec, packages, local: bool) -> bool:
 
     try:
         provided = spack.repo.PATH.get(spec).provided_virtual_names()
-    except spack.repo.RepoError:
+    except spack.error.RepoError:
         provided = []
 
     for name in {spec.name, *provided}:

@@ -8,6 +8,7 @@ import sys
 import llnl.util.tty as tty
 
 import spack.config
+import spack.error
 import spack.repo
 import spack.util.path
 from spack.cmd.common import arguments
@@ -129,7 +130,7 @@ def repo_remove(args):
                 spack.config.set("repos", repos, args.scope)
                 tty.msg("Removed repository %s with namespace '%s'." % (repo.root, repo.namespace))
                 return
-        except spack.repo.RepoError:
+        except spack.error.RepoError:
             continue
 
     tty.die("No repository with path or namespace: %s" % namespace_or_path)
@@ -142,7 +143,7 @@ def repo_list(args):
     for r in roots:
         try:
             repos.append(spack.repo.from_path(r))
-        except spack.repo.RepoError:
+        except spack.error.RepoError:
             continue
 
     if sys.stdout.isatty():

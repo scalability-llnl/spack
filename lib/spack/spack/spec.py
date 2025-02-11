@@ -91,7 +91,6 @@ import spack.error
 import spack.hash_types as ht
 import spack.paths
 import spack.platforms
-import spack.provider_index
 import spack.repo
 import spack.spec_parser
 import spack.store
@@ -1893,9 +1892,7 @@ class Spec:
 
     @property
     def package(self):
-        assert self.concrete, "{0}: Spec.package can only be called on concrete specs".format(
-            self.name
-        )
+        assert self.concrete, f"{self.name}: Spec.package can only be called on concrete specs"
         if not self._package:
             self._package = spack.repo.PATH.get(self)
         return self._package
@@ -3267,7 +3264,7 @@ class Spec:
 
     def common_dependencies(self, other):
         """Return names of dependencies that self an other have in common."""
-        common = set(s.name for s in self.traverse(root=False))
+        common = {s.name for s in self.traverse(root=False)}
         common.intersection_update(s.name for s in other.traverse(root=False))
         return common
 
@@ -3315,7 +3312,7 @@ class Spec:
         elif other.concrete:
             return other.satisfies(self)
 
-        # From here we know both self and other are not concrete
+        # From here we know both self and other are abstract
         self_hash = self.abstract_hash
         other_hash = other.abstract_hash
 
@@ -3326,32 +3323,8 @@ class Spec:
         ):
             return False
 
-        # If the names are different, we need to consider virtuals
+        # We do not consider virtuals for two abstract specs, since no package is associated
         if self.name != other.name and self.name and other.name:
-            if self.virtual and other.virtual:
-                # Two virtual specs intersect only if there are providers for both
-                lhs = spack.repo.PATH.providers_for(str(self))
-                rhs = spack.repo.PATH.providers_for(str(other))
-                intersection = [s for s in lhs if any(s.intersects(z) for z in rhs)]
-                return bool(intersection)
-
-            # A provider can satisfy a virtual dependency.
-            elif self.virtual or other.virtual:
-                virtual_spec, non_virtual_spec = (self, other) if self.virtual else (other, self)
-                try:
-                    # Here we might get an abstract spec
-                    pkg_cls = spack.repo.PATH.get_pkg_class(non_virtual_spec.fullname)
-                    pkg = pkg_cls(non_virtual_spec)
-                except spack.repo.UnknownEntityError:
-                    # If we can't get package info on this spec, don't treat
-                    # it as a provider of this vdep.
-                    return False
-
-                if pkg.provides(virtual_spec.name):
-                    for when_spec, provided in pkg.provided.items():
-                        if non_virtual_spec.intersects(when_spec, deps=False):
-                            if any(vpkg.intersects(virtual_spec) for vpkg in provided):
-                                return True
             return False
 
         # namespaces either match, or other doesn't require one.
@@ -3381,38 +3354,14 @@ class Spec:
             return False
 
         # If we need to descend into dependencies, do it, otherwise we're done.
-        if deps:
-            return self._intersects_dependencies(other)
-
-        return True
-
-    def _intersects_dependencies(self, other):
-        if not other._dependencies or not self._dependencies:
-            # one spec *could* eventually satisfy the other
+        if not deps or not self._dependencies or not other._dependencies:
             return True
 
-        # Handle first-order constraints directly
+        return self._intersects_dependencies(other)
+
+    def _intersects_dependencies(self, other: "Spec") -> bool:
         for name in self.common_dependencies(other):
             if not self[name].intersects(other[name], deps=False):
-                return False
-
-        # For virtual dependencies, we need to dig a little deeper.
-        self_index = spack.provider_index.ProviderIndex(
-            repository=spack.repo.PATH, specs=self.traverse(), restrict=True
-        )
-        other_index = spack.provider_index.ProviderIndex(
-            repository=spack.repo.PATH, specs=other.traverse(), restrict=True
-        )
-
-        # These two loops handle cases where there is an overly restrictive
-        # vpkg in one spec for a provider in the other (e.g., mpi@3: is not
-        # compatible with mpich2)
-        for spec in self.virtual_dependencies():
-            if spec.name in other_index and not other_index.providers_for(spec):
-                return False
-
-        for spec in other.virtual_dependencies():
-            if spec.name in self_index and not self_index.providers_for(spec):
                 return False
 
         return True
@@ -3439,24 +3388,22 @@ class Spec:
             if not compare_hash or not compare_hash.startswith(other.abstract_hash):
                 return False
 
-        # If the names are different, we need to consider virtuals
-        if self.name != other.name and self.name and other.name:
-            # A concrete provider can satisfy a virtual dependency.
-            if not self.virtual and other.virtual:
-                try:
-                    # Here we might get an abstract spec
-                    pkg_cls = spack.repo.PATH.get_pkg_class(self.fullname)
-                    pkg = pkg_cls(self)
-                except spack.repo.UnknownEntityError:
-                    # If we can't get package info on this spec, don't treat
-                    # it as a provider of this vdep.
-                    return False
+        # If the names are different, we need to consider virtuals. We return false for two
+        # abstract specs with different names because no package is associated with them.
+        if other.name and self.name != other.name:
+            try:
+                pkg = self.package
+            except (AssertionError, spack.error.RepoError):
+                # If we can't get package info on this spec, don't treat it as a provider of this
+                # vdep.
+                return False
 
-                if pkg.provides(other.name):
-                    for when_spec, provided in pkg.provided.items():
-                        if self.satisfies(when_spec, deps=False):
-                            if any(vpkg.intersects(other) for vpkg in provided):
-                                return True
+            if pkg.provides(other.name):
+                for when, provided in pkg.provided.items():
+                    if self.satisfies(when, deps=False):
+                        if any(p.intersects(other) for p in provided):
+                            return True
+
             return False
 
         # namespaces either match, or other doesn't require one.
@@ -3509,10 +3456,6 @@ class Spec:
         # will be verified later.
         lhs_edges: Dict[str, Set[DependencySpec]] = collections.defaultdict(set)
         for rhs_edge in other.traverse_edges(root=False, cover="edges"):
-            # If we are checking for ^mpi we need to verify if there is any edge
-            if rhs_edge.spec.virtual:
-                rhs_edge.update_virtuals(virtuals=(rhs_edge.spec.name,))
-
             if not rhs_edge.virtuals:
                 continue
 
@@ -3553,10 +3496,6 @@ class Spec:
             any(lhs.satisfies(rhs, deps=False) for lhs in self.traverse(root=False))
             for rhs in other.traverse(root=False)
         )
-
-    def virtual_dependencies(self):
-        """Return list of any virtual deps in this spec."""
-        return [spec for spec in self.traverse() if spec.virtual]
 
     @property  # type: ignore[misc] # decorated prop not supported in mypy
     def patches(self):

@@ -457,7 +457,7 @@ def test_dump_packages_deps_errs(install_mockery, tmpdir, monkeypatch, capsys):
 
     def _repoerr(repo, name):
         if name == "cmake":
-            raise spack.repo.RepoError(repo_err_msg)
+            raise spack.error.RepoError(repo_err_msg)
         else:
             return orig_dirname(repo, name)
 
@@ -476,7 +476,7 @@ def test_dump_packages_deps_errs(install_mockery, tmpdir, monkeypatch, capsys):
     # Now try the error path, which requires the mock directory structure
     # above
     monkeypatch.setattr(spack.repo.Repo, "dirname_for_package_name", _repoerr)
-    with pytest.raises(spack.repo.RepoError, match=repo_err_msg):
+    with pytest.raises(spack.error.RepoError, match=repo_err_msg):
         inst.dump_packages(spec, path)
 
     out = str(capsys.readouterr()[1])

@@ -11,6 +11,7 @@ import pytest
 import spack.binary_distribution
 import spack.cmd
 import spack.concretize
+import spack.error
 import spack.platforms.test
 import spack.repo
 import spack.spec
@@ -1139,7 +1140,7 @@ def test_parse_filename_missing_slash_as_spec(specfile_for, tmpdir, filename):
 
     # Check that if we concretize this spec, we get a good error
     # message that mentions we might've meant a file.
-    with pytest.raises(spack.repo.UnknownEntityError) as exc_info:
+    with pytest.raises(spack.error.UnknownEntityError) as exc_info:
         spack.concretize.concretize_one(spec)
     assert exc_info.value.long_message
     assert (
