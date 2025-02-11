@@ -154,7 +154,6 @@ def test_pipeline_dag(config, tmpdir):
         assert all([s in a_deps_direct for s in [spec_a["pkg-b"], spec_a["pkg-c"]]])
 
 
-@pytest.mark.not_on_windows("Not supported on Windows (yet)")
 def test_import_signing_key(mock_gnupghome):
     signing_key_dir = spack_paths.mock_gpg_keys_path
     signing_key_path = os.path.join(signing_key_dir, "package-signing-key")

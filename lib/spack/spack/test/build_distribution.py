@@ -4,14 +4,10 @@
 
 import os
 
-import pytest
-
 import spack.binary_distribution as bd
 import spack.concretize
 import spack.mirrors.mirror
 from spack.installer import PackageInstaller
-
-pytestmark = pytest.mark.not_on_windows("does not run on windows")
 
 
 def test_build_tarball_overwrite(install_mockery, mock_fetch, monkeypatch, tmp_path):
