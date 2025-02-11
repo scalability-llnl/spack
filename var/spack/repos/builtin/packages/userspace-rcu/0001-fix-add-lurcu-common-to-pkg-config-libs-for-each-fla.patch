@@ -1,0 +1,97 @@
+From 005bd61d80b7ad782fde611a84e157d69cfdee45 Mon Sep 17 00:00:00 2001
+From: Michael Jeanson <mjeanson@efficios.com>
+Date: Fri, 30 Oct 2020 15:39:56 -0400
+Subject: [PATCH] fix: add -lurcu-common to pkg-config libs for each flavor
+
+The urcu-common library contains common code like the write-free queue
+and compat code, each urcu flavor library is dynamicly linked with it.
+
+Most but not all toolchains will automatically link an executable with a
+transitive depency of an explicitly linked library if said binary uses a
+symbol from the transitive dependency.
+
+Since this behavior is not present in all toolchains, add
+'-lurcu-common' to the 'Libs' field of each flavors pkg-config file so
+that executables using symbols from urcu-common can be reliably linked
+using pkg-config.
+
+Signed-off-by: Michael Jeanson <mjeanson@efficios.com>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+---
+ src/liburcu-bp.pc.in     | 2 +-
+ src/liburcu-cds.pc.in    | 2 +-
+ src/liburcu-mb.pc.in     | 2 +-
+ src/liburcu-qsbr.pc.in   | 2 +-
+ src/liburcu-signal.pc.in | 2 +-
+ src/liburcu.pc.in        | 2 +-
+ 6 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/src/liburcu-bp.pc.in b/src/liburcu-bp.pc.in
+index c5f2355..7cba58a 100644
+--- a/src/liburcu-bp.pc.in
++++ b/src/liburcu-bp.pc.in
+@@ -7,5 +7,5 @@ Name: Userspace RCU BulletProof
+ Description: A userspace RCU (read-copy-update) library, bulletproof version
+ Version: @PACKAGE_VERSION@
+ Requires:
+-Libs: -L${libdir} -lurcu-bp
++Libs: -L${libdir} -lurcu-common -lurcu-bp
+ Cflags: -I${includedir} 
+diff --git a/src/liburcu-cds.pc.in b/src/liburcu-cds.pc.in
+index e3d13af..1cb19b6 100644
+--- a/src/liburcu-cds.pc.in
++++ b/src/liburcu-cds.pc.in
+@@ -7,5 +7,5 @@ Name: Userspace RCU Concurrent Data Structures
+ Description: Data structures leveraging RCU and atomic operations to provide efficient concurrency-aware storage
+ Version: @PACKAGE_VERSION@
+ Requires:
+-Libs: -L${libdir} -lurcu-cds
++Libs: -L${libdir} -lurcu-common -lurcu-cds
+ Cflags: -I${includedir} 
+diff --git a/src/liburcu-mb.pc.in b/src/liburcu-mb.pc.in
+index cd669ef..1684701 100644
+--- a/src/liburcu-mb.pc.in
++++ b/src/liburcu-mb.pc.in
+@@ -7,5 +7,5 @@ Name: Userspace RCU Memory barriers
+ Description: A userspace RCU (read-copy-update) library, memory barriers version
+ Version: @PACKAGE_VERSION@
+ Requires:
+-Libs: -L${libdir} -lurcu-mb
++Libs: -L${libdir} -lurcu-common -lurcu-mb
+ Cflags: -I${includedir} 
+diff --git a/src/liburcu-qsbr.pc.in b/src/liburcu-qsbr.pc.in
+index 0732602..d123a10 100644
+--- a/src/liburcu-qsbr.pc.in
++++ b/src/liburcu-qsbr.pc.in
+@@ -7,5 +7,5 @@ Name: Userspace RCU QSBR
+ Description: A userspace RCU (read-copy-update) library, quiescent state version
+ Version: @PACKAGE_VERSION@
+ Requires:
+-Libs: -L${libdir} -lurcu-qsbr
++Libs: -L${libdir} -lurcu-common -lurcu-qsbr
+ Cflags: -I${includedir} 
+diff --git a/src/liburcu-signal.pc.in b/src/liburcu-signal.pc.in
+index f9bc3a3..844c449 100644
+--- a/src/liburcu-signal.pc.in
++++ b/src/liburcu-signal.pc.in
+@@ -7,5 +7,5 @@ Name: Userspace RCU signal
+ Description: A userspace RCU (read-copy-update) library, signal version
+ Version: @PACKAGE_VERSION@
+ Requires:
+-Libs: -L${libdir} -lurcu-signal
++Libs: -L${libdir} -lurcu-common -lurcu-signal
+ Cflags: -I${includedir} 
+diff --git a/src/liburcu.pc.in b/src/liburcu.pc.in
+index 22bf2c8..b9f812b 100644
+--- a/src/liburcu.pc.in
++++ b/src/liburcu.pc.in
+@@ -7,5 +7,5 @@ Name: Userspace RCU
+ Description: A userspace RCU (read-copy-update) library, standard version
+ Version: @PACKAGE_VERSION@
+ Requires:
+-Libs: -L${libdir} -lurcu
++Libs: -L${libdir} -lurcu-common -lurcu
+ Cflags: -I${includedir} 
+-- 
+2.34.1
+
