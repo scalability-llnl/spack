@@ -1,0 +1,23 @@
+Submodule VTK contains modified content
+diff --git a/VTK/CMake/FindFreetype.cmake b/VTK/CMake/FindFreetype.cmake
+index b4532735c2..0e4259778a 100644
+--- a/VTK/CMake/FindFreetype.cmake
++++ b/VTK/CMake/FindFreetype.cmake
+@@ -63,6 +63,17 @@ directory of a Freetype installation.
+ # I'm going to attempt to cut out the middleman and hope
+ # everything still works.
+ 
++find_package(freetype CONFIG) # foward `QUIET`, version, and components here, but not `REQUIRED`
++if (freetype_FOUND)
++  if (NOT TARGET Freetype::Freetype)
++    add_library(Freetype::Freetype ALIAS freetype)
++  endif ()
++  set(FREETYPE_INCLUDE_DIRS "${freetype_interface_include_directories}")
++  set(FREETYPE_LIBRARIES "${freetype_interface_link_libraries}")
++  set(Freetype_FOUND 1) # might need to also forward the version found
++  return ()
++endif ()
++
+ set(FREETYPE_FIND_ARGS
+   HINTS
+     ENV FREETYPE_DIR

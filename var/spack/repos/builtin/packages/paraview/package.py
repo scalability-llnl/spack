@@ -369,7 +369,8 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
     patch("vtk_alias_hdf5.patch", when="@5.9.0: platform=windows")
 
     # Fix VTK to work with external freetype using CONFIG mode for find_package
-    patch("FindFreetype.cmake.patch", when="@5.10.1:")
+    # patch("FindFreetype.cmake.patch", when="@5.10.1:")
+    patch("vtk_find_freetype_alias_import.patch", when="@5.10.1:")
 
     # Fix VTK to remove deprecated ADIOS2 functions
     # https://gitlab.kitware.com/vtk/vtk/-/merge_requests/10113
