@@ -1,0 +1,70 @@
+--- spack_src/ENGINES/MUFFIN5/src/muffin5/Makefile.org	2023-06-23 14:11:45.000000000 +0900
++++ spack_src/ENGINES/MUFFIN5/src/muffin5/Makefile	2023-09-22 14:52:54.000000000 +0900
+@@ -118,14 +118,11 @@ EXT_LD      =
+ CFLAGSTDC	=
+ 
+ ifeq "$(THIS_SYSTEM)" "Linux"
++  CC		= fcc -Kfast -lstdc++
++  LD_O	= $(CC) -o
++  TARGET_ENV	= linux_aarch64
+   ifneq "$(findstring alpha,$(TARGET_ENV))" ""
+-    CC		= g++
+-    LD_O	= $(CC) -o
+     TARGET_ENV	= linux_alpha
+-  else
+-    CC		= g++
+-    LD_O	= $(CC) -o
+-    #TARGET_ENV	= $(PF_ARCH)
+   endif
+   LDL		=-export-dynamic -ldl
+   LD4SHARED	=-shared
+--- spack_src/ENGINES/MUFFIN5/src/muffin5/common/SOLVER/MATRIX/BICGSTAB/ILUdcmp.cpp.org	2023-06-23 14:11:45.000000000 +0900
++++ spack_src/ENGINES/MUFFIN5/src/muffin5/common/SOLVER/MATRIX/BICGSTAB/ILUdcmp.cpp	2023-09-27 01:12:38.000000000 +0900
+@@ -54,6 +54,7 @@ int ILUdcmp(
+       }
+     }
+   }
++  return(0);
+ }
+ //---------------------------------------------------
+ 
+--- spack_src/ENGINES/MUFFIN5/src/muffin5/common/SOLVER/MATRIX/BICGSTAB/MatrixOperation.cpp.org	2023-06-23 14:11:45.000000000 +0900
++++ spack_src/ENGINES/MUFFIN5/src/muffin5/common/SOLVER/MATRIX/BICGSTAB/MatrixOperation.cpp	2023-09-27 01:06:52.000000000 +0900
+@@ -75,6 +75,7 @@ int MatVec(
+     }
+     y[i] += alpha * sum;
+   }
++  return(0);
+ }
+ //--------------------------------------------------------------------
+ 
+--- spack_src/ENGINES/MUFFIN5/src/muffin5/common/SOLVER/MATRIX/BICGSTAB/bicgstab.cpp.org	2023-06-23 14:11:45.000000000 +0900
++++ spack_src/ENGINES/MUFFIN5/src/muffin5/common/SOLVER/MATRIX/BICGSTAB/bicgstab.cpp	2023-09-27 01:19:09.000000000 +0900
+@@ -212,6 +212,7 @@ int LUDecomposedMatrixSolver(
+       x[i] -= - pivots[i] * sum;
+     }
+   }
++  return(0);
+ }
+ //----------------------------------------------------------------------------
+ 
+--- spack_src/ENGINES/MUFFIN5/src/muffin5/fields/Velocity.cpp.org	2023-06-23 14:11:45.000000000 +0900
++++ spack_src/ENGINES/MUFFIN5/src/muffin5/fields/Velocity.cpp	2023-09-27 01:18:41.000000000 +0900
+@@ -695,7 +695,9 @@ int Velocity::Evolve00(void)
+     cout << "Velocity Field : Solve : BICGSTAB" << endl;
+     if( first_flag == true ){
+       double visco = Parameter().value("VISCOSITY",0);
++      cout << Nc << endl;
+       for( int m=1; m<Nc; m++ ){
++        cout << m << endl;
+         if( fabs( visco - Parameter().value("VISCOSITY",m) ) > 1.0e-6 ){
+           const_viscosity_flag *= false;
+           break;
+@@ -3563,6 +3565,7 @@ int Velocity::Monitor_Of_DivV(void)
+ 	cout <<  "Ave_abs_divV = " << Ave_abs_divV/LxLyLz 
+ 			 << " Max_abs_divV = " << Max_abs_divV 
+ 			 << " at " << "(" << ic << "," << jc << "," << kc << ")" << endl; 
++    return(0);
+ }
+ //----------------------------------------------------------------------------
+ int Velocity::Evolve01(void)

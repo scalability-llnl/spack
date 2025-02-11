@@ -1,0 +1,17 @@
+--- spack_src/ENGINES/COGNAC1012/src/Makefile.org	2023-06-23 14:11:48.000000000 +0900
++++ spack_src/ENGINES/COGNAC1012/src/Makefile	2023-09-22 14:10:04.000000000 +0900
+@@ -149,6 +149,14 @@ ifeq ($(PF_ENGINEARCH),aix)
+ #	MIN_SRC =
+ endif
+ 
++#for aarch64
++ifeq ($(PF_ENGINEARCH),linux_aarch64)
++	CXX = FCC
++	CC = fcc
++	OPT_FLAG = -lstdc++
++	LDFLAGS = -lstdc++
++endif
++
+ #########################################
+ 
+ MAKEDEPEND = /usr/bin/makedepend -Y
