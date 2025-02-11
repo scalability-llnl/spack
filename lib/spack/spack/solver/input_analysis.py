@@ -381,7 +381,9 @@ class Counter:
             self.all_types = dt.LINK | dt.RUN | dt.BUILD
 
         self._possible_dependencies: Set[str] = set()
-        self._possible_virtuals: Set[str] = set(x.name for x in specs if x.virtual)
+        self._possible_virtuals: Set[str] = {
+            x.name for x in specs if spack.repo.PATH.is_virtual(x.name)
+        }
 
     def possible_dependencies(self) -> Set[str]:
         """Returns the list of possible dependencies"""

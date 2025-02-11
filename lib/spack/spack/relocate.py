@@ -406,8 +406,8 @@ def fixup_macos_rpaths(spec):
     entries which makes it harder to adjust with ``install_name_tool
     -delete_rpath``.
     """
-    if spec.external or spec.virtual:
-        tty.warn("external or virtual package cannot be fixed up: {0!s}".format(spec))
+    if spec.external or not spec.concrete:
+        tty.warn("external/abstract spec cannot be fixed up: {0!s}".format(spec))
         return False
 
     if "platform=darwin" not in spec:
