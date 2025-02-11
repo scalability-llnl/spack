@@ -1905,6 +1905,12 @@ class Spec:
         """Internal package call gets only the class object for a package.
         Use this to just get package metadata.
         """
+        warnings.warn(
+            "`Spec.package_class` is deprecated and will be removed in version 1.0.0. Use "
+            "`spack.repo.PATH.get_pkg_class(spec.fullname) instead.",
+            category=spack.error.SpackAPIWarning,
+            stacklevel=2,
+        )
         return spack.repo.PATH.get_pkg_class(self.fullname)
 
     @property
@@ -2864,7 +2870,7 @@ class Spec:
 
             # Add any patches from the package to the spec.
             patches = set()
-            for cond, patch_list in s.package_class.patches.items():
+            for cond, patch_list in spack.repo.PATH.get_pkg_class(s.fullname).patches.items():
                 if s.satisfies(cond):
                     for patch in patch_list:
                         patches.add(patch)
@@ -2877,7 +2883,7 @@ class Spec:
             if dspec.spec.concrete:
                 continue
 
-            pkg_deps = dspec.parent.package_class.dependencies
+            pkg_deps = spack.repo.PATH.get_pkg_class(dspec.parent.fullname).dependencies
 
             patches = []
             for cond, deps_by_name in pkg_deps.items():
@@ -3111,7 +3117,7 @@ class Spec:
         if spec.concrete:
             return
 
-        pkg_cls = spec.package_class
+        pkg_cls = spack.repo.PATH.get_pkg_class(spec.fullname)
         pkg_variants = pkg_cls.variant_names()
         # reserved names are variants that may be set on any package
         # but are not necessarily recorded by the package's class
@@ -4705,7 +4711,7 @@ class VariantMap(lang.HashableMap):
             bool: True or False
         """
         return self.spec._concrete or all(
-            v in self for v in self.spec.package_class.variant_names()
+            v in self for v in spack.repo.PATH.get_pkg_class(self.spec.fullname).variant_names()
         )
 
     def copy(self) -> "VariantMap":
@@ -4765,14 +4771,14 @@ def substitute_abstract_variants(spec: Spec):
         elif name in vt.reserved_names:
             continue
 
-        variant_defs = spec.package_class.variant_definitions(name)
+        variant_defs = spack.repo.PATH.get_pkg_class(spec.fullname).variant_definitions(name)
         valid_defs = []
         for when, vdef in variant_defs:
             if when.intersects(spec):
                 valid_defs.append(vdef)
 
         if not valid_defs:
-            if name not in spec.package_class.variant_names():
+            if name not in spack.repo.PATH.get_pkg_class(spec.fullname).variant_names():
                 unknown.append(name)
             else:
                 whens = [str(when) for when, _ in variant_defs]
