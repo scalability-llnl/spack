@@ -12,6 +12,8 @@ class PyTokenizers(PythonPackage):
     homepage = "https://github.com/huggingface/tokenizers"
     pypi = "tokenizers/tokenizers-0.6.0.tar.gz"
 
+    version("0.21.0", sha256="ee0894bf311b75b0c03079f33859ae4b2334d675d4e93f5a4132e1eae2834fe4")
+    version("0.20.4", sha256="db50ac15e92981227f499268541306824f49e97dbeec05d118ebdc7c2d22322c")
     version("0.19.1", sha256="ee59e6680ed0fdbe6b724cf38bd70400a0c1dd623b07ac729087270caeac88e3")
     version("0.15.0", sha256="10c7e6e7b4cabd757da59e93f5f8d1126291d16f8b54f28510825ef56a3e5d0e")
     version("0.13.3", sha256="2e546dbb68b623008a5442353137fbb0123d311a6d7ba52f2667c8862a75af2e")
@@ -27,6 +29,8 @@ class PyTokenizers(PythonPackage):
         sha256="b5a235f9c71d04d4925df6c4fa13b13f1d03f9b7ac302b89f8120790c4f742bc",
         deprecated=True,
     )
+
+    depends_on("python@3.9:", when="@0.21:", type=("build", "run"))
 
     # TODO: This package currently requires internet access to install.
     depends_on("py-maturin@1", when="@0.14:", type="build")
