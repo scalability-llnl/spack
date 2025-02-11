@@ -300,7 +300,12 @@ class CDash(Reporter):
             if "time" in spec:
                 duration = int(spec["time"])
             for package in spec["packages"]:
-                self.build_report_for_package(report_dir, package, duration)
+                if package['name'] in spec['name'] or package['result'] == 'failure':
+                    print("-----------------------------")
+                    print("Build report for:")
+                    print(package['name'])
+                    print("-----------------------------")
+                    self.build_report_for_package(report_dir, package, duration)
         self.finalize_report()
 
     def extract_standalone_test_data(self, package, phases, report_data):
