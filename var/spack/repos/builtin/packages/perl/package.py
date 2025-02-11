@@ -286,11 +286,18 @@ class Perl(Package):  # Perl doesn't use Autotools, it should subclass Package
                     variants += "+shared"
                 else:
                     variants += "~shared"
-                match = re.search(r"-Duse.?threads", output)
-                if match:
-                    variants += "+threads"
-                else:
+                if not re.search(r"-Duse.?threads", output):
                     variants += "~threads"
+                else:
+                    perl("-e", "require Thread::Queue", error=str, ignore_errors=2)
+                    if perl.returncode == 2:
+                        variants += "~threads"
+                    elif perl.returncode == 0:
+                        variants += "+threads"
+                    else:
+                        raise spack.error.SpackError(
+                            f"{perl} -e 'require Thread::Queue' failed with code {perl.returncode}"
+                        )
             path = os.path.dirname(exe)
             if "cpanm" in os.listdir(path):
                 variants += "+cpanm"
