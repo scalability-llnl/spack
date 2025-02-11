@@ -6,6 +6,7 @@
 import os
 import shutil
 import stat
+import sys
 
 import pytest
 
@@ -16,8 +17,6 @@ import spack.spec
 import spack.store
 import spack.util.spack_json as sjson
 import spack.verify
-
-pytestmark = pytest.mark.not_on_windows("Tests fail on Win")
 
 
 def test_link_manifest_entry(tmpdir):
@@ -109,6 +108,7 @@ def test_file_manifest_entry(tmpdir):
     assert sorted(results.errors[file]) == sorted(expected)
 
 
+@pytest.mark.not_on_windows("chmod unsupported on Windows")
 def test_check_chmod_manifest_entry(tmpdir):
     # Check that the verification properly identifies errors for files whose
     # permissions have been modified.
@@ -223,6 +223,18 @@ def test_single_file_verification(tmpdir):
     assert sorted(results.errors[filepath]) == sorted(expected)
 
     shutil.rmtree(metadir)
+
+    if sys.platform == "win32":
+        filedir = "C:\\spack_test\\temp"
+        filepath = os.path.join(filedir, "file1")
+        fs.mkdirp(filedir)
+
+        with open(filepath, "w") as f:
+            f.write("I'm a file")
+
     results = spack.verify.check_file_manifest(filepath)
     assert results.has_errors()
     assert results.errors[filepath] == ["not owned by any package"]
+
+    if sys.platform == "win32":
+        shutil.rmtree(filedir)
