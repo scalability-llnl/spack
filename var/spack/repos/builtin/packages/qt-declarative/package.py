@@ -10,6 +10,7 @@ from spack.pkg.builtin.qt_base import QtBase, QtPackage
 class QtDeclarative(QtPackage):
     """Qt Declarative (Quick 2)."""
 
+    homepage = QtPackage.get_homepage("QtQuick")
     url = QtPackage.get_url(__qualname__)
     list_url = QtPackage.get_list_url(__qualname__)
 

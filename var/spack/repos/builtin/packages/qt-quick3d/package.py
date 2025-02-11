@@ -10,6 +10,7 @@ from spack.pkg.builtin.qt_base import QtBase, QtPackage
 class QtQuick3d(QtPackage):
     """A new module and API for defining 3D content in Qt Quick."""
 
+    homepage = QtPackage.get_homepage(__qualname__)
     url = QtPackage.get_url(__qualname__)
     list_url = QtPackage.get_list_url(__qualname__)
 

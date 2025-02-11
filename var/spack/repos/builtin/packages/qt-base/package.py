@@ -19,6 +19,14 @@ class QtPackage(CMakePackage):
 
     homepage = "https://www.qt.io"
 
+    # provide a more specific homepage url for git submodules of qt5
+    # containing just a single Qt module, notable exceptions are qtbase
+    # and qtdeclarative
+    @staticmethod
+    def get_homepage(qualname):
+        _url = "https://doc.qt.io/qt-6/{}-index.html"
+        return _url.format(qualname.lower())
+
     @staticmethod
     def get_url(qualname):
         _url = "https://github.com/qt/{}/archive/refs/tags/v6.2.3.tar.gz"
@@ -134,6 +142,7 @@ class QtPackage(CMakePackage):
 class QtBase(QtPackage):
     """Qt Base (Core, Gui, Widgets, Network, ...)"""
 
+    homepage = QtPackage.get_homepage("QtCore")
     url = QtPackage.get_url(__qualname__)
     list_url = QtPackage.get_list_url(__qualname__)
 

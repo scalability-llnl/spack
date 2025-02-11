@@ -12,6 +12,7 @@ class QtShadertools(QtPackage):
     shader pipeline that allows Qt Quick to operate on Vulkan, Metal, and
     Direct3D, in addition to OpenGL."""
 
+    homepage = QtPackage.get_homepage(__qualname__)
     url = QtPackage.get_url(__qualname__)
     list_url = QtPackage.get_list_url(__qualname__)
 
