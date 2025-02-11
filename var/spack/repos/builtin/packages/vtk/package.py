@@ -183,7 +183,7 @@ class Vtk(CMakePackage):
     depends_on("lz4")
     depends_on("netcdf-c~mpi", when="~mpi")
     depends_on("netcdf-c+mpi", when="+mpi")
-    depends_on("netcdf-cxx4", when="@:8.1.2")
+    depends_on("netcdf-cxx", when="@:8.1.2")
     depends_on("libpng")
     depends_on("libtiff")
     depends_on("zlib-api")
@@ -331,7 +331,8 @@ class Vtk(CMakePackage):
             cmake_args.extend(
                 [
                     "-DVTK_USE_SYSTEM_LIBPROJ4:BOOL=OFF",
-                    "-DNETCDF_CXX_ROOT={0}".format(spec["netcdf-cxx"].prefix),
+                    "-DNETCDF_CXX_INCLUDE_DIR={0}".format(spec["netcdf-cxx"].prefix.include),
+                    "-DNETCDF_CXX_LIBRARY={0}".format(spec["netcdf-cxx"].libs),
                 ]
             )
 
