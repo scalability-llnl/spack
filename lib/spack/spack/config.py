@@ -830,8 +830,9 @@ def _add_platform_scope(cfg: Configuration, name: str, path: str, writable: bool
     cfg.push_scope(scope)
 
 
-#: Class for the relevance of an optional path conditioned on either
-#: a spec and or explicitly specified as optional.
+#: Class for the relevance of an optional path conditioned on a limited
+#: python code that evaluates to a boolean and or explicit specification
+#: as optional.
 class IncludePath(NamedTuple):
     path: str
     when: str
