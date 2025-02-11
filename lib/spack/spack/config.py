@@ -730,6 +730,15 @@ class Configuration:
         except (syaml.SpackYAMLError, OSError) as e:
             raise spack.error.ConfigError(f"cannot read '{section}' configuration") from e
 
+    @property
+    def _non_platform_scopes(self):
+        """Returns non-platform scopes, highest priority first."""
+        for s in reversed(self.file_scopes):
+            if s.is_platform_dependent:
+                continue
+            else:
+                yield s
+
 
 @contextlib.contextmanager
 def override(

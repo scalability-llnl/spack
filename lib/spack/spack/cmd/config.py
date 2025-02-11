@@ -68,6 +68,18 @@ def setup_parser(subparser):
 
     sp.add_parser("list", help="list configuration sections")
 
+    list_scopes_parser = sp.add_parser("list-scopes", help="list defined scopes")
+    stype = list_scopes_parser.add_mutually_exclusive_group(required=False)
+    stype.add_argument(
+        "--file",
+        action="store_true",
+        default=False,
+        help="list only writable scopes with an associated file",
+    )
+    stype.add_argument(
+        "--non-platform", action="store_true", default=False, help="list only non-platform scopes"
+    )
+
     add_parser = sp.add_parser("add", help="add configuration parameters")
     add_parser.add_argument(
         "path",
@@ -213,6 +225,19 @@ def config_list(args):
     Used primarily for shell tab completion scripts.
     """
     print(" ".join(list(spack.config.SECTION_SCHEMAS)))
+
+
+def config_list_scopes(args):
+    scopes = (
+        reversed(spack.config.CONFIG.file_scopes)
+        if args.file
+        else (
+            spack.config.CONFIG._non_platform_scopes
+            if args.non_platform
+            else reversed(spack.config.CONFIG.scopes.values())
+        )
+    )
+    print(" ".join([s.name for s in scopes]))
 
 
 def config_add(args):
@@ -579,6 +604,7 @@ def config(parser, args):
         "blame": config_blame,
         "edit": config_edit,
         "list": config_list,
+        "list-scopes": config_list_scopes,
         "add": config_add,
         "rm": config_remove,
         "remove": config_remove,
