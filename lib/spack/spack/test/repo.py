@@ -326,7 +326,7 @@ class TestRepoPath:
             repo.get_repo("foo")
 
 
-def test_incompatible_repo(mutable_mock_repo, versioned_repo):
+def test_incompatible_repo(versioned_repo):
     with pytest.raises(spack.repo.BadRepoError, match="requires Spack version"):
         # test added after Spack passed version 0.22
         versioned_repo(":0.22", ":")
@@ -334,3 +334,14 @@ def test_incompatible_repo(mutable_mock_repo, versioned_repo):
     with pytest.raises(spack.repo.BadRepoError, match="requires repo version"):
         # ":a" < "0", and all Spack versions require at least "0:"
         versioned_repo(":", ":a")
+
+
+def test_incompatible_package_version(mock_packages, monkeypatch):
+    spec = spack.concretize.concretize_one("pkg-a")
+    package = spack.repo.PATH.get(spec)
+
+    pkg_class = spec.package_class
+    monkeypatch.setattr(pkg_class, "required_spack_version", ":0.22")
+
+    with pytest.raises(spack.error.PackageError, match="requires Spack version"):
+        _ = spack.repo.PATH.get(spec)
