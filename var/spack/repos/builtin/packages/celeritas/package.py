@@ -4,7 +4,6 @@
 
 from spack.build_systems.cmake import CMakeBuilder
 from spack.package import *
-from spack.version import GitVersion
 
 
 class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
@@ -156,14 +155,16 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
             args.append(define("CELERITAS_USE_JSON", True))
 
         if self.version >= Version("0.6"):
-            args.extend((
-                define(f"CELERITAS_BUILTIN_{pkg}", False)
-                for pkg in ["GTest", "nlohmann_json", "G4VG"]))
+            args.extend(
+                (
+                    define(f"CELERITAS_BUILTIN_{pkg}", False)
+                    for pkg in ["GTest", "nlohmann_json", "G4VG"]
+                )
+            )
 
         if self.version == Version("develop"):
-            args.append(define("Celeritas_GIT_DESCRIBE",
-                               [self.next_develop_version,
-                                "-dev",
-                                "spack"]))
+            args.append(
+                define("Celeritas_GIT_DESCRIBE", [self.next_develop_version, "-dev", "spack"])
+            )
 
         return args

@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
-from spack.version import GitVersion
 
 
 class G4vg(CMakePackage):
@@ -39,9 +38,6 @@ class G4vg(CMakePackage):
         ]
 
         if self.version == Version("develop"):
-            args.append(define("G4VG_GIT_DESCRIBE",
-                               [self.next_develop_version,
-                                "-dev",
-                                "spack"]))
+            args.append(define("G4VG_GIT_DESCRIBE", [self.next_develop_version, "-dev", "spack"]))
 
         return args
