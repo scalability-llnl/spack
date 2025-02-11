@@ -61,7 +61,7 @@ class SstCore(AutotoolsPackage):
     variant(
         "curses",
         default=True,
-        when="@develop,master",
+        when="@develop,master,14.0.0:",
         description="Build support for interactive sst-info",
     )
 
