@@ -440,6 +440,54 @@ developer-tools-darwin-build:
     - artifacts: True
       job: developer-tools-darwin-generate
 
+###########################################
+# Compilers
+###########################################
+.compilers-x86_64_v3-linux-gnu:
+  extends: [ ".linux_x86_64_v3" ]
+  variables:
+    SPACK_CI_STACK_NAME: compilers-x86_64_v3-linux-gnu
+
+compilers-x86_64_v3-linux-gnu-generate:
+  extends: [ ".compilers-x86_64_v3-linux-gnu", ".generate-x86_64"]
+  image:  ghcr.io/spack/x86_64_v3-linux-gnu:2024-12-12
+
+compilers-x86_64_v3-linux-gnu-build:
+  extends: [ ".compilers-x86_64_v3-linux-gnu", ".build" ]
+  trigger:
+    include:
+      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
+        job: compilers-x86_64_v3-linux-gnu-generate
+    strategy: depend
+  needs:
+    - artifacts: True
+      job: compilers-x86_64_v3-linux-gnu-generate
+
+###########################################
+# Compilers
+# aarch64
+###########################################
+.compilers-aarch64-linux-gnu:
+  extends: [ ".linux_aarch64" ]
+  variables:
+    SPACK_CI_STACK_NAME: compilers-aarch64-linux-gnu
+
+compilers-aarch64-linux-gnu-generate:
+  extends: [ ".compilers-aarch64-linux-gnu", ".generate-aarch64"]
+  image:  ghcr.io/spack/aarch64-linux-gnu:v2024-12-18
+
+compilers-aarch64-linux-gnu-build:
+  extends: [ ".compilers-aarch64-linux-gnu", ".build" ]
+  trigger:
+    include:
+      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
+        job: compilers-aarch64-linux-gnu-generate
+    strategy: depend
+  needs:
+    - artifacts: True
+      job: compilers-aarch64-linux-gnu-generate
+
+
 #########################################
 # RADIUSS
 #########################################
