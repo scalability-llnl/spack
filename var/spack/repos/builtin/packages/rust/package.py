@@ -66,6 +66,10 @@ class Rust(Package):
     depends_on("pkgconfig", type="build")
     depends_on("python", type="build")
     depends_on("zlib-api")
+    depends_on("llvm@:18")
+    depends_on("binutils")
+    depends_on("ncurses+termlib")
+    depends_on("graphviz")
 
     # cmake dependency comes from LLVM. Rust has their own fork of LLVM, with tags corresponding
     # to each Rust release, so it's easy to loop through tags and grep for "cmake_minimum_required"
@@ -171,16 +175,15 @@ class Rust(Package):
         # under the Spack package prefix.
         opts.append("install.sysconfdir=etc")
 
-        # Build extended suite of tools so dependent packages
-        # packages can build using cargo.
-        opts.append("build.extended=true")
-
         # Build docs if specified by the +docs variant.
         opts.append(f"build.docs={str(spec.satisfies('+docs')).lower()}")
 
         # Set binary locations for bootstrap rustc and cargo.
         opts.append(f"build.cargo={spec['rust-bootstrap'].prefix.bin.cargo}")
         opts.append(f"build.rustc={spec['rust-bootstrap'].prefix.bin.rustc}")
+
+        # Use vendored resources to perform offline build.
+        opts.append("build.vendor=true")
 
         # Disable bootstrap LLVM download.
         opts.append("llvm.download-ci-llvm=false")
@@ -201,8 +204,9 @@ class Rust(Package):
         # Compile tools into flag for configure.
         flags.append(f"--tools={','.join(tools)}")
 
-        # Use vendored resources to perform offline build.
-        flags.append("--enable-vendor")
+        # Use a spack built llvm
+        flags.append(f"--llvm-config={join_path(spec['llvm'].prefix.bin, 'llvm-config')}")
+        flags.append(f"--llvm-filecheck={spec['llvm'].prefix.libexec.llvm.FileCheck}")
 
         configure(*flags)
 

@@ -23,8 +23,7 @@ class Halide(CMakePackage, PythonExtension):
     version("16.0.0", sha256="a0cccee762681ea697124b8172dd65595856d0fa5bd4d1af7933046b4a085b04")
     version("15.0.0", sha256="6680424f80c5731a85d977c06327096afe5af31da3667e91d4d36a25fabdda15")
     version("14.0.0", sha256="f9fc9765217cbd10e3a3e3883a60fc8f2dbbeaac634b45c789577a8a87999a01")
-    depends_on("c", type="build")
-    depends_on("cxx", type="build")
+
     variant(
         "build_type",
         default="Release",
@@ -41,7 +40,6 @@ class Halide(CMakePackage, PythonExtension):
     variant(
         "d3d12", default=False, description="Build Non-llvm based Direct3D 12 Compute backend."
     )
-    extends("python", when="+python")
     _values = (
         "aarch64",
         "amdgpu",
@@ -62,8 +60,11 @@ class Halide(CMakePackage, PythonExtension):
     )
     variant("sharedllvm", default=False, description="Link to the shared version of LLVM.")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     depends_on("cmake@3.22:", type="build")
-    depends_on("llvm+clang+lld build_type=Release", type=("link", "run"))
+    depends_on("llvm+clang+lld", type=("link", "run"))
     depends_on("llvm@14.0.0:14", type=("link", "run"), when="@14.0.0:14")
     depends_on("llvm@15.0.0:15", type=("link", "run"), when="@15.0.0:15")
     depends_on("llvm@16.0.0:16", type=("link", "run"), when="@16.0.0:16")
@@ -74,10 +75,13 @@ class Halide(CMakePackage, PythonExtension):
         depends_on(
             "llvm targets={0}".format(v), type=("link", "run"), when="targets={0}".format(v)
         )
+
     depends_on("llvm+llvm_dylib", type=("link", "run"), when="+sharedllvm")
 
     depends_on("libjpeg", type=("build", "link", "run"))
     depends_on("libpng", type=("build", "link", "run"))
+
+    extends("python", when="+python")
 
     depends_on("python@3.8:", type=("build", "link", "run"), when="+python")
     # See https://github.com/halide/Halide/blob/main/requirements.txt

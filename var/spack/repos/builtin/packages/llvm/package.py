@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
 import re
-import sys
 
 from llnl.util.lang import classproperty
 
@@ -45,6 +44,7 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
     url = "https://github.com/llvm/llvm-project/archive/llvmorg-7.1.0.tar.gz"
     list_url = "https://releases.llvm.org/download.html"
     git = "https://github.com/llvm/llvm-project"
+
     maintainers("trws", "haampie", "skosukhin")
 
     tags = ["e4s", "compiler"]
@@ -210,13 +210,10 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
         version("5.0.1", sha256="84ca454abf262579814a2a2b846569f6e0cb3e16dc33ca3642b4f1dff6fbafd3")
         version("5.0.0", sha256="1f1843315657a4371d8ca37f01265fa9aae17dbcf46d2d0a95c1fdb3c6a4bab6")
 
-    depends_on("c", type="build")
-    depends_on("cxx", type="build")
+    # clang
+    variant("clang", default=True, description="Build the C/C++/Objective-C compiler frontend")
 
-    variant(
-        "clang", default=True, description="Build the LLVM C/C++/Objective-C compiler frontend"
-    )
-
+    # flang
     variant(
         "flang",
         default=False,
@@ -226,11 +223,17 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
     conflicts("+flang", when="@:10")
     conflicts("+flang", when="~clang")
 
-    variant("lldb", default=True, description="Build the LLVM debugger")
+    # lldb
+    variant("lldb", default=False, description="Build the LLVM debugger")
     conflicts("+lldb", when="~clang")
 
-    variant("lld", default=True, description="Build the LLVM linker")
+    # lld
+    variant("lld", default=False, description="Build the LLVM linker")
+
+    # mlir
     variant("mlir", default=False, when="@10:", description="Build with MLIR support")
+
+    # libunwind
     variant(
         "libunwind",
         values=(
@@ -238,16 +241,21 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
             conditional("project", when="@:15"),
             conditional("runtime", when="+clang @6:"),
         ),
-        default="runtime",
+        default="none",
         description="Build the LLVM unwinder library"
         "either as a runtime (with just-build Clang) "
         "or as a project (with the compiler in use)",
     )
+
+    # polly
     variant(
         "polly",
-        default=True,
+        default=False,
         description="Build the LLVM polyhedral optimization plugin, only builds for 3.7.0+",
     )
+    conflicts("+polly", when="@:3.6")
+
+    # libcxx
     variant(
         "libcxx",
         values=(
@@ -255,22 +263,33 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
             conditional("project", when="@:15"),
             conditional("runtime", when="+clang @6:"),
         ),
-        default="runtime",
+        default="none",
         description="Build the LLVM C++ standard library "
         "either as a runtime (with just-build Clang) "
         "or as a project (with the compiler in use)",
     )
 
-    variant("offload", default=True, when="@19:", description="Build the Offload subproject")
+    # offload
+    variant("offload", default=False, when="@19:", description="Build the Offload subproject")
     conflicts("+offload", when="~clang")
 
-    variant("libomptarget", default=True, description="Build the OpenMP offloading library")
+    # openmp
+    variant(
+        "openmp",
+        values=("none", "project", conditional("runtime", when="+clang @12:")),
+        default="none",
+        description="Build OpenMP either as a runtime (with just-build Clang) "
+        "or as a project (with the compiler in use)",
+    )
+
+    # libomptarget
+    variant("libomptarget", default=False, description="Build the OpenMP offloading library")
     conflicts("+libomptarget", when="~clang")
     conflicts("+libomptarget", when="~offload @19:")
-    for _p in ["darwin", "windows"]:
-        conflicts("+libomptarget", when="platform={0}".format(_p))
-    del _p
+    conflicts("+libomptarget", when="platform=darwin")
+    conflicts("+libomptarget", when="platform=windows")
 
+    # openmp_debug
     variant(
         "libomptarget_debug",
         default=False,
@@ -278,6 +297,7 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
     )
     conflicts("+libomptarget_debug", when="~libomptarget")
 
+    # compiler-rt
     variant(
         "compiler-rt",
         values=(
@@ -285,31 +305,37 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
             conditional("project", when="+clang"),
             conditional("runtime", when="+clang @6:"),
         ),
-        default="runtime",
+        default="none",
         description="Build the LLVM compiler runtime, including sanitizers, "
         "either as a runtime (with just-build Clang) "
         "or as a project (with the compiler in use)",
     )
-    variant(
-        "gold",
-        default=(sys.platform != "darwin"),
-        description="Add support for LTO with the gold linker plugin",
-    )
+
+    # gold
+    variant("gold", default=False, description="Add support for LTO with the gold linker plugin")
+
+    # split_dwarf
     variant("split_dwarf", default=False, description="Build with split dwarf information")
+
+    # llvm_dylib
     variant(
         "llvm_dylib",
         default=True,
         description="Build a combined LLVM shared library with all components",
     )
+
+    # link_llvm_dylib
     variant(
         "link_llvm_dylib",
         default=False,
         when="+llvm_dylib",
         description="Link LLVM tools against the LLVM shared library",
     )
+
+    # targets
     variant(
         "targets",
-        default="all",
+        default="none",
         description=(
             "What targets to build. Spack's target family is always added "
             "(e.g. X86 is automatically enabled when targeting znver2)."
@@ -338,6 +364,8 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
         ),
         multi=True,
     )
+
+    # libomp_tsan
     variant(
         "libomp_tsan",
         default=False,
@@ -346,42 +374,54 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
         when="@4:12",
         description="Build with OpenMP capable thread sanitizer",
     )
-    variant(
-        "openmp",
-        values=("project", conditional("runtime", when="+clang @12:")),
-        default="runtime",
-        description="Build OpenMP either as a runtime (with just-build Clang) "
-        "or as a project (with the compiler in use)",
-    )
+
+    # code_signing
     variant(
         "code_signing",
         default=False,
         when="+lldb platform=darwin",
         description="Enable code-signing on macOS",
     )
+
+    # python
     variant("python", default=False, description="Install python bindings")
-    variant("lua", default=True, description="Enable lua scripting inside lldb")
+    extends("python", when="+python")
+
+    # lua
+    variant("lua", default=False, description="Enable lua scripting inside lldb")
+
+    # version_suffix
+    # WHAT IS THIS?!
     variant("version_suffix", default="none", description="Add a symbol suffix")
+
+    # shlib_symbol_version
     variant(
         "shlib_symbol_version",
         default="none",
         description="Add shared library symbol version",
         when="@13:",
     )
+
+    # z3
     variant("z3", default=False, description="Use Z3 for the clang static analyzer")
     conflicts("+z3", when="@:7")
     conflicts("+z3", when="~clang")
     conflicts("+lua", when="@:10")
     conflicts("+lua", when="~lldb")
-    # Python distutils were removed with 3.12 and are required to build LLVM <= 14
-    conflicts("^python@3.12:", when="@:14")
 
+    # zstd
     variant(
         "zstd",
         default=False,
         when="@15:",
         description="Enable zstd support for static analyzer / lld",
     )
+
+    # ----------------
+    # Build Conflicts
+    # ----------------
+    # Python distutils were removed with 3.12 and are required to build LLVM <= 14
+    conflicts("^python@3.12:", when="@:14")
 
     provides("libllvm@19", when="@19.0.0:19")
     provides("libllvm@18", when="@18.0.0:18")
@@ -401,9 +441,10 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
     provides("libllvm@4", when="@4.0.0:4")
     provides("libllvm@3", when="@3.0.0:3")
 
-    extends("python", when="+python")
+    # Build dependencies
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
-    # Build dependency
     depends_on("cmake@3.4.3:", type="build")
     depends_on("cmake@3.13.4:", type="build", when="@12:")
     depends_on("cmake@3.20:", type="build", when="@16:")
@@ -507,7 +548,6 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
         del v, compiler_conflicts, comp
 
     # libomptarget
-    conflicts("+cuda", when="@15:")  # +cuda variant is obselete since LLVM 15
     conflicts(
         "targets=none",
         when="+libomptarget",
@@ -515,6 +555,8 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
     )
     # See https://github.com/spack/spack/pull/32476#issuecomment-1573770361
     conflicts("~lld", when="+libomptarget")
+
+    conflicts("+cuda", when="@15:")  # +cuda variant is obselete since LLVM 15
 
     # cuda_arch value must be specified
     conflicts("cuda_arch=none", when="+cuda", msg="A value for cuda_arch must be specified.")
@@ -951,6 +993,7 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
             define("LLVM_REQUIRES_RTTI", True),
             define("LLVM_ENABLE_RTTI", True),
             define("LLVM_ENABLE_LIBXML2", False),
+            define("LLVM_ENABLE_ASSERTIONS", True),
             define("CLANG_DEFAULT_OPENMP_RUNTIME", "libomp"),
             define("LIBOMP_USE_HWLOC", True),
             define("LIBOMP_HWLOC_INSTALL_DIR", spec["hwloc"].prefix),
