@@ -126,6 +126,7 @@ pipeline_gen_schema = {
 
 core_shared_properties = union_dicts(
     {
+        "dynamic": {"type": "boolean"},
         "pipeline-gen": pipeline_gen_schema,
         "rebuild-index": {"type": "boolean"},
         "broken-specs-url": {"type": "string"},

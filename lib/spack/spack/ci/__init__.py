@@ -362,6 +362,8 @@ def collect_pipeline_options(env: ev.Environment, args) -> PipelineOptions:
     if "rebuild-index" in ci_config and ci_config["rebuild-index"] is False:
         options.rebuild_index = False
 
+    options.dynamic_stack = ci_config.get("dynamic", False)
+
     return options
 
 
@@ -376,17 +378,29 @@ def generate_pipeline(env: ev.Environment, args) -> None:
         args: (spack.main.SpackArgumentParser): Parsed arguments from the command
             line.
     """
-    with spack.concretize.disable_compiler_existence_check():
-        with env.write_transaction():
-            env.concretize()
-            env.write()
-
-    options = collect_pipeline_options(env, args)
-
     # Get the joined "ci" config with all of the current scopes resolved
     ci_config = cfg.get("ci")
     if not ci_config:
         raise SpackCIError("Environment does not have a `ci` configuration")
+
+    options = collect_pipeline_options(env, args)
+
+    # Generate a dynamic stack spec list
+    if options.dynamic_stack:
+        rev1, rev2 = get_change_revisions()
+        affected_pkgs = compute_affected_packages(rev1, rev2)
+        for pkg_name in affected_pkgs:
+            pkg_cls = spack.repo.PATH.get_pkg_class(pkg_name)
+            if pkg_cls.dynamic_specs:
+                for spec in pkg_cls.dynamic_specs:
+                    env.add(spec)
+            else:
+                env.add(pkg_name)
+
+    with spack.concretize.disable_compiler_existence_check():
+        with env.write_transaction():
+            env.concretize()
+            env.write()
 
     # Get the target platform we should generate a pipeline for
     ci_target = ci_config.get("target", "gitlab")

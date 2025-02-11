@@ -730,6 +730,8 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
     #: TestSuite instance used to manage stand-alone tests for 1+ specs.
     test_suite: Optional[Any] = None
 
+    dynamic_specs: Optional[List[str]] = None
+
     def __init__(self, spec):
         # this determines how the package should be built.
         self.spec: spack.spec.Spec = spec
