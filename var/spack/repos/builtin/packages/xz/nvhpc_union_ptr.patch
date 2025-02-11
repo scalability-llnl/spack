@@ -1,0 +1,19 @@
+NVHPC has problems with unions that contain
+pointers that are not the first members
+--- a/src/liblzma/common/string_conversion.c
++++ b/src/liblzma/common/string_conversion.c
+@@ -218,12 +218,12 @@ typedef struct {
+ 	uint16_t offset;
+ 
+ 	union {
++		const name_value_map *map;
++
+ 		struct {
+ 			uint32_t min;
+ 			uint32_t max;
+ 		} range;
+-
+-		const name_value_map *map;
+ 	} u;
+ } option_map;
+ 
