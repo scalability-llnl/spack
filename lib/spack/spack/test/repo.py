@@ -38,6 +38,27 @@ repo:
     return spack.repo.Repo(str(repo_dir), cache=repo_cache), request.param
 
 
+@pytest.fixture(scope="function")
+def versioned_repo(tmp_path_factory, request):
+    def _execute(spack_version, repo_version):
+        repo_namespace = "extra_test_repo"
+        repo_dir = tmp_path_factory.mktemp(repo_namespace)
+        cache_dir = tmp_path_factory.mktemp("cache")
+        (repo_dir / "packages").mkdir(parents=True, exist_ok=True)
+        (repo_dir / "repo.yaml").write_text(
+            f"""
+repo:
+  namespace: extra_test_repo
+  required_spack_version: '{spack_version}'
+  version: '{repo_version}'
+"""
+        )
+        repo_cache = spack.util.file_cache.FileCache(str(cache_dir))
+        return spack.repo.Repo(str(repo_dir), cache=repo_cache)
+
+    return _execute
+
+
 def test_repo_getpkg(mutable_mock_repo):
     mutable_mock_repo.get_pkg_class("pkg-a")
     mutable_mock_repo.get_pkg_class("builtin.mock.pkg-a")
@@ -303,3 +324,13 @@ class TestRepoPath:
         # foo is not there, raise
         with pytest.raises(spack.repo.UnknownNamespaceError):
             repo.get_repo("foo")
+
+
+def test_incompatible_repo(mutable_mock_repo, versioned_repo):
+    with pytest.raises(spack.repo.BadRepoError, match="requires Spack version"):
+        # test added after Spack passed version 0.22
+        versioned_repo(":0.22", ":")
+
+    with pytest.raises(spack.repo.BadRepoError, match="requires repo version"):
+        # ":a" < "0", and all Spack versions require at least "0:"
+        versioned_repo(":", ":a")
