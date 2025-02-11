@@ -185,24 +185,24 @@ class Tau(Package):
 
     # subpackages for TAU
     with when("+apex"):
-        depends_on("apex")
-        depends_on("apex+cuda", when="+cuda")
-        depends_on("apex+hip", when="+rocm")
-        depends_on("apex+sycl", when="+level_zero")
-        depends_on("apex+mpi", when="+mpi")
-        depends_on("apex+openmp", when="+openmp")
-        depends_on("apex+papi", when="+papi")
-        depends_on("apex+opencl", when="+opencl")
+        depends_on("apex", type=("run"))
+        depends_on("apex+cuda", when="+cuda", type=("run"))
+        depends_on("apex+hip", when="+rocm", type=("run"))
+        depends_on("apex+sycl", when="+level_zero", type=("run"))
+        depends_on("apex+mpi", when="+mpi", type=("run"))
+        depends_on("apex+openmp", when="+openmp", type=("run"))
+        depends_on("apex+papi", when="+papi", type=("run"))
+        depends_on("apex+opencl", when="+opencl", type=("run"))
         # Handle inverted variants that are enabled by default
-        depends_on("apex~otf2", when="~otf2")
+        depends_on("apex~otf2", when="~otf2", type=("run"))
     with when("+zerosum"):
-        depends_on("zerosum")
-        depends_on("zerosum+cuda", when="+cuda")
-        depends_on("zerosum+hip", when="+rocm")
-        depends_on("zerosum+sycl", when="+level_zero")
+        depends_on("zerosum", type=("run"))
+        depends_on("zerosum+cuda", when="+cuda", type=("run"))
+        depends_on("zerosum+hip", when="+rocm", type=("run"))
+        depends_on("zerosum+sycl", when="+level_zero", type=("run"))
         # Handle inverted variants that are enabled by default
-        depends_on("zerosum~mpi", when="~mpi")
-        depends_on("zerosum~openmp", when="~openmp")
+        depends_on("zerosum~mpi", when="~mpi", type=("run"))
+        depends_on("zerosum~openmp", when="~openmp", type=("run"))
 
     # Elf only required from 2.28.1 on
     conflicts("+elf", when="@:2.28.0")
