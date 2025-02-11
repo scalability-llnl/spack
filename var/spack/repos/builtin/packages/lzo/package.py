@@ -34,3 +34,10 @@ class Lzo(AutotoolsPackage):
         args = ["--disable-dependency-tracking"]
         args += self.enable_or_disable("libs")
         return args
+
+    @run_after("install")
+    def postinstall(self):
+        # ensure e.g. #include <lzo/lzo1x.h> works with Cflags: -I${includedir}/lzo in pkgconf
+        # by creating symlink ${includedir}/lzo/lzo -> ${includedir}/lzo
+        with working_dir(self.prefix.include.lzo):
+            symlink(".", "lzo")
