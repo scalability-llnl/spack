@@ -14,3 +14,6 @@ git, , , Manage Software Repositories
 svn, , Optional, Manage Software Repositories
 hg, , Optional, Manage Software Repositories
 Python header files, , Optional (e.g. ``python3-dev`` on Debian), Bootstrapping from sources
+sed, , , Used by configure scripts
+grep, , , Used by configure scripts
+awk, , , Used by configure scripts
