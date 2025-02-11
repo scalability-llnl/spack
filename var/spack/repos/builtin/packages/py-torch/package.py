@@ -365,6 +365,9 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     # Fixes build error when ROCm is enabled for pytorch-1.5 release
     patch("rocm.patch", when="@1.5+rocm")
 
+    # Modifies cmake to accept location of fp16 header file only library
+    patch("fp16.patch", when="@2.3")
+
     # Fixes compilation with Clang 9.0.0 and Apple Clang 11.0.3
     # https://github.com/pytorch/pytorch/pull/37086
     patch(
@@ -687,6 +690,9 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
         env.set("USE_SYSTEM_CPUINFO", "ON")
         env.set("USE_SYSTEM_EIGEN_INSTALL", "ON")
         env.set("USE_SYSTEM_FP16", "ON")
+        # FP16 is on, set the spack install fp16 to be picked by cmake
+        env.set("FP16_PATH", self.spec["fp16"].prefix)
+
         env.set("USE_SYSTEM_FXDIV", "ON")
         env.set("USE_SYSTEM_GLOO", "ON")
         env.set("USE_SYSTEM_NCCL", "ON")
