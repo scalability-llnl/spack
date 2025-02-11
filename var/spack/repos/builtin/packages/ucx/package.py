@@ -251,16 +251,23 @@ class Ucx(AutotoolsPackage, CudaPackage):
             args.append("LDFLAGS=-fuse-ld=bfd")
 
         if "+rocm" in spec:
-            rocm_flags = " ".join(
-                [
-                    "-I" + self.spec["hip"].prefix.include,
-                    "-I" + self.spec["hip"].prefix.include.hip,
-                    "-I" + self.spec["hsa-rocr-dev"].prefix.include.hsa,
-                    "-L" + self.spec["hip"].prefix.lib,
-                    "-L" + self.spec["hsa-rocr-dev"].prefix.lib,
-                ]
+            cppflags = " ".join(
+                "-I" + include_dir
+                for include_dir in (
+                    self.spec["hip"].prefix.include,
+                    self.spec["hip"].prefix.include.hip,
+                    self.spec["hsa-rocr-dev"].prefix.include.hsa,
+                )
             )
-            args.append("--with-rocm=" + rocm_flags)
+            ldflags = " ".join(
+                "-L" + library_dir
+                for library_dir in (
+                    self.spec["hip"].prefix.lib,
+                    self.spec["hsa-rocr-dev"].prefix.lib,
+                )
+            )
+            args.extend(["CPPFLAGS=" + cppflags, "LDFLAGS=" + ldflags])
+            args.append("--with-rocm=" + self.spec["hip"].prefix)
         else:
             args.append("--without-rocm")
 
