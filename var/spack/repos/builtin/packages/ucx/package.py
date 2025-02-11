@@ -140,6 +140,7 @@ class Ucx(AutotoolsPackage, CudaPackage):
     depends_on("pkgconfig", type="build")
     depends_on("rdma-core", when="+rdmacm")
     depends_on("rdma-core", when="+verbs")
+    depends_on("nvhpc", when="+verbs")
     depends_on("xpmem", when="+xpmem")
     depends_on("hip", when="+rocm")
     depends_on("hsa-rocr-dev", when="+rocm")
