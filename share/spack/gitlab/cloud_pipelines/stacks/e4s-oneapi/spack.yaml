@@ -144,7 +144,7 @@ spack:
   - precice
   - pruners-ninja
   - pumi
-  - py-amrex ~ipo                   # oneAPI 2024.2.0 builds do not support IPO/LTO says CMake, even though pybind11 strongly encourages it
+  - py-amrex
   - py-h5py
   - py-jupyterhub
   - py-libensemble
@@ -189,7 +189,7 @@ spack:
   - veloc
   # - visit                                                 # visit: +visit: visit_vtk/lightweight/vtkSkewLookupTable.C:32:10: error: cannot initialize return object of type 'unsigned char *' with an rvalue of type 'const unsigned char *'
   - vtk-m ~openmp
-  - warpx +python ~python_ipo ^py-amrex ~ipo                # oneAPI 2024.2.0 builds do not support IPO/LTO says CMake, even though pybind11 strongly encourages it
+  - warpx +python
   - zfp
   # --
   # - chapel ~cuda ~rocm                                    # llvm: closures.c:(.text+0x305e): undefined reference to `_intel_fast_memset'
@@ -236,7 +236,7 @@ spack:
   - sundials +sycl cxxstd=17 +examples-install
   - tau +mpi +opencl +level_zero ~pdt +syscall                # requires libdrm.so to be installed
   - upcxx +level_zero
-  - warpx ~qed +python ~python_ipo compute=sycl ^py-amrex ~ipo  # qed for https://github.com/ECP-WarpX/picsar/pull/53 prior to 24.09 release; ~ipo for oneAPI 2024.2.0 GPU builds do not support IPO/LTO says CMake, even though pybind11 strongly encourages it
+  - warpx ~qed +python compute=sycl
   # --
   # - hpctoolkit +level_zero                                  # dyninst@12.3.0%gcc: /usr/bin/ld: libiberty/./d-demangle.c:142: undefined reference to `_intel_fast_memcpy'; can't mix intel-tbb@%oneapi with dyninst%gcc
   # - slate +sycl                                             # slate: ifx: error #10426: option '-fopenmp-targets' requires '-fiopenmp'
