@@ -281,7 +281,7 @@ class BaseConstructor:
                     key_node.start_mark,
                     """
                     To suppress this check see:
-                        http://yaml.readthedocs.io/en/latest/api.html#duplicate-keys
+                        https://yaml.readthedocs.io/en/latest/api/#duplicate-keys
                     """,
                     """\
                     Duplicate keys will become an error in future releases, and are errors
@@ -306,7 +306,7 @@ class BaseConstructor:
                     key_node.start_mark,
                     """
                     To suppress this check see:
-                        http://yaml.readthedocs.io/en/latest/api.html#duplicate-keys
+                        https://yaml.readthedocs.io/en/latest/api/#duplicate-keys
                     """,
                     """\
                     Duplicate keys will become an error in future releases, and are errors
@@ -382,7 +382,7 @@ class SafeConstructor(BaseConstructor):
                         key_node.start_mark,
                         """
                         To suppress this check see:
-                           http://yaml.readthedocs.io/en/latest/api.html#duplicate-keys
+                           https://yaml.readthedocs.io/en/latest/api/#duplicate-keys
                         """,
                         """\
                         Duplicate keys will become an error in future releases, and are errors
@@ -1334,7 +1334,7 @@ class RoundTripConstructor(SafeConstructor):
                         key_node.start_mark,
                         """
                         To suppress this check see:
-                           http://yaml.readthedocs.io/en/latest/api.html#duplicate-keys
+                           https://yaml.readthedocs.io/en/latest/api/#duplicate-keys
                         """,
                         """\
                         Duplicate keys will become an error in future releases, and are errors
