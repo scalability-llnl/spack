@@ -28,6 +28,7 @@ class Yosys(MakefilePackage):
 
     version("master", branch="master")
 
+    version("0.50", commit="b5170e1394f602c607e75bdbb1a2b637118f2086", submodules=True)
     version("0.49", commit="427b5a251bfb511528a177bfa92567b4b3ada3dd", submodules=True)
     version("0.48", commit="aaa5347494801e9e3870b31387da59da24233f76", submodules=True)
     version("0.47", commit="647d61dd9212365a3cd44db219660b8f90b95cbd", submodules=True)
