@@ -407,7 +407,6 @@ class Openmpi(AutotoolsPackage, CudaPackage):
 
     patch("ad_lustre_rwcontig_open_source.patch", when="@1.6.5")
     patch("llnl-platforms.patch", when="@1.6.5")
-    patch("configure.patch", when="@1.10.1")
     patch("fix_multidef_pmi_class.patch", when="@2.0.0:2.0.1")
     patch("fix-ucx-1.7.0-api-instability.patch", when="@4.0.0:4.0.2")
 
@@ -431,6 +430,7 @@ class Openmpi(AutotoolsPackage, CudaPackage):
     # The second patch was applied starting version v4.0.0 and backported to
     # v2.x, v3.0.x, and v3.1.x.
     patch("use_mpi_tkr_sizeof/step_2.patch", when="@1.8.4:2.1.3,3:3.0.1")
+
     # To fix performance regressions introduced while fixing a bug in older
     # gcc versions on x86_64, Refs. open-mpi/ompi#8603
     patch("opal_assembly_arch.patch", when="@4.0.0:4.0.5,4.1.0")
@@ -1218,6 +1218,21 @@ with '-Wl,-commons,use_dylibs' and without
             config_args.append("CPPFLAGS=-diag-disable=10441")
 
         config_args += self.enable_or_disable("debug")
+
+        if self.spec.satisfies("@:4.1.5%nvhpc@23.3:"):
+            # Override the wrong result of the configure-time check. The value of the cache
+            # variable is a colon-separated tuple of three elements: the first one is the flag
+            # indicating whether it is possible to make the compiler ignore the type/kind/rank
+            # mismatches, the second element is the type of the mismatched argument to be used in
+            # the generated source code and the last one is the directive that makes the compiler
+            # ignore the mismatches. The value is the same as for the older version of NVHPC, which
+            # do not support the TYPE(*) syntax and, therefore, are not affected by the
+            # inconsistency (already eliminated in the main branch of the upstream repo) between
+            # the configure-time check and the actual generated source code
+            # (see https://github.com/open-mpi/ompi/pull/11857 for more details):
+            config_args.append(
+                "ompi_cv_fortran_ignore_tkr_data=1:real, dimension(*):!DIR$ IGNORE_TKR"
+            )
 
         return config_args
 
