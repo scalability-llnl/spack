@@ -541,6 +541,8 @@ class Gromacs(CMakePackage, CudaPackage):
         when="@2021.1:2021.2",
     )
 
+    patch("cufftmp-cmake-add-nvshmem.patch", when="+cufftmp")
+
     filter_compiler_wrappers(
         "*.cmake", relative_root=os.path.join("share", "cmake", "gromacs_mpi")
     )
@@ -796,6 +798,22 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
                 f'-DcuFFTMp_ROOT={self.spec["nvhpc"].prefix}/Linux_{self.spec.target.family}'
                 + f'/{self.spec["nvhpc"].version}/math_libs'
             )
+            # Add option to include cufft-mp's nvhshmem dependency.
+            # This currently requires the NVIDIA device drivers to be installed on the build
+            # machine to fulfill nvshmem_host's dependency on nvidia-ml.
+            options.append(
+                f'-DcuFFTMp_NVSHMEM_ROOT={self.spec["nvhpc"].prefix}/'
+                + f'Linux_{self.spec.target.family}/{self.spec["nvhpc"].version}'
+                + f'/comm_libs/{self.spec["cuda"].version.up_to(2)}/nvshmem_cufftmp_compat'
+            )
+            # The stub directories included in the Cuda Toolkit are
+            # internally versioned but not linked/name after their
+            # SONAME version. When compiling an executable the linker
+            # wants to load the versioned libraries and will fail for
+            # libnvidia.so.<VER> unless we relax this
+            # requirment. Unfortunately this relaxes this for all
+            # libraries.
+            options.append("-DGMX_EXE_LINKER_FLAGS=-Wl,--allow-shlib-undefined")
 
         if self.spec.satisfies("+heffte"):
             options.append("-DGMX_USE_HEFFTE=on")
