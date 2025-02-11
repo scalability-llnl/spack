@@ -17,6 +17,7 @@ class Hohqmesh(CMakePackage):
     license("MIT")
 
     version("main", branch="main")
+    version("1.5.4", sha256="8915ec3bc3c62b5a701ddaea2a8d39b8fba57cf9a0328bc3c29f2a589c800722")
     version("1.5.3", sha256="5d6de1ff6472d5044997372111754dcf339603351d0c855664115353a085a21e")
     version("1.5.2", sha256="afc749f71657fc70294a00e84891463d23a57dff0c17975445f268fb417da0cc")
     version("1.5.1", sha256="3a3e0246d61d55b58f5bebc6c925f0f6df93398ad8efc52a933feab4dcf00dc1")
