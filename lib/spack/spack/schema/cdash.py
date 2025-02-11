@@ -13,14 +13,28 @@ properties: Dict[str, Any] = {
     "cdash": {
         "type": "object",
         "additionalProperties": False,
-        # "required": ["build-group", "url", "project", "site"],
-        "required": ["build-group"],
+        "required": ["upload-url"],
         "patternProperties": {
-            r"build-group": {"type": "string"},
-            r"url": {"type": "string"},
-            r"project": {"type": "string"},
+            r"buildstamp": {"type": "string"},
+            r"build": {"type": "string"},
+            r"upload-url": {"type": "string"},
             r"site": {"type": "string"},
+            r"track": {"type": "string"},
         },
+        "anyOf": [
+            {
+                "required": ["upload-url"],
+                "not": {"required": ["track", "buildstamp"]}
+            },
+            {
+                "required": ["upload-url", "track"],
+                "not": {"required": ["buildstamp"]}
+            },
+            {
+                "required": ["upload-url", "buildstamp"],
+                "not": {"required": ["track"]}
+            }
+        ]
     }
 }
 
