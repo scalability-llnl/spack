@@ -1,0 +1,34 @@
+--- a/Config/mk-build/build.mk	2023-11-16 23:15:44.000000000 +0900
++++ b/Config/mk-build/build.mk	2023-11-16 23:18:41.000000000 +0900
+@@ -187,7 +187,7 @@ ifeq ($(WITH_OMM_SPARSE_BUNDLE),1)
+      endif
+      DBCSR     = $(DBCSR_ROOT)
+      DBCSRINC  = -I$(DBCSR)/include
+-     DBCSRLIB  = -L$(DBCSR)/lib -ldbcsr
++     DBCSRLIB  = -L$(DBCSR)/lib64 -ldbcsr
+      FPPFLAGS += -DHAVE_DBCSR
+ 
+      LIBS += $(DBCSRLIB)
+--- a/Src/contract_siesta_forces.F90	2023-11-16 23:15:50.000000000 +0900
++++ b/Src/contract_siesta_forces.F90	2023-11-17 13:41:30.000000000 +0900
+@@ -153,7 +153,8 @@ subroutine xc_functional_switch( restore
+   !! Exchanges the current functional during coefficient optimizations
+   !! if using VDW.
+   use alloc, only : re_alloc, de_alloc
+-  use xcmod, only : getXC, setXC
++!  use xcmod, only : getXC, setXC
++  use gridXC,  only : getXC=>gridxc_getXC, setXC=>gridxc_setXC
+ 
+   implicit none
+   logical        , intent(in)    :: restore
+--- a/Src/Makefile	2023-11-16 23:15:53.000000000 +0900
++++ b/Src/Makefile	2023-11-17 13:41:30.000000000 +0900
+@@ -301,6 +301,8 @@ OBJS += contract_coefio.o
+ # DFT-D3
+ OBJS += grimme_dispersion_m.o
+ 
++OBJS += cellsubs.o
++
+ # Special dependency that sfmakedepend cannot grasp for now
+ m_pexsi.o m_pexsi_driver.o m_pexsi_dos.o m_pexsi_local_dos.o: f_ppexsi_interface.o
+ 

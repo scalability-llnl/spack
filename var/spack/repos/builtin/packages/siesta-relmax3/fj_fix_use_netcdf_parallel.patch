@@ -1,0 +1,22 @@
+--- a/Src/m_ts_voltage.F90	2023-11-16 23:15:48.000000000 +0900
++++ b/Src/m_ts_voltage.F90	2023-11-17 13:41:30.000000000 +0900
+@@ -484,7 +484,7 @@ contains
+ 
+     use parallel, only : IONode
+ 
+-    use netcdf_ncdf
++    use netcdf_ncdf, ncdf_parallel => parallel
+     use dictionary
+ 
+     character(len=*), intent(in) :: fname
+--- a/Src/siesta_init.F	2023-11-16 23:15:54.000000000 +0900
++++ b/Src/siesta_init.F	2023-11-17 13:41:30.000000000 +0900
+@@ -89,7 +89,7 @@
+ #endif
+ 
+ #ifdef NCDF_4
+-      use netcdf_ncdf
++      use netcdf_ncdf, ncdf_parallel => parallel
+ #endif
+ 
+       use reinit_m, only: reinit, parse_command_line
