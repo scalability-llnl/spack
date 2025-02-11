@@ -20,6 +20,7 @@ class GenemarkEt(Package):
     homepage = "http://topaz.gatech.edu/GeneMark"
     manual_download = True
 
+    version("4.71", sha256="629f430e7262bdb5df8f24413e65d26e35eb10ea34212145b692ee4689591e54")
     version("4.69", sha256="027a060d6e0654d4d2a09bc97dde9bd6efd60bc4dc3e0183f212ddd5e6854ae7")
     version("4.65", sha256="62ea2dfa1954ab25edcc118dbeaeacf15924274fb9ed47bc54716cfd15ad04fe")
     version("4.46", sha256="856b0b6c7cbd12835e140ff04ecd9124376348efd65f76bfd8b8e08c1834eac0")
@@ -35,7 +36,9 @@ class GenemarkEt(Package):
     depends_on("perl-threads", when="@4.65:", type=("build", "run"))
 
     def url_for_version(self, version):
-        if version >= Version("4.65"):
+        if version >= Version("4.71"):
+            return "file://{0}/gmes_linux_64_4.tar.gz".format(os.getcwd())
+        elif version >= Version("4.65"):
             return "file://{0}/gmes_linux_64.tar.gz".format(os.getcwd())
         else:
             return "file://{0}/gm_et_linux_64.tar.gz".format(os.getcwd())
