@@ -65,6 +65,7 @@ import spack.schema.view
 import spack.util.spack_yaml as syaml
 import spack.util.web as web_util
 from spack.util.cpus import cpus_available
+from spack.util.gpg import CLEARSIGN
 
 #: Dict from section names -> schema for that section
 SECTION_SCHEMAS: Dict[str, Any] = {
@@ -106,6 +107,7 @@ CONFIG_DEFAULTS = {
         "build_jobs": min(16, cpus_available()),
         "build_stage": "$tempdir/spack-stage",
         "license_dir": spack.paths.default_license_dir,
+        "signing_mode": CLEARSIGN,
     }
 }
 

@@ -667,8 +667,15 @@ def select_signing_key() -> str:
 
 def sign_specfile(key: str, specfile_path: str) -> str:
     """sign and return the path to the signed specfile"""
-    signed_specfile_path = f"{specfile_path}.sig"
-    spack.util.gpg.sign(key, specfile_path, signed_specfile_path, clearsign=True)
+    signing_mode = spack.config.get("config:signing_mode")
+    if signing_mode == spack.util.gpg.CLEARSIGN:
+        clearsign = True
+        signed_specfile_path = f"{specfile_path}.sig"
+    else:
+        clearsign = False
+        signed_specfile_path = f"{specfile_path}.asc"
+
+    spack.util.gpg.sign(key, specfile_path, signed_specfile_path, clearsign=clearsign)
     return signed_specfile_path
 
 
@@ -1063,6 +1070,7 @@ def _do_create_tarball(
 
 
 class ExistsInBuildcache(NamedTuple):
+    signature: bool
     signed: bool
     unsigned: bool
     tarball: bool
@@ -1087,6 +1095,11 @@ class BuildcacheFiles:
             tarball_name(self.spec, ".spec.json.sig" if signed else ".spec.json"),
         )
 
+    def remote_sigfile(self) -> str:
+        return url_util.join(
+            self.remote, build_cache_relative_path(), tarball_name(self.spec, ".asc")
+        )
+
     def remote_tarball(self) -> str:
         return url_util.join(
             self.remote, build_cache_relative_path(), tarball_path_name(self.spec, ".spack")
@@ -1103,10 +1116,11 @@ def _exists_in_buildcache(spec: spack.spec.Spec, tmpdir: str, out_url: str) -> E
     """returns a tuple of bools (signed, unsigned, tarball) indicating whether specfiles/tarballs
     exist in the buildcache"""
     files = BuildcacheFiles(spec, tmpdir, out_url)
+    signature = web_util.url_exists(files.remote_sigfile())
     signed = web_util.url_exists(files.remote_specfile(signed=True))
     unsigned = web_util.url_exists(files.remote_specfile(signed=False))
     tarball = web_util.url_exists(files.remote_tarball())
-    return ExistsInBuildcache(signed, unsigned, tarball)
+    return ExistsInBuildcache(signature, signed, unsigned, tarball)
 
 
 def prefixes_to_relocate(spec):
@@ -1136,6 +1150,9 @@ def _url_upload_tarball_and_specfile(
         web_util.remove_url(files.remote_specfile(signed=True))
     if exists.unsigned:
         web_util.remove_url(files.remote_specfile(signed=False))
+    if exists.signature:
+        web_util.remove_url(files.remote_sigfile())
+
     web_util.push_to_url(tarball, files.remote_tarball(), keep_original=False)
 
     specfile = files.local_specfile()
@@ -1148,11 +1165,19 @@ def _url_upload_tarball_and_specfile(
 
     # sign the tarball and spec file with gpg
     if signing_key:
-        specfile = sign_specfile(signing_key, specfile)
+        specfile_sig = sign_specfile(signing_key, specfile)
 
-    web_util.push_to_url(
-        specfile, files.remote_specfile(signed=bool(signing_key)), keep_original=False
-    )
+        if spack.util.gpg.CLEARSIGN == spack.config.get("config:signing_mode"):
+            web_util.push_to_url(
+                specfile_sig, files.remote_specfile(signed=True), keep_original=False
+            )
+        else:
+            web_util.push_to_url(specfile_sig, files.remote_sigfile(), keep_original=False)
+            web_util.push_to_url(
+                specfile, files.remote_specfile(signed=False), keep_original=False
+            )
+    else:
+        web_util.push_to_url(specfile, files.remote_specfile(signed=False), keep_original=False)
 
 
 class Uploader:
@@ -1362,7 +1387,7 @@ def _url_push(
         specs_to_upload = []
 
         for spec in specs:
-            signed, unsigned, tarball = exists[spec.dag_hash()]
+            _, signed, unsigned, tarball = exists[spec.dag_hash()]
             if (signed or unsigned) and tarball:
                 skipped.append(spec)
             else:
@@ -1835,9 +1860,10 @@ def _oci_update_index(
     upload_manifest_with_retry(image_ref.with_tag(default_index_tag), oci_manifest)
 
 
-def try_verify(specfile_path):
+def try_verify(specfile_path, sigfile=None):
     """Utility function to attempt to verify a local file.  Assumes the
-    file is a clearsigned signature file.
+    file is clearsigned or has a corresponding <specfile_path>.asc
+    signature file.
 
     Args:
         specfile_path (str): Path to file to be verified.
@@ -1848,9 +1874,20 @@ def try_verify(specfile_path):
     suppress = config.get("config:suppress_gpg_warnings", False)
 
     try:
+        # Always try to verify the clearsign way first
         spack.util.gpg.verify(specfile_path, suppress_warnings=suppress)
     except Exception:
-        return False
+        specfile_sig_path = sigfile or specfile_path + ".asc"
+        # Check if there is a detached signature file for this file
+        if os.path.exists(specfile_sig_path):
+            try:
+                spack.util.gpg.verify(
+                    specfile_sig_path, file=specfile_path, suppress_warnings=suppress
+                )
+            except Exception:
+                return False
+        else:
+            return False
 
     return True
 
@@ -2063,8 +2100,14 @@ def download_tarball(spec, unsigned: Optional[bool] = False, mirrors_for_spec=No
                     fetch_url, BUILD_CACHE_RELATIVE_PATH, specfile_prefix
                 )
                 specfile_url = f"{specfile_path}.{ext}"
+                sigfile_url = f"{specfile_path}.asc"
                 spackfile_url = url_util.join(fetch_url, BUILD_CACHE_RELATIVE_PATH, tarball)
                 local_specfile_stage = try_fetch(specfile_url)
+                local_sigfile_stage = try_fetch(sigfile_url)
+                local_sigfile_path = None
+                if local_sigfile_stage:
+                    local_sigfile_path = local_sigfile_stage.save_filename
+
                 if local_specfile_stage:
                     local_specfile_path = local_specfile_stage.save_filename
                     signature_verified = False
@@ -2086,7 +2129,9 @@ def download_tarball(spec, unsigned: Optional[bool] = False, mirrors_for_spec=No
                         # the signature immediately.  We will not download the
                         # tarball if we could not verify the signature.
                         tried_to_verify_sigs.append(specfile_url)
-                        signature_verified = try_verify(local_specfile_path)
+                        signature_verified = try_verify(
+                            local_specfile_path, sigfile=local_sigfile_path
+                        )
                         if not signature_verified:
                             tty.warn(f"Failed to verify: {specfile_url}")
 
