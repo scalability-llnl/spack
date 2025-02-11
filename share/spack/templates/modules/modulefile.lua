@@ -98,4 +98,6 @@ append_path("MANPATH", "", ":")
 
 {% block footer %}
 {# In case the module needs to be extended with custom Lua code #}
+{# `custom_code_block` can be defined in `modules.yaml` #}
+{{ custom_code_block }}
 {% endblock %}
