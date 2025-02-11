@@ -137,6 +137,9 @@ config:
   # user's environment.
   build_language: C
 
+  # The build and test process priority, as unix nice (see man nice).
+  # A higher number means lower priority. Set to null to disable.
+  build_nice: 5
 
   # When set to true, concurrent instances of Spack will use locks to
   # avoid modifying the install tree, database file, etc. If false, Spack

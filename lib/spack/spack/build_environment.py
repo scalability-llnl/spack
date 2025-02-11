@@ -1293,6 +1293,16 @@ def _setup_pkg_and_run(
 
         pkg = serialized_pkg.restore()
 
+        os_nice = getattr(os, "nice", None)  # Not avail on Windows
+        nice = spack.config.get("config:build_nice", None)
+        if os_nice is not None and nice is not None:
+            try:
+                os_nice(nice)
+            except Exception as e:
+                # Different machines can have different restrictions, so do no crash on invalid
+                # (non-permitted) nice level
+                tty.warn(f"Could not set build_nice to {nice}: {e}")
+
         if not kwargs.get("fake", False):
             kwargs["unmodified_env"] = os.environ.copy()
             kwargs["env_modifications"] = setup_package(
