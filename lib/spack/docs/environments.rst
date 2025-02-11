@@ -692,8 +692,12 @@ with the ``optional`` clause and conditional with the ``when`` clause. (See
 :ref:`include-yaml` for more information on optional and conditional entries.)
 
 Files are listed using paths to individual files or directories containing them.
-Path entries may be absolute or relative to the environment or specified as URLs.
-URLs to individual files need link to the *raw* form of the file's contents.
+Path entries may be absolute or relative to the environment or specified as 
+URLs. URLs to individual files need link to the **raw** form of the file's 
+contents (e.g., `GitHub
+<https://docs.github.com/en/repositories/working-with-files/using-files/viewing-and-understanding-files#viewing-or-copying-the-raw-file-content>`_ 
+or `GitLab
+<https://docs.gitlab.com/ee/api/repository_files.html#get-raw-file-from-repository>`_).
 Only the ``file``, ``ftp``, ``http`` and ``https`` protocols (or schemes) are
 supported. Spack-specific, environment and user path variables can be used.
 (See :ref:`config-file-variables` for more information.)
