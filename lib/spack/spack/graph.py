@@ -33,7 +33,7 @@ kind of like the graph git shows with "git log --graph", e.g.::
      /
     o  boost
 
-graph_dot() will output a graph of a spec (or multiple specs) in dot format.
+graph_dot() will output a graph of a spec (or multiple specs) in dot or mermaid format.
 """
 import enum
 import sys
@@ -441,10 +441,27 @@ def graph_ascii(
     graph.write(spec, color=color, out=out)
 
 
-class DotGraphBuilder:
-    """Visit edges of a graph a build DOT options for nodes and edges"""
+class DotGraph:
+    """Configuration for DOT graphs"""
 
     def __init__(self):
+        self.label = "label="
+        self.template = "misc/graph.dot"
+
+
+class MermaidGraph:
+    """Configuration for Mermaid graphs"""
+
+    def __init__(self):
+        self.label = ""
+        self.template = "misc/graph.md"
+
+
+class GraphBuilder:
+    """Visit edges of a graph a build options for nodes and edges"""
+
+    def __init__(self, graph = DotGraph()):
+        self.graph: Union[DotGraph, MermaidGraph] = graph
         self.nodes: Set[Tuple[str, str]] = set()
         self.edges: Set[Tuple[str, str, str]] = set()
 
@@ -467,40 +484,40 @@ class DotGraphBuilder:
         raise NotImplementedError("Need to be implemented by derived classes")
 
     def context(self):
-        """Return the context to be used to render the DOT graph template"""
+        """Return the context to be used to render the graph template"""
         result = {"nodes": self.nodes, "edges": self.edges}
         return result
 
     def render(self) -> str:
-        """Return a string with the output in DOT format"""
+        """Return a string with the output in format"""
         environment = spack.tengine.make_environment()
-        template = environment.get_template("misc/graph.dot")
+        template = environment.get_template(self.graph.template)
         return template.render(self.context())
 
 
-class SimpleDAG(DotGraphBuilder):
-    """Simple DOT graph, with nodes colored uniformly and edges without properties"""
+class SimpleDAG(GraphBuilder):
+    """Simple graph, with nodes colored uniformly and edges without properties"""
 
     def node_entry(self, node):
         format_option = "{name}{@version}{%compiler}{/hash:7}"
-        return node.dag_hash(), f'[label="{node.format(format_option)}"]'
+        return node.dag_hash(), f'[{self.graph.label}"{node.format(format_option)}"]'
 
     def edge_entry(self, edge):
         return edge.parent.dag_hash(), edge.spec.dag_hash(), None
 
 
-class StaticDag(DotGraphBuilder):
-    """DOT graph for possible dependencies"""
+class StaticDag(GraphBuilder):
+    """Graph for possible dependencies"""
 
     def node_entry(self, node):
-        return node.name, f'[label="{node.name}"]'
+        return node.name, f'[{self.graph.label}"{node.name}"]'
 
     def edge_entry(self, edge):
         return edge.parent.name, edge.spec.name, None
 
 
-class DAGWithDependencyTypes(DotGraphBuilder):
-    """DOT graph with link,run nodes grouped together and edges colored according to
+class DAGWithDependencyTypes(GraphBuilder):
+    """Graph with link,run nodes grouped together and edges colored according to
     the dependency types.
     """
 
@@ -516,7 +533,7 @@ class DAGWithDependencyTypes(DotGraphBuilder):
 
     def node_entry(self, node):
         node_str = node.format("{name}{@version}{%compiler}{/hash:7}")
-        options = f'[label="{node_str}", group="build_dependencies", fillcolor="coral"]'
+        options = f'[{self.graph.label}"{node_str}", group="build_dependencies", fillcolor="coral"]'
         if node.dag_hash() in self.main_unified_space:
             options = f'[label="{node_str}", group="main_psid"]'
         return node.dag_hash(), options
@@ -570,7 +587,7 @@ def static_graph_dot(
 
 def graph_dot(
     specs: List[spack.spec.Spec],
-    builder: Optional[DotGraphBuilder] = None,
+    builder: Optional[GraphBuilder] = None,
     depflag: dt.DepFlag = dt.ALL,
     out: Optional[TextIO] = None,
 ):
