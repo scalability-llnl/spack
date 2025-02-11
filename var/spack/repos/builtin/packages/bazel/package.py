@@ -23,6 +23,15 @@ class Bazel(Package):
 
     license("Apache-2.0")
 
+    version("7.4.0", sha256="198d70bb73b93bb2b630c26feb08c4f832e7520c2390776672a853d68f46f428")
+    version("7.3.2", sha256="8c24490a6445b00eb76a04adbb0172f5c51b1edbaeeef91ff7f3c7e86c7921ff")
+    version("7.3.1", sha256="f0501f90c9fc74cd6933dbdc59e17b8d6272d6c09f8b8e3c428985c5897147c7")
+    version("7.2.1", sha256="dfd823f52fe31328e9e63c27684168b1ab855212b84034c9cd8ccfc7b9af5e0d")
+    version("7.3.0", sha256="c2bff8a5e8b7357b5a2e521d4b63351091ae0c6b21a31c1f9dacf8c7928fc6e1")
+    version("7.2.0", sha256="2070e03d97c4f5ee2d245832d78d17a18f8a4db0669f72a362ff0f84fb091ee1")
+    version("7.1.2", sha256="9cf6ed2319c816919d97015eef6d0c5942cd1aed48e03c73ba0815d953ed61ab")
+    version("7.1.1", sha256="6abce7c537fe25af7375607756618fed98aa41a66f4baf366d9816b8918622ba")
+    version("7.1.0", sha256="1e20d0c89f7c9d1b4a381a8c586b4a435a96bfc41fbbcf34a2c29494eb3867a1")
     version("7.0.2", sha256="dea2b90575d43ef3e41c402f64c2481844ecbf0b40f8548b75a204a4d504e035")
     version("7.0.1", sha256="596b13e071d27c43343ec8f5d263cb5312fafe7ef8702401f7ed492f182f4e6c")
     version("7.0.0", sha256="477e54f6374001f439a9471ba1de9d7824daf129db95510849ecc5e19ce88170")
@@ -147,7 +156,8 @@ class Bazel(Package):
     )
 
     # https://bazel.build/install/compile-source#bootstrap-unix-prereq
-    depends_on("java@11", when="@5.3:", type=("build", "run"))
+    depends_on("java@21", when="@7.2:7.4", type=("build", "run"))
+    depends_on("java@11", when="@5.3:7.1", type=("build", "run"))
     depends_on("java@8,11", when="@3.3:5.2", type=("build", "run"))
     depends_on("java@8", when="@0.6:3.2", type=("build", "run"))
     depends_on("python+pythoncmd", type=("build", "run"))
@@ -161,10 +171,10 @@ class Bazel(Package):
     patch("unix_cc_configure-0.15.patch", when="@:2")
 
     # Set CC and CXX
-    patch("compile-0.29.patch")
+    patch("compile-0.29.patch", when="@:7.0")
 
     # Disable dependency search
-    patch("cppcompileaction-7.0.0.patch", when="@7: +nodepfail")
+    patch("cppcompileaction-7.0.0.patch", when="@7.0 +nodepfail")
     patch("cppcompileaction-0.3.2.patch", when="@:6 +nodepfail")
 
     # https://github.com/bazelbuild/bazel/issues/17956
@@ -215,15 +225,35 @@ class Bazel(Package):
     # Download resources to perform offline build with bazel.
     # The following URLs and sha256 are in the file distdir_deps.bzl at the root of bazel sources.
     resource_dictionary = {}
-    resource_dictionary["bazel_skylib"] = {
+    resource_dictionary["bazel_skylib_1_4_1"] = {
+        "url": "https://github.com/bazelbuild/bazel-skylib/releases/download/1.4.1/bazel-skylib-1.4.1.tar.gz",
+        "sha256": "b8a1527901774180afc798aeb28c4634bdccf19c4d98e7bdd1ce79d1fe9aaad7",
+        "when": "@7",
+    }
+    resource_dictionary["bazel_skylib_1_0_3"] = {
+        "url": "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.3/bazel-skylib-1.0.3.tar.gz",
+        "sha256": "1c531376ac7e5a180e0237938a2536de0c54d93f5c278634818e0efc952dd56c",
+        "when": "@6.5",
+    }
+    resource_dictionary["bazel_skylib_1_0_1"] = {
         "url": "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.1/bazel-skylib-1.0.1.tar.gz",
         "sha256": "f1c8360c01fcf276778d3519394805dc2a71a64274a3a0908bc9edff7b5aebc8",
-        "when": "@4:6",
+        "when": "@4:6.4",
     }
-    resource_dictionary["com_google_absl"] = {
+    resource_dictionary["com_google_absl_2022_06_23"] = {
+        "url": "https://github.com/abseil/abseil-cpp/archive/refs/tags/20220623.1.tar.gz",
+        "sha256": "91ac87d30cc6d79f9ab974c51874a704de9c2647c40f6932597329a282217ba8",
+        "when": "@7",
+    }
+    resource_dictionary["com_google_absl_2023_08_02"] = {
         "url": "https://github.com/abseil/abseil-cpp/archive/refs/tags/20230802.0.tar.gz",
         "sha256": "59d2976af9d6ecf001a81a35749a6e551a335b949d34918cfade07737b9d93c5",
-        "when": "@6.0:6.4",
+        "when": "@6.0:6.5",
+    }
+    resource_dictionary["zulu_21_28_85"] = {
+        "url": "https://mirror.bazel.build/cdn.azul.com/zulu/bin/zulu21.28.85-ca-jdk21.0.0-linux_x64.tar.gz",
+        "sha256": "0c0eadfbdc47a7ca64aeab51b9c061f71b6e4d25d2d87674512e9b6387e9e3a6",
+        "when": "@7",
     }
     resource_dictionary["zulu_11_56_19"] = {
         "url": "https://mirror.bazel.build/cdn.azul.com/zulu/bin/zulu11.56.19-ca-jdk11.0.15-linux_x64.tar.gz",
@@ -267,6 +297,7 @@ class Bazel(Package):
         args = "--color=no --define=ABSOLUTE_JAVABASE={0} --verbose_failures --jobs={1}".format(
             self.spec["java"].prefix, make_jobs
         )
+        args += " --tool_java_runtime_version=local_jdk"
 
         resource_stages = self.stage[1:]
         for _resource in resource_stages:
