@@ -790,7 +790,8 @@ def print_setup_info(*info):
     # on clusters, so skip it if not needed.
     if "modules" in info:
         generic_arch = archspec.cpu.host().family
-        module_spec = "environment-modules target={0}".format(generic_arch)
+        host_os = str(spack.platforms.host().operating_system("default_os"))
+        module_spec = "environment-modules target={0} os={1}".format(generic_arch, host_os)
         specs = spack.store.STORE.db.query(module_spec)
         if specs:
             shell_set("_sp_module_prefix", specs[-1].prefix)
