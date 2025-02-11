@@ -721,7 +721,7 @@ def test_installing_task_use_cache(install_mockery, monkeypatch):
     task = create_build_task(request.pkg)
 
     monkeypatch.setattr(inst, "_install_from_cache", _true)
-    installer.install()
+    installer.start_task(task, , None)
     assert request.pkg_id in installer.installed
 
 
@@ -903,7 +903,7 @@ def test_install_uninstalled_deps(install_mockery, monkeypatch, capsys):
     """Test install with uninstalled dependencies."""
     installer = create_installer(["parallel-package-a"], {})
 
-    # Skip the actual installation and any status updates 
+    # Skip the actual installation and any status updates
     monkeypatch.setattr(inst.Task, "start", _noop)
     monkeypatch.setattr(inst.Task, "poll", _noop)
     monkeypatch.setattr(inst.Task, "complete", _noop)
@@ -1045,7 +1045,9 @@ def test_install_fail_fast_on_detect(install_mockery, monkeypatch, capsys):
 
     assert b_id in installer.failed, "Expected b to be marked as failed"
     assert c_id in installer.failed, "Exepected c to be marked as failed"
-    assert a_id not in installer.installed, "Package a cannot install due to its dependencies failing"
+    assert (
+        a_id not in installer.installed
+    ), "Package a cannot install due to its dependencies failing"
     # check that b's active process got killed when c failed
 
     assert f"{b_id} failed to install" in capsys.readouterr().err
@@ -1186,7 +1188,8 @@ def test_install_implicit(install_mockery, mock_fetch):
     assert create_build_task(pkg, {"explicit": [pkg.spec.dag_hash()]}).explicit
     assert not create_build_task(pkg).explicit
 
-#### WIP ##### 
+
+#### WIP #####
 def test_overwrite_install_backup_success(temporary_store, config, mock_packages, tmpdir):
     """
     When doing an overwrite install that fails, Spack should restore the backup
@@ -1199,28 +1202,26 @@ def test_overwrite_install_backup_success(temporary_store, config, mock_packages
     # ensure that the backup is restored
 
     # ensure that the original spec is still installed
-    
-    
+
     # Get a build task. TODO: Refactor this to avoid calling internal methods.
     installer = create_installer(["pkg-b"])
     installer._init_queue()
     task = installer._pop_task()
- 
+
     # Make sure the install prefix exists with some trivial file
     installed_file = os.path.join(task.pkg.prefix, "some_file")
     fs.touchp(installed_file)
-    
+
     # Install that wipes the prefix directory
     def wiped_installer():
         shutil.rmtree(task.pkg.prefix)
-    
-    class FakeDatabase():
+
+    class FakeDatabase:
         called = False
 
         def remove(self, spec):
             self.called = True
-    
-    
+
     fake_installer = InstallerThatWipesThePrefixDir()
     fake_db = FakeDatabase()
     overwrite_install = inst.OverwriteInstall(fake_installer, fake_db, task, None)

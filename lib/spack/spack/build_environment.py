@@ -37,6 +37,7 @@ import io
 import multiprocessing
 import os
 import re
+import signal
 import stat
 import sys
 import traceback
@@ -1281,6 +1282,7 @@ class ProcessHandle:
                 os.kill(self.process.pid, signal.SIGKILL)
                 self.process.join()
 
+
 def _setup_pkg_and_run(
     serialized_pkg: "spack.subprocess_context.PackageInstallContext",
     function: Callable,
@@ -1407,7 +1409,8 @@ def _setup_pkg_and_run(
         if input_pipe is not None:
             input_pipe.close()
 
-#TODO: add return arg
+
+# TODO: add return arg
 def start_build_process(
     pkg: "spack.package_base.PackageBase", function: Callable, kwargs: Dict[str, Any]
 ):

@@ -1131,7 +1131,7 @@ class Task:
 
         # If the install prefix is missing, warn about it, and proceed with
         # normal install.
-        if not os.path.exists(task.pkg.prefix):
+        if not os.path.exists(self.pkg.prefix):
             tty.debug("Missing installation to overwrite")
             return InstallAction.INSTALL
 
@@ -1276,9 +1276,6 @@ class BuildTask(Task):
         assert (
             self.started or self.no_op
         ), "Can't call `complete()` before `start()` or identified no-operation task"
-        # seeing if I can get rid of that assertion because in some cases we will need to
-        # complete the task so that we can raise the errors even though a process was never
-        # started because saving the error made it exit the function before a process could be started
         install_args = self.request.install_args
         pkg = self.pkg
         tests = install_args.get("tests")
@@ -2350,7 +2347,7 @@ class PackageInstaller:
                     failure = self.complete_task(task, install_status)
                     if failure:
                         failed_build_requests.append(failure)
-                except:
+                except Exception as e:
                     # Terminate any active child processes if there's an installation error
                     for task in active_tasks:
                         if task.process_handle is not None:
