@@ -66,6 +66,9 @@ def setup_parser(subparser: argparse.ArgumentParser):
     push_sign.add_argument(
         "--key", "-k", metavar="key", type=str, default=None, help="key for signing"
     )
+    push_sign.add_argument(
+        "--only-key", metavar="key_to_push", type=str, default=None, help="key for signing"
+    )
     push.add_argument(
         "mirror", type=arguments.mirror_name_or_url, help="mirror name, path, or URL"
     )
@@ -379,6 +382,14 @@ def _specs_to_be_packaged(
 
 
 def push_fn(args):
+    if args.key_to_push:
+        with tempfile.TemporaryDirectory(dir=spack.stage.get_stage_root()) as tmpdir:
+            key = bindist.select_signing_key(args.key_to_push)
+            bindist.push_keys(
+                args.mirror, keys=[key], regenerate_index=args.update_index, tmpdir=tmpdir
+            )
+        return 0
+
     """create a binary package and push it to a mirror"""
     if args.spec_file:
         tty.warn(
