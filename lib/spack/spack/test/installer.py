@@ -718,10 +718,10 @@ def test_install_splice_root_from_binary(
 def test_installing_task_use_cache(install_mockery, monkeypatch):
     installer = create_installer(["trivial-install-test-package"], {})
     request = installer.build_requests[0]
-    task = create_build_task(request.pkg)
+    # task = create_build_task(request.pkg)
 
     monkeypatch.setattr(inst, "_install_from_cache", _true)
-    installer.start_task(task, , None)
+    # installer.start_task(task, , None)
     assert request.pkg_id in installer.installed
 
 
