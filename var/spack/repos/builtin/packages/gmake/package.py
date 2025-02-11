@@ -99,3 +99,7 @@ class Gmake(Package, GNUMirrorPackage):
             self.spec.prefix.bin.make,
             jobs=determine_number_of_jobs(parallel=dspec.package.parallel),
         )
+
+    @property
+    def libs(self):
+        return []
