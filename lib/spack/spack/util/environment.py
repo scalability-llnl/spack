@@ -797,7 +797,7 @@ class EnvironmentModifications:
         for variable_name in new_variables:
             sep = return_separator_if_any(after[variable_name])
             if sep:
-                env.prepend_path(variable_name, after[variable_name], separator=sep)
+                env.prepend_path(variable_name, after[variable_name].strip(sep), separator=sep)
             elif "PATH" in variable_name:
                 env.prepend_path(variable_name, after[variable_name])
             else:
