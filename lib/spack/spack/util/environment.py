@@ -742,11 +742,11 @@ class EnvironmentModifications:
             ]
         )
 
+        # Implements a no op during forwards operation on respective os
+        null_fd = "echo > NUL" if sys.platform == "win32" else os.devnull
         # Compute the environments before and after sourcing
         before = sanitize(
-            environment_after_sourcing_files(os.devnull, **kwargs),
-            exclude=exclude,
-            include=include,
+            environment_after_sourcing_files(null_fd, **kwargs), exclude=exclude, include=include
         )
         file_and_args = (filename,) + arguments
         after = sanitize(
@@ -784,7 +784,7 @@ class EnvironmentModifications:
         modified_variables.sort()
 
         def return_separator_if_any(*args):
-            separators = ":", ";"
+            separators = [os.pathsep] if sys.platform == "win32" else [":", ";"]
             for separator in separators:
                 for arg in args:
                     if separator in arg:
@@ -1046,11 +1046,12 @@ def environment_after_sourcing_files(
             [source_file, suppress_output, concatenate_on_success, dump_environment_cmd]
         )
 
+        # Windows requires Popen's string arg to avoid unexpected parsing by subprocess
+        cmd = [shell_cmd, *shell_options_list, source_file_arguments]
+        cmd = " ".join(cmd) if sys.platform == "win32" else cmd
+
         with subprocess.Popen(
-            [shell_cmd, *shell_options_list, source_file_arguments],
-            env=environment,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            cmd, env=environment, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         ) as shell:
             output, _ = shell.communicate()
 
