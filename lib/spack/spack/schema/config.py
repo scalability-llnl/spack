@@ -58,6 +58,15 @@ properties: Dict[str, Any] = {
                     {"type": "string"},  # deprecated
                 ]
             },
+            "concretization_cache": {
+                "type": "object",
+                "properties": {
+                    "enable": {"type": "boolean"},
+                    "path": {"type": "string"},
+                    "entry_limit": {"type": "integer", "minimum": 1},
+                    "size_limit": {"type": "integer", "minimum": 800},
+                },
+            },
             "install_hash_length": {"type": "integer", "minimum": 1},
             "install_path_scheme": {"type": "string"},  # deprecated
             "build_stage": {

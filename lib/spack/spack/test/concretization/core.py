@@ -3238,3 +3238,54 @@ def test_spec_unification(unify, mutable_config, mock_packages):
     maybe_fails = pytest.raises if unify is True else llnl.util.lang.nullcontext
     with maybe_fails(spack.solver.asp.UnsatisfiableSpecError):
         _ = spack.cmd.parse_specs([a_restricted, b], concretize=True)
+
+
+def test_concretization_cache_roundtrip(use_concretization_cache, monkeypatch, mutable_config):
+    """Tests whether we can write the results of a clingo solve to the cache
+    and load the same spec request from the cache to produce identical specs"""
+    # Force determinism:
+    # Solver setup is normally non-deterministic due to non-determinism in
+    # asp solver setup logic generation. The only other inputs to the cache keys are
+    # the .lp files, which are invariant over the course of this test.
+    # This method forces the same setup to be produced for the same specs
+    # which gives us a guarantee of cache hits, as it removes the only
+    # element of non deterministic solver setup for the same spec
+    # Basically just a quick and dirty memoization
+    solver_setup = spack.solver.asp.SpackSolverSetup.setup
+
+    def _setup(self, specs, *, reuse=None, allow_deprecated=False):
+        if not getattr(_setup, "cache_setup", None):
+            cache_setup = solver_setup(self, specs, reuse=reuse, allow_deprecated=allow_deprecated)
+            setattr(_setup, "cache_setup", cache_setup)
+        return getattr(_setup, "cache_setup")
+
+    # monkeypatch our forced determinism setup method into solver setup
+    monkeypatch.setattr(spack.solver.asp.SpackSolverSetup, "setup", _setup)
+
+    assert spack.config.get("config:concretization_cache:enable")
+
+    # run one standard concretization to populate the cache and the setup method
+    # memoization
+    h = spack.concretize.concretize_one("hdf5")
+
+    # due to our forced determinism above, we should not be observing
+    # cache misses, assert that we're not storing any new cache entries
+    def _ensure_no_store(self, problem: str, result, statistics, test=False):
+        # always throw, we never want to reach this code path
+        assert False, "Concretization cache hit expected"
+
+    # Assert that we're actually hitting the cache
+    cache_fetch = spack.solver.asp.ConcretizationCache.fetch
+
+    def _ensure_cache_hits(self, problem: str):
+        result, statistics = cache_fetch(self, problem)
+        assert result, "Expected successful concretization cache hit"
+        assert statistics, "Expected statistics to be non null on cache hit"
+        return result, statistics
+
+    monkeypatch.setattr(spack.solver.asp.ConcretizationCache, "store", _ensure_no_store)
+    monkeypatch.setattr(spack.solver.asp.ConcretizationCache, "fetch", _ensure_cache_hits)
+    # ensure subsequent concretizations of the same spec produce the same spec
+    # object
+    for _ in range(5):
+        assert h == spack.concretize.concretize_one("hdf5")
