@@ -2,13 +2,14 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-
 import os
 
+import spack.build_systems.autotools
+import spack.build_systems.cmake
 from spack.package import *
 
 
-class Cln(AutotoolsPackage):
+class Cln(CMakePackage, AutotoolsPackage):
     """CLN is a library for efficient computations with all kinds of numbers
     in arbitrary precision. It features number classes for unlimited length
     integers, rationals, arbitrary precision floating point numbers and much
@@ -39,16 +40,29 @@ class Cln(AutotoolsPackage):
 
     variant("gmp", default=True, description="Enable GMP multiprecision library")
 
-    depends_on("autoconf", type="build")
-    depends_on("automake", type="build")
-    depends_on("libtool", type="build")
-    depends_on("m4", type="build")
+    # Build system
+    build_system(
+        conditional("cmake", when="@1.3:"), conditional("autotools", when="@:1.2"), default="cmake"
+    )
+
+    with when("build_system=autotools"):
+        depends_on("autoconf", type="build")
+        depends_on("automake", type="build")
+        depends_on("libtool", type="build")
+        depends_on("m4", type="build")
+        depends_on("texinfo", type="build")
+        # Dependencies required to define macro AC_LIB_LINKFLAGS_FROM_LIBS
+        depends_on("gettext", type="build")
+
     depends_on("gmp@4.1:", when="+gmp")
-    depends_on("texinfo", type="build")
 
-    # Dependencies required to define macro AC_LIB_LINKFLAGS_FROM_LIBS
-    depends_on("gettext", type="build")
 
+class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
+    def cmake_args(self):
+        return [self.define_from_variant("CLN_USE_GMP", "gmp")]
+
+
+class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
     def autoreconf(self, spec, prefix):
         autoreconf_args = ["-i"]
 
