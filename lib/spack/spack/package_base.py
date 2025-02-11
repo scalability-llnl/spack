@@ -2118,9 +2118,8 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         if hasattr(self, "url") and self.url:
             urls.append(self.url)
 
-        # fetch from first entry in urls to save time
         if hasattr(self, "urls") and self.urls:
-            urls.append(self.urls[0])
+            urls.extend(self.urls)
 
         for args in self.versions.values():
             if "url" in args:
