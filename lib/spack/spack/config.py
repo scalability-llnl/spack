@@ -466,7 +466,7 @@ class Configuration:
         """Add a higher precedence scope to the Configuration."""
         tty.debug(f"[CONFIGURATION: PUSH SCOPE]: {str(scope)}", level=2)
 
-        # before pushing the scope itself, push any included scopes recurisvely
+        # before pushing the scope itself, push any included scopes recursively
         includes = scope.get_section("include")
         if includes:
             include_paths = [included_path(data) for data in includes["include"]]
