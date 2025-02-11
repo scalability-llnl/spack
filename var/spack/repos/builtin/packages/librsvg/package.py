@@ -10,9 +10,14 @@ class Librsvg(AutotoolsPackage):
 
     homepage = "https://wiki.gnome.org/Projects/LibRsvg"
     url = "https://download.gnome.org/sources/librsvg/2.44/librsvg-2.44.14.tar.xz"
+    list_url = "https://download.gnome.org/sources/librsvg"
+    list_depth = 1
 
-    license("LGPL-2.1-or-later")
+    license("LGPL-2.1-or-later", checked_by="wdconinc")
 
+    version("2.58.2", sha256="18e9d70c08cf25f50d610d6d5af571561d67cf4179f962e04266475df6e2e224")
+    version("2.57.3", sha256="1b2267082c0b77ef93b15747a5c754584eb5886baf2d5a08011cde0659c2c479")
+    version("2.56.4", sha256="ea87fdcf5159348fcb08b14c43e91a9d3d9e45dc2006a875d1711bb65b6740f5")
     version("2.56.2", sha256="3ec3c4d8f73e0ba4b9130026969e8371c092b734298d36e2fdb3eb4afcec1200")
     version("2.51.0", sha256="89d32e38445025e1b1d9af3dd9d3aeb9f6fce527aeecbecf38b369b34c80c038")
     version("2.50.2", sha256="6211f271ce4cd44a7318190d36712e9cea384a933d3e3570004edeb210a056d3")
@@ -27,6 +32,8 @@ class Librsvg(AutotoolsPackage):
 
     depends_on("gobject-introspection", type="build")
     depends_on("pkgconfig", type="build")
+    # rust minimal version also in `configure` file
+    depends_on("rust@1.70:", when="@2.57:", type="build")
     # rust minimal version from NEWS file
     depends_on("rust@1.65:", when="@2.56.1:", type="build")
     # upper bound because "Unaligned references to packed fields are a hard
@@ -36,8 +43,9 @@ class Librsvg(AutotoolsPackage):
     depends_on("gtk-doc", type="build", when="+doc")
 
     # requirements according to `configure` file
-    depends_on("cairo@1.16:+gobject+png", when="@2.50:")
-    depends_on("cairo@1.15.12:+gobject+png", when="@2.44.14:")
+    depends_on("cairo@1.17:", when="@2.57:")
+    depends_on("cairo@1.16:", when="@2.50:")
+    depends_on("cairo@1.15.12:", when="@2.44.14:")
     depends_on("cairo@1.2.0:+gobject+png")
     depends_on("libcroco@0.6.1:", when="@:2.44.14")
     depends_on("gdk-pixbuf@2.20:")
@@ -46,6 +54,7 @@ class Librsvg(AutotoolsPackage):
     depends_on("glib@2.12:")
     depends_on("harfbuzz@2:", when="@2.50:")
     depends_on("libxml2@2.9:")
+    depends_on("pango@1.50:", when="@2.57.1:")
     depends_on("pango@1.46:", when="@2.51:")
     depends_on("pango@1.38:")
 
