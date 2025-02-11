@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
+from spack.version import GitVersion
 
 
 class G4vg(CMakePackage):
@@ -17,6 +18,8 @@ class G4vg(CMakePackage):
     license("Apache-2.0", checked_by="sethrj")
 
     version("develop", branch="main")
+    next_develop_version = "1.1.0"
+
     version("1.0.1", sha256="add7ce4bc37889cac2101323a997cea8574b18da6cbeffdab44a2b714d134e99")
 
     variant("debug", default=False, description="Enable runtime debug assertions")
@@ -34,5 +37,11 @@ class G4vg(CMakePackage):
             from_variant("G4VG_DEBUG", "debug"),
             define("G4VG_BUILD_TESTS", False),
         ]
+
+        if self.version == Version("develop"):
+            args.append(define("G4VG_GIT_DESCRIBE",
+                               [self.next_develop_version,
+                                "-dev",
+                                "spack"]))
 
         return args
