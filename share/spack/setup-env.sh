@@ -161,7 +161,7 @@ _spack_shell_wrapper() {
                         fi
                         ;;
                     *)
-                        command spack env $_sp_arg "$@"
+                        command spack $_sp_flags env $_sp_arg "$@"
                         ;;
                 esac
             fi
