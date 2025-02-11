@@ -918,5 +918,5 @@ def test_environment_from_name_or_dir(mock_packages, mutable_mock_env_path, tmp_
     assert dir_env.name == test_env.name
     assert dir_env.path == test_env.path
 
-    with pytest.raises(ev.SpackEnvironmentError, match="no such environment"):
+    with pytest.raises(ev.SpackEnvironmentError, match="could not find environment with name"):
         _ = ev.environment_from_name_or_dir("fake-env")

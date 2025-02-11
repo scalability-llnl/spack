@@ -275,13 +275,14 @@ def is_env_dir(path):
 
 def as_env_dir(name_or_dir):
     """Translate an environment name or directory to the environment directory"""
-    if is_env_dir(name_or_dir):
-        return name_or_dir
+    path = substitute_path_variables(name_or_dir)
+    if is_env_dir(path):
+        return path
     else:
-        validate_env_name(name_or_dir)
-        if not exists(name_or_dir):
-            raise SpackEnvironmentError("no such environment '%s'" % name_or_dir)
-        return root(name_or_dir)
+        path = environment_dir_from_name(name_or_dir)
+        if not is_env_dir(path):
+            raise SpackEnvironmentError("could not find environment with name '%s'" % name_or_dir)
+        return path
 
 
 def environment_from_name_or_dir(name_or_dir):
@@ -293,7 +294,7 @@ def read(name):
     """Get an environment with the supplied name."""
     validate_env_name(name)
     if not exists(name):
-        raise SpackEnvironmentError("no such environment '%s'" % name)
+        raise SpackEnvironmentError("could not read environment '%s'" % name)
     return Environment(root(name))
 
 
@@ -364,9 +365,11 @@ def create_in_dir(
             manifest.set_default_view(with_view)
 
         if include_concrete is not None:
-            set_included_envs_to_env_paths(include_concrete)
-            validate_included_envs_exists(include_concrete)
-            validate_included_envs_concrete(include_concrete)
+            # Validate included concrete envs
+            included_concrete_env_paths = [as_env_dir(e) for e in include_concrete]
+            validate_included_envs_exists(included_concrete_env_paths)
+            validate_included_envs_concrete(included_concrete_env_paths)
+            # Add unmodified paths to the config
             manifest.set_include_concrete(include_concrete)
 
         manifest.flush()
@@ -468,7 +471,7 @@ def validate_included_envs_exists(include_concrete: List[str]) -> None:
 
     missing_envs = set()
 
-    for i, env_name in enumerate(include_concrete):
+    for env_name in include_concrete:
         if not is_env_dir(env_name):
             missing_envs.add(env_name)
 
@@ -1048,7 +1051,11 @@ class Environment:
 
     def _process_concrete_includes(self):
         """Extract and load into memory included concrete spec data."""
-        self.included_concrete_envs = self.manifest[TOP_LEVEL_KEY].get(included_concrete_name, [])
+        included_concrete_envs = self.manifest[TOP_LEVEL_KEY].get(included_concrete_name, [])
+        self.included_concrete_envs = [as_env_dir(e) for e in included_concrete_envs]
+
+        # Validate the paths are actually concrete environments
+        validate_included_envs_concrete(self.included_concrete_envs)
 
         if self.included_concrete_envs:
             if os.path.exists(self.lock_path):
