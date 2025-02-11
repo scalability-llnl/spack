@@ -5,6 +5,7 @@
 and running executables.
 """
 import collections
+import collections.abc
 import concurrent.futures
 import os
 import re
@@ -211,6 +212,27 @@ def _group_by_prefix(paths: List[str]) -> Dict[str, Set[str]]:
     return groups
 
 
+def validate_detection(spec: "spack.spec.Spec") -> None:
+    """Validate the detection of an external spec.
+
+    This method is used as part of Spack's detection protocol, and is
+    not meant for client code use.
+    """
+    import spack.repo
+
+    # Assert that _extra_attributes is a Mapping and not None,
+    # which likely means the spec was created with Spec.from_detection
+    msg = 'cannot validate "{0}" since it was not created ' "using Spec.from_detection".format(
+        spec
+    )
+    assert isinstance(spec.extra_attributes, collections.abc.Mapping), msg
+
+    # Validate the spec calling a package specific method
+    pkg_cls = spack.repo.PATH.get_pkg_class(spec.name)
+    validate_fn = getattr(pkg_cls, "validate_detected_spec", lambda x, y: None)
+    validate_fn(spec, spec.extra_attributes)
+
+
 class Finder:
     """Inspects the file-system looking for packages. Guesses places where to look using PATH."""
 
@@ -305,7 +327,7 @@ class Finder:
 
                 resolved_specs[spec] = candidate_path
                 try:
-                    spec.validate_detection()
+                    validate_detection(spec)
                 except Exception as e:
                     msg = (
                         f'"{spec}" has been detected on the system but will '

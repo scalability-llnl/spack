@@ -2808,24 +2808,6 @@ class Spec:
         s.extra_attributes = extra_attributes
         return s
 
-    def validate_detection(self):
-        """Validate the detection of an external spec.
-
-        This method is used as part of Spack's detection protocol, and is
-        not meant for client code use.
-        """
-        # Assert that _extra_attributes is a Mapping and not None,
-        # which likely means the spec was created with Spec.from_detection
-        msg = 'cannot validate "{0}" since it was not created ' "using Spec.from_detection".format(
-            self
-        )
-        assert isinstance(self.extra_attributes, collections.abc.Mapping), msg
-
-        # Validate the spec calling a package specific method
-        pkg_cls = spack.repo.PATH.get_pkg_class(self.name)
-        validate_fn = getattr(pkg_cls, "validate_detected_spec", lambda x, y: None)
-        validate_fn(self, self.extra_attributes)
-
     def _patches_assigned(self):
         """Whether patches have been assigned to this spec by the concretizer."""
         # FIXME: _patches_in_order_of_appearance is attached after concretization
