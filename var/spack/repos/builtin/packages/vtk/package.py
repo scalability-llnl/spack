@@ -208,15 +208,8 @@ class Vtk(CMakePackage):
     with when("@9.4:"):
         depends_on("seacas@2024-06-27:")
 
-    # seacas@2023-05-30 does not provide needed SEACASIoss_INCLUDE_DIRS:
-    # CMake Error at CMake/vtkModule.cmake:5552 (message):
-    # The variable `SEACASIoss_INCLUDE_DIRS` was expected to have been available,
-    # but was not defined:
-    conflicts("seacas@2023-05-30", when="@:9.2")
-
-    # vtk@9.2: need Ioss::Utils::get_debug_stream() which only 2022-10-14 provides,
-    # and to be safe against other issues, make them build with this version only:
-    depends_on("seacas@2022-10-14", when="@9.2:")
+    # vtk@9.2 need Ioss::Utils::get_debug_stream() which only 2022-10-14 provides
+    depends_on("seacas@2022-10-14", when="@9.2")
     depends_on("nlohmann-json", when="@9.2:")
 
     # For finding Fujitsu-MPI wrapper commands
@@ -244,6 +237,8 @@ class Vtk(CMakePackage):
         when="@9.1:9.2 %gcc@13:",
     )
 
+    patch('vtk94-appleclang-int128.patch')
+
     @when("@9.2:")
     def patch(self):
         # provide definition for Ioss::Init::Initializer::Initializer(),
@@ -268,6 +263,13 @@ class Vtk(CMakePackage):
             elif "@8:" in self.spec:
                 env.append_flags("CFLAGS", "-DH5_USE_18_API")
                 env.append_flags("CXXFLAGS", "-DH5_USE_18_API")
+
+    def flag_handler(self, name, flags):
+        # The new seacas version for 9.4: requires c++ 17, so hard override the cmake files
+        # TODO: Probably better to patch the vtk cmake file
+        if self.spec.satisfies("@9.4:") and name == "cxxflags":
+            flags.append("-std=c++17")
+        return (flags, None, None)
 
     def cmake_args(self):
         spec = self.spec
@@ -519,6 +521,17 @@ class Vtk(CMakePackage):
         else:
             vtk_example_arg = "VTK_BUILD_EXAMPLES"
         cmake_args.append(self.define_from_variant(f"{vtk_example_arg}", "examples"))
+
+        # seacas@2023-05-30: does not provide needed SEACASIoss_INCLUDE_DIRS:
+        # CMake Error at CMake/vtkModule.cmake:5552 (message):
+        # The variable `SEACASIoss_INCLUDE_DIRS` was expected to have been available,
+        # but was not defined:
+        if spec.satisfies("^seacas@2023-05-30:"):
+            cmake_args.extend(
+                [
+                    "-DSEACASIoss_INCLUDE_DIRS="+self.spec['seacas'].prefix.include
+                ]
+            )
 
         return cmake_args
 
