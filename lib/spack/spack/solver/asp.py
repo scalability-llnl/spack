@@ -3786,23 +3786,23 @@ def _inject_patches_variant(root: spack.spec.Spec) -> None:
             continue
 
         # Add any patches from the package to the spec.
-        patches = set()
-        for cond, patch_list in spack.repo.PATH.get_pkg_class(s.fullname).patches.items():
-            if s.satisfies(cond):
-                for patch in patch_list:
-                    patches.add(patch)
-        if patches:
-            spec_to_patches[id(s)] = patches
+        node_patches = {
+            patch
+            for cond, patch_list in spack.repo.PATH.get_pkg_class(s.fullname).patches.items()
+            if s.satisfies(cond)
+            for patch in patch_list
+        }
+        if node_patches:
+            spec_to_patches[id(s)] = node_patches
 
-    # Also record all patches required on dependencies by
-    # depends_on(..., patch=...)
+    # Also record all patches required on dependencies by depends_on(..., patch=...)
     for dspec in root.traverse_edges(deptype=dt.ALL, cover="edges", root=False):
         if dspec.spec.concrete:
             continue
 
         pkg_deps = spack.repo.PATH.get_pkg_class(dspec.parent.fullname).dependencies
 
-        patches = []
+        edge_patches = []
         for cond, deps_by_name in pkg_deps.items():
             if not dspec.parent.satisfies(cond):
                 continue
@@ -3813,18 +3813,16 @@ def _inject_patches_variant(root: spack.spec.Spec) -> None:
 
             for pcond, patch_list in dependency.patches.items():
                 if dspec.spec.satisfies(pcond):
-                    patches.extend(patch_list)
+                    edge_patches.extend(patch_list)
 
-        if patches:
-            all_patches = spec_to_patches.setdefault(id(dspec.spec), set())
-            for patch in patches:
-                all_patches.add(patch)
+        if edge_patches:
+            spec_to_patches.setdefault(id(dspec.spec), set()).update(edge_patches)
 
     for spec in root.traverse():
         if id(spec) not in spec_to_patches:
             continue
 
-        patches = list(llnl.util.lang.dedupe(spec_to_patches[id(spec)]))
+        patches = list(spec_to_patches[id(spec)])
         mvar = spec.variants.setdefault("patches", vt.MultiValuedVariant("patches", ()))
         mvar.value = tuple(p.sha256 for p in patches)
         # FIXME: Monkey patches mvar to store patches order
@@ -3837,16 +3835,16 @@ def _inject_patches_variant(root: spack.spec.Spec) -> None:
         mvar._patches_in_order_of_appearance = list(t[-1] for t in ordered_hashes)
 
 
-def _ensure_external_path_if_external(external_spec: spack.spec.Spec) -> None:
-    if not external_spec.external_modules or external_spec.external_path:
+def _ensure_external_path_if_external(spec: spack.spec.Spec) -> None:
+    if not spec.external_modules or spec.external_path:
         return
 
     # Get the path from the module the package can override the default
     # (this is mostly needed for Cray)
-    pkg_cls = spack.repo.PATH.get_pkg_class(external_spec.name)
-    package = pkg_cls(external_spec)
-    external_spec.external_path = getattr(package, "external_prefix") or md.path_from_modules(
-        external_spec.external_modules
+    pkg_cls = spack.repo.PATH.get_pkg_class(spec.name)
+    package = pkg_cls(spec)
+    spec.external_path = getattr(package, "external_prefix", None) or md.path_from_modules(
+        spec.external_modules
     )
 
 
