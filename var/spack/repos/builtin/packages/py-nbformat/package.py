@@ -14,6 +14,11 @@ class PyNbformat(PythonPackage):
 
     license("BSD-3-Clause")
 
+    version("5.10.4", sha256="322168b14f937a5d11362988ecac2a4952d3d8e3a2cbeb2319584631226d5b3a")
+    version("5.10.0", sha256="9c7cae61f16d74ef71b85e195f93cd9e49188984782ad0984eb4193e51ca83c0")
+    version("5.9.2", sha256="5f98b5ba1997dff175e77e0c17d5c10a96eaed2cbd1de3533d1fc35d5e111192")
+    version("5.9.1", sha256="3a7f52d040639cbd8a3890218c8b0ffb93211588c57446c90095e32ba5881b5d")
+    version("5.9.0", sha256="e98ebb6120c3efbafdee2a40af2a140cadee90bb06dd69a2a63d9551fcc7f976")
     version("5.8.0", sha256="46dac64c781f1c34dfd8acba16547024110348f9fc7eab0f31981c2a3dc48d1f")
     version("5.7.0", sha256="1d4760c15c1a04269ef5caf375be8b98dd2f696e5eb9e603ec2bf091f9b0d3f3")
     version("5.4.0", sha256="44ba5ca6acb80c5d5a500f1e5b83ede8cbe364d5a495c4c8cf60aaf1ba656501")
@@ -24,9 +29,17 @@ class PyNbformat(PythonPackage):
     version("4.0.1", sha256="5261c957589b9dfcd387c338d59375162ba9ca82c69e378961a1f4e641285db5")
     version("4.0.0", sha256="daf9b990e96863d120aff123361156a316757757b81a8070eb6945e4a9774b2d")
 
+    depends_on("python@3.8:3.12", when="@5.9.2:", type=("build", "run"))
+    depends_on("python@3.8:3.11", when="@5.9:", type=("build", "run"))
+    depends_on("python@3.7:3.11", when="@5.8:", type=("build", "run"))
+    depends_on("python@3.7:3.10", when="@5.5:", type=("build", "run"))
+    depends_on("python@3.5:3.9", when="@5.1.3:", type=("build", "run"))
+    depends_on("python@3.5:3.8", when="@5.0:", type=("build", "run"))
+
     depends_on("py-hatchling@1.5:", when="@5.6:", type="build")
     depends_on("py-hatch-nodejs-version", when="@5.6:", type="build")
 
+    depends_on("py-fastjsonschema@2.15:", when="@5.10.4:", type=("build", "run"))
     depends_on("py-fastjsonschema", when="@5.3:", type=("build", "run"))
     depends_on("py-jsonschema@2.6:", when="@5.3:", type=("build", "run"))
     depends_on("py-jsonschema@2.4,2.5.1:", type=("build", "run"))
