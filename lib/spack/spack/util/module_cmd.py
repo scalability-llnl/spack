@@ -27,7 +27,12 @@ def module(
     module_src_cmd: Optional[str] = None,
     environb: Optional[MutableMapping[bytes, bytes]] = None,
 ):
-    module_cmd = module_template or ("module " + " ".join(args))
+    if module_template:
+        module_cmd = module_template
+    else:
+        # Test first for LMOD, then fall back to envrionment modules
+        mod_cmd = os.environ.get("LMOD_CMD", "modulecmd")
+        module_cmd = f"eval $({mod_cmd} bash {' '.join(args)})"
     environb = environb or os.environb
     if b"MODULESHOME" in environb:
         module_cmd = module_src_cmd or "source $MODULESHOME/init/bash; " + module_cmd
