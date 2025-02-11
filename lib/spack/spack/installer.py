@@ -75,6 +75,7 @@ _counter = itertools.count(0)
 
 _fail_fast_err = "Terminating after first install failure"
 
+
 class BuildStatus(enum.Enum):
     """Different build (task) states."""
 
@@ -119,9 +120,10 @@ class ExecuteResult(enum.Enum):
     FAILED = enum.auto()
     # Task is missing build spec and will be requeued
     MISSING_BUILD_SPEC = enum.auto()
-    # Task is installed upstream/external or 
+    # Task is installed upstream/external or
     # task is not ready for installation (locked by another process)
     NO_OP = enum.auto()
+
 
 class InstallAction(enum.Enum):
     #: Don't perform an install
@@ -1067,7 +1069,6 @@ class Task:
                 level=2,
             )
 
-
     def _setup_install_dir(self, pkg: "spack.package_base.PackageBase") -> None:
         """
         Create and ensure proper access controls for the install directory.
@@ -1100,7 +1101,7 @@ class Task:
 
         # Always write host environment - we assume this can change
         spack.store.STORE.layout.write_host_environment(pkg.spec)
-    
+
     @property
     def install_action(self: "Task") -> InstallAction:
         """
@@ -1117,7 +1118,7 @@ class Task:
 
         # If it's not installed, do a normal install as well
         rec, installed = check_db(self.pkg.spec)
-        
+
         if not installed:
             return InstallAction.INSTALL
 
@@ -1182,9 +1183,8 @@ class Task:
         """The priority is based on the remaining uninstalled dependencies."""
         return len(self.uninstalled_deps)
 
-def check_db(
-    spec: "spack.spec.Spec"
-    ) -> Tuple[Optional[spack.database.InstallRecord], bool]:
+
+def check_db(spec: "spack.spec.Spec") -> Tuple[Optional[spack.database.InstallRecord], bool]:
     """Determine if the spec is flagged as installed in the database
 
     Args:
@@ -1204,10 +1204,11 @@ def check_db(
         installed_in_db = False
     return rec, installed_in_db
 
+
 class BuildTask(Task):
     """Class for representing a build task for a package."""
 
-    process_handle: spack.build_environment.ProcessHandle = None
+    process_handle: "spack.build_environment.ProcessHandle" = None
     started: bool = False
     no_op: bool = False
 
@@ -1240,9 +1241,9 @@ class BuildTask(Task):
             else:
                 tty.msg(f"No binary for {pkg_id} found: installing from source")
 
-        # if there's an error result, don't start a new process, and leave 
+        # if there's an error result, don't start a new process, and leave
         if self.error_result is not None:
-            return 
+            return
 
         # Create stage object now and let it be serialized for the child process. That
         # way monkeypatch in tests works correctly.
@@ -1251,7 +1252,7 @@ class BuildTask(Task):
 
         # Create a child process to do the actual installation.
         child_process = overwrite_process if action == InstallAction.OVERWRITE else build_process
-        
+
         self.process_handle = spack.build_environment.start_build_process(
             self.pkg, child_process, self.request.install_args
         )
@@ -1262,7 +1263,9 @@ class BuildTask(Task):
     def poll(self):
         """Check if task has successfully executed, caused an InstallError,
         or the child process has information ready to receive."""
-        assert self.started or self.no_op, "Can't call `poll()` before `start()` or identified no-operation task"
+        assert (
+            self.started or self.no_op
+        ), "Can't call `poll()` before `start()` or identified no-operation task"
         return self.no_op or self.success_result or self.error_result or self.process_handle.poll()
 
     def complete(self):
@@ -1270,7 +1273,9 @@ class BuildTask(Task):
         Complete the installation of the requested spec and/or dependency
         represented by the build task.
         """
-        assert self.started or self.no_op, "Can't call `complete()` before `start()` or identified no-operation task"
+        assert (
+            self.started or self.no_op
+        ), "Can't call `complete()` before `start()` or identified no-operation task"
         # seeing if I can get rid of that assertion because in some cases we will need to
         # complete the task so that we can raise the errors even though a process was never
         # started because saving the error made it exit the function before a process could be started
@@ -1281,7 +1286,7 @@ class BuildTask(Task):
         self.status = BuildStatus.INSTALLING
 
         pkg.run_tests = tests is True or tests and pkg.name in tests
-        
+
         # If task has been identified as a no operation,
         # return ExecuteResult.NOOP
         if self.no_op:
@@ -1296,7 +1301,7 @@ class BuildTask(Task):
         # raise spack.error.InstallError
         if self.error_result is not None:
             raise self.error_result
-        
+
         # hook that allows tests to inspect the Package before installation
         # see unit_test_check() docs.
         if not pkg.unit_test_check():
@@ -1517,7 +1522,6 @@ class PackageInstaller:
             all_deps[dep_id].add(package_id(pkg.spec))
 
         self._push_task(task)
-
 
     def _check_deps_status(self, request: BuildRequest) -> None:
         """Check the install status of the requested package
@@ -1872,7 +1876,7 @@ class PackageInstaller:
         rc = task.complete()
         if rc == ExecuteResult.MISSING_BUILD_SPEC:
             self._requeue_with_build_spec_tasks(task)
-        elif rc == ExecuteResult.NO_OP: 
+        elif rc == ExecuteResult.NO_OP:
             pass
         else:  # if rc == ExecuteResult.SUCCESS or rc == ExecuteResult.FAILED
             self._update_installed(task)
@@ -2116,8 +2120,9 @@ class PackageInstaller:
                     task.add_dependent(dependent_id)
         self.all_dependencies = all_dependencies
 
-
-    def start_task(self, task: Task, install_status: InstallStatus, term_status: TermStatusLine) -> None:
+    def start_task(
+        self, task: Task, install_status: InstallStatus, term_status: TermStatusLine
+    ) -> None:
         """Attempts to start a package installation."""
         pkg, pkg_id, spec = task.pkg, task.pkg_id, task.pkg.spec
         install_status.next_pkg(pkg)
@@ -2230,7 +2235,7 @@ class PackageInstaller:
         action = task.install_action
         try:
             self._complete_task(task, install_status)
-             
+
             # If we installed then we should keep the prefix
             stop_before_phase = getattr(pkg, "stop_before_phase", None)
             last_phase = getattr(pkg, "last_phase", None)
@@ -2263,13 +2268,13 @@ class PackageInstaller:
             self.database.remove(task.pkg.spec)
             tty.error(
                 f"Recovery of install dir of {task.pkg.name} failed due to "
-                f"{e.outer_exception.__class__.__name__}: {str(e.outer_exception)}. "                                                                                       
+                f"{e.outer_exception.__class__.__name__}: {str(e.outer_exception)}. "
                 "The spec is now uninstalled."
             )
-       
+
             # Unwrap the actual installation exception.
             raise e.inner_exception
-        
+
         except (Exception, SystemExit) as exc:
             self._update_failed(task, True, exc)
 
@@ -2281,21 +2286,18 @@ class PackageInstaller:
                 # lower levels -- skip printing if already printed.
                 # TODO: sort out this and SpackError.print_context()
                 tty.error(
-                    f"Failed to install {pkg.name} due to "
-                    f"{exc.__class__.__name__}: {str(exc)}"
+                    f"Failed to install {pkg.name} due to " f"{exc.__class__.__name__}: {str(exc)}"
                 )
             # Terminate if requested to do so on the first failure.
             if self.fail_fast:
-                raise spack.error.InstallError(
-                    f"{_fail_fast_err}: {str(exc)}", pkg=pkg
-                ) from exc
+                raise spack.error.InstallError(f"{_fail_fast_err}: {str(exc)}", pkg=pkg) from exc
 
             # Terminate when a single build request has failed, or summarize errors later.
             if task.is_build_request:
                 if len(self.build_requests) == 1:
                     raise
                 return (pkg, pkg_id, str(exc))
-        
+
         finally:
             # Remove the install prefix if anything went wrong during
             # install.
@@ -2356,7 +2358,6 @@ class PackageInstaller:
                     raise
                 finally:
                     active_tasks.remove(task)
-
 
         self._clear_removed_tasks()
         if self.build_pq:
@@ -2640,6 +2641,7 @@ def build_process(pkg: "spack.package_base.PackageBase", install_args: dict) -> 
     with spack.util.path.filter_padding():
         return installer.run()
 
+
 def overwrite_process(pkg: "spack.package_base.PackageBase", install_args: dict) -> bool:
     # TODO:I don't know if this comment accurately reflects what's going on anymore
     # TODO: think it should move to the error handling
@@ -2649,6 +2651,7 @@ def overwrite_process(pkg: "spack.package_base.PackageBase", install_args: dict)
     #  install error if installation fails.
     with fs.replace_directory_transaction(pkg.prefix):
         return build_process(pkg, install_args)
+
 
 def deprecate(spec: "spack.spec.Spec", deprecator: "spack.spec.Spec", link_fn) -> None:
     """Deprecate this package in favor of deprecator spec"""
