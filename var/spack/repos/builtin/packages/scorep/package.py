@@ -97,7 +97,8 @@ class Scorep(AutotoolsPackage):
     # two components of cube -- cubew and cubelib.
 
     # SCOREP 8
-    depends_on("binutils", type="link", when="@8:")
+    depends_on("binutils libs=shared", type="link", when="@8:")
+    conflicts("^binutils libs=static")  # cap this if and when we find a reliable workaround
     depends_on("otf2@3:", when="@8:")
     depends_on("cubew@4.8.2:", when="@8.3:")
     depends_on("cubelib@4.8.2:", when="@8.3:")
@@ -171,6 +172,7 @@ class Scorep(AutotoolsPackage):
             "--with-otf2=%s" % spec["otf2"].prefix.bin,
             "--with-opari2=%s" % spec["opari2"].prefix.bin,
             "--enable-shared",
+            "--disable-static",
         ]
 
         cname = self.clean_compiler(spec.compiler.name)
