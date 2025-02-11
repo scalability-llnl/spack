@@ -37,3 +37,10 @@ class Feh(MakefilePackage):
 
     def install(self, spec, prefix):
         make("install", "PREFIX={0}".format(prefix))
+
+    def flag_handler(self, name, flags):
+        if name == "cflags":
+            if self.spec.satisfies("%cce"):
+                flags.append("-Wno-error=implicit-function-declaration")
+        return (flags, None, None)
+
