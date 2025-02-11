@@ -116,3 +116,12 @@ class Wps(Package):
     def install(self, spec, prefix):
         # Copy all of WPS staging dir to install dir
         install_tree(".", prefix)
+    #
+    #
+    # yoder:
+    #  WPS build system does not properly add the OMP flag, at least not for some compilers?
+    def flag_handler(self, name, flags):
+        #if name == "cxxflags":
+        if name in ('cxxflags', 'fflags', 'cflags', 'ldflags') and self.spec.satisfies('+dmpar'):
+            flags.append(self.compiler.openmp_flag)
+        return (flags, None, None)
