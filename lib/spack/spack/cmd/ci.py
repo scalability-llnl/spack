@@ -814,10 +814,10 @@ def ci_verify_versions(args):
 
         with fs.working_dir(spack.paths.prefix):
             added_checksums = spack_ci.get_added_versions(
-                checksums_version_dict, path, from_ref=args.from_ref
+                checksums_version_dict, path, from_ref=args.from_ref, to_ref=args.to_ref
             )
             added_commits = spack_ci.get_added_versions(
-                commits_version_dict, path, from_ref=args.from_ref
+                commits_version_dict, path, from_ref=args.from_ref, to_ref=args.to_ref
             )
 
         if added_checksums:

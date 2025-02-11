@@ -1803,23 +1803,23 @@ def fetch_versions_invalid(monkeypatch):
     monkeypatch.setattr(spack.stage, "get_checksums_for_versions", get_checksums_for_versions)
 
 
-def test_ci_validate_standard_versions_valid(mock_packages, fetch_versions_match):
-    pkg_cls = spack.repo.PATH.get_pkg_class("zlib")
-    spec = spack.spec.Spec("zlib")
+def test_ci_verify_versions_standard_valid(
+    monkeypatch, mock_packages, fetch_versions_match, mock_git_package_changes
+):
+    repo_path, _, commits = mock_git_package_changes
 
-    pkg = spack.repo.PATH.get_pkg_class(spec.name)(spec)
-    versions = pkg_cls.versions
+    monkeypatch.setattr(spack.paths, "prefix", repo_path)
 
-    all_valid = spack.cmd.ci.validate_standard_versions(pkg, versions)
-    assert all_valid
+    out = ci_cmd("verify-versions", commits[-1], commits[-2])
+    assert "Validated diff-test@2.1.5" in out
 
 
-def test_ci_validate_standard_versions_invalid(mock_packages, fetch_versions_invalid):
-    pkg_cls = spack.repo.PATH.get_pkg_class("zlib")
-    spec = spack.spec.Spec("zlib")
+def test_ci_verify_versions_standard_invalid(
+    monkeypatch, mock_packages, fetch_versions_invalid, mock_git_package_changes
+):
+    repo_path, _, commits = mock_git_package_changes
 
-    pkg = spack.repo.PATH.get_pkg_class(spec.name)(spec)
-    versions = pkg_cls.versions
+    monkeypatch.setattr(spack.paths, "prefix", repo_path)
 
-    all_valid = spack.cmd.ci.validate_standard_versions(pkg, versions)
-    assert not all_valid
+    out = ci_cmd("verify-versions", commits[-1], commits[-2], fail_on_error=False)
+    assert "Invalid checksum found diff-test@2.1.5" in out

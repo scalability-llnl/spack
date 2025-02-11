@@ -237,21 +237,21 @@ def mock_git_package_changes(git, tmpdir, override_git_repos_cache_path):
 
     The structure of commits in this repo is as follows::
 
-       o pkg-a: modification to make manual download package
+       o diff-test: modification to make manual download package
        |
-       o pkg-a: add v1.2 (from a git ref)
+       o diff-test: add v1.2 (from a git ref)
        |
-       o pkg-a: add v1.1 (from source tarball)
+       o diff-test: add v1.1 (from source tarball)
        |
-       o pkg-a: new package (testing multiple added versions)
+       o diff-test: new package (testing multiple added versions)
 
-    The repo consists of a single package.py file for packageA.
+    The repo consists of a single package.py file for DiffTest.
 
     Important attributes of the repo for test coverage are: multiple package
     versions are added with some coming from a tarball and some from git refs.
     """
     repo_path = str(tmpdir.mkdir("git_repo"))
-    filename = "var/spack/repos/builtin/packages/pkg-a/package.py"
+    filename = "var/spack/repos/builtin/packages/diff-test/package.py"
 
     def commit(message):
         global commit_counter
@@ -279,27 +279,27 @@ def mock_git_package_changes(git, tmpdir, override_git_repos_cache_path):
         os.makedirs(os.path.dirname(filename))
 
         # add pkg-a as a new package to the repository
-        shutil.copy2(f"{spack.paths.test_path}/data/conftest/pkgA/package-0.txt", filename)
+        shutil.copy2(f"{spack.paths.test_path}/data/conftest/diff-test/package-0.txt", filename)
         git("add", filename)
-        commit("pkg-a: new package")
+        commit("diff-test: new package")
         commits.append(latest_commit())
 
         # add v2.1.5 to pkg-a
-        shutil.copy2(f"{spack.paths.test_path}/data/conftest/pkgA/package-1.txt", filename)
+        shutil.copy2(f"{spack.paths.test_path}/data/conftest/diff-test/package-1.txt", filename)
         git("add", filename)
-        commit("pkg-a: add v2.1.5")
+        commit("diff-test: add v2.1.5")
         commits.append(latest_commit())
 
         # add v2.1.6 to pkg-a
-        shutil.copy2(f"{spack.paths.test_path}/data/conftest/pkgA/package-2.txt", filename)
+        shutil.copy2(f"{spack.paths.test_path}/data/conftest/diff-test/package-2.txt", filename)
         git("add", filename)
-        commit("pkg-a: add v2.1.6")
+        commit("diff-test: add v2.1.6")
         commits.append(latest_commit())
 
         # convert pkg-a to a manual download package
-        shutil.copy2(f"{spack.paths.test_path}/data/conftest/pkgA/package-3.txt", filename)
+        shutil.copy2(f"{spack.paths.test_path}/data/conftest/diff-test/package-3.txt", filename)
         git("add", filename)
-        commit("pkg-a: modification to make manual download package")
+        commit("diff-test: modification to make manual download package")
         commits.append(latest_commit())
 
         # The commits are ordered with the last commit first in the list

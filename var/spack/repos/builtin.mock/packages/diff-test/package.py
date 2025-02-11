@@ -5,7 +5,7 @@
 from spack.package import *
 
 
-class PkgA(AutotoolsPackage):
+class DiffTest(AutotoolsPackage):
     """zlib replacement with optimizations for next generation systems."""
 
     homepage = "https://github.com/zlib-ng/zlib-ng"
