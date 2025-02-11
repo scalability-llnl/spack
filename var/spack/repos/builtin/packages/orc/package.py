@@ -13,6 +13,7 @@ class Orc(CMakePackage):
 
     license("BSD-2-Clause")
 
+    version("1.6.13", sha256="a1468b8d1016f9b60b965374a5957e87aeb814106707b798c27a402b8581f0e6")
     version("1.6.5", sha256="df5885db8fa2e4435db8d486c6c7fc4e2c565d6197eee27729cf9cbdf36353c0")
 
     depends_on("cxx", type="build")  # generated
@@ -28,7 +29,7 @@ class Orc(CMakePackage):
     depends_on("snappy@1.1.7:")
     depends_on("lz4@1.7.5:")
 
-    patch("thirdparty.patch")
+    patch("thirdparty-1.6.patch", when="@1.6")
 
     def cmake_args(self):
         args = []
