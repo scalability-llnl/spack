@@ -29,6 +29,7 @@ _warn_enabled = True
 _error_enabled = True
 _output_filter = lambda s: s
 indent = "  "
+_yes_to_all = False
 
 
 def debug_level():
@@ -72,6 +73,16 @@ def set_warn_enabled(flag):
 def set_error_enabled(flag):
     global _error_enabled
     _error_enabled = flag
+
+
+def set_yes_to_all(flag):
+    global _yes_to_all
+    _yes_to_all = flag
+
+
+def yes_to_all():
+    global _yes_to_all
+    return _yes_to_all
 
 
 def msg_enabled():
@@ -249,6 +260,10 @@ def die(message, *args, **kwargs) -> NoReturn:
 
 
 def get_yes_or_no(prompt, **kwargs):
+    global _yes_to_all
+    if _yes_to_all:
+        return True
+
     default_value = kwargs.get("default", None)
 
     if default_value is None:

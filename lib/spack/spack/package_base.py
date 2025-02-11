@@ -1447,11 +1447,13 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
             # Ask the user whether to skip the checksum if we're
             # interactive, but just fail if non-interactive.
             ck_msg = "Add a checksum or use --no-checksum to skip this check."
-            ignore_checksum = False
             if sys.stdout.isatty():
                 ignore_checksum = tty.get_yes_or_no("  Fetch anyway?", default=False)
-                if ignore_checksum:
-                    tty.debug("Fetching with no checksum. {0}".format(ck_msg))
+            else:
+                ignore_checksum = tty.yes_to_all()
+
+            if ignore_checksum:
+                tty.debug("Fetching with no checksum. {0}".format(ck_msg))
 
             if not ignore_checksum:
                 raise spack.error.FetchError(
@@ -1472,12 +1474,13 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
                 "of the package, submit a PR to remove `deprecated=False"
                 "`, or use `--deprecated` to skip this check."
             )
-            ignore_deprecation = False
             if sys.stdout.isatty():
                 ignore_deprecation = tty.get_yes_or_no("  Fetch anyway?", default=False)
+            else:
+                ignore_deprecation = tty.yes_to_all()
 
-                if ignore_deprecation:
-                    tty.debug("Fetching deprecated version. {0}".format(dp_msg))
+            if ignore_deprecation:
+                tty.debug("Fetching deprecated version. {0}".format(dp_msg))
 
             if not ignore_deprecation:
                 raise spack.error.FetchError(

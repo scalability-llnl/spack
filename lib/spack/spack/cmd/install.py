@@ -315,6 +315,7 @@ def _die_require_env():
 def install(parser, args):
     # TODO: unify args.verbose?
     tty.set_verbose(args.verbose or args.install_verbose)
+    tty.set_yes_to_all(args.yes_to_all)
 
     if args.help_cdash:
         arguments.print_cdash_help()
