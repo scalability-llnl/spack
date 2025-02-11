@@ -218,7 +218,8 @@ class Python(Package):
         depends_on("gmake", type="build")
         depends_on("pkgconfig@0.9.0:", type="build")
         depends_on("gettext +libxml2", when="+libxml2")
-        depends_on("gettext ~libxml2", when="~libxml2")
+        depends_on("iconv", when="~libxml2")
+        depends_on("gettext ~libxml2", when="~libxml2 ^gettext")
 
         # Optional dependencies
         # See detect_modules() in setup.py for details
