@@ -6,7 +6,7 @@
 from spack.package import *
 
 
-class Umoci(MakefilePackage):
+class Umoci(GoPackage):
     """umoci modifies Open Container images, intending to be a
     complete manipulation tool for OCI images."""
 
@@ -22,20 +22,14 @@ class Umoci(MakefilePackage):
     version("0.4.1", sha256="0d83e01167383f529d726e9fd455660d4837371d5f0d82fad405f3ae6ae52486")
     version("0.4.0", sha256="66997e270dee8abc9796385b162a1e8e32dd2ee2359e5200af4e6671cc1e76a0")
 
-    depends_on("go")
     depends_on("go-md2man", type="build")
 
-    def build(self, spec, prefix):
-        provider = "github.com"
-        project = "opencontainers"
-        repo = "umoci"
+    build_directory = "cmd/umoci"
 
-        mkdirp(join_path(self.stage.source_path, "src", provider, project))
-
-        ln = which("ln")
-        ln("-s", self.stage.source_path, join_path("src", provider, project, repo))
-
-        make("GOPATH={0}".format(self.stage.source_path))
-
-    def install(self, spec, prefix):
-        make("PREFIX=", "DESTDIR={0}".format(prefix), "install")
+    @property
+    def build_args(self):
+        args = super().build_args
+        args.extend(
+            ["-ldflags", f"-s -w -X github.com/opencontainers/umoci.version={self.version}"]
+        )
+        return args
