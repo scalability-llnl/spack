@@ -67,15 +67,17 @@ def setup_parser(subparser):
         action="store_true",
         dest="prune_dag",
         default=True,
-        help="skip up-to-date specs\n\n"
-        "do not generate jobs for specs that are up-to-date on the mirror",
+        help="skip up-to-date specs\n"
+        "(Default behavior)\n\n"
+        "do not generate jobs for specs that are up-to-date on the mirror\n",
     )
     prune_dag_group.add_argument(
         "--no-prune-dag",
         action="store_false",
         dest="prune_dag",
         default=True,
-        help="process up-to-date specs\n\n"
+        help="process up-to-date specs\n"
+        "(Default behavior)\n\n"
         "generate jobs for specs even when they are up-to-date on the mirror",
     )
     prune_ext_group = generate.add_mutually_exclusive_group()

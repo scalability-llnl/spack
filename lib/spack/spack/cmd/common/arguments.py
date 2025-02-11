@@ -388,6 +388,7 @@ def install_status():
             "show install status of packages\n"
             "[+] installed       [^] installed in an upstream\n"
             " -  not installed   [-] missing dep of installed package\n"
+            "(Default behavior)\n"
         ),
     )
 
@@ -399,7 +400,7 @@ def no_install_status():
         dest="install_status",
         action="store_false",
         default=True,
-        help="do not show install status annotations",
+        help="do not show install status annotations (Default behavior)",
     )
 
 

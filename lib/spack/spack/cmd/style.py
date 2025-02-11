@@ -171,7 +171,7 @@ def setup_parser(subparser):
         dest="untracked",
         action="store_false",
         default=True,
-        help="exclude untracked files from checks",
+        help="exclude untracked files from checks (default)",
     )
     subparser.add_argument(
         "-f",
