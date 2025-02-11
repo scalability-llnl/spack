@@ -37,6 +37,7 @@ class NetcdfFortran(AutotoolsPackage):
     variant("pic", default=True, description="Produce position-independent code (for shared libs)")
     variant("shared", default=True, description="Enable shared library")
     variant("doc", default=False, description="Enable building docs")
+    variant("mpicompilers", default=False, description="Build with mpicc/mpifc compiler wrappers")
 
     depends_on("netcdf-c")
     depends_on("netcdf-c@4.7.4:", when="@4.5.3:")  # nc_def_var_szip required
@@ -136,6 +137,11 @@ class NetcdfFortran(AutotoolsPackage):
                 # not run by default and explicitly disabled above. To avoid the
                 # configuration failure, we set the following cache variable:
                 config_args.append("ac_cv_func_MPI_File_open=yes")
+
+            if "+mpicompilers" in self.spec:
+                config_args.append("CC=%s" % self.spec["mpi"].mpicc)
+                config_args.append("FC=%s" % self.spec["mpi"].mpifc)
+                config_args.append("F77=%s" % self.spec["mpi"].mpif77)
 
         if "~shared" in netcdf_c_spec:
             nc_config = which("nc-config")
