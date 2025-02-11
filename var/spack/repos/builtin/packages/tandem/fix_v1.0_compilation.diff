@@ -27,3 +27,18 @@ index 6a2cf29..36b0be3 100644
  #include "util/Combinatorics.h"
  
  namespace tndm {
+diff --git a/external/doctest.h b/external/doctest.h
+index c6bcafe..982da03 100644
+--- a/external/doctest.h
++++ b/external/doctest.h
+@@ -4016,6 +4016,10 @@ namespace {
+ 
+ #else // DOCTEST_PLATFORM_WINDOWS
+ 
++    // glibc 2.34+ fix
++    #undef SIGSTKSZ
++    #define SIGSTKSZ 32768
++
+     struct SignalDefs
+     {
+         int         id;

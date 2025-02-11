@@ -18,6 +18,7 @@ class Tandem(CMakePackage, CudaPackage, ROCmPackage):
     license("BSD-3-Clause")
 
     version("main", branch="main", submodules=True)
+    version("develop", branch="thomas/develop", submodules=True)
 
     # we cannot use the tar.gz file because it does not contains submodules
     version(
@@ -27,7 +28,11 @@ class Tandem(CMakePackage, CudaPackage, ROCmPackage):
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
-    patch("fix_v1.0_compilation.diff", when="@1.0")
+    patch(
+        "fix_v1.0_compilation.diff",
+        when="@1.0",
+        sha256="ef7325c1e59811e1992e3846044232154e4286fcaeae2ea5575a6ae77dda8b7d",
+    )
 
     maintainers("dmay23", "Thomas-Ulrich")
     variant("polynomial_degree", default="2", description="Polynomial degree")
@@ -48,7 +53,13 @@ class Tandem(CMakePackage, CudaPackage, ROCmPackage):
 
     depends_on("mpi")
 
-    for var in ["openmpi", "mpich", "mvapich", "mvapich2", "mvapich2-gdr"]:
+    for var in ["openmpi", "mpich"]:
+        for tgt in CudaPackage.cuda_arch_values:
+            depends_on(
+                f"{var} +cuda cuda_arch={tgt}", when=f"+cuda cuda_arch={tgt} ^[virtuals=mpi] {var}"
+            )
+    # these 2 are not cuda packages
+    for var in ["mvapich", "mvapich2", "mvapich2-gdr"]:
         depends_on(f"{var} +cuda", when=f"+cuda ^[virtuals=mpi] {var}")
 
     for var in ["mpich", "mvapich2-gdr"]:
@@ -61,7 +72,52 @@ class Tandem(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("eigen@3.4.0")
 
     depends_on("zlib-api")
-    depends_on("petsc@3.16: +int64 +mumps +scalapack memalign=32")
+
+    # Dictionary for architecture alignments
+    arch_alignments = {
+        "x86_64": 8,
+        "x86_64_v2": 16,
+        "x86_64_v3": 32,
+        "x86_64_v4": 64,
+        "westmere": 16,
+        "sandybridge": 32,
+        "haswell": 32,
+        "mic_knl": 64,
+        "skylake": 64,
+        "cascadelake": 64,
+        "icelake": 64,
+        "naples": 32,
+        "rome": 32,
+        "milan": 64,
+        "bergamo": 64,
+        "thunderx2": 64,
+        "power9": 64,
+        "apple-m1": 128,
+        "apple-m2": 128,
+        "a64fx": 128,
+        "aarch64": 16,  # For completeness, include aarch64 if needed
+        "neon": 16,
+        "zen": 32,
+        "zen2": 32,
+        "zen3": 64,
+        "zen4": 64,
+    }
+
+    possible_memalign = ("32", "64", "128", "256", "512", "1024", "2048", "4096", "8192", "none")
+
+    conflicts("^petsc memalign=4")
+    conflicts("^petsc memalign=8")
+    conflicts("^petsc memalign=16")
+
+    for arch, align in arch_alignments.items():
+        for forbidden in possible_memalign:
+            if forbidden != f"{align}":
+                conflicts(f"^petsc memalign={forbidden}", when=f"target={arch}")
+
+    depends_on("petsc +int64 +mumps +scalapack")
+    depends_on("petsc@3.22:", when="@1.2:")
+    depends_on("petsc@3.16:3.17", when="@:1.1")
+
     depends_on("petsc +knl", when="target=skylake:")
 
     with when("+cuda"):
@@ -72,7 +128,9 @@ class Tandem(CMakePackage, CudaPackage, ROCmPackage):
             depends_on(f"petsc +rocm amdgpu_target={tgt}", when=f"+rocm amdgpu_target={tgt}")
 
     depends_on("python@3", type="build", when="+python")
+    depends_on("python@3.9:", type="build", when="@:1.2 +python")
     depends_on("py-numpy", type="build", when="+python")
+    depends_on("py-setuptools", type="build", when="+python")
 
     # see https://github.com/TEAR-ERC/tandem/issues/45
     conflicts("%intel")
@@ -97,20 +155,52 @@ class Tandem(CMakePackage, CudaPackage, ROCmPackage):
             self.define_from_variant("MIN_QUADRATURE_ORDER", "min_quadrature_order"),
         ]
 
-        arch_dic = {}
-        arch_dic["skylake"] = "skl"
-        arch_dic["skylake_avx512"] = "skx"
-        arch_dic["haswell"] = "hsw"
-        arch_dic["sandybridge"] = "snb"
-        arch_dic["zen2"] = "rome"
-        arch_dic["zen"] = "naples"
-        target = str(self.spec.target)
+        # basic family matching
+        hostarch = "noarch"
+        if self.spec.target >= "aarch64":
+            hostarch = "neon"
+        if self.spec.target >= "x86_64":
+            # pure x86_64v1 doesn't support anything above SSE3
+            hostarch = "noarch"
+        if self.spec.target >= "x86_64_v2":
+            # AVX is only required for x86_64v3 and upwards
+            hostarch = "wsm"
+        if self.spec.target >= "x86_64_v3":
+            hostarch = "hsw"
+        if self.spec.target >= "x86_64_v4":
+            hostarch = "skx"
 
-        if target in arch_dic:
-            args.append("-DARCH=" + arch_dic[target])
-        else:
-            print(target, "not in arch list of tandem, using native")
-            args.append("-DARCH=native")
+        # specific architecture matching
+        if self.spec.target >= "westmere":
+            hostarch = "wsm"
+        if self.spec.target >= "sandybridge":
+            hostarch = "snb"
+        if self.spec.target >= "haswell":
+            hostarch = "hsw"
+        if self.spec.target >= "mic_knl":
+            hostarch = "knl"
+        if self.spec.target >= "skylake_avx512":
+            hostarch = "skx"
+        if self.spec.target >= "zen":
+            hostarch = "naples"
+        if self.spec.target >= "zen2":
+            hostarch = "rome"
+        if self.spec.target >= "zen3":
+            hostarch = "milan"
+        if self.spec.target >= "zen4":
+            hostarch = "bergamo"
+        if self.spec.target >= "thunderx2":
+            hostarch = "thunderx2t99"
+        if self.spec.target >= "power9":
+            hostarch = "power9"
+        if self.spec.target >= "m1":
+            hostarch = "apple-m1"
+        if self.spec.target >= "m2":
+            hostarch = "apple-m2"
+        if self.spec.target >= "a64fx":
+            hostarch = "a64fx"
+
+        args.append(f"-DARCH={hostarch}")
 
         return args
 
