@@ -13,11 +13,15 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
     """
 
     homepage = "https://github.com/celeritas-project/celeritas"
+    git = "https://github.com/celeritas-project/celeritas.git"
     url = "https://github.com/celeritas-project/celeritas/releases/download/v0.1.0/celeritas-0.1.0.tar.gz"
 
     maintainers("sethrj")
 
     license("Apache-2.0")
+
+    version("develop", branch="develop")
+    next_develop_version = "0.6.0"
 
     version("0.5.1", sha256="182d5466fbd98ba9400b343b55f6a06e03b77daed4de1dd16f632ac0a3620249")
     version("0.5.0", sha256="4a8834224d96fd01897e5872ac109f60d91ef0bd7b63fac05a73dcdb61a5530e")
@@ -72,6 +76,7 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("nlohmann-json")
     depends_on("geant4@10.5:", when="@0.4.2: +geant4")
     depends_on("geant4@10.5:11.1", when="@0.3.1:0.4.1 +geant4")
+    depends_on("g4vg@develop", when="@develop +geant4 +vecgeom")
     depends_on("hepmc3", when="+hepmc3")
     depends_on("root", when="+root")
     depends_on("swig@4.1:", when="+swig")
@@ -148,5 +153,18 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
         if self.version < Version("0.5"):
             # JSON is required for 0.5 and later
             args.append(define("CELERITAS_USE_JSON", True))
+
+        if self.version >= Version("0.6"):
+            args.extend(
+                (
+                    define(f"CELERITAS_BUILTIN_{pkg}", False)
+                    for pkg in ["GTest", "nlohmann_json", "G4VG"]
+                )
+            )
+
+        if self.version == Version("develop"):
+            args.append(
+                define("Celeritas_GIT_DESCRIBE", [self.next_develop_version, "-dev", "spack"])
+            )
 
         return args
