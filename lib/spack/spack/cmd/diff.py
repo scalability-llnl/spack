@@ -21,6 +21,7 @@ level = "long"
 
 def setup_parser(subparser):
     arguments.add_common_arguments(subparser, ["specs"])
+    arguments.add_concretizer_args(subparser)
 
     subparser.add_argument(
         "--json",
@@ -29,12 +30,28 @@ def setup_parser(subparser):
         dest="dump_json",
         help="dump json output instead of pretty printing",
     )
-    subparser.add_argument(
+    mode_group = subparser.add_mutually_exclusive_group()
+    mode_group.add_argument(
+        "--find",
+        action="store_const",
+        dest="mode",
+        const="find",
+        default="find",
+        help="find a single installed spec",
+    )
+    mode_group.add_argument(
         "--first",
-        action="store_true",
-        default=False,
-        dest="load_first",
-        help="load the first match if multiple packages match the spec",
+        action="store_const",
+        dest="mode",
+        const="first",
+        help="find the first installed spec",
+    )
+    mode_group.add_argument(
+        "--concretize",
+        action="store_const",
+        dest="mode",
+        const="concretize",
+        help="concretize the spec (see concretizer arguments)",
     )
     subparser.add_argument(
         "-a",
@@ -207,14 +224,17 @@ def diff(parser, args):
     if len(args.specs) != 2:
         tty.die("You must provide two specs to diff.")
 
+    concretize = args.mode == "concretize"
+    first = args.mode == "first"
+
     specs = []
-    for spec in spack.cmd.parse_specs(args.specs):
+    for spec in spack.cmd.parse_specs(args.specs, concretize=concretize):
         # If the spec has a hash, check it before disambiguating
         spec.replace_hash()
         if spec.concrete:
             specs.append(spec)
         else:
-            specs.append(spack.cmd.disambiguate_spec(spec, env, first=args.load_first))
+            specs.append(spack.cmd.disambiguate_spec(spec, env, first=first))
 
     # Calculate the comparison (c)
     color = False if args.dump_json else get_color_when()

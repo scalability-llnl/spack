@@ -998,7 +998,7 @@ _spack_develop() {
 _spack_diff() {
     if $list_options
     then
-        SPACK_COMPREPLY="-h --help --json --first -a --attribute --ignore"
+        SPACK_COMPREPLY="-h --help -U --fresh --reuse --fresh-roots --reuse-deps --deprecated --json --find --first --concretize -a --attribute --ignore"
     else
         _all_packages
     fi
