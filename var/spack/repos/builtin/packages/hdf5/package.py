@@ -261,6 +261,10 @@ class Hdf5(CMakePackage):
     )
 
     patch("fortran-kinds.patch", when="@1.10.7")
+    patch("fortran-kinds-2.patch", when="@1.12.0")
+    patch("mpi.patch", when="@1.12")
+    patch("mpi-perf.patch", when="@1.12.2")
+    patch("mpi.14.patch", when="@1.14:")
 
     # This patch may only be needed with GCC 11.2 on macOS, but it's valid for
     # any of the head HDF5 versions as of 12/2021. Since it's impossible to
@@ -276,6 +280,9 @@ class Hdf5(CMakePackage):
     # find_package(MPI).  This patch does that for them.  Later HDF5 versions
     # will include the patch code changes.
     patch("hdf5_1_14_0_config_find_mpi.patch", when="@1.14.0")
+
+    # Avoid clang errors (clang checks strict C compliance)
+    patch("clang.patch", when="@1.8.21 %clang")
 
     # The argument 'buf_size' of the C function 'h5fget_file_image_c' is
     # declared as intent(in) though it is modified by the invocation. As a
