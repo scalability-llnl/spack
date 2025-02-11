@@ -460,7 +460,7 @@ class Configuration:
         """
         tty.debug(f"[CONFIGURATION: PUSH SCOPE]: {str(scope)}, priority={priority}", level=2)
 
-        # before pushing the scope itself, push any included scopes recurisvely, at same priority
+        # before pushing the scope itself, push any included scopes recursively, at same priority
         includes = scope.get_section("include")
         if includes:
             include_paths = [included_path(data) for data in includes["include"]]
