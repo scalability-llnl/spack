@@ -42,7 +42,12 @@ class PyTables(PythonPackage):
     depends_on("py-cython@0.21:", type="build")
 
     # setup.py
-    depends_on("python@3.8:", when="@3.8:", type=("build", "run"))
+    # python 3.11 is supported only from version 3.8 onwards.
+    # python 3.12 is supported only from version 3.9.1 onwards.
+    # See https://github.com/PyTables/PyTables/releases/tag/v3.8.0
+    depends_on("python@3.8:", when="@3.9.1:", type=("build", "run"))
+    depends_on("python@3.8:3.11", when="@3.8:3.9.0", type=("build", "run"))
+    depends_on("python@3.6:3.10", when="@:3.7", type=("build", "run"))
 
     # requirements.txt
     depends_on("py-numpy@1.19:", when="@3.8:", type=("build", "run"))
