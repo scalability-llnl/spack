@@ -1,0 +1,13 @@
+diff --git a/configure.ac_org b/configure.ac
+index 69c4569..9a87e89 100644
+--- a/configure.ac_org
++++ b/configure.ac
+@@ -735,7 +735,7 @@ if test "$enable_linkfortran"x = "yes"x; then
+         case "${host_cpu}" in
+              aarch64)
+                 case "${CC}" in
+-                     fcc*)
++                     *fcc*)
+                      archive_expsym_cmds="$archive_expsym_cmds --linkfortran"
+                      archive_cmds="$archive_cmds --linkfortran"
+ 		     FORT_SUFFIX=_fortran
