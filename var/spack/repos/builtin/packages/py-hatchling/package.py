@@ -14,6 +14,7 @@ class PyHatchling(PythonPackage):
 
     license("MIT", checked_by="tgamblin")
 
+    version("1.26.3", sha256="b672a9c36a601a06c4e88a1abb1330639ee8e721e0535a37536e546a667efc7a")
     version("1.25.0", sha256="7064631a512610b52250a4d3ff1bd81551d6d1431c4eb7b72e734df6c74f4262")
     version("1.24.2", sha256="41ddc27cdb25db9ef7b68bef075f829c84cb349aa1bff8240797d012510547b0")
     version("1.21.0", sha256="5c086772357a50723b825fd5da5278ac7e3697cdf7797d07541a6c90b6ff754c")
@@ -28,6 +29,7 @@ class PyHatchling(PythonPackage):
     depends_on("py-editables@0.3:", type=("build", "run"))
     depends_on("py-packaging@21.3:", type=("build", "run"))
     depends_on("py-packaging@23.2:", when="@1.24.2:", type=("build", "run"))
+    depends_on("py-packaging@24.2:", when="@1.26.3:", type=("build", "run"))
     depends_on("py-pathspec@0.10.1:", when="@1.9:", type=("build", "run"))
     depends_on("py-pathspec@0.9:", type=("build", "run"))
     depends_on("py-pluggy@1:", type=("build", "run"))
