@@ -571,6 +571,14 @@ def set_wrapper_variables(pkg, env):
     compiler = pkg.compiler
     env.extend(spack.schema.environment.parse(compiler.environment))
 
+    # Before setting up PATH to Spack compiler wrappers, make sure compiler is in PATH
+    # This ensures that non-wrapped executables from the compiler bin directory are available
+    bindirs = dedupe(
+        [os.path.dirname(c) for c in [compiler.cc, compiler.cxx, compiler.fc, compiler.f77]]
+    )
+    for bindir in bindirs:
+        env.prepend_path("PATH", bindir)
+
     if compiler.extra_rpaths:
         extra_rpaths = ":".join(compiler.extra_rpaths)
         env.set("SPACK_COMPILER_EXTRA_RPATHS", extra_rpaths)
