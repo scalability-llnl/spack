@@ -265,7 +265,7 @@ def find_compilers(
     if sys.platform == "win32":
         default_paths.extend(windows_os.WindowsOs().compiler_search_paths)
     compiler_pkgs = spack.repo.PATH.packages_with_tags(COMPILER_TAG, full=True)
-    import pdb; pdb.set_trace()
+
     detected_packages = spack.detection.by_path(
         compiler_pkgs, path_hints=default_paths, max_workers=max_workers
     )

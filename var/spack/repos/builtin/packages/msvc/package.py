@@ -9,7 +9,7 @@ from spack.package import *
 FC_PATH: Dict[str, str] = dict()
 
 
-def get_valid_fortran_pth():
+def get_latest_valid_fortran_pth():
     """Assign maximum available fortran compiler version"""
     # TODO (johnwparent): validate compatibility w/ try compiler
     # functionality when added
@@ -43,12 +43,14 @@ class Msvc(Package, CompilerPackage):
     def determine_version(cls, exe):
         # MSVC compiler does not have a proper version argument
         # Errors out and prints version info with no args
-        # We need to support amalgamated MSVC/ONEAPI compilers
+        is_ifx = "ifx.exe" in str(exe)
         match = re.search(
             cls.compiler_version_regex,
             spack.compiler.get_compiler_version_output(exe, version_arg=None, ignore_errors=True),
         )
         if match:
+            if is_ifx:
+                FC_PATH[match.group(1)] = str(exe)
             return match.group(1)
 
     @classmethod
@@ -56,6 +58,16 @@ class Msvc(Package, CompilerPackage):
         # MSVC uses same executable for both languages
         spec, extras = super().determine_variants(exes, version_str)
         extras["compilers"]["c"] = extras["compilers"]["cxx"]
+        # manually populate intel compilers stored from previous
+        # attempt to detect the intel compilers
+        # compiler detection sorts the detected paths, so oneAPI
+        # will always be interrogated as msvc before MSVC is
+        # this means we can store the oneAPI detections, and
+        # then use them to manually populate the MSVC compiler entries
+        # TODO: remove this once compilers as nodes lands
+        # TODO: interrogate intel and msvc for compatibility after
+        # compilers as nodes lands
+        extras["compilers"]["fortran"] = get_latest_valid_fortran_pth()
         return spec, extras
 
     @property

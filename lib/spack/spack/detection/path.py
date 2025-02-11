@@ -353,8 +353,6 @@ class Finder:
         if initial_guess is None:
             initial_guess = self.default_path_hints()
             initial_guess.extend(common_windows_package_paths(pkg_cls))
-        if pkg_name == "builtin.msvc":
-            import pdb; pdb.set_trace()
         candidates = self.candidate_files(patterns=patterns, paths=initial_guess)
         result = self.detect_specs(pkg=pkg_cls, paths=candidates)
         return result
@@ -444,20 +442,20 @@ def by_path(
     repository = spack.repo.PATH.ensure_unwrapped()
     with spack.util.parallel.make_concurrent_executor(max_workers, require_fork=False) as executor:
         for pkg in packages_to_search:
-            # executable_future = executor.submit(
-            #     executables_finder.find,
-            #     pkg_name=pkg,
-            #     initial_guess=path_hints,
-            #     repository=repository,
-            # )
-            # library_future = executor.submit(
-            #     libraries_finder.find,
-            #     pkg_name=pkg,
-            #     initial_guess=path_hints,
-            #     repository=repository,
-            # )
-            # detected_specs_by_package[pkg] = executable_future, library_future
-            executables_finder.find(pkg_name=pkg, initial_guess=path_hints, repository=repository)
+            executable_future = executor.submit(
+                executables_finder.find,
+                pkg_name=pkg,
+                initial_guess=path_hints,
+                repository=repository,
+            )
+            library_future = executor.submit(
+                libraries_finder.find,
+                pkg_name=pkg,
+                initial_guess=path_hints,
+                repository=repository,
+            )
+            detected_specs_by_package[pkg] = executable_future, library_future
+            # executables_finder.find(pkg_name=pkg, initial_guess=path_hints, repository=repository)
 
         for pkg_name, futures in detected_specs_by_package.items():
             for future in futures:
