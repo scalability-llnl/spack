@@ -72,6 +72,7 @@ class NoStaticAnalysis(PossibleDependencyGraph):
         self.repo = repo
         self.runtime_pkgs = set(self.repo.packages_with_tags(RUNTIME_TAG))
         self.runtime_virtuals = set()
+        self.host = archspec.cpu.host()
         for x in self.runtime_pkgs:
             pkg_class = self.repo.get_pkg_class(x)
             self.runtime_virtuals.update(pkg_class.provided_virtual_names())
@@ -89,7 +90,7 @@ class NoStaticAnalysis(PossibleDependencyGraph):
         """Returns true if a package is allowed on the current host"""
         pkg_cls = self.repo.get_pkg_class(pkg_name)
         platform_condition = (
-            f"platform={spack.platforms.host()} target={archspec.cpu.host().family}:"
+            f"platform={spack.platforms.host()} target={self.host.family}:"
         )
         for when_spec, conditions in pkg_cls.requirements.items():
             if not when_spec.intersects(platform_condition):
