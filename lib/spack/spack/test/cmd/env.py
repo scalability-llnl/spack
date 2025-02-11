@@ -648,10 +648,7 @@ def test_env_definition_symlink(install_mockery, mock_fetch, tmpdir):
 
 
 def test_env_install_two_specs_same_dep(install_mockery, mock_fetch, tmpdir, capsys):
-    """Test installation of two packages that share a dependency with no
-    connection and the second specifying the dependency as a 'build'
-    dependency.
-    """
+    """Test installation of two packages that share a dependency with no connection."""
     path = tmpdir.join("spack.yaml")
 
     with tmpdir.as_cwd():
