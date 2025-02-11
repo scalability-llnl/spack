@@ -11,17 +11,23 @@ class Sourmash(PythonPackage):
     k-mer sketches."""
 
     homepage = "https://sourmash.bio/"
-    pypi = "sourmash/sourmash-4.8.2.tar.gz"
+    pypi = "sourmash/sourmash-4.8.4.tar.gz"
+    git = "https://github.com/sourmash-bio/sourmash.git"
+
+    maintainers("luizirber")
 
     version("4.8.2", sha256="e0df78032e53ed88977445933ba3481dd10c7d3bd26d019511a6a4e6d7518475")
+    version("4.8.4", sha256="43584c112c3310719771de175b89cba94f1c2d30b1aea46000eaf5a81efbae8a")
 
     depends_on("python@3.8:", type=("build", "run"))
     # build-only
-    depends_on("py-maturin@0.14.13:0.14", type="build")
+    depends_on("py-maturin@0.14.13:0.14", when="@4.8.2:", type="build")
+    depends_on("py-maturin@1", when="@4.8.4:", type="build")
     depends_on("rust", type="build")
     # general
     depends_on("py-screed@1.1.2:1", type=("build", "run"))
-    depends_on("py-cffi@1.14.0:", type=("build", "run"))
+    depends_on("py-cffi@1.15.1:", when="@4.8.4:", type=("build", "run"))
+    depends_on("py-cffi@1.14.0:", when="@4.8.2:", type=("build", "run"))
     depends_on("py-numpy", type=("build", "run"))
     depends_on("py-matplotlib", type=("build", "run"))
     depends_on("py-scipy", type=("build", "run"))
@@ -43,5 +49,3 @@ class Sourmash(PythonPackage):
             join_path("target", "release", "libsourmash.{}".format(lib_ext)),
             join_path(site_packages, "_lowlevel__lib.so"),
         )
-        # patch invalid read mode
-        filter_file(r"'(.*)'\), 130\)", r"'\1'))", join_path(site_packages, "_lowlevel.py"))
