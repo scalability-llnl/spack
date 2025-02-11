@@ -2230,12 +2230,19 @@ class PackageInstaller:
         # Cleanup, which includes releasing all of the read locks
         self._cleanup_all_tasks()
 
+        def _request_fullfilled(request):
+            if request.install_args.get("install_package"):
+                return request.pkg_id in self.installed
+            elif request.install_args.get("install_deps"):
+                return request.dependencies.issubset(self.installed)
+            return True
+
         # Ensure we properly report if one or more explicit specs failed
         # or were not installed when should have been.
         missing = [
             (request.pkg, request.pkg_id)
             for request in self.build_requests
-            if request.install_args.get("install_package") and request.pkg_id not in self.installed
+            if not _request_fullfilled(request)
         ]
 
         if failed_build_requests or missing:
