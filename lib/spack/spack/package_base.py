@@ -308,12 +308,14 @@ def on_package_attributes(**attr_dict):
     def _execute_under_condition(func):
         @functools.wraps(func)
         def _wrapper(instance, *args, **kwargs):
+            # Support both builders and packages
+            pkg = instance.pkg if isinstance(instance, spack.builder.Builder) else instance
             # If all the attributes have the value we require, then execute
-            has_all_attributes = all([hasattr(instance, key) for key in attr_dict])
+            has_all_attributes = all([hasattr(pkg, key) for key in attr_dict])
             if has_all_attributes:
                 has_the_right_values = all(
                     [
-                        getattr(instance, key) == value for key, value in attr_dict.items()
+                        getattr(pkg, key) == value for key, value in attr_dict.items()
                     ]  # NOQA: ignore=E501
                 )
                 if has_the_right_values:
