@@ -1528,6 +1528,14 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
             tty.msg("No patches needed for {0}".format(self.name))
             return
 
+        # Make sure staged files are writable to avoid issues with file permissions
+        # on Lustre
+        for dir_path, _, sub_files in os.walk(self.stage.source_path):
+            for sub_file in sub_files:
+                sub_path = os.path.join(dir_path, sub_file)
+                perm = os.stat(sub_path).st_mode
+                os.chmod(sub_path, perm | 0o200)
+
         # Construct paths to special files in the archive dir used to
         # keep track of whether patches were successfully applied.
         archive_dir = self.stage.source_path
