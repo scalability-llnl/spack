@@ -1019,7 +1019,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
 
             # rpath
             if rpath_dir:
-                f.write(f"*link_libgcc:\n+ -rpath {rpath_dir}\n\n")
+                f.write(f"*link_libgcc:\n+ %{{!static:-rpath {rpath_dir}}}\n\n")
 
             # programs search path
             if self.spec.satisfies("+binutils"):
