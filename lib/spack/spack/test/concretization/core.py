@@ -741,12 +741,51 @@ class TestConcretize:
         assert all(not d.dependencies(name="mpi") for d in spec.traverse())
         assert all(x in spec for x in ("zmpi", "mpi"))
 
-    @pytest.mark.parametrize("compiler_str", ["%clang", "%gcc", "%gcc@10.2.1", "%clang@:15.0.0"])
-    def test_compiler_inheritance(self, compiler_str):
-        spec_str = f"mpileaks {compiler_str}"
+    @pytest.mark.parametrize(
+        "spec_str,expected,not_expected",
+        [
+            # clang only provides C, and C++ compilers, while gcc has also fortran
+            #
+            # If we ask mpileaks%clang, then %gcc must be used for fortran, and since
+            # %gcc is preferred to clang in config, it will be used for most nodes
+            (
+                "mpileaks %clang",
+                {"mpileaks": "%clang", "libdwarf": "%gcc", "libelf": "%gcc"},
+                {"libdwarf": "%clang", "libelf": "%clang"},
+            ),
+            (
+                "mpileaks %clang@:15.0.0",
+                {"mpileaks": "%clang", "libdwarf": "%gcc", "libelf": "%gcc"},
+                {"libdwarf": "%clang", "libelf": "%clang"},
+            ),
+            (
+                "mpileaks %gcc",
+                {"mpileaks": "%gcc", "libdwarf": "%gcc", "libelf": "%gcc"},
+                {"mpileaks": "%clang", "libdwarf": "%clang", "libelf": "%clang"},
+            ),
+            (
+                "mpileaks %gcc@10.2.1",
+                {"mpileaks": "%gcc", "libdwarf": "%gcc", "libelf": "%gcc"},
+                {"mpileaks": "%clang", "libdwarf": "%clang", "libelf": "%clang"},
+            ),
+            # dyninst doesn't require fortran, so %clang is propagated
+            (
+                "dyninst %clang",
+                {"dyninst": "%clang", "libdwarf": "%clang", "libelf": "%clang"},
+                {"libdwarf": "%gcc", "libelf": "%gcc"},
+            ),
+        ],
+    )
+    def test_compiler_inheritance(self, spec_str, expected, not_expected):
+        """Spack tries to propagate compilers as much as possible, but prefers using a single
+        toolchain on a node, rather than mixing them.
+        """
         spec = spack.concretize.concretize_one(spec_str)
-        assert spec["libdwarf"].satisfies(compiler_str)
-        assert spec["libelf"].satisfies(compiler_str)
+        for name, constraint in expected.items():
+            assert spec[name].satisfies(constraint)
+
+        for name, constraint in not_expected.items():
+            assert not spec[name].satisfies(constraint)
 
     def test_external_package(self):
         """Tests that an external is preferred, if present, and that it does not
