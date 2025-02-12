@@ -1236,10 +1236,6 @@ error(100, "Cannot propagate the variant '{0}' from the package: {1} because pac
 % 1. The same flag type is not set on this node
 % 2. This node has the same compilers as the propagation source
 
-compiler_penalty(PackageNode, C-1) :-
-   C = #count { CompilerNode : node_compiler(PackageNode, CompilerNode) },
-   node_compiler(PackageNode, _).
-
 node_compiler(node(X, Package), node(Y, Compiler)) :-
      attr("virtual_on_edge", node(X, Package), node(Y, Compiler), Language),
      attr("version", node(Y, Compiler), Version),
@@ -1284,6 +1280,12 @@ compiler_used_as_a_library(node(X, Child), Hash) :-
   attr("hash", node(X, Child), Hash),
   compiler_package(Child), % Used to restrict grounding for this rule
   attr("depends_on", _, node(X, Child), "link").
+
+% If a compiler is used for C on a package, it must provide C++ too, if need be, and vice-versa
+:-  attr("virtual_on_edge", PackageNode, CompilerNode1, "c"),
+    attr("virtual_on_edge", PackageNode, CompilerNode2, "cxx"),
+    CompilerNode1 != CompilerNode2.
+
 
 %-----------------------------------------------------------------------------
 % Runtimes
@@ -1650,9 +1652,9 @@ opt_criterion(60, "preferred providers for roots").
 #minimize{ 0@260: #true }.
 #minimize{ 0@60: #true }.
 #minimize{
-    Weight@60+Priority,ProviderNode,Virtual
-    : provider_weight(ProviderNode, Virtual, Weight),
-      attr("root", ProviderNode),
+    Weight@60+Priority,ProviderNode,X,Virtual
+    : provider_weight(ProviderNode, node(X, Virtual), Weight),
+      attr("root", ProviderNode), not language(Virtual),
       build_priority(ProviderNode, Priority)
 }.
 
@@ -1677,36 +1679,50 @@ opt_criterion(50, "number of non-default variants (non-roots)").
       build_priority(PackageNode, Priority)
 }.
 
-% Minimize the ids of the providers, i.e. use as much as
-% possible the first providers
-opt_criterion(48, "number of duplicate virtuals needed").
+% Minimize the weights of the providers, i.e. use as much as
+% possible the most preferred providers
+opt_criterion(48, "preferred providers (non-roots)").
 #minimize{ 0@248: #true }.
 #minimize{ 0@48: #true }.
 #minimize{
-    Weight@48+Priority,ProviderNode,Virtual
-    : provider(ProviderNode, node(Weight, Virtual)),
+    Weight@48+Priority,ProviderNode,X,Virtual
+    : provider_weight(ProviderNode, node(X, Virtual), Weight),
+      not attr("root", ProviderNode), not language(Virtual),
       build_priority(ProviderNode, Priority)
 }.
 
 % Minimize the number of compilers used on nodes
-opt_criterion(49, "minimize the number of compilers used on the same node").
-#minimize{ 0@249: #true }.
-#minimize{ 0@49: #true }.
+
+compiler_penalty(PackageNode, C-1) :-
+   C = #count { CompilerNode : node_compiler(PackageNode, CompilerNode) },
+   node_compiler(PackageNode, _).
+
+opt_criterion(46, "number of compilers used on the same node").
+#minimize{ 0@246: #true }.
+#minimize{ 0@46: #true }.
 #minimize{
-    Penalty@49+Priority,PackageNode
-    : compiler_penalty(PackageNode, Penalty),
-    build_priority(PackageNode, Priority)
+    Penalty@46+Priority,PackageNode
+    : compiler_penalty(PackageNode, Penalty), build_priority(PackageNode, Priority)
 }.
 
-% Minimize the weights of the providers, i.e. use as much as
-% possible the most preferred providers
-opt_criterion(45, "preferred providers (non-roots)").
+% Minimize the ids of the providers, i.e. use as much as
+% possible the first providers
+opt_criterion(45, "number of duplicate virtuals needed").
 #minimize{ 0@245: #true }.
 #minimize{ 0@45: #true }.
 #minimize{
     Weight@45+Priority,ProviderNode,Virtual
-    : provider_weight(ProviderNode, Virtual, Weight),
-      not attr("root", ProviderNode),
+    : provider(ProviderNode, node(Weight, Virtual)),
+      build_priority(ProviderNode, Priority)
+}.
+
+opt_criterion(40, "preferred compilers").
+#minimize{ 0@240: #true }.
+#minimize{ 0@40: #true }.
+#minimize{
+    Weight@40+Priority,ProviderNode,X,Virtual
+    : provider_weight(ProviderNode, node(X, Virtual), Weight),
+      language(Virtual),
       build_priority(ProviderNode, Priority)
 }.
 
