@@ -70,7 +70,8 @@ class Podio(CMakePackage):
         deprecated=True,
     )
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     _cxxstd_values = (conditional("17", when="@:1.2"), conditional("20", when="@0.14.1:"))
     variant(
