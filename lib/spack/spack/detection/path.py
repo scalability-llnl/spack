@@ -87,7 +87,7 @@ def dedupe_paths(paths: List[str]) -> List[str]:
         #         etc
         # checking if latest/bin is a symlink will return false because the bin directory
         # is not a symlink, and will cause the "latest/bin" dir to override the "2025.0/bin"
-        # checking for all parent paths of our detected binaries will prevent this case 
+        # checking for all parent paths of our detected binaries will prevent this case
         elif not any([llnl.util.symlink.islink(str(x)) for x in pathlib.Path(path).parents]):
             seen[identifier] = path
     return list(seen.values())
