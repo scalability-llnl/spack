@@ -10,7 +10,7 @@ class KokkosTools(CMakePackage):
 
     homepage = "https://github.com/kokkos/kokkos-tools/"
     git = "https://github.com/kokkos/kokkos-tools.git"
-    maintainers = ("jennfshr" , "vlkale", "rbberger") 
+    maintainers = ("jennfshr", "vlkale", "rbberger") 
     license("Apache-2.0 WITH LLVM-exception")
 
     version("develop", branch="develop")
