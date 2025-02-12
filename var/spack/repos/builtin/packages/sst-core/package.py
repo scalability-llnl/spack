@@ -88,6 +88,9 @@ class SstCore(AutotoolsPackage):
         depends_on("libtool@1.2.4:", type="build", when="@{}".format(version_name))
         depends_on("m4", type="build", when="@{}".format(version_name))
 
+    # Backport of https://github.com/sstsimulator/sst-core/pull/1110
+    patch("ncurses_detection.patch", level=0, when="+curses @14.0.0")
+
     # force out-of-source builds
     build_directory = "spack-build"
 
