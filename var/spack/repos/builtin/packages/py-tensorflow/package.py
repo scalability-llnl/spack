@@ -511,12 +511,11 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
 
     # remove unnecessary symbol ignores that cause errors with new compilers
     # https://github.com/tensorflow/tensorflow/issues/62416
-    for strict_compiler in ["%gcc@13:", "%clang@17:", "%apple-clang@17:"]:
-        patch(
-            "https://raw.githubusercontent.com/getsolus/packages/dfc56ba57a8af8233a635e309b499ff5d27992f4/packages/t/tensorflow/files/fix-clang-18.diff",
-            sha256="10d730b59284843d6c9ba92668b068582e51d5cdfc7ccfe8e26791ad0f41d4ac",
-            when="@2.15 " + strict_compiler,
-        )
+    patch(
+        "https://raw.githubusercontent.com/getsolus/packages/dfc56ba57a8af8233a635e309b499ff5d27992f4/packages/t/tensorflow/files/fix-clang-18.diff",
+        sha256="10d730b59284843d6c9ba92668b068582e51d5cdfc7ccfe8e26791ad0f41d4ac",
+        when="@2.15",
+    )
 
     # see https://github.com/tensorflow/tensorflow/issues/62490
     # and https://github.com/abseil/abseil-cpp/issues/1665
