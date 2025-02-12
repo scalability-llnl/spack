@@ -89,9 +89,11 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
     # https://github.com/icl-utk-edu/magma/issues/7
     conflicts("^cuda@12.6:", when="@:2.8.0")
 
-    # Many cuda_arch values are not yet recognized by MAGMA's CMakeLists.txt
-    for target in [10, 11, 12, 13, 21, 32, 52, 53, 61, 62, 72, 86]:
-        conflicts(f"cuda_arch={target}")
+    # Many cuda_arch values were not yet recognized by MAGMA's CMakeLists.txt
+    with when("@:2.9.0"):
+        # All cuda_arch values are supported in latest 2.9.0 release
+        for target in [10, 11, 12, 13, 21, 32, 52, 53, 61, 62, 72, 86]:
+            conflicts(f"cuda_arch={target}")
 
     # Some cuda_arch values had support added recently
     conflicts("cuda_arch=37", when="@:2.5", msg="magma: cuda_arch=37 needs a version > 2.5")
@@ -206,7 +208,6 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
         with working_dir(test_dir):
             pkg_config_path = self.prefix.lib.pkgconfig
             with spack.util.environment.set_env(PKG_CONFIG_PATH=pkg_config_path):
-
                 make("c")
                 tests = [
                     ("example_sparse", "sparse solver"),
