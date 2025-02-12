@@ -1337,14 +1337,20 @@ class SpecBuildInterface(lang.ObjectWrapper):
         "command", default_handler=_command_default_handler, _indirect=True
     )
 
-    def __init__(self, spec: "Spec", name: str, query_parameters: List[str], _parent: "Spec"):
+    def __init__(
+        self,
+        spec: "Spec",
+        name: str,
+        query_parameters: List[str],
+        _parent: "Spec",
+        is_virtual: bool,
+    ):
         super().__init__(spec)
         # Adding new attributes goes after super() call since the ObjectWrapper
         # resets __dict__ to behave like the passed object
         original_spec = getattr(spec, "wrapped_obj", spec)
         self.wrapped_obj = original_spec
-        self.token = original_spec, name, query_parameters, _parent
-        is_virtual = spack.repo.PATH.is_virtual(name)
+        self.token = original_spec, name, query_parameters, _parent, is_virtual
         self.last_query = QueryState(
             name=name, extra_parameters=query_parameters, isvirtual=is_virtual
         )
@@ -3772,21 +3778,16 @@ class Spec:
         # Consider runtime dependencies and direct build/test deps before transitive dependencies,
         # and prefer matches closest to the root.
         try:
-            child: Spec = next(
-                e.spec
-                for e in itertools.chain(
-                    (e for e in order() if e.spec.name == name or name in e.virtuals),
-                    # for historical reasons
-                    (e for e in order() if e.spec.concrete and e.spec.package.provides(name)),
-                )
-            )
+            edge = next((e for e in order() if e.spec.name == name or name in e.virtuals))
         except StopIteration:
             raise KeyError(f"No spec with name {name} in {self}")
 
         if self._concrete:
-            return SpecBuildInterface(child, name, query_parameters, _parent=self)
+            return SpecBuildInterface(
+                edge.spec, name, query_parameters, _parent=self, is_virtual=name in edge.virtuals
+            )
 
-        return child
+        return edge.spec
 
     def __contains__(self, spec):
         """True if this spec or some dependency satisfies the spec.
