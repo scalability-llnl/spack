@@ -721,11 +721,13 @@ def set_package_py_globals(pkg, context: Context = Context.BUILD):
     # TODO: johnwparent: add package or builder support to define these build tools
     # for now there is no entrypoint for builders to define these on their
     # own
+    # TODO: johnwparent: Once compilers as nodes lands, make the three
+    # tools below DeprecatedExecutable
     if sys.platform == "win32":
-        module.nmake = Executable("nmake")
-        module.msbuild = Executable("msbuild")
+        module.nmake = MakeExecutable("nmake", jobs=1)
+        module.msbuild = MakeExecutable("msbuild", jobs=1)
         # analog to configure for win32
-        module.cscript = Executable("cscript")
+        module.cscript = MakeExecutable("cscript", jobs=1)
 
     # Find the configure script in the archive path
     # Don't use which for this; we want to find it in the current dir.
