@@ -3179,3 +3179,69 @@ def test_compiler_can_be_built_with_other_compilers(config, mock_packages):
 
     c_compiler = s.dependencies(virtuals=("c",))
     assert len(c_compiler) == 1 and c_compiler[0].satisfies("gcc@10")
+
+
+@pytest.mark.parametrize(
+    "spec_str,expected",
+    [
+        # Only one compiler is in the DAG, so pick the external associated with it
+        ("dyninst %clang", "clang"),
+        ("dyninst %gcc", "gcc"),
+        # Both compilers are in the DAG, so pick the best external according to other criteria
+        ("dyninst %clang ^libdwarf%gcc", "clang"),
+        ("dyninst %gcc ^libdwarf%clang", "clang"),
+    ],
+)
+def test_compiler_match_for_externals_is_taken_into_account(
+    spec_str, expected, mutable_config, mock_packages, tmp_path
+):
+    """Tests that compiler annotation for externals are somehow taken into account for a match"""
+    packages_yaml = syaml.load_config(
+        f"""
+packages:
+  libelf:
+    externals:
+    - spec: "libelf@0.8.12 %gcc"
+      prefix: {tmp_path / 'gcc'}
+    - spec: "libelf@0.8.13 %clang"
+      prefix: {tmp_path / 'clang'}
+"""
+    )
+    mutable_config.set("packages", packages_yaml["packages"])
+    s = spack.concretize.concretize_one(spec_str)
+    libelf = s["libelf"]
+    assert libelf.external and libelf.external_path == str(tmp_path / expected)
+
+
+@pytest.mark.parametrize(
+    "spec_str,expected",
+    [
+        # Only one compiler is in the DAG, so pick the external associated with it
+        ("dyninst %gcc@10", "libelf-gcc10"),
+        ("dyninst %gcc@9", "libelf-gcc9"),
+        # Both compilers are in the DAG, so pick the best external according to other criteria
+        ("dyninst %gcc@10 ^libdwarf%gcc@9", "libelf-gcc9"),
+    ],
+)
+def test_compiler_match_for_externals_with_versions(
+    spec_str, expected, mutable_config, mock_packages, tmp_path
+):
+    """Tests that version constraints are taken into account for compiler annotations
+    on externals
+    """
+    packages_yaml = syaml.load_config(
+        f"""
+packages:
+  libelf:
+    buildable: false
+    externals:
+    - spec: "libelf@0.8.12 %gcc@10"
+      prefix: {tmp_path / 'libelf-gcc10'}
+    - spec: "libelf@0.8.13 %gcc@9"
+      prefix: {tmp_path / 'libelf-gcc9'}
+"""
+    )
+    mutable_config.set("packages", packages_yaml["packages"])
+    s = spack.concretize.concretize_one(spec_str)
+    libelf = s["libelf"]
+    assert libelf.external and libelf.external_path == str(tmp_path / expected)
