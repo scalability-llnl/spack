@@ -122,7 +122,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
         "unified_memory",
         default=False,
         description="Enable unified memory support on Mi250 and Mi300 GPUs",
-        when="+rocm amdgpu_target=(gfx90a or gfx942)",
+        when="+rocm",
     )
     variant(
         "spla_gemm_offloading",
@@ -1005,7 +1005,7 @@ class CMakeBuilder(cmake.CMakeBuilder):
             if len(spec.variants["amdgpu_target"].value) > 1:
                 raise InstallError("CP2K supports only one amdgpu_target at a time.")
             else:
-            gpu_ver = GPU_MAP[spec.variants["amdgpu_target"].value[0]]
+                gpu_ver = GPU_MAP[spec.variants["amdgpu_target"].value[0]]
                 args += [
                     self.define("CP2K_USE_ACCEL", "HIP"),
                     self.define("CP2K_WITH_GPU", gpu_ver),
