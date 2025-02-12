@@ -11,7 +11,6 @@ import llnl.util.tty as tty
 from llnl.util.filesystem import join_path
 
 import spack.error
-import spack.util.web as web_util
 from spack.util.path import substitute_path_variables
 from spack.util.url import validate_scheme
 
@@ -45,6 +44,7 @@ def collect_urls(base_url: str, extension: str) -> list:
     Returns:
         List of file(s) or empty list if none
     """
+    import spack.util.web as web_util  # circular import
 
     if not base_url:
         return []
@@ -89,6 +89,7 @@ def fetch_remote_files(url: str, extension: str, dest_dir: str, skip_existing: b
         spack.error.RemoteFileError: if there is a problem fetching remote file(s)
         ValueError: if the URL is not provided
     """
+    import spack.util.web as web_util  # circular import
 
     def _fetch_file(url, dest):
         raw = raw_github_gitlab_url(url)
