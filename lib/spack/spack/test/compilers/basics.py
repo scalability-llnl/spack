@@ -900,8 +900,7 @@ def test_compiler_detection_platform_support(
     gcc_compiler_exe = mock_executable("gcc", output="echo 15.0.0")
     gcc_prefix = os.path.dirname(gcc_compiler_exe)
     msvc_compiler_exe = mock_executable(
-        "cl",
-        output="echo Microsoft (R) 32-bit C/C++ Optimizing Compiler Version 15.00.30729.01",
+        "cl", output="echo Microsoft (R) 32-bit C/C++ Optimizing Compiler Version 15.00.30729.01"
     )
     msvc_prefix = os.path.dirname(msvc_compiler_exe)
     apple_clang_exe = mock_executable(
