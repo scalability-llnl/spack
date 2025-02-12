@@ -718,11 +718,10 @@ def test_install_deps_then_package(tmpdir, mock_fetch, install_mockery):
     assert os.path.exists(root.prefix)
 
 
+# Unit tests should not be affected by the user's managed environments
 @pytest.mark.not_on_windows("Environment views not supported on windows. Revisit after #34701")
 @pytest.mark.regression("12002")
-def test_install_only_dependencies_in_env(
-    tmpdir, mock_fetch, install_mockery, mutable_mock_env_path
-):
+def test_install_only_dependencies_in_env(tmpdir, mutable_mock_env_path, mock_fetch, install_mockery):
     env("create", "test")
 
     with ev.read("test"):
@@ -735,10 +734,9 @@ def test_install_only_dependencies_in_env(
         assert not os.path.exists(root.prefix)
 
 
+# Unit tests should not be affected by the user's managed environments
 @pytest.mark.regression("12002")
-def test_install_only_dependencies_of_all_in_env(
-    tmpdir, mock_fetch, install_mockery, mutable_mock_env_path
-):
+def test_install_only_dependencies_of_all_in_env(tmpdir, mutable_mock_env_path, mock_fetch, install_mockery):
     env("create", "--without-view", "test")
 
     with ev.read("test"):
@@ -757,7 +755,8 @@ def test_install_only_dependencies_of_all_in_env(
                 assert os.path.exists(dep.prefix)
 
 
-def test_install_no_add_in_env(tmpdir, mock_fetch, install_mockery, mutable_mock_env_path):
+# Unit tests should not be affected by the user's managed environments
+def test_install_no_add_in_env(tmpdir, mutable_mock_env_path, mock_fetch, install_mockery):
     # To test behavior of --add option, we create the following environment:
     #
     #     mpileaks
@@ -933,10 +932,9 @@ def test_install_fails_no_args_suggests_env_activation(tmpdir):
     assert "using the `spack.yaml` in this directory" in output
 
 
+# Unit tests should not be affected by the user's managed environments
 @pytest.mark.not_on_windows("Environment views not supported on windows. Revisit after #34701")
-def test_install_env_with_tests_all(
-    tmpdir, mock_packages, mock_fetch, install_mockery, mutable_mock_env_path
-):
+def test_install_env_with_tests_all(tmpdir, mutable_mock_env_path, mock_packages, mock_fetch, install_mockery):
     env("create", "test")
     with ev.read("test"):
         test_dep = spack.concretize.concretize_one("test-dependency")
@@ -945,10 +943,9 @@ def test_install_env_with_tests_all(
         assert os.path.exists(test_dep.prefix)
 
 
+# Unit tests should not be affected by the user's managed environments
 @pytest.mark.not_on_windows("Environment views not supported on windows. Revisit after #34701")
-def test_install_env_with_tests_root(
-    tmpdir, mock_packages, mock_fetch, install_mockery, mutable_mock_env_path
-):
+def test_install_env_with_tests_root(tmpdir, mutable_mock_env_path, mock_packages, mock_fetch, install_mockery):
     env("create", "test")
     with ev.read("test"):
         test_dep = spack.concretize.concretize_one("test-dependency")
@@ -957,9 +954,10 @@ def test_install_env_with_tests_root(
         assert not os.path.exists(test_dep.prefix)
 
 
+# Unit tests should not be affected by the user's managed environments
 @pytest.mark.not_on_windows("Environment views not supported on windows. Revisit after #34701")
 def test_install_empty_env(
-    tmpdir, mock_packages, mock_fetch, install_mockery, mutable_mock_env_path
+    tmpdir, mutable_mock_env_path, mock_packages, mock_fetch, install_mockery
 ):
     env_name = "empty"
     env("create", env_name)
@@ -995,9 +993,17 @@ def test_installation_fail_tests(install_mockery, mock_fetch, name, method):
     assert "See test log for details" in output
 
 
+# Unit tests should not be affected by the user's managed environments
 @pytest.mark.not_on_windows("Buildcache not supported on windows")
 def test_install_use_buildcache(
-    capsys, mock_packages, mock_fetch, mock_archive, mock_binary_index, tmpdir, install_mockery
+    capsys,
+    mutable_mock_env_path,
+    mock_packages,
+    mock_fetch,
+    mock_archive,
+    mock_binary_index,
+    tmpdir,
+    install_mockery,
 ):
     """
     Make sure installing with use-buildcache behaves correctly.

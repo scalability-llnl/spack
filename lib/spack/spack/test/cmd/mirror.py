@@ -38,8 +38,9 @@ def test_regression_8083(tmpdir, capfd, mock_packages, mock_fetch, config):
     assert "as it is an external spec" in output
 
 
+# Unit tests should not be affected by the user's managed environments
 @pytest.mark.regression("12345")
-def test_mirror_from_env(tmp_path, mock_packages, mock_fetch, mutable_mock_env_path):
+def test_mirror_from_env(mutable_mock_env_path, tmp_path, mock_packages, mock_fetch):
     mirror_dir = str(tmp_path / "mirror")
     env_name = "test"
 
@@ -342,8 +343,16 @@ def test_mirror_name_collision(mutable_config):
         mirror("add", "first", "1")
 
 
+# Unit tests should not be affected by the user's managed environments
 def test_mirror_destroy(
-    install_mockery, mock_packages, mock_fetch, mock_archive, mutable_config, monkeypatch, tmpdir
+    mutable_mock_env_path,
+    install_mockery,
+    mock_packages,
+    mock_fetch,
+    mock_archive,
+    mutable_config,
+    monkeypatch,
+    tmpdir,
 ):
     # Create a temp mirror directory for buildcache usage
     mirror_dir = tmpdir.join("mirror_dir")
