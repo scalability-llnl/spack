@@ -58,6 +58,9 @@ buildcache_cmd = spack.main.SpackCommand("buildcache")
 
 legacy_mirror_dir = os.path.join(test_path, "data", "mirrors", "legacy_yaml")
 
+# Unit tests should not be affected by the user's managed environments
+pytestmark = pytest.mark.usefixtures("mutable_mock_env_path")
+
 
 @pytest.fixture(scope="function")
 def cache_directory(tmpdir):

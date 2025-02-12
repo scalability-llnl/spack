@@ -12,6 +12,9 @@ mark = SpackCommand("mark")
 install = SpackCommand("install")
 uninstall = SpackCommand("uninstall")
 
+# Unit tests should not be affected by the user's managed environments
+pytestmark = pytest.mark.usefixtures("mutable_mock_env_path")
+
 
 @pytest.mark.db
 def test_mark_mode_required(mutable_database):
