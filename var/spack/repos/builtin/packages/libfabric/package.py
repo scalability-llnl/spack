@@ -160,9 +160,8 @@ class Libfabric(AutotoolsPackage, CudaPackage):
             variants = []
             output = Executable(exe)("--list", output=str, error=os.devnull)
             # fabrics
-            fabrics = get_options_from_variant(cls, "fabrics")
             used_fabrics = []
-            for fabric in fabrics:
+            for fabric in cls.fabrics:
                 match = re.search(r"^%s:.*\n.*version: (\S+)" % fabric, output, re.MULTILINE)
                 if match:
                     used_fabrics.append(fabric)
@@ -219,20 +218,3 @@ class Libfabric(AutotoolsPackage, CudaPackage):
     def installcheck(self):
         fi_info = Executable(self.prefix.bin.fi_info)
         fi_info()
-
-
-# This code gets all the fabric names from the variants list
-# Idea taken from the AutotoolsPackage source.
-def get_options_from_variant(self, name):
-    values = self.variants[name][0].values
-    explicit_values = []
-    if getattr(values, "feature_values", None):
-        values = values.feature_values
-    for value in sorted(values):
-        if hasattr(value, "when"):
-            if value.when is True:
-                # Explicitly extract the True value for downstream use
-                explicit_values.append("{0}".format(value))
-        else:
-            explicit_values.append(value)
-    return explicit_values

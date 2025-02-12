@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems.cmake import CMakeBuilder
 from spack.package import *
 
 
@@ -81,13 +82,22 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("py-breathe", type="build", when="+doc")
     depends_on("py-sphinx", type="build", when="+doc")
 
+    with when("+cuda"):
+        depends_on("thrust")
+    with when("+rocm"):
+        depends_on("hiprand")
+        depends_on("rocprim")
+        depends_on("rocrand")
+        depends_on("rocthrust")
+
     for _std in _cxxstd_values:
         depends_on("geant4 cxxstd=" + _std, when="+geant4 cxxstd=" + _std)
         depends_on("root cxxstd=" + _std, when="+root cxxstd=" + _std)
         depends_on("vecgeom cxxstd=" + _std, when="+vecgeom cxxstd=" + _std)
 
+    depends_on("vecgeom +cuda cuda_arch=none", when="+vecgeom +cuda cuda_arch=none")
     for _arch in CudaPackage.cuda_arch_values:
-        depends_on("vecgeom+cuda cuda_arch=" + _arch, when="+vecgeom +cuda cuda_arch=" + _arch)
+        depends_on(f"vecgeom +cuda cuda_arch={_arch}", when=f"+vecgeom +cuda cuda_arch={_arch}")
 
     conflicts("+rocm", when="+cuda", msg="AMD and NVIDIA accelerators are incompatible")
     conflicts("+rocm", when="+vecgeom", msg="HIP support is only available with ORANGE")
@@ -111,13 +121,29 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
             from_variant("CELERITAS_BUILD_DOCS", "doc"),
             define("CELERITAS_BUILD_DEMOS", False),
             define("CELERITAS_BUILD_TESTS", False),
-            from_variant("Celeritas_USE_HIP", "rocm"),
+            from_variant("CELERITAS_USE_HIP", "rocm"),
             define("CELERITAS_USE_MPI", False),
             define("CELERITAS_USE_Python", True),
         ]
 
         for pkg in ["CUDA", "Geant4", "HepMC3", "OpenMP", "ROOT", "SWIG", "VecGeom"]:
             args.append(from_variant("CELERITAS_USE_" + pkg, pkg.lower()))
+
+        if self.spec.satisfies("+cuda"):
+            args.append(CMakeBuilder.define_cuda_architectures(self))
+        if self.spec.satisfies("+rocm"):
+            args.append(CMakeBuilder.define_hip_architectures(self))
+            args.append(
+                define(
+                    "CMAKE_HIP_FLAGS",
+                    " ".join(
+                        [
+                            f"-I{self.spec[p].prefix.include}"
+                            for p in ["hiprand", "rocprim", "rocrand", "rocthrust"]
+                        ]
+                    ),
+                )
+            )
 
         if self.version < Version("0.5"):
             # JSON is required for 0.5 and later

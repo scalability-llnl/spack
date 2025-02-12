@@ -92,9 +92,9 @@ class ClingoBootstrap(Clingo):
 
         # Set PGO training flags.
         generate_mods = EnvironmentModifications()
-        generate_mods.append_flags("CFLAGS", "-fprofile-generate={}".format(reports))
-        generate_mods.append_flags("CXXFLAGS", "-fprofile-generate={}".format(reports))
-        generate_mods.append_flags("LDFLAGS", "-fprofile-generate={} --verbose".format(reports))
+        generate_mods.append_flags("CFLAGS", f"-fprofile-generate={reports}")
+        generate_mods.append_flags("CXXFLAGS", f"-fprofile-generate={reports}")
+        generate_mods.append_flags("LDFLAGS", f"-fprofile-generate={reports}")
 
         with working_dir(self.build_directory, create=True):
             cmake(*cmake_options, sources, extra_env=generate_mods)
@@ -118,14 +118,14 @@ class ClingoBootstrap(Clingo):
         # Clean the build dir.
         rmtree(self.build_directory, ignore_errors=True)
 
-        if self.spec.satisfies("%clang") or self.spec.satisfies("apple-clang"):
+        if self.spec.satisfies("%clang") or self.spec.satisfies("%apple-clang"):
             # merge reports
             use_report = join_path(reports, "merged.prof")
             raw_files = glob.glob(join_path(reports, "*.profraw"))
-            llvm_profdata("merge", "--output={}".format(use_report), *raw_files)
-            use_flag = "-fprofile-instr-use={}".format(use_report)
+            llvm_profdata("merge", f"--output={use_report}", *raw_files)
+            use_flag = f"-fprofile-instr-use={use_report}"
         else:
-            use_flag = "-fprofile-use={}".format(reports)
+            use_flag = f"-fprofile-use={reports}"
 
         # Set PGO use flags for next cmake phase.
         use_mods = EnvironmentModifications()

@@ -11,6 +11,7 @@ from llnl.util.symlink import readlink
 
 import spack.compiler
 import spack.platforms
+import spack.repo
 import spack.util.libc
 from spack.operating_systems.mac_os import macos_sdk_path, macos_version
 from spack.package import *
@@ -1217,7 +1218,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
         )
         if header_dir and all(
             os.path.exists(os.path.join(header_dir, h))
-            for h in libc.package_class.representative_headers
+            for h in spack.repo.PATH.get_pkg_class(libc.fullname).representative_headers
         ):
             relocation_args.append(f"-idirafter {header_dir}")
         else:

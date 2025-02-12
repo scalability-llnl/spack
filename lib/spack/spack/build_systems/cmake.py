@@ -11,6 +11,7 @@ from itertools import chain
 from typing import Any, List, Optional, Tuple
 
 import llnl.util.filesystem as fs
+from llnl.util import tty
 from llnl.util.lang import stable_partition
 
 import spack.builder
@@ -469,6 +470,11 @@ class CMakeBuilder(BuilderWithDefaults):
                 configure_artifact = "ninja.build"
 
             if os.path.isfile(os.path.join(self.build_directory, configure_artifact)):
+                tty.msg(
+                    "Incremental build criteria satisfied."
+                    "Skipping CMake configure step. To force configuration run"
+                    f" `spack clean {pkg.name}`"
+                )
                 return
 
         options = self.std_cmake_args
