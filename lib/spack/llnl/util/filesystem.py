@@ -8,6 +8,7 @@ import fnmatch
 import glob
 import hashlib
 import itertools
+import json
 import numbers
 import os
 import pathlib
@@ -1405,9 +1406,64 @@ class BaseDirectoryVisitor:
             depth: depth of current symlink from the ``root`` directory"""
         pass
 
+class CachedFileSystemMetadata(object):
+    """Utility class use of install_manifest.json of installed packages to retrieve folder
+       list of files and metadata"""
+    def __init__(self, manifest):
+        root = os.path.dirname(os.path.dirname(manifest))
+
+        with open(manifest, "r") as f:
+            m = json.load(f)
+
+        self.tree = {}
+        for i in sorted(m):
+            e = CachedDirEntry(os.path.normpath(i), m[i]['mode'])
+            parent = os.path.dirname(i)
+            if e.is_dir():
+                self.tree[i] = e
+            if i != root:
+                self[parent].append(e)
+
+        # add missing install_manifest.json and install_times.json
+        # re-sort files in manifest folder
+        metadata = os.path.join(root, ".spack")
+        self[metadata].append(CachedDirEntry(manifest, os.stat(manifest).st_mode))
+
+        times = os.path.join(metadata, 'install_times.json')
+        if os.path.exists(times):
+            self[metadata].append(CachedDirEntry(times, os.stat(times).st_mode))
+        self[metadata].sort(key=lambda x: x.name)
+
+    def __getitem__(self, path):
+        path = os.path.normpath(path)
+        return self.tree[path].children
+
+class CachedDirEntry(object):
+    """Utility class that is a subset of os.DirEntry"""
+
+    def __init__(self, path, mode):
+        self.path = path
+        self.mode = mode
+        self.children = []
+
+    @property
+    def name(self):
+        return os.path.basename(self.path)
+
+    def is_symlink(self):
+        return stat.S_ISLNK(self.mode)
+
+    def is_dir(self):
+        return stat.S_ISDIR(self.mode)
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return f"<DirEntry '{self.name}'>"
 
 def visit_directory_tree(
-    root: str, visitor: BaseDirectoryVisitor, rel_path: str = "", depth: int = 0
+    root: str, visitor: BaseDirectoryVisitor, rel_path: str = "", depth: int = 0, cached_fs_metadata = None
 ):
     """Recurses the directory root depth-first through a visitor pattern using the interface from
     :py:class:`BaseDirectoryVisitor`
@@ -1419,7 +1475,19 @@ def visit_directory_tree(
         depth: current depth from the root
     """
     dir = os.path.join(root, rel_path)
-    dir_entries = sorted(os.scandir(dir), key=lambda d: d.name)
+
+    if os.path.basename(os.path.normpath(dir)) == ".spack":
+        manifest_file = os.path.join(dir, "install_manifest.json")
+    else:
+        manifest_file = os.path.join(root, ".spack", "install_manifest.json")
+
+    if cached_fs_metadata is None and os.path.exists(manifest_file):
+        cached_fs_metadata = CachedFileSystemMetadata(manifest_file)
+
+    if cached_fs_metadata:
+        dir_entries = cached_fs_metadata[dir]
+    else:
+        dir_entries = sorted(os.scandir(dir), key=lambda d: d.name)
 
     for f in dir_entries:
         rel_child = os.path.join(rel_path, f.name)
@@ -1448,11 +1516,11 @@ def visit_directory_tree(
             visitor.visit_symlinked_file(root, rel_child, depth)
         elif not islink and visitor.before_visit_dir(root, rel_child, depth):
             # Handle ordinary directories
-            visit_directory_tree(root, visitor, rel_child, depth + 1)
+            visit_directory_tree(root, visitor, rel_child, depth + 1, cached_fs_metadata)
             visitor.after_visit_dir(root, rel_child, depth)
         elif islink and visitor.before_visit_symlinked_dir(root, rel_child, depth):
             # Handle symlinked directories
-            visit_directory_tree(root, visitor, rel_child, depth + 1)
+            visit_directory_tree(root, visitor, rel_child, depth + 1, cached_fs_metadata)
             visitor.after_visit_symlinked_dir(root, rel_child, depth)
 
 
