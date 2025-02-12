@@ -663,7 +663,7 @@ class RepoPath:
                     repo = Repo(repo, cache=cache, overrides=overrides)
                 repo.finder(self)
                 self.put_last(repo)
-            except RepoError as e:
+            except spack.error.RepoError as e:
                 tty.warn(
                     f"Failed to initialize repository: '{repo}'.",
                     e.message,
@@ -1241,7 +1241,7 @@ class Repo:
             raise UnknownPackageError(fullname)
         except Exception as e:
             msg = f"cannot load package '{pkg_name}' from the '{self.namespace}' repository: {e}"
-            raise RepoError(msg) from e
+            raise spack.error.RepoError(msg) from e
 
         cls = getattr(module, class_name)
         if not isinstance(cls, type):
@@ -1501,27 +1501,19 @@ class MockRepositoryBuilder:
         return os.path.join(self.root, "packages", name, "package.py")
 
 
-class RepoError(spack.error.SpackError):
-    """Superclass for repository-related errors."""
-
-
-class NoRepoConfiguredError(RepoError):
+class NoRepoConfiguredError(spack.error.RepoError):
     """Raised when there are no repositories configured."""
 
 
-class InvalidNamespaceError(RepoError):
+class InvalidNamespaceError(spack.error.RepoError):
     """Raised when an invalid namespace is encountered."""
 
 
-class BadRepoError(RepoError):
+class BadRepoError(spack.error.RepoError):
     """Raised when repo layout is invalid."""
 
 
-class UnknownEntityError(RepoError):
-    """Raised when we encounter a package spack doesn't have."""
-
-
-class UnknownPackageError(UnknownEntityError):
+class UnknownPackageError(spack.error.UnknownEntityError):
     """Raised when we encounter a package spack doesn't have."""
 
     def __init__(self, name, repo=None):
@@ -1558,7 +1550,7 @@ class UnknownPackageError(UnknownEntityError):
         self.name = name
 
 
-class UnknownNamespaceError(UnknownEntityError):
+class UnknownNamespaceError(spack.error.UnknownEntityError):
     """Raised when we encounter an unknown namespace"""
 
     def __init__(self, namespace, name=None):
@@ -1568,7 +1560,7 @@ class UnknownNamespaceError(UnknownEntityError):
         super().__init__(msg, long_msg)
 
 
-class FailedConstructorError(RepoError):
+class FailedConstructorError(spack.error.RepoError):
     """Raised when a package's class constructor fails."""
 
     def __init__(self, name, exc_type, exc_obj, exc_tb):

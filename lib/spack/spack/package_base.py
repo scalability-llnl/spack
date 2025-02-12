@@ -2010,7 +2010,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         # Try to get the package for the spec
         try:
             pkg = spec.package
-        except spack.repo.UnknownEntityError:
+        except spack.error.UnknownEntityError:
             pkg = None
 
         # Pre-uninstall hook runs first.
