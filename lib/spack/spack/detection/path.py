@@ -272,8 +272,7 @@ class Finder:
             return []
 
         result = []
-        # we cannot group by prefix here, not all the paths for a given package are in the same prefix
-        # oneAPI + MSVC integration
+
         for candidate_path, items_in_prefix in _group_by_prefix(
             llnl.util.lang.dedupe(paths)
         ).items():
@@ -455,7 +454,6 @@ def by_path(
                 repository=repository,
             )
             detected_specs_by_package[pkg] = executable_future, library_future
-            # executables_finder.find(pkg_name=pkg, initial_guess=path_hints, repository=repository)
 
         for pkg_name, futures in detected_specs_by_package.items():
             for future in futures:
