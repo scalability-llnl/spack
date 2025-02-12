@@ -37,7 +37,7 @@ class PyTransformers(PythonPackage):
     with default_args(type=("build", "run")):
         depends_on("python@3.9:", when="@4.47:")
         depends_on("py-filelock")
-        depends_on("py-huggingface-hub@0.24:", when="@4.47:")
+        depends_on("py-huggingface-hub@0.24:0", when="@4.47:")
         depends_on("py-huggingface-hub@0.23.2:", when="@4.42.3:")
         depends_on("py-huggingface-hub@0.19.3:", when="@4.38.1:")
         depends_on("py-huggingface-hub@0.16.4:0", when="@4.34:")
@@ -45,7 +45,7 @@ class PyTransformers(PythonPackage):
         depends_on("py-huggingface-hub@0.10:0", when="@4.24:")
         depends_on("py-huggingface-hub@0.0.8", when="@4.6.1")
         depends_on("py-numpy@1.17:", when="@4.6:")
-        depends_on("py-numpy@:1", when="@4.6:4.42")
+        depends_on("py-numpy@:1", when="@:4.42")
         depends_on("py-packaging@20:", when="@4.24:")
         depends_on("py-packaging", when="@4.6.1")
         depends_on("py-pyyaml@5.1:", when="@4.24:")

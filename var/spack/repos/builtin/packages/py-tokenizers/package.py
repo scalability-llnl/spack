@@ -30,8 +30,6 @@ class PyTokenizers(PythonPackage):
         deprecated=True,
     )
 
-    depends_on("python@3.9:", when="@0.21:", type=("build", "run"))
-
     # TODO: This package currently requires internet access to install.
     depends_on("py-maturin@1", when="@0.14:", type="build")
     depends_on("py-huggingface-hub@0.16.4:0", when="@0.15:", type=("build", "run"))
