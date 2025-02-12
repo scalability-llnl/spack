@@ -16,6 +16,7 @@ from collections import namedtuple
 from typing import Callable, Dict, List, Set
 from urllib.request import Request
 
+import llnl.path
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
 from llnl.util.tty.color import cescape, colorize
@@ -83,6 +84,9 @@ def get_stack_changed(env_path, rev1="HEAD^", rev2="HEAD"):
     whether or not the stack was changed.  Returns True if the environment
     manifest changed between the provided revisions (or additionally if the
     `.gitlab-ci.yml` file itself changed).  Returns False otherwise."""
+    # git returns posix paths always, normalize input to be comptaible
+    # with that
+    env_path = llnl.path.convert_to_posix_path(env_path)
     git = spack.util.git.git()
     if git:
         with fs.working_dir(spack.paths.prefix):
