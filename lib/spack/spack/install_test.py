@@ -566,7 +566,7 @@ def copy_test_files(pkg: Pb, test_spec: spack.spec.Spec):
 
     # copy test data into test stage data dir
     try:
-        pkg_cls = test_spec.package_class
+        pkg_cls = spack.repo.PATH.get_pkg_class(test_spec.fullname)
     except spack.repo.UnknownPackageError:
         tty.debug(f"{test_spec.name}: skipping test data copy since no package class found")
         return
@@ -623,7 +623,7 @@ def test_functions(
         vpkgs = virtuals(pkg)
         for vname in vpkgs:
             try:
-                classes.append((Spec(vname)).package_class)
+                classes.append(spack.repo.PATH.get_pkg_class(vname))
             except spack.repo.UnknownPackageError:
                 tty.debug(f"{vname}: virtual does not appear to have a package file")
 
@@ -668,7 +668,7 @@ def process_test_parts(pkg: Pb, test_specs: List[spack.spec.Spec], verbose: bool
 
             # grab test functions associated with the spec, which may be virtual
             try:
-                tests = test_functions(spec.package_class)
+                tests = test_functions(spack.repo.PATH.get_pkg_class(spec.fullname))
             except spack.repo.UnknownPackageError:
                 # Some virtuals don't have a package so we don't want to report
                 # them as not having tests when that isn't appropriate.
