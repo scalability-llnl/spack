@@ -1,0 +1,116 @@
+commit a4dbc4ae575dc9bf6f6cac42d011a1ac0d496aa8
+Author: Eric Berquist <727571+berquist@users.noreply.github.com>
+Date:   2024-07-29 09:25:13 AM (Mon, 29 Jul 2024 09:25:13 -0600)
+
+    ncurses detection fixes (#1110)
+    
+    * may have ncursesw6-config but not ncurses6-config
+    
+    * go back to hardcoded lib checks
+    
+    * fix using --with-ncurses
+    
+    * avoid bad default usage of AC_CHECK_LIB
+    
+    * add curses variables to sst.conf
+    
+    * unset CURSES_CPPFLAGS and CURSES_LIBS if they're actually wrong
+
+diff --git config/sst_check_curses.m4 config/sst_check_curses.m4
+index 47699427..1dbe0dcf 100644
+--- config/sst_check_curses.m4
++++ config/sst_check_curses.m4
+@@ -1,25 +1,34 @@
++dnl -*- mode: autoconf; -*-
++
+ AC_DEFUN([SST_CHECK_CURSES],
+ [
+   sst_check_curses_happy="yes"
+ 
+-  AC_ARG_WITH([curses],
++  AC_ARG_WITH([ncurses],
+     [AS_HELP_STRING([--with-ncurses@<:@=DIR or EXEC@:>@],
+       [Use ncurses library found in DIR or associated with the ncursesN-config utility specified by EXEC])])
+ 
+-  AS_IF([test "$with_curses" = "no"], [sst_check_curses_happy="no"])
++  AS_IF([test "$with_ncurses" = "no"], [sst_check_curses_happy="no"])
+ 
+   NCURSES_CONFIG_EXE="no"
+ 
+   dnl check if user provided a specific ncursesN-config
+-  AS_IF([test ! -d "$with_curses"],
+-    [AS_IF([test -x "$with_curses"],
+-        [NCURSES_CONFIG_EXE=$with_curses])])
++  AS_IF([test ! -d "$with_ncurses"],
++    [AS_IF([test -x "$with_ncurses"],
++        [NCURSES_CONFIG_EXE=$with_ncurses])])
+ 
+   dnl test ncursesN-config
+   AS_IF([test $NCURSES_CONFIG_EXE = "no"],
+-    [AS_IF([test -n "$with_curses"],
+-        [AC_PATH_PROGS([NCURSES_CONFIG_EXE], ["ncurses6-config" "ncurses5.4-config" "ncurses5-config"], ["no"], ["$with_curses/bin"])],
+-        [AC_PATH_PROGS([NCURSES_CONFIG_EXE], ["ncurses6-config" "ncurses5.4-config" "ncurses5-config"], ["no"])])])
++    [AS_IF([test -n "$with_ncurses"],
++        [AC_PATH_PROGS([NCURSES_CONFIG_EXE],
++                       ["ncurses6-config" "ncursesw6-config" "ncurses5.4-config" "ncurses5-config"],
++                       ["no"], ["$with_ncurses/bin"])],
++        [AC_PATH_PROGS([NCURSES_CONFIG_EXE],
++                       ["ncurses6-config" "ncursesw6-config" "ncurses5.4-config" "ncurses5-config"],
++                       ["no"])])])
++
++  AC_MSG_CHECKING([ncurses config binary exists])
++  AC_MSG_RESULT([$NCURSES_CONFIG_EXE])
+ 
+   dnl don't continue if ncursesN-config can't be found rather than look for the
+   dnl specific libraries
+@@ -44,10 +53,27 @@ AC_DEFUN([SST_CHECK_CURSES],
+             CPPFLAGS="$CPPFLAGS $CURSES_CPPFLAGS"
+             LDFLAGS="$LDFLAGS $CURSES_LIBS"
+ 
+-            dnl Check that the specific header exists and that the config-provided lib locations are correct.
++            dnl Check that the specific header exists and that plausible lib
++            dnl locations are correct.
+             AC_LANG_PUSH([C++])
+             AC_CHECK_HEADER([ncurses.h], [], [sst_check_curses_happy="no"])
+-            AC_SEARCH_LIBS([initscr], [$CURSES_LIBS], [], [sst_check_curses_happy="no"])
++            dnl We cannot check that the config-provided lib names are
++            dnl correct, since those are not available at macro expansion
++            dnl time.  This is only necessary for platforms where libs are
++            dnl reported but are broken or don't actually exist.
++            dnl
++            dnl If nothing is specified for `action-if-found`, the library
++            dnl will be added to LIBS, which is not correct for our use case.
++            curses_check_lib_tmp=""
++            AS_IF([test "$sst_check_curses_happy" != "no"],
++              [AC_CHECK_LIB([ncursesw], [initscr], [curses_check_lib_tmp="ncursesw is valid"],
++                [AC_CHECK_LIB([ncurses], [initscr], [curses_check_lib_tmp="ncurses is valid"],
++                  [AC_CHECK_LIB([curses], [initscr], [curses_check_lib_tmp="curses is valid"],
++                    [sst_check_curses_happy="no"
++                     CURSES_CPPFLAGS=""
++                     CURSES_LIBS=""
++                    ])])])
++               ])
+             AC_LANG_POP([C++])
+ 
+             CPPFLAGS="$CPPFLAGS_saved"
+@@ -63,6 +89,6 @@ AC_DEFUN([SST_CHECK_CURSES],
+   AC_MSG_CHECKING([for curses library])
+   AC_MSG_RESULT([$sst_check_curses_happy])
+ 
+-  AS_IF([test "$sst_check_curses_happy" = "no" -a ! -z "$with_curses" -a "$with_curses" != "no"], [$3])
++  AS_IF([test "$sst_check_curses_happy" = "no" -a ! -z "$with_ncurses" -a "$with_ncurses" != "no"], [$3])
+   AS_IF([test "$sst_check_curses_happy" = "yes"], [$1], [$2])
+ ])
+diff --git src/sst/sst.conf src/sst/sst.conf
+index 13adb002..c30afb0b 100644
+--- src/sst/sst.conf
++++ src/sst/sst.conf
+@@ -30,6 +30,8 @@ PYTHON_VERSION3=@PYTHON_VERSION3@
+ LIBZ_CPPFLAGS=@LIBZ_CPPFLAGS@
+ LIBZ_LDFLAGS=@LIBZ_LDFLAGS@
+ LIBZ_LIBS=@LIBZ_LIBS@
++CURSES_CPPFLAGS=@CURSES_CPPFLAGS@
++CURSES_LIBS=@CURSES_LIBS@
+ ELEMENT_CXXFLAGS=@SST_EXPORT_CXXFLAGS@ @SST_ELEMENT_FPIC_FLAGS@ -DHAVE_CONFIG_H -I@prefix@/include
+ ELEMENT_LDFLAGS=-shared -fno-common -Wl,-undefined -Wl,dynamic_lookup
+ pkgconfig=@prefix@/lib/pkgconfig/SST-@PACKAGE_VERSION@.pc
