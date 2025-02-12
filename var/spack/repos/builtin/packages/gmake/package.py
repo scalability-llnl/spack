@@ -102,4 +102,8 @@ class Gmake(Package, GNUMirrorPackage):
 
     @property
     def libs(self):
-        return []
+        return LibraryList([])
+
+    @property
+    def headers(self):
+        return HeaderList([])
