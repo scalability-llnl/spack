@@ -194,7 +194,8 @@ class Acts(CMakePackage, CudaPackage):
     version("0.08.1", commit="289bdcc320f0b3ff1d792e29e462ec2d3ea15df6")
     version("0.08.0", commit="99eedb38f305e3a1cd99d9b4473241b7cd641fa9")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build", when="+dd4hep")  # DD4hep requires C
+    depends_on("cxx", type="build")
 
     # Variants that affect the core Acts library
     variant(

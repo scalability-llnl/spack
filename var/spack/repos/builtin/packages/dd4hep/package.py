@@ -47,7 +47,8 @@ class Dd4hep(CMakePackage):
     version("1.17", sha256="036a9908aaf1e13eaf5f2f43b6f5f4a8bdda8183ddc5befa77a4448dbb485826")
     version("1.16.1", sha256="c8b1312aa88283986f89cc008d317b3476027fd146fdb586f9f1fbbb47763f1a")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     generator("ninja")
 
