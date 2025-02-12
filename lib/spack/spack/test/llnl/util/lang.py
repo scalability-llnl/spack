@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import os.path
+import os
 import re
 import sys
 from datetime import datetime, timedelta
@@ -23,7 +23,7 @@ def now():
 def module_path(tmpdir):
     m = tmpdir.join("foo.py")
     content = """
-import os.path
+import os
 
 value = 1
 path = os.path.join('/usr', 'bin')

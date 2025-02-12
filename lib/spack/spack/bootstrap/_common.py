@@ -5,7 +5,7 @@
 import fnmatch
 import glob
 import importlib
-import os.path
+import os
 import re
 import sys
 import sysconfig

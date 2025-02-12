@@ -32,7 +32,7 @@ The available directives are:
 """
 import collections
 import collections.abc
-import os.path
+import os
 import re
 from typing import Any, Callable, List, Optional, Tuple, Type, Union
 

@@ -13,44 +13,75 @@ spack:
         mpi: [mpich]
         tbb: [intel-tbb]
       variants: +mpi
+    acts:
+      require: +analysis +dd4hep +edm4hep +examples +fatras +geant4 +hepmc3 +podio +pythia8 +python ~svg +tgeo cxxstd=20
+    celeritas:
+      require: +geant4 +hepmc3 +root +shared cxxstd=20
+    hip:
+      require: '@5.7.1 +rocm'
+    rivet:
+      require: hepmc=3
+    root:
+      require: +davix +dcache +examples +fftw +fits +fortran +gdml +graphviz +gsl +http +math +minuit +mlp +mysql +opengl +postgres +pythia8 +python +r +roofit +root7 +rpath ~shadow +spectrum +sqlite +ssl +tbb +threads +tmva +tmva-cpu +unuran +vc +vdt +veccore +webgui +x +xml +xrootd # cxxstd=20
+      # note: root cxxstd=20 not concretizable within sherpa
+    vecgeom:
+      require: +gdml +geant4 +root +shared cxxstd=20
 
     # Mark geant4 data as external to prevent wasting bandwidth on GB-scale files
     geant4-data:
+      buildable: false
       externals:
-        - spec: geant4-data@11.3.0
-          prefix: /usr
-        - spec: geant4-data@11.2.2
-          prefix: /usr
-        - spec: geant4-data@11.2.0
-          prefix: /usr
-        - spec: geant4-data@11.1.0
-          prefix: /usr
-        - spec: geant4-data@11.0.0
-          prefix: /usr
+      - spec: geant4-data@11.3.0
+        prefix: /usr
+      - spec: geant4-data@11.2.2
+        prefix: /usr
+      - spec: geant4-data@11.2.0
+        prefix: /usr
+      - spec: geant4-data@11.1.0
+        prefix: /usr
+      - spec: geant4-data@11.0.0
+        prefix: /usr
 
   specs:
   # CPU
-  - acts +analysis +dd4hep +edm4hep +examples +fatras +geant4 +hepmc3 +podio +pythia8 +python +tgeo cxxstd=20
-  - celeritas +geant4 +hepmc3 +openmp +root +shared +vecgeom cxxstd=20
+  - acts ~cuda
+  #- agile  # fails on c++>11 compiler
+  - alpgen
+  - ampt
+  - apfel +lhapdf +python
+  - celeritas ~cuda +openmp ~rocm +vecgeom
+  - cepgen
+  - cernlib +shared
+  - collier
   - dd4hep +ddalign +ddcad +ddcond +dddetectors +dddigi +ddeve +ddg4 +ddrec +edm4hep +hepmc3 +lcio +utilityapps +xercesc
   - delphes +pythia8
   - dpmjet
   - edm4hep
-  - fastjet
+  - evtgen +hepmc3 +photos +pythia8 +sherpa +tauola
+  - fastjet plugins=all
+  - feynhiggs
   - fjcontrib
+  #- garfieldpp
   - gaudi +aida +examples +heppdt +xercesc ^gdb +debuginfod +python
   - geant4 +opengl +qt +threads ~vtk ^[virtuals=qmake] qt
+  #- genie +atmo
   - hepmc
   - hepmc3 +interfaces +protobuf +python +rootio
   #- herwig3 +njet +vbfnlo  # Note: herwig3 fails to find evtgen
+  - hztool
   - lcio -examples ~jar +rootdict  # Note: lcio +examples ^ncurses -termlib, which leads to conflicts
   - lhapdf +python
+  - lhapdfsets sets=default
   - madgraph5amc
+  - njet
   - opendatadetector
+  - openloops
   - pandoramonitoring
   - pandorapfa
   - pandorasdk
+  - photos +hepmc3
   - podio +rntuple +sio
+  #- professor
   - py-awkward
   - py-boost-histogram
   - py-hepunits
@@ -64,17 +95,29 @@ spack:
   - py-uproot +lz4 +xrootd +zstd
   - py-vector
   - pythia8 +evtgen +fastjet +hdf5 +hepmc +hepmc3 +lhapdf ~madgraph5amc +python +rivet ~root # pythia8 and root circularly depend
-  - rivet hepmc=3
-  - root +davix +dcache +examples +fftw +fits +fortran +gdml +graphviz +gsl +http +math +minuit +mlp +mysql +opengl +postgres +pythia8 +python +r +roofit +root7 +rpath ~shadow +spectrum +sqlite +ssl +tbb +threads +tmva +unuran +vc +vdt +veccore +webgui +x +xml +xrootd
-  - sherpa +analysis ~blackhat +gzip +hepmc3 +hepmc3root +lhapdf +lhole +openloops +pythia ~python ~recola ~rivet +root +ufo
-  - thepeg ~rivet
-  - vecgeom +gdml +geant4 +root
+  - rivet
+  - root ~cuda
+  - sherpa +analysis ~blackhat +gzip +hepmc3 +hepmc3root +lhapdf +lhole +openloops +pythia ~python ~recola ~rivet +root +ufo cxxstd=20
+  - tauola +hepmc3 +lhapdf cxxstd=20
+  - thepeg hepmc=3 ~rivet
+  - vecgeom ~cuda
+  - whizard +fastjet +gosam hepmc=3 +lcio +lhapdf +openloops +openmp +pythia8
   - xrootd +davix +http +krb5 +python +readline +scitokens-cpp
+  - yoda +root
+
+  # CUDA
+  #- acts +cuda +traccc cuda_arch=80
+  #- celeritas +cuda ~openmp +vecgeom cuda_arch=80
+  - root +cuda +cudnn +tmva-gpu
+  - vecgeom +cuda cuda_arch=80
+
+  # ROCm
+  - celeritas +rocm amdgpu_target=gfx90a ~openmp ~vecgeom  # only available with ORANGE
 
   ci:
     pipeline-gen:
     - build-job:
-        image: "ghcr.io/spack/spack/ubuntu22.04-runner-amd64-gcc-11.4:2024.03.01"
+        image: ghcr.io/spack/spack/ubuntu22.04-runner-amd64-gcc-11.4:2024.03.01
 
   cdash:
     build-group: HEP

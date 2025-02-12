@@ -17,6 +17,8 @@ class RocmGdb(AutotoolsPackage):
     license("LGPL-2.0-or-later")
 
     maintainers("srekolam", "renjithravindrankannath")
+    version("6.3.2", sha256="85b03c1fb99f55272f4732dff58e8ba0a1add454a79d2b9d471df200366d0c7e")
+    version("6.3.1", sha256="954236518491ba547f849be7c86e71ff95ef24535f66acabfd45040e11c25d7b")
     version("6.3.0", sha256="4a41ffbc4f7a5970181ee0aae07f0ea4cda278870cd60a562b25001f1365e29f")
     version("6.2.4", sha256="061d00f3d02ca64094008c5da185712712ccd3a922f6e126d5f203cdae2b9e04")
     version("6.2.1", sha256="bed312c3fbb9982166538036bb9fd4a75053117c65ba80e34dbdae629a8fe6e4")
@@ -75,6 +77,8 @@ class RocmGdb(AutotoolsPackage):
         "6.2.1",
         "6.2.4",
         "6.3.0",
+        "6.3.1",
+        "6.3.2",
     ]:
         depends_on(f"rocm-dbgapi@{ver}", type="link", when=f"@{ver}")
         depends_on(f"comgr@{ver}", type="link", when=f"@{ver}")
@@ -95,6 +99,8 @@ class RocmGdb(AutotoolsPackage):
         "6.2.1",
         "6.2.4",
         "6.3.0",
+        "6.3.1",
+        "6.3.2",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 

@@ -21,7 +21,7 @@ def validate_scheme(scheme):
     helps mostly in validation of paths vs urls, as Windows paths such as
     C:/x/y/z (with backward not forward slash) may parse as a URL with scheme
     C and path /x/y/z."""
-    return scheme in ("file", "http", "https", "ftp", "s3", "gs", "ssh", "git")
+    return scheme in ("file", "http", "https", "ftp", "s3", "gs", "ssh", "git", "oci")
 
 
 def local_file_path(url):

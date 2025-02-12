@@ -1,0 +1,28 @@
+From a444764fa92b8c4d5b49914ad9c8d8a9a4efafec Mon Sep 17 00:00:00 2001
+From: Harmen Stoppels <me@harmenstoppels.nl>
+Date: Mon, 27 Jan 2025 19:10:22 +0100
+Subject: [PATCH] VTKGenerateExportHeader.cmake: remove faulty compiler version
+ check
+
+---
+ CMake/VTKGenerateExportHeader.cmake | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/CMake/VTKGenerateExportHeader.cmake b/CMake/VTKGenerateExportHeader.cmake
+index 9a7a76386e..59d0bf7ebf 100644
+--- a/CMake/VTKGenerateExportHeader.cmake
++++ b/CMake/VTKGenerateExportHeader.cmake
+@@ -204,9 +204,7 @@ macro(_vtk_test_compiler_hidden_visibility)
+   # Exclude XL here because it misinterprets -fvisibility=hidden even though
+   # the check_cxx_compiler_flag passes
+   # http://www.cdash.org/CDash/testDetails.php?test=109109951&build=1419259
+-  if(NOT GCC_TOO_OLD
+-      AND NOT _INTEL_TOO_OLD
+-      AND NOT WIN32
++  if(NOT WIN32
+       AND NOT CYGWIN
+       AND NOT CMAKE_CXX_COMPILER_ID MATCHES "XL"
+       AND NOT CMAKE_CXX_COMPILER_ID MATCHES "PGI"
+-- 
+2.43.0
+
