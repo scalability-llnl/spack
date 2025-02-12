@@ -6,6 +6,7 @@ import collections
 import itertools
 import os
 import pathlib
+import warnings
 from typing import Dict, List, Optional, Tuple
 
 import llnl.util.filesystem as fs
@@ -102,15 +103,19 @@ class LmodConfiguration(BaseConfiguration):
     def __init__(self, spec: spack.spec.Spec, module_set_name: str, explicit: bool) -> None:
         super().__init__(spec, module_set_name, explicit)
 
-        # FIXME (compiler as nodes): make this a bit more robust
         candidates = collections.defaultdict(list)
         for node in spec.traverse(deptype=("link", "run")):
             candidates["c"].extend(node.dependencies(virtuals=("c",)))
             candidates["cxx"].extend(node.dependencies(virtuals=("c",)))
 
-        # FIXME (compiler as nodes): decide what to do when we have more than one C compiler
-        if candidates["c"] and len(set(candidates["c"])) == 1:
+        if candidates["c"]:
             self.compiler = candidates["c"][0]
+            if len(set(candidates["c"])) > 1:
+                warnings.warn(
+                    f"{spec.short_spec} uses more than one compiler, and might not fit the "
+                    f"LMod hierarchy. Using {self.compiler.short_spec} as the LMod compiler."
+                )
+
         elif not candidates["c"]:
             self.compiler = None
 
