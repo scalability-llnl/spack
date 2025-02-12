@@ -4,8 +4,6 @@
 
 import os
 
-import llnl.util.filesystem as fs
-
 import spack.build_systems.cmake
 from spack.package import *
 
@@ -660,7 +658,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
         not be intended with ``--test``.
         """
         if self.pkg.run_tests:
-            with fs.working_dir(self.build_directory):
+            with working_dir(self.build_directory):
                 make("tests")
 
     def check(self):
@@ -669,7 +667,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
         Override the standard CMakeBuilder behavior. GROMACS has both `test`
         and `check` targets, but we are only interested in the latter.
         """
-        with fs.working_dir(self.build_directory):
+        with working_dir(self.build_directory):
             if self.generator == "Unix Makefiles":
                 make("check")
             elif self.generator == "Ninja":

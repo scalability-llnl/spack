@@ -62,7 +62,7 @@ from .core import (
     parse_files,
     parse_term,
 )
-from .counter import FullDuplicatesCounter, MinimalDuplicatesCounter, NoDuplicatesCounter
+from .input_analysis import create_counter, create_graph_analyzer
 from .requirements import RequirementKind, RequirementParser, RequirementRule
 from .version_order import concretization_version_order
 
@@ -269,15 +269,6 @@ def specify(spec):
 def remove_node(spec: spack.spec.Spec, facts: List[AspFunction]) -> List[AspFunction]:
     """Transformation that removes all "node" and "virtual_node" from the input list of facts."""
     return list(filter(lambda x: x.args[0] not in ("node", "virtual_node"), facts))
-
-
-def _create_counter(specs: List[spack.spec.Spec], tests: bool):
-    strategy = spack.config.CONFIG.get("concretizer:duplicates:strategy", "none")
-    if strategy == "full":
-        return FullDuplicatesCounter(specs, tests=tests)
-    if strategy == "minimal":
-        return MinimalDuplicatesCounter(specs, tests=tests)
-    return NoDuplicatesCounter(specs, tests=tests)
 
 
 def all_libcs() -> Set[spack.spec.Spec]:
@@ -1121,6 +1112,8 @@ class SpackSolverSetup:
     """Class to set up and run a Spack concretization solve."""
 
     def __init__(self, tests: bool = False):
+        self.possible_graph = create_graph_analyzer()
+
         # these are all initialized in setup()
         self.gen: "ProblemInstanceBuilder" = ProblemInstanceBuilder()
         self.requirement_parser = RequirementParser(spack.config.CONFIG)
@@ -2397,38 +2390,20 @@ class SpackSolverSetup:
 
     def target_defaults(self, specs):
         """Add facts about targets and target compatibility."""
-        self.gen.h2("Default target")
-
-        platform = spack.platforms.host()
-        uarch = archspec.cpu.TARGETS.get(platform.default)
-
         self.gen.h2("Target compatibility")
 
-        # Construct the list of targets which are compatible with the host
-        candidate_targets = [uarch] + uarch.ancestors
-
-        # Get configuration options
-        granularity = spack.config.get("concretizer:targets:granularity")
-        host_compatible = spack.config.get("concretizer:targets:host_compatible")
-
-        # Add targets which are not compatible with the current host
-        if not host_compatible:
-            additional_targets_in_family = sorted(
-                [
-                    t
-                    for t in archspec.cpu.TARGETS.values()
-                    if (t.family.name == uarch.family.name and t not in candidate_targets)
-                ],
-                key=lambda x: len(x.ancestors),
-                reverse=True,
-            )
-            candidate_targets += additional_targets_in_family
-
-        # Check if we want only generic architecture
-        if granularity == "generic":
-            candidate_targets = [t for t in candidate_targets if t.vendor == "generic"]
-
         # Add targets explicitly requested from specs
+        candidate_targets = []
+        for x in self.possible_graph.candidate_targets():
+            if all(
+                self.possible_graph.unreachable(pkg_name=pkg_name, when_spec=f"target={x}")
+                for pkg_name in self.pkgs
+            ):
+                tty.debug(f"[{__name__}] excluding target={x}, cause no package can use it")
+                continue
+            candidate_targets.append(x)
+
+        host_compatible = spack.config.CONFIG.get("concretizer:targets:host_compatible")
         for spec in specs:
             if not spec.architecture or not spec.architecture.target:
                 continue
@@ -2444,6 +2419,8 @@ class SpackSolverSetup:
                     if ancestor not in candidate_targets:
                         candidate_targets.append(ancestor)
 
+        platform = spack.platforms.host()
+        uarch = archspec.cpu.TARGETS.get(platform.default)
         best_targets = {uarch.family.name}
         for compiler_id, known_compiler in enumerate(self.possible_compilers):
             if not known_compiler.available:
@@ -2501,7 +2478,6 @@ class SpackSolverSetup:
             self.gen.newline()
 
         self.default_targets = list(sorted(set(self.default_targets)))
-
         self.target_preferences()
 
     def virtual_providers(self):
@@ -2605,7 +2581,14 @@ class SpackSolverSetup:
         # Tell the concretizer about possible values from specs seen in spec_clauses().
         # We might want to order these facts by pkg and name if we are debugging.
         for pkg_name, variant_def_id, value in self.variant_values_from_specs:
-            vid = self.variant_ids_by_def_id[variant_def_id]
+            try:
+                vid = self.variant_ids_by_def_id[variant_def_id]
+            except KeyError:
+                tty.debug(
+                    f"[{__name__}] cannot retrieve id of the {value} variant from {pkg_name}"
+                )
+                continue
+
             self.gen.fact(fn.pkg_fact(pkg_name, fn.variant_possible_value(vid, value)))
 
     def register_concrete_spec(self, spec, possible):
@@ -2676,7 +2659,7 @@ class SpackSolverSetup:
         """
         check_packages_exist(specs)
 
-        node_counter = _create_counter(specs, tests=self.tests)
+        node_counter = create_counter(specs, tests=self.tests, possible_graph=self.possible_graph)
         self.possible_virtuals = node_counter.possible_virtuals()
         self.pkgs = node_counter.possible_dependencies()
         self.libcs = sorted(all_libcs())  # type: ignore[type-var]

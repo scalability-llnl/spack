@@ -166,7 +166,7 @@ def filter_shebangs_in_directory(directory, filenames=None):
         # Only look at executable, non-symlink files.
         try:
             st = os.lstat(path)
-        except (IOError, OSError):
+        except OSError:
             continue
 
         if stat.S_ISLNK(st.st_mode) or stat.S_ISDIR(st.st_mode) or not st.st_mode & is_exe:

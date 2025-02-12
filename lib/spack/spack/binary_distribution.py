@@ -5,6 +5,7 @@
 import codecs
 import collections
 import concurrent.futures
+import contextlib
 import copy
 import hashlib
 import io
@@ -801,7 +802,7 @@ def _specs_from_cache_fallback(url: str):
         try:
             _, _, spec_file = web_util.read_from_url(url)
             contents = codecs.getreader("utf-8")(spec_file).read()
-        except web_util.SpackWebError as e:
+        except (web_util.SpackWebError, OSError) as e:
             tty.error(f"Error reading specfile: {url}: {e}")
         return contents
 
@@ -2009,7 +2010,7 @@ def download_tarball(spec, unsigned: Optional[bool] = False, mirrors_for_spec=No
 
                 # Download the config = spec.json and the relevant tarball
                 try:
-                    manifest = json.loads(response.read())
+                    manifest = json.load(response)
                     spec_digest = spack.oci.image.Digest.from_string(manifest["config"]["digest"])
                     tarball_digest = spack.oci.image.Digest.from_string(
                         manifest["layers"][-1]["digest"]
@@ -2270,6 +2271,24 @@ def relocate_package(spec: spack.spec.Spec) -> None:
             with fsys.edit_in_place_through_temporary_file(binary) as tmp_binary:
                 codesign("-fs-", tmp_binary)
 
+    install_manifest = os.path.join(
+        spec.prefix,
+        spack.store.STORE.layout.metadata_dir,
+        spack.store.STORE.layout.manifest_file_name,
+    )
+    if not os.path.exists(install_manifest):
+        spec_id = spec.format("{name}/{hash:7}")
+        tty.warn("No manifest file in tarball for spec %s" % spec_id)
+
+    # overwrite old metadata with new
+    if spec.spliced:
+        # rewrite spec on disk
+        spack.store.STORE.layout.write_spec(spec, spack.store.STORE.layout.spec_file_path(spec))
+
+        # de-cache the install manifest
+        with contextlib.suppress(FileNotFoundError):
+            os.unlink(install_manifest)
+
 
 def _extract_inner_tarball(spec, filename, extract_to, signature_required: bool, remote_checksum):
     stagepath = os.path.dirname(filename)
@@ -2436,15 +2455,6 @@ def extract_tarball(spec, download_result, force=False, timer=timer.NULL_TIMER):
     except Exception as e:
         shutil.rmtree(spec.prefix, ignore_errors=True)
         raise e
-    else:
-        manifest_file = os.path.join(
-            spec.prefix,
-            spack.store.STORE.layout.metadata_dir,
-            spack.store.STORE.layout.manifest_file_name,
-        )
-        if not os.path.exists(manifest_file):
-            spec_id = spec.format("{name}/{hash:7}")
-            tty.warn("No manifest file in tarball for spec %s" % spec_id)
     finally:
         if tmpdir:
             shutil.rmtree(tmpdir, ignore_errors=True)
@@ -2549,10 +2559,6 @@ def install_root_node(
         tty.msg('Installing "{0}" from a buildcache'.format(spec.format()))
         extract_tarball(spec, download_result, force)
         spec.package.windows_establish_runtime_linkage()
-        if spec.spliced:  # overwrite old metadata with new
-            spack.store.STORE.layout.write_spec(
-                spec, spack.store.STORE.layout.spec_file_path(spec)
-            )
         spack.hooks.post_install(spec, False)
         spack.store.STORE.db.add(spec, allow_missing=allow_missing)
 
@@ -2590,11 +2596,14 @@ def try_direct_fetch(spec, mirrors=None):
         )
         try:
             _, _, fs = web_util.read_from_url(buildcache_fetch_url_signed_json)
+            specfile_contents = codecs.getreader("utf-8")(fs).read()
             specfile_is_signed = True
-        except web_util.SpackWebError as e1:
+        except (web_util.SpackWebError, OSError) as e1:
             try:
                 _, _, fs = web_util.read_from_url(buildcache_fetch_url_json)
-            except web_util.SpackWebError as e2:
+                specfile_contents = codecs.getreader("utf-8")(fs).read()
+                specfile_is_signed = False
+            except (web_util.SpackWebError, OSError) as e2:
                 tty.debug(
                     f"Did not find {specfile_name} on {buildcache_fetch_url_signed_json}",
                     e1,
@@ -2604,7 +2613,6 @@ def try_direct_fetch(spec, mirrors=None):
                     f"Did not find {specfile_name} on {buildcache_fetch_url_json}", e2, level=2
                 )
                 continue
-        specfile_contents = codecs.getreader("utf-8")(fs).read()
 
         # read the spec from the build cache file. All specs in build caches
         # are concrete (as they are built) so we need to mark this spec
@@ -2698,8 +2706,9 @@ def get_keys(install=False, trust=False, force=False, mirrors=None):
 
         try:
             _, _, json_file = web_util.read_from_url(keys_index)
-            json_index = sjson.load(codecs.getreader("utf-8")(json_file))
-        except web_util.SpackWebError as url_err:
+            json_index = sjson.load(json_file)
+        except (web_util.SpackWebError, OSError, ValueError) as url_err:
+            # TODO: avoid repeated request
             if web_util.url_exists(keys_index):
                 tty.error(
                     f"Unable to find public keys in {url_util.format(fetch_url)},"
@@ -2949,11 +2958,11 @@ class DefaultIndexFetcher:
         url_index_hash = url_util.join(self.url, BUILD_CACHE_RELATIVE_PATH, INDEX_HASH_FILE)
         try:
             response = self.urlopen(urllib.request.Request(url_index_hash, headers=self.headers))
-        except (TimeoutError, urllib.error.URLError):
+            remote_hash = response.read(64)
+        except OSError:
             return None
 
         # Validate the hash
-        remote_hash = response.read(64)
         if not re.match(rb"[a-f\d]{64}$", remote_hash):
             return None
         return remote_hash.decode("utf-8")
@@ -2971,13 +2980,13 @@ class DefaultIndexFetcher:
 
         try:
             response = self.urlopen(urllib.request.Request(url_index, headers=self.headers))
-        except (TimeoutError, urllib.error.URLError) as e:
-            raise FetchIndexError("Could not fetch index from {}".format(url_index), e) from e
+        except OSError as e:
+            raise FetchIndexError(f"Could not fetch index from {url_index}", e) from e
 
         try:
             result = codecs.getreader("utf-8")(response).read()
-        except ValueError as e:
-            raise FetchIndexError("Remote index {} is invalid".format(url_index), e) from e
+        except (ValueError, OSError) as e:
+            raise FetchIndexError(f"Remote index {url_index} is invalid") from e
 
         computed_hash = compute_hash(result)
 
@@ -3021,12 +3030,12 @@ class EtagIndexFetcher:
                 # Not modified; that means fresh.
                 return FetchIndexResult(etag=None, hash=None, data=None, fresh=True)
             raise FetchIndexError(f"Could not fetch index {url}", e) from e
-        except (TimeoutError, urllib.error.URLError) as e:
+        except OSError as e:  # URLError, socket.timeout, etc.
             raise FetchIndexError(f"Could not fetch index {url}", e) from e
 
         try:
             result = codecs.getreader("utf-8")(response).read()
-        except ValueError as e:
+        except (ValueError, OSError) as e:
             raise FetchIndexError(f"Remote index {url} is invalid", e) from e
 
         headers = response.headers
@@ -3058,11 +3067,11 @@ class OCIIndexFetcher:
                     headers={"Accept": "application/vnd.oci.image.manifest.v1+json"},
                 )
             )
-        except (TimeoutError, urllib.error.URLError) as e:
+        except OSError as e:
             raise FetchIndexError(f"Could not fetch manifest from {url_manifest}", e) from e
 
         try:
-            manifest = json.loads(response.read())
+            manifest = json.load(response)
         except Exception as e:
             raise FetchIndexError(f"Remote index {url_manifest} is invalid", e) from e
 
@@ -3077,14 +3086,16 @@ class OCIIndexFetcher:
             return FetchIndexResult(etag=None, hash=None, data=None, fresh=True)
 
         # Otherwise fetch the blob / index.json
-        response = self.urlopen(
-            urllib.request.Request(
-                url=self.ref.blob_url(index_digest),
-                headers={"Accept": "application/vnd.oci.image.layer.v1.tar+gzip"},
+        try:
+            response = self.urlopen(
+                urllib.request.Request(
+                    url=self.ref.blob_url(index_digest),
+                    headers={"Accept": "application/vnd.oci.image.layer.v1.tar+gzip"},
+                )
             )
-        )
-
-        result = codecs.getreader("utf-8")(response).read()
+            result = codecs.getreader("utf-8")(response).read()
+        except (OSError, ValueError) as e:
+            raise FetchIndexError(f"Remote index {url_manifest} is invalid", e) from e
 
         # Make sure the blob we download has the advertised hash
         if compute_hash(result) != index_digest.digest:

@@ -2,12 +2,10 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import os.path
+import os
 import re
 import shutil
 from textwrap import dedent
-
-import llnl.util.tty as tty
 
 from spack.package import *
 

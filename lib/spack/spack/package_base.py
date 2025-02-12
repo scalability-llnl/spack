@@ -22,7 +22,6 @@ import sys
 import textwrap
 import time
 import traceback
-import typing
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, Type, TypeVar, Union
 
 from typing_extensions import Literal
@@ -30,7 +29,6 @@ from typing_extensions import Literal
 import llnl.util.filesystem as fsys
 import llnl.util.tty as tty
 from llnl.util.lang import classproperty, memoized
-from llnl.util.link_tree import LinkTree
 
 import spack.compilers
 import spack.config
@@ -66,10 +64,6 @@ FLAG_HANDLER_RETURN_TYPE = Tuple[
     Optional[Iterable[str]], Optional[Iterable[str]], Optional[Iterable[str]]
 ]
 FLAG_HANDLER_TYPE = Callable[[str, Iterable[str]], FLAG_HANDLER_RETURN_TYPE]
-
-"""Allowed URL schemes for spack packages."""
-_ALLOWED_URL_SCHEMES = ["http", "https", "ftp", "file", "git"]
-
 
 #: Filename for the Spack build/install log.
 _spack_build_logfile = "spack-build-out.txt"
@@ -702,9 +696,6 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
     #: Verbosity level, preserved across installs.
     _verbose = None
 
-    #: index of patches by sha256 sum, built lazily
-    _patches_by_hash = None
-
     #: Package homepage where users can find more information about the package
     homepage: Optional[str] = None
 
@@ -829,104 +820,6 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
             return next(vdef for when, vdef in highest_to_lowest if self.spec.satisfies(when))
         except StopIteration:
             raise ValueError(f"No variant '{name}' on spec: {self.spec}")
-
-    @classmethod
-    def possible_dependencies(
-        cls,
-        transitive: bool = True,
-        expand_virtuals: bool = True,
-        depflag: dt.DepFlag = dt.ALL,
-        visited: Optional[dict] = None,
-        missing: Optional[dict] = None,
-        virtuals: Optional[set] = None,
-    ) -> Dict[str, Set[str]]:
-        """Return dict of possible dependencies of this package.
-
-        Args:
-            transitive (bool or None): return all transitive dependencies if
-                True, only direct dependencies if False (default True)..
-            expand_virtuals (bool or None): expand virtual dependencies into
-                all possible implementations (default True)
-            depflag: dependency types to consider
-            visited (dict or None): dict of names of dependencies visited so
-                far, mapped to their immediate dependencies' names.
-            missing (dict or None): dict to populate with packages and their
-                *missing* dependencies.
-            virtuals (set): if provided, populate with virtuals seen so far.
-
-        Returns:
-            (dict): dictionary mapping dependency names to *their*
-                immediate dependencies
-
-        Each item in the returned dictionary maps a (potentially
-        transitive) dependency of this package to its possible
-        *immediate* dependencies. If ``expand_virtuals`` is ``False``,
-        virtual package names wil be inserted as keys mapped to empty
-        sets of dependencies.  Virtuals, if not expanded, are treated as
-        though they have no immediate dependencies.
-
-        Missing dependencies by default are ignored, but if a
-        missing dict is provided, it will be populated with package names
-        mapped to any dependencies they have that are in no
-        repositories. This is only populated if transitive is True.
-
-        Note: the returned dict *includes* the package itself.
-
-        """
-        visited = {} if visited is None else visited
-        missing = {} if missing is None else missing
-
-        visited.setdefault(cls.name, set())
-
-        for name, conditions in cls.dependencies_by_name(when=True).items():
-            # check whether this dependency could be of the type asked for
-            depflag_union = 0
-            for deplist in conditions.values():
-                for dep in deplist:
-                    depflag_union |= dep.depflag
-            if not (depflag & depflag_union):
-                continue
-
-            # expand virtuals if enabled, otherwise just stop at virtuals
-            if spack.repo.PATH.is_virtual(name):
-                if virtuals is not None:
-                    virtuals.add(name)
-                if expand_virtuals:
-                    providers = spack.repo.PATH.providers_for(name)
-                    dep_names = [spec.name for spec in providers]
-                else:
-                    visited.setdefault(cls.name, set()).add(name)
-                    visited.setdefault(name, set())
-                    continue
-            else:
-                dep_names = [name]
-
-            # add the dependency names to the visited dict
-            visited.setdefault(cls.name, set()).update(set(dep_names))
-
-            # recursively traverse dependencies
-            for dep_name in dep_names:
-                if dep_name in visited:
-                    continue
-
-                visited.setdefault(dep_name, set())
-
-                # skip the rest if not transitive
-                if not transitive:
-                    continue
-
-                try:
-                    dep_cls = spack.repo.PATH.get_pkg_class(dep_name)
-                except spack.repo.UnknownPackageError:
-                    # log unknown packages
-                    missing.setdefault(cls.name, set()).add(dep_name)
-                    continue
-
-                dep_cls.possible_dependencies(
-                    transitive, expand_virtuals, depflag, visited, missing, virtuals
-                )
-
-        return visited
 
     @classproperty
     def package_dir(cls):
@@ -2290,85 +2183,6 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
 inject_flags = PackageBase.inject_flags
 env_flags = PackageBase.env_flags
 build_system_flags = PackageBase.build_system_flags
-
-
-def install_dependency_symlinks(pkg, spec, prefix):
-    """
-    Execute a dummy install and flatten dependencies.
-
-    This routine can be used in a ``package.py`` definition by setting
-    ``install = install_dependency_symlinks``.
-
-    This feature comes in handy for creating a common location for the
-    the installation of third-party libraries.
-    """
-    flatten_dependencies(spec, prefix)
-
-
-def use_cray_compiler_names():
-    """Compiler names for builds that rely on cray compiler names."""
-    os.environ["CC"] = "cc"
-    os.environ["CXX"] = "CC"
-    os.environ["FC"] = "ftn"
-    os.environ["F77"] = "ftn"
-
-
-def flatten_dependencies(spec, flat_dir):
-    """Make each dependency of spec present in dir via symlink."""
-    for dep in spec.traverse(root=False):
-        name = dep.name
-
-        dep_path = spack.store.STORE.layout.path_for_spec(dep)
-        dep_files = LinkTree(dep_path)
-
-        os.mkdir(flat_dir + "/" + name)
-
-        conflict = dep_files.find_conflict(flat_dir + "/" + name)
-        if conflict:
-            raise DependencyConflictError(conflict)
-
-        dep_files.merge(flat_dir + "/" + name)
-
-
-def possible_dependencies(
-    *pkg_or_spec: Union[str, spack.spec.Spec, typing.Type[PackageBase]],
-    transitive: bool = True,
-    expand_virtuals: bool = True,
-    depflag: dt.DepFlag = dt.ALL,
-    missing: Optional[dict] = None,
-    virtuals: Optional[set] = None,
-) -> Dict[str, Set[str]]:
-    """Get the possible dependencies of a number of packages.
-
-    See ``PackageBase.possible_dependencies`` for details.
-    """
-    packages = []
-    for pos in pkg_or_spec:
-        if isinstance(pos, PackageMeta) and issubclass(pos, PackageBase):
-            packages.append(pos)
-            continue
-
-        if not isinstance(pos, spack.spec.Spec):
-            pos = spack.spec.Spec(pos)
-
-        if spack.repo.PATH.is_virtual(pos.name):
-            packages.extend(p.package_class for p in spack.repo.PATH.providers_for(pos.name))
-            continue
-        else:
-            packages.append(pos.package_class)
-
-    visited: Dict[str, Set[str]] = {}
-    for pkg in packages:
-        pkg.possible_dependencies(
-            visited=visited,
-            transitive=transitive,
-            expand_virtuals=expand_virtuals,
-            depflag=depflag,
-            missing=missing,
-            virtuals=virtuals,
-        )
-
-    return visited
 
 
 def deprecated_version(pkg: PackageBase, version: Union[str, StandardVersion]) -> bool:

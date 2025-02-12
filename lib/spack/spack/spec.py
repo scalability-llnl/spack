@@ -238,22 +238,13 @@ class ArchSpec:
     """Aggregate the target platform, the operating system and the target microarchitecture."""
 
     @staticmethod
-    def _return_arch(os_tag, target_tag):
-        platform = spack.platforms.host()
-        default_os = platform.operating_system(os_tag)
-        default_target = platform.target(target_tag)
-        arch_tuple = str(platform), str(default_os), str(default_target)
-        return ArchSpec(arch_tuple)
-
-    @staticmethod
     def default_arch():
         """Return the default architecture"""
-        return ArchSpec._return_arch("default_os", "default_target")
-
-    @staticmethod
-    def frontend_arch():
-        """Return the frontend architecture"""
-        return ArchSpec._return_arch("frontend", "frontend")
+        platform = spack.platforms.host()
+        default_os = platform.default_operating_system()
+        default_target = platform.default_target()
+        arch_tuple = str(platform), str(default_os), str(default_target)
+        return ArchSpec(arch_tuple)
 
     __slots__ = "_platform", "_os", "_target"
 
@@ -461,6 +452,9 @@ class ArchSpec:
         return bool(self._target_intersection(other))
 
     def _target_constrain(self, other: "ArchSpec") -> bool:
+        if self.target is None and other.target is None:
+            return False
+
         if not other._target_satisfies(self, strict=False):
             raise UnsatisfiableArchitectureSpecError(self, other)
 
@@ -509,21 +503,56 @@ class ArchSpec:
                     if (not s_min or o_comp >= s_min) and (not s_max or o_comp <= s_max):
                         results.append(o_min)
                 else:
-                    # Take intersection of two ranges
-                    # Lots of comparisons needed
-                    _s_min = _make_microarchitecture(s_min)
-                    _s_max = _make_microarchitecture(s_max)
-                    _o_min = _make_microarchitecture(o_min)
-                    _o_max = _make_microarchitecture(o_max)
+                    # Take the "min" of the two max, if there is a partial ordering.
+                    n_max = ""
+                    if s_max and o_max:
+                        _s_max = _make_microarchitecture(s_max)
+                        _o_max = _make_microarchitecture(o_max)
+                        if _s_max.family != _o_max.family:
+                            continue
+                        if _s_max <= _o_max:
+                            n_max = s_max
+                        elif _o_max < _s_max:
+                            n_max = o_max
+                        else:
+                            continue
+                    elif s_max:
+                        n_max = s_max
+                    elif o_max:
+                        n_max = o_max
 
-                    n_min = s_min if _s_min >= _o_min else o_min
-                    n_max = s_max if _s_max <= _o_max else o_max
-                    _n_min = _make_microarchitecture(n_min)
-                    _n_max = _make_microarchitecture(n_max)
-                    if _n_min == _n_max:
-                        results.append(n_min)
-                    elif not n_min or not n_max or _n_min < _n_max:
-                        results.append("%s:%s" % (n_min, n_max))
+                    # Take the "max" of the two min.
+                    n_min = ""
+                    if s_min and o_min:
+                        _s_min = _make_microarchitecture(s_min)
+                        _o_min = _make_microarchitecture(o_min)
+                        if _s_min.family != _o_min.family:
+                            continue
+                        if _s_min >= _o_min:
+                            n_min = s_min
+                        elif _o_min > _s_min:
+                            n_min = o_min
+                        else:
+                            continue
+                    elif s_min:
+                        n_min = s_min
+                    elif o_min:
+                        n_min = o_min
+
+                    if n_min and n_max:
+                        _n_min = _make_microarchitecture(n_min)
+                        _n_max = _make_microarchitecture(n_max)
+                        if _n_min.family != _n_max.family or not _n_min <= _n_max:
+                            continue
+                        if n_min == n_max:
+                            results.append(n_min)
+                        else:
+                            results.append(f"{n_min}:{n_max}")
+                    elif n_min:
+                        results.append(f"{n_min}:")
+                    elif n_max:
+                        results.append(f":{n_max}")
+
         return results
 
     def constrain(self, other: "ArchSpec") -> bool:
@@ -1498,9 +1527,8 @@ class Spec:
         self._external_path = external_path
         self.external_modules = Spec._format_module_list(external_modules)
 
-        # This attribute is used to store custom information for
-        # external specs. None signal that it was not set yet.
-        self.extra_attributes = None
+        # This attribute is used to store custom information for external specs.
+        self.extra_attributes: dict = {}
 
         # This attribute holds the original build copy of the spec if it is
         # deployed differently than it was built. None signals that the spec
@@ -2322,15 +2350,10 @@ class Spec:
             )
 
         if self.external:
-            if self.extra_attributes:
-                extra_attributes = syaml.sorted_dict(self.extra_attributes)
-            else:
-                extra_attributes = None
-
             d["external"] = {
                 "path": self.external_path,
-                "module": self.external_modules,
-                "extra_attributes": extra_attributes,
+                "module": self.external_modules or None,
+                "extra_attributes": syaml.sorted_dict(self.extra_attributes),
             }
 
         if not self._concrete:
@@ -3151,18 +3174,13 @@ class Spec:
             if not self.variants[v].compatible(other.variants[v]):
                 raise vt.UnsatisfiableVariantSpecError(self.variants[v], other.variants[v])
 
-        # TODO: Check out the logic here
         sarch, oarch = self.architecture, other.architecture
-        if sarch is not None and oarch is not None:
-            if sarch.platform is not None and oarch.platform is not None:
-                if sarch.platform != oarch.platform:
-                    raise UnsatisfiableArchitectureSpecError(sarch, oarch)
-            if sarch.os is not None and oarch.os is not None:
-                if sarch.os != oarch.os:
-                    raise UnsatisfiableArchitectureSpecError(sarch, oarch)
-            if sarch.target is not None and oarch.target is not None:
-                if sarch.target != oarch.target:
-                    raise UnsatisfiableArchitectureSpecError(sarch, oarch)
+        if (
+            sarch is not None
+            and oarch is not None
+            and not self.architecture.intersects(other.architecture)
+        ):
+            raise UnsatisfiableArchitectureSpecError(sarch, oarch)
 
         changed = False
 
@@ -3185,18 +3203,12 @@ class Spec:
 
         changed |= self.compiler_flags.constrain(other.compiler_flags)
 
-        old = str(self.architecture)
         sarch, oarch = self.architecture, other.architecture
-        if sarch is None or other.architecture is None:
-            self.architecture = sarch or oarch
-        else:
-            if sarch.platform is None or oarch.platform is None:
-                self.architecture.platform = sarch.platform or oarch.platform
-            if sarch.os is None or oarch.os is None:
-                sarch.os = sarch.os or oarch.os
-            if sarch.target is None or oarch.target is None:
-                sarch.target = sarch.target or oarch.target
-        changed |= str(self.architecture) != old
+        if sarch is not None and oarch is not None:
+            changed |= self.architecture.constrain(other.architecture)
+        elif oarch is not None:
+            self.architecture = oarch
+            changed = True
 
         if deps:
             changed |= self._constrain_dependencies(other)
@@ -3842,6 +3854,13 @@ class Spec:
 
         for item in self._cmp_node():
             yield item
+
+        # If there is ever a breaking change to hash computation, whether accidental or purposeful,
+        # two specs can be identical modulo DAG hash, depending on what time they were concretized
+        # From the perspective of many operation in Spack (database, build cache, etc) a different
+        # DAG hash means a different spec. Here we ensure that two otherwise identical specs, one
+        # serialized before the hash change and one after, are considered different.
+        yield self.dag_hash() if self.concrete else None
 
         # This needs to be in _cmp_iter so that no specs with different process hashes
         # are considered the same by `__hash__` or `__eq__`.
@@ -4708,7 +4727,10 @@ class VariantMap(lang.HashableMap):
         bool_keys = []
         kv_keys = []
         for key in sorted_keys:
-            bool_keys.append(key) if isinstance(self[key].value, bool) else kv_keys.append(key)
+            if isinstance(self[key].value, bool):
+                bool_keys.append(key)
+            else:
+                kv_keys.append(key)
 
         # add spaces before and after key/value variants.
         string = io.StringIO()
@@ -4887,7 +4909,7 @@ class SpecfileReaderBase:
                 spec.external_modules = node["external"]["module"]
                 if spec.external_modules is False:
                     spec.external_modules = None
-                spec.extra_attributes = node["external"].get("extra_attributes", {})
+                spec.extra_attributes = node["external"].get("extra_attributes") or {}
 
         # specs read in are concrete unless marked abstract
         if node.get("concrete", True):
@@ -5164,12 +5186,10 @@ def get_host_environment_metadata() -> Dict[str, str]:
 
 
 def get_host_environment() -> Dict[str, Any]:
-    """Return a dictionary (lookup) with host information (not including the
-    os.environ).
-    """
+    """Returns a dictionary with host information (not including the os.environ)."""
     host_platform = spack.platforms.host()
-    host_target = host_platform.target("default_target")
-    host_os = host_platform.operating_system("default_os")
+    host_target = host_platform.default_target()
+    host_os = host_platform.default_operating_system()
     arch_fmt = "platform={0} os={1} target={2}"
     arch_spec = Spec(arch_fmt.format(host_platform, host_os, host_target))
     return {
