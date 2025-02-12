@@ -83,6 +83,7 @@ class Patch:
         level: int,
         working_dir: str,
         reverse: bool = False,
+        ordering_key: Optional[Tuple[str, int]] = None,
     ) -> None:
         """Initialize a new Patch instance.
 
@@ -92,6 +93,7 @@ class Patch:
             level: patch level
             working_dir: relative path *within* the stage to change to
             reverse: reverse the patch
+            ordering_key: key used to ensure patches are applied in a consistent order
         """
         # validate level (must be an integer >= 0)
         if not isinstance(level, int) or not level >= 0:
@@ -104,6 +106,13 @@ class Patch:
         self.level = level
         self.working_dir = working_dir
         self.reverse = reverse
+
+        # The ordering key is passed when executing package.py directives, and is only relevant
+        # after a solve to build concrete specs with consistently ordered patches. For concrete
+        # specs read from a file, we add patches in the order of its patches variants and the
+        # ordering_key is irrelevant. In that case, use a default value so we don't need to branch
+        # on whether ordering_key is None where it's used, just to make static analysis happy.
+        self.ordering_key: Tuple[str, int] = ordering_key or ("", 0)
 
     def apply(self, stage: "spack.stage.Stage") -> None:
         """Apply a patch to source in a stage.
@@ -202,9 +211,8 @@ class FilePatch(Patch):
             msg += "package %s.%s does not exist." % (pkg.namespace, pkg.name)
             raise ValueError(msg)
 
-        super().__init__(pkg, abs_path, level, working_dir, reverse)
+        super().__init__(pkg, abs_path, level, working_dir, reverse, ordering_key)
         self.path = abs_path
-        self.ordering_key = ordering_key
 
     @property
     def sha256(self) -> str:
@@ -266,12 +274,10 @@ class UrlPatch(Patch):
             archive_sha256: sha256 sum of the *archive*, if the patch is compressed
                 (only required for compressed URL patches)
         """
-        super().__init__(pkg, url, level, working_dir, reverse)
+        super().__init__(pkg, url, level, working_dir, reverse, ordering_key)
 
         self.url = url
         self._stage: Optional["spack.stage.Stage"] = None
-
-        self.ordering_key = ordering_key
 
         if allowed_archive(self.url) and not archive_sha256:
             raise spack.error.PatchDirectiveError(

@@ -35,6 +35,7 @@ import spack.environment as ev
 import spack.error
 import spack.package_base
 import spack.package_prefs
+import spack.patch
 import spack.platforms
 import spack.repo
 import spack.solver.splicing
@@ -3769,7 +3770,7 @@ class SpecBuilder:
 def _inject_patches_variant(root: spack.spec.Spec) -> None:
     # This dictionary will store object IDs rather than Specs as keys
     # since the Spec __hash__ will change as patches are added to them
-    spec_to_patches = {}
+    spec_to_patches: Dict[int, Set[spack.patch.Patch]] = {}
     for s in root.traverse():
         # After concretizing, assign namespaces to anything left.
         # Note that this doesn't count as a "change".  The repository
@@ -3802,7 +3803,7 @@ def _inject_patches_variant(root: spack.spec.Spec) -> None:
 
         pkg_deps = spack.repo.PATH.get_pkg_class(dspec.parent.fullname).dependencies
 
-        edge_patches = []
+        edge_patches: List[spack.patch.Patch] = []
         for cond, deps_by_name in pkg_deps.items():
             if not dspec.parent.satisfies(cond):
                 continue
@@ -3823,16 +3824,20 @@ def _inject_patches_variant(root: spack.spec.Spec) -> None:
             continue
 
         patches = list(spec_to_patches[id(spec)])
-        mvar = spec.variants.setdefault("patches", vt.MultiValuedVariant("patches", ()))
-        mvar.value = tuple(p.sha256 for p in patches)
-        # FIXME: Monkey patches mvar to store patches order
-        full_order_keys = list(tuple(p.ordering_key) + (p.sha256,) for p in patches)
-        ordered_hashes = sorted(full_order_keys)
+        variant: vt.MultiValuedVariant = spec.variants.setdefault(
+            "patches", vt.MultiValuedVariant("patches", ())
+        )
+        variant.value = tuple(p.sha256 for p in patches)
+        # FIXME: Monkey patches variant to store patches order
+        ordered_hashes = [(*p.ordering_key, p.sha256) for p in patches if p.ordering_key]
+        ordered_hashes.sort()
         tty.debug(
-            "Ordered hashes [{0}]: ".format(spec.name)
+            f"Ordered hashes [{spec.name}]: "
             + ", ".join("/".join(str(e) for e in t) for t in ordered_hashes)
         )
-        mvar._patches_in_order_of_appearance = list(t[-1] for t in ordered_hashes)
+        setattr(
+            variant, "_patches_in_order_of_appearance", [sha256 for _, _, sha256 in ordered_hashes]
+        )
 
 
 def _ensure_external_path_if_external(spec: spack.spec.Spec) -> None:
