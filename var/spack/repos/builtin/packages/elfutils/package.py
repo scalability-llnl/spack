@@ -91,6 +91,11 @@ class Elfutils(AutotoolsPackage, SourcewarePackage):
 
     conflicts("%gcc@7.2.0:", when="@0.163")
 
+    # https://sourceware.org/bugzilla/show_bug.cgi?id=32684 elfutils on aarch64 requires
+    # linux-headers 5.0 or higher, which is a dependency of glibc we don't model. So this is a more
+    # strict constraint than necessary.
+    conflicts("@0.192 arch=aarch64:")
+
     provides("elf@1")
 
     # libarchive with iconv doesn't configure (still broken as of libarchive@3.7.1)
