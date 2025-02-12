@@ -255,8 +255,8 @@ def canonicalize_path(path: str, default_wd: Optional[str] = None) -> str:
     # relative to that path.
     filename = None
     if isinstance(path, syaml.syaml_str):
-        filename = os.path.dirname(path._start_mark.name)
-        assert path._start_mark.name == path._end_mark.name
+        filename = os.path.dirname(path._start_mark.name)  # type: ignore[attr-defined]
+        assert path._start_mark.name == path._end_mark.name  # type: ignore[attr-defined]
 
     path = substitute_path_variables(path)
 
@@ -360,6 +360,7 @@ def filter_padding():
     This is needed because Spack's debug output gets extremely long when we use a
     long padded installation path.
     """
+    # circular import
     import spack.config
 
     padding = spack.config.get("config:install_tree:padded_length", None)
