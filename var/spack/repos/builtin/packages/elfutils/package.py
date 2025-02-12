@@ -83,8 +83,7 @@ class Elfutils(AutotoolsPackage, SourcewarePackage):
 
     # debuginfod has extra dependencies
     with when("+debuginfod"), default_args(type="link"):
-        # NB: Waiting on an elfutils patch before we can use libmicrohttpd@0.9.51
-        depends_on("libmicrohttpd@0.9.33:0.9.50")
+        depends_on("libmicrohttpd@0.9.33:")
         depends_on("libarchive@3.1.2:")
         depends_on("sqlite@3.7.17:")
         depends_on("curl@7.29.0:")
