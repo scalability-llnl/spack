@@ -1026,7 +1026,6 @@ def effective_deptypes(
         root=True,
         all_edges=True,
     )
-    traverse.traverse_depth_first_with_visitor(traverse.with_artificial_edges(specs), visitor)
 
     # Dictionary with "no mode" as default value, so it's easy to write modes[x] |= flag.
     use_modes = defaultdict(lambda: UseMode(0))
@@ -1537,7 +1536,7 @@ def complete_build_process(handle: ProcessHandle):
     return child_result
 
 
-CONTEXT_BASES = (spack.package_base.PackageBase, spack.build_systems._checks.BaseBuilder)
+CONTEXT_BASES = (spack.package_base.PackageBase, spack.builder.BaseBuilder)
 
 
 def get_package_context(traceback, context=3):

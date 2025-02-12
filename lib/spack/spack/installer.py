@@ -874,6 +874,7 @@ class Task:
 
     success_result: Optional[ExecuteResult] = None
     error_result: Optional[BaseException] = None
+    no_op: bool = False
 
     def __init__(
         self,
@@ -1183,6 +1184,12 @@ class Task:
         """The priority is based on the remaining uninstalled dependencies."""
         return len(self.uninstalled_deps)
 
+    def terminate(self) -> None:
+        """End any processes and clean up any resources allocated by this Task.
+
+        By default this is a no-op.
+        """
+
 
 def check_db(spec: "spack.spec.Spec") -> Tuple[Optional[spack.database.InstallRecord], bool]:
     """Determine if the spec is flagged as installed in the database
@@ -1208,7 +1215,7 @@ def check_db(spec: "spack.spec.Spec") -> Tuple[Optional[spack.database.InstallRe
 class BuildTask(Task):
     """Class for representing a build task for a package."""
 
-    process_handle: "spack.build_environment.ProcessHandle" = None
+    process_handle: Optional["spack.build_environment.ProcessHandle"] = None
     started: bool = False
     no_op: bool = False
 
@@ -1318,6 +1325,11 @@ class BuildTask(Task):
             tty.debug(f"Package stage directory: {pkg.stage.source_path}")
 
         return ExecuteResult.SUCCESS
+
+    def terminate(self) -> None:
+        """Terminate any processes this task still has running."""
+        if self.process_handle:
+            self.process_handle.terminate_processes()
 
 
 class RewireTask(Task):
@@ -2262,7 +2274,7 @@ class PackageInstaller:
 
         # Overwrite process exception handling
         except fs.CouldNotRestoreDirectoryBackup as e:
-            self.database.remove(task.pkg.spec)
+            spack.store.STORE.db.remove(task.pkg.spec)
             tty.error(
                 f"Recovery of install dir of {task.pkg.name} failed due to "
                 f"{e.outer_exception.__class__.__name__}: {str(e.outer_exception)}. "
@@ -2306,6 +2318,8 @@ class PackageInstaller:
         if pkg.spec.installed:
             self._cleanup_task(pkg)
 
+        return None
+
     def install(self) -> None:
         """Install the requested package(s) and or associated dependencies."""
 
@@ -2347,11 +2361,10 @@ class PackageInstaller:
                     failure = self.complete_task(task, install_status)
                     if failure:
                         failed_build_requests.append(failure)
-                except Exception as e:
+                except Exception:
                     # Terminate any active child processes if there's an installation error
                     for task in active_tasks:
-                        if task.process_handle is not None:
-                            task.process_handle.terminate_processes()
+                        task.terminate()
                     raise
                 finally:
                     active_tasks.remove(task)

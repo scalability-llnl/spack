@@ -1028,7 +1028,7 @@ def test_install_fail_multi(install_mockery, mock_fetch, monkeypatch):
 def test_install_fail_fast_on_detect(install_mockery, monkeypatch, capsys):
     """Test fail_fast install when an install failure is detected."""
     a = spack.concretize.concretize_one("parallel-package-a")
-    
+
     a_id = inst.package_id(a)
     b_id = inst.package_id(a["parallel-package-b"])
     c_id = inst.package_id(a["parallel-package-c"])
@@ -1189,7 +1189,7 @@ def test_install_implicit(install_mockery, mock_fetch):
     assert not create_build_task(pkg).explicit
 
 
-#### WIP #####
+# WIP
 def test_overwrite_install_backup_success(temporary_store, config, mock_packages, tmpdir):
     """
     When doing an overwrite install that fails, Spack should restore the backup
@@ -1211,6 +1211,13 @@ def test_overwrite_install_backup_success(temporary_store, config, mock_packages
     # Make sure the install prefix exists with some trivial file
     installed_file = os.path.join(task.pkg.prefix, "some_file")
     fs.touchp(installed_file)
+
+    # TODO: remove this, as it uses the old install_task method
+    class InstallerThatWipesThePrefixDir:
+        def _install_task(self, task, install_status):
+            shutil.rmtree(task.pkg.prefix, ignore_errors=True)
+            fs.mkdirp(task.pkg.prefix)
+            raise Exception("Some fatal install error")
 
     # Install that wipes the prefix directory
     def wiped_installer():
