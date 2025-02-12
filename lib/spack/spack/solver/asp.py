@@ -6,6 +6,7 @@ import collections.abc
 import copy
 import enum
 import functools
+import io
 import itertools
 import os
 import pathlib
@@ -73,17 +74,19 @@ TransformFunction = Callable[[spack.spec.Spec, List[AspFunction]], List[AspFunct
 #: Enable the addition of a runtime node
 WITH_RUNTIME = sys.platform != "win32"
 
-#: Data class that contain configuration on what a
-#: clingo solve should output.
-#:
-#: Args:
-#:     timers (bool):  Print out coarse timers for different solve phases.
-#:     stats (bool): Whether to output Clingo's internal solver statistics.
-#:     out: Optional output stream for the generated ASP program.
-#:     setup_only (bool): if True, stop after setup and don't solve (default False).
-OutputConfiguration = collections.namedtuple(
-    "OutputConfiguration", ["timers", "stats", "out", "setup_only"]
-)
+
+class OutputConfiguration(NamedTuple):
+    """Data class that contains configuration on what a clingo solve should output."""
+
+    #: Print out coarse timers for different solve phases
+    timers: bool
+    #: Whether to output Clingo's internal solver statistics
+    stats: bool
+    #: Optional output stream for the generated ASP program
+    out: Optional[io.IOBase]
+    #: If True, stop after setup and don't solve
+    setup_only: bool
+
 
 #: Default output configuration for a solve
 DEFAULT_OUTPUT_CONFIGURATION = OutputConfiguration(
