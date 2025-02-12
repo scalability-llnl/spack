@@ -16,6 +16,7 @@ import spack.spec
 import spack.stage
 import spack.util.git
 import spack.util.path
+from spack.error import SpackError
 from spack.main import SpackCommand
 
 add = SpackCommand("add")
@@ -159,6 +160,7 @@ class TestDevelop:
             # Create path to allow develop to modify env
             fs.mkdirp(abspath)
             develop("--no-clone", "-p", path, "mpich@1.0")
+            self.check_develop(e, spack.spec.Spec("mpich@=1.0"), path)
 
             # Remove path to ensure develop with no args runs staging code
             os.rmdir(abspath)
@@ -216,6 +218,40 @@ def test_develop_full_git_repo(
         develop_dir = spec.variants["dev_path"].value
         commits = _git_commit_list(develop_dir)
         assert len(commits) > 1
+
+
+def test_recursive(mutable_mock_env_path, install_mockery, mock_fetch):
+    env("create", "test")
+
+    with ev.read("test") as e:
+        add("indirect-mpich@1.0")
+        e.concretize()
+        specs = e.all_specs()
+
+        assert len(specs) > 1
+        develop("--recursive", "mpich")
+
+        expected_dev_specs = ["mpich", "direct-mpich", "indirect-mpich"]
+        for spec in expected_dev_specs:
+            assert spec in e.dev_specs
+
+
+def test_develop_fails_with_multiple_concrete_versions(
+    mutable_mock_env_path, install_mockery, mock_fetch
+):
+    env("create", "test")
+
+    with ev.read("test") as e:
+        add("indirect-mpich@1.0")
+        add("indirect-mpich@0.9")
+        e.unify = False
+        e.concretize()
+
+        with pytest.raises(SpackError) as develop_error:
+            develop("indirect-mpich", fail_on_error=True)
+
+        error_str = "has multiple concrete instances in the graph"
+        assert error_str in str(develop_error.value)
 
 
 def test_concretize_dev_path_with_at_symbol_in_env(mutable_mock_env_path, tmpdir, mock_packages):

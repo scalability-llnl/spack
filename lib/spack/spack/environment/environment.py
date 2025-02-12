@@ -1108,11 +1108,6 @@ class Environment:
 
     @property
     def dev_specs(self):
-        if not self._dev_specs:
-            self._dev_specs = self._read_dev_specs()
-        return self._dev_specs
-
-    def _read_dev_specs(self):
         dev_specs = {}
         dev_config = spack.config.get("develop", {})
         for name, entry in dev_config.items():

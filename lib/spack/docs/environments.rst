@@ -457,6 +457,13 @@ developed package in the environment are concretized to match the
 version (and other constraints) passed as the spec argument to the
 ``spack develop`` command.
 
+When working deep in the graph it is often desirable to have multiple specs marked
+as ``develop`` so you don't have to restage and/or do full rebuilds each time you
+call ``spack install``.  The ``--recursive`` flag can be used in these scenarios
+to ensure that all the dependents of the initial spec you provide are also marked
+as develop specs.  The ``--recursive`` flag requires a pre-concretized environment
+so the graph can be traversed from the supplied spec all the way to the root specs.
+
 For packages with ``git`` attributes, git branches, tags, and commits can
 also be used as valid concrete versions (see :ref:`version-specifier`).
 This means that for a package ``foo``, ``spack develop foo@git.main`` will clone
