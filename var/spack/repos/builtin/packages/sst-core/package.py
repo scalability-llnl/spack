@@ -108,6 +108,8 @@ class SstCore(AutotoolsPackage):
             args.append("--with-zoltan=%s" % self.spec["zoltan"].prefix)
         if "+hdf5" in self.spec:
             args.append("--with-hdf5=%s" % self.spec["hdf5"].prefix)
+        else:
+            args.append("--without-hdf5")
         if "+zlib" in self.spec:
             args.append("--with-zlib=%s" % self.spec["zlib-api"].prefix)
         if "+curses" in self.spec:
