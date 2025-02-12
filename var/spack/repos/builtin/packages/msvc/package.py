@@ -43,7 +43,7 @@ class Msvc(Package, CompilerPackage):
         spec, extras = super().determine_variants(exes, version_str)
         extras["compilers"]["c"] = extras["compilers"]["cxx"]
         return spec, extras
-    
+
     def setup_dependent_package(self, module, dependent_spec):
         """Populates dependent module with tooling available from VS"""
         # We want these to resolve to the paths set by MSVC's VCVARs
