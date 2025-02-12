@@ -5,7 +5,6 @@
 and running executables.
 """
 import collections
-import collections.abc
 import concurrent.futures
 import os
 import re
