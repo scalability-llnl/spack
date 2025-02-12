@@ -1915,6 +1915,12 @@ class Spec:
 
     @property
     def virtual(self):
+        warnings.warn(
+            "`Spec.virtual` is deprecated and will be removed in version 1.0.0. Use "
+            "`spack.repo.PATH.is_virtual(spec.name)` instead.",
+            category=spack.error.SpackAPIWarning,
+            stacklevel=2,
+        )
         return spack.repo.PATH.is_virtual(self.name)
 
     @property
@@ -3090,7 +3096,7 @@ class Spec:
         # FIXME: raise just the first one encountered
         for spec in self.traverse():
             # raise an UnknownPackageError if the spec's package isn't real.
-            if (not spec.virtual) and spec.name:
+            if spec.name and not spack.repo.PATH.is_virtual(spec.name):
                 spack.repo.PATH.get_pkg_class(spec.fullname)
 
             # validate compiler in addition to the package name.
@@ -3099,7 +3105,7 @@ class Spec:
                     raise UnsupportedCompilerError(spec.compiler.name)
 
             # Ensure correctness of variants (if the spec is not virtual)
-            if not spec.virtual:
+            if not spack.repo.PATH.is_virtual(spec.name):
                 Spec.ensure_valid_variants(spec)
                 substitute_abstract_variants(spec)
 
@@ -3334,7 +3340,9 @@ class Spec:
 
         # If the names are different, we need to consider virtuals
         if self.name != other.name and self.name and other.name:
-            if self.virtual and other.virtual:
+            self_virtual = spack.repo.PATH.is_virtual(self.name)
+            other_virtual = spack.repo.PATH.is_virtual(other.name)
+            if self_virtual and other_virtual:
                 # Two virtual specs intersect only if there are providers for both
                 lhs = spack.repo.PATH.providers_for(str(self))
                 rhs = spack.repo.PATH.providers_for(str(other))
@@ -3342,8 +3350,8 @@ class Spec:
                 return bool(intersection)
 
             # A provider can satisfy a virtual dependency.
-            elif self.virtual or other.virtual:
-                virtual_spec, non_virtual_spec = (self, other) if self.virtual else (other, self)
+            elif self_virtual or other_virtual:
+                virtual_spec, non_virtual_spec = (self, other) if self_virtual else (other, self)
                 try:
                     # Here we might get an abstract spec
                     pkg_cls = spack.repo.PATH.get_pkg_class(non_virtual_spec.fullname)
@@ -3448,7 +3456,9 @@ class Spec:
         # If the names are different, we need to consider virtuals
         if self.name != other.name and self.name and other.name:
             # A concrete provider can satisfy a virtual dependency.
-            if not self.virtual and other.virtual:
+            if not spack.repo.PATH.is_virtual(self.name) and spack.repo.PATH.is_virtual(
+                other.name
+            ):
                 try:
                     # Here we might get an abstract spec
                     pkg_cls = spack.repo.PATH.get_pkg_class(self.fullname)
@@ -3516,7 +3526,7 @@ class Spec:
         lhs_edges: Dict[str, Set[DependencySpec]] = collections.defaultdict(set)
         for rhs_edge in other.traverse_edges(root=False, cover="edges"):
             # If we are checking for ^mpi we need to verify if there is any edge
-            if rhs_edge.spec.virtual:
+            if spack.repo.PATH.is_virtual(rhs_edge.spec.name):
                 rhs_edge.update_virtuals(virtuals=(rhs_edge.spec.name,))
 
             if not rhs_edge.virtuals:
@@ -3562,7 +3572,7 @@ class Spec:
 
     def virtual_dependencies(self):
         """Return list of any virtual deps in this spec."""
-        return [spec for spec in self.traverse() if spec.virtual]
+        return [spec for spec in self.traverse() if spack.repo.PATH.is_virtual(spec.name)]
 
     @property  # type: ignore[misc] # decorated prop not supported in mypy
     def patches(self):
@@ -4850,7 +4860,9 @@ def reconstruct_virtuals_on_edges(spec):
     possible_virtuals = set()
     for node in spec.traverse():
         try:
-            possible_virtuals.update({x for x in node.package.dependencies if Spec(x).virtual})
+            possible_virtuals.update(
+                {x for x in node.package.dependencies if spack.repo.PATH.is_virtual(x)}
+            )
         except Exception as e:
             warnings.warn(f"cannot reconstruct virtual dependencies on package {node.name}: {e}")
             continue
