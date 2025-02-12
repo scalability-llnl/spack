@@ -821,6 +821,16 @@ attr("external_spec_selected", node(ID, Package), LocalIndex) :-
     attr("node", node(ID, Package)),
     not attr("hash", node(ID, Package), _).
 
+% Account for compiler annotation on externals
+:- not attr("root", ExternalNode),
+   attr("external_build_requirement", ExternalNode, build_requirement("node", Compiler)),
+   not node_compiler(_, node(_, Compiler)).
+
+1 { attr("node_version_satisfies", node(X, Compiler), Constraint) : node_compiler(_, node(X, Compiler)) }
+  :- not attr("root", ExternalNode),
+     attr("external_build_requirement", ExternalNode, build_requirement("node", Compiler)),
+     attr("external_build_requirement", ExternalNode, build_requirement("node_version_satisfies", Compiler, Constraint)).
+
 % it cannot happen that a spec is external, but none of the external specs
 % conditions hold.
 error(100, "Attempted to use external for '{0}' which does not satisfy any configured external spec", Package)

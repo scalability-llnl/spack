@@ -1883,8 +1883,10 @@ class SpackSolverSetup:
                 def external_imposition(input_spec, requirements):
                     result = []
                     for asp_fn in requirements:
-                        if asp_fn.args[0] in ("depends_on", "build_requirement"):
+                        if asp_fn.args[0] == "depends_on":
                             continue
+                        elif asp_fn.args[0] == "build_requirement":
+                            asp_fn.args = "external_build_requirement", *asp_fn.args[1:]
                         if asp_fn.args[1] != input_spec.name:
                             continue
                         result.append(asp_fn)
