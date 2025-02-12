@@ -19,7 +19,7 @@ class Survey(CMakePackage):
     available for tools inside current MPI implementations including:
     MPICH, MVAPICH, MPT, and OpenMPI. It also supports multiple
     architectures and has been tested on machines based on Intel,
-    AMD, ARM, and IBM P8/9 processors and integrated NVIDIA GPUs.
+    AMD, ARM, and IBM P8/9 processors and integrated AMD and NVIDIA GPUs.
 
     Survey is a licensed product with the source not openly available.
     To access the survey source and build with spack please contact:
@@ -61,7 +61,8 @@ class Survey(CMakePackage):
     depends_on("cmake@3.12:", type="build")
 
     # for collectors
-    depends_on("libmonitor@2023.03.15+commrank", type=("build", "link", "run"), when="@1.0.3:")
+    depends_on("libmonitor@2021.11.08+commrank", type=("build", "link", "run"), when="@:1.0.9")
+    depends_on("libmonitor@2023.03.15+commrank", type=("build", "link", "run"), when="@1.1.0:")
 
     depends_on("papi@5:", type=("build", "link", "run"))
     depends_on("gotcha@master", type=("build", "link"), when="@:1.0.7")
@@ -97,7 +98,6 @@ class Survey(CMakePackage):
     depends_on("py-pillow", type=("build", "run"), when="@1.0.9:")
     depends_on("py-cycler", type=("build", "run"), when="@1.0.9:")
     depends_on("py-kiwisolver", type=("build", "run"), when="@1.0.9:")
-    depends_on("py-gpustat", type=("build", "run"), when="@1.0.9:")
 
     extends("python")
 
@@ -251,7 +251,4 @@ class Survey(CMakePackage):
         )
         env.prepend_path(
             "PYTHONPATH", join_path(self.spec["py-kiwisolver"].prefix, self.site_packages_dir)
-        )
-        env.prepend_path(
-            "PYTHONPATH", join_path(self.spec["py-gpustat"].prefix, self.site_packages_dir)
         )
