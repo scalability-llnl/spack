@@ -11,6 +11,12 @@ spack:
       require:
       - '%gcc target=x86_64_v3'
       variants: +mpi
+    c:
+      require: gcc
+    cxx:
+      require: gcc
+    fortran:
+      require: gcc
     mpi:
       require:
       - mpich
