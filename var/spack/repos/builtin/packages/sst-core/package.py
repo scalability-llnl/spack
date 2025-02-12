@@ -80,7 +80,7 @@ class SstCore(AutotoolsPackage):
     depends_on("hdf5", when="+hdf5")
     depends_on("zlib-api", when="+zlib")
     depends_on("gettext")
-    depends_on("ncurses", when="+curses")
+    depends_on("ncurses", when="+curses", type=("build", "link"))
 
     for version_name in ("master", "develop"):
         depends_on("autoconf@1.68:", type="build", when="@{}".format(version_name))
