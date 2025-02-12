@@ -84,6 +84,7 @@ class OutputConfiguration(NamedTuple):
     #: If True, stop after setup and don't solve
     setup_only: bool
 
+
 #: Default output configuration for a solve
 DEFAULT_OUTPUT_CONFIGURATION = OutputConfiguration(
     timers=False, stats=False, out=None, setup_only=False
