@@ -17,7 +17,6 @@ class G4vg(CMakePackage):
     license("Apache-2.0", checked_by="sethrj")
 
     version("develop", branch="main", get_full_repo=True)
-    next_develop_version = "1.1.0"
 
     version("1.0.1", sha256="add7ce4bc37889cac2101323a997cea8574b18da6cbeffdab44a2b714d134e99")
 
