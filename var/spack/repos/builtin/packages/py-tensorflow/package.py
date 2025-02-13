@@ -756,7 +756,7 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
         # Do you want to use Clang to build TensorFlow?
         if "%clang" in spec:
             env.set("TF_NEED_CLANG", "1")
-            env.set("CLANG_COMPILER_PATH", self.compiler.cc)
+            env.set("CLANG_COMPILER_PATH", spack_cc)
         else:
             env.set("TF_NEED_CLANG", "0")
 
