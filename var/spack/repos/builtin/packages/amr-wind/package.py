@@ -122,7 +122,9 @@ class AmrWind(CMakePackage, CudaPackage, ROCmPackage):
     conflicts("+openmp", when="+cuda")
     conflicts("+shared", when="+cuda")
     conflicts("@:2.0", when="+waves2amr")
-    conflicts("openfast@4.0.0:4.0.1", msg="OpenFAST 4.0.0:4.0.1 contains a bug. Use OpenFAST >= 4.0.2.")
+    conflicts(
+        "openfast@4.0.0:4.0.1", msg="OpenFAST 4.0.0:4.0.1 contains a bug. Use OpenFAST >= 4.0.2."
+    )
 
     def setup_build_environment(self, env):
         # Avoid compile errors with Intel interprocedural optimization
