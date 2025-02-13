@@ -16,6 +16,8 @@ class Scons(PythonPackage):
 
     license("MIT")
 
+    version("4.8.1", sha256="5b641357904d2f56f7bfdbb37e165ab996b6143c948b9df0efc7305f54949daa")
+    version("4.8.0", sha256="2c7377ff6a22ca136c795ae3dc3d0824696e5478d1e4940f2af75659b0d45454")
     version("4.7.0", sha256="d8b617f6610a73e46509de70dcf82f76861b79762ff602d546f4e80918ec81f3")
     version("4.5.2", sha256="813360b2bce476bc9cc12a0f3a22d46ce520796b352557202cb07d3e402f5458")
     version("4.5.1", sha256="9daeabe4d87ba2bd4ea15410765fc1ed2d931b723e4dc730a487a3911b9a1738")
@@ -35,7 +37,7 @@ class Scons(PythonPackage):
     version("3.0.1", sha256="24475e38d39c19683bc88054524df018fe6949d70fbd4c69e298d39a0269f173")
 
     depends_on("py-setuptools", type=("build", "run"))
-
+    conflicts("^python@:3.11", when="@:4.7.0")
     patch("fjcompiler.patch", when="%fj")
     patch("py3-hashbang.patch", when="@:3^python@3:")  # not needed for @4.0.0:
 
