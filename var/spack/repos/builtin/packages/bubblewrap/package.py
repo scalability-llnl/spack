@@ -44,15 +44,16 @@ class Bubblewrap(AutotoolsPackage, MesonPackage):
         depends_on("autoconf", type="build")
         depends_on("automake", type="build")
         depends_on("libtool", type="build")
-        depends_on("pkgconfig", type="build")
     with when("build_system=meson"):
         depends_on("meson@0.49:", type="build")
+
+    depends_on("pkgconfig", type="build")
     depends_on("libcap", type="link")
 
 
 class MesonBuilder(spack.build_systems.meson.MesonBuilder):
     def meson_args(self):
-        return ["-Dman=disabled"]
+        return ["-Dman=disabled", "-Dselinux=disabled"]
 
 
 class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
