@@ -35,15 +35,20 @@ class Cairo(AutotoolsPackage, MesonPackage):
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
 
+    # 1.17.4 is the last autotools based version. From 1.18.0 onward it is meson only
     build_system(
-        conditional("meson", when="@1.17.6:"),
+        conditional("meson", when="@1.18.0:"),
         conditional("autotools", when="@:1.17.4"),
         default="meson",
     )
 
+    requires("build_system=meson", when="@1.18.0:")
+    requires("build_system=autotools", when="@:1.17.4")
+
     variant("X", default=False, description="Build with X11 support")
     variant("gobject", default=False, description="Enable cairo's gobject functions feature")
 
+    # variants and build system depends for the autotools builds
     with when("build_system=autotools"):
         variant("png", default=False, description="Enable cairo's PNG functions feature")
         variant("svg", default=False, description="Enable cairo's SVG functions feature")
@@ -67,7 +72,8 @@ class Cairo(AutotoolsPackage, MesonPackage):
         depends_on("m4", type="build")
         depends_on("which", type="build")
 
-    # meson is the only build system from now
+
+    # variants and build system depends for the autotools builds
     # these names follow those listed here
     # https://gitlab.freedesktop.org/cairo/cairo/-/blob/1.18.2/meson_options.txt
     with when("build_system=meson"):
@@ -144,21 +150,18 @@ class Cairo(AutotoolsPackage, MesonPackage):
     # both autotools and meson need this for auto discovery of depends
     depends_on("pkgconfig", type="build")
 
-    # lzo is not strictly required, but cannot be disabled and may be pulled in accidentally
-    # https://github.com/mesonbuild/meson/issues/8224
-    # https://github.com/microsoft/vcpkg/pull/38313
-    depends_on("lzo", when="@1.17.6: build_system=meson")
-
+    # non build system specific depends
     # versions that use (the old) autotools build
-    with when("@:1.17.6"):
+    with when("@:1.17.4"):
         depends_on("pixman@0.36.0:", when="@1.17.2:")
         depends_on("freetype", when="+ft")
         depends_on("fontconfig@2.10.91:", when="+fc")
         depends_on("libpng", when="+png")
         depends_on("glib")
 
+    # non build system specific depends
     # versions that use (the new) meson build
-    with when("@1.17.8:"):
+    with when("@1.18.0:"):
         depends_on("binutils", when="+symbol-lookup")
         depends_on("freetype@2.13.0:", when="+ft")
         depends_on("libpng@1.4.0:", when="+png")
@@ -166,7 +169,12 @@ class Cairo(AutotoolsPackage, MesonPackage):
         depends_on("pixman@0.40.0:")
         depends_on("fontconfig@2.13.0:", when="+fc")
 
-    # needed for both meson and autotools builds
+        # lzo is not strictly required, but cannot be disabled and may be pulled in accidentally
+        # https://github.com/mesonbuild/meson/issues/8224
+        # https://github.com/microsoft/vcpkg/pull/38313
+        depends_on("lzo")
+
+    # needed for both meson and autotools builds when including X
     with when("+X"):
         depends_on("libx11")
         depends_on("libxext")
