@@ -44,7 +44,6 @@ class Bubblewrap(AutotoolsPackage, MesonPackage):
         depends_on("autoconf", type="build")
         depends_on("automake", type="build")
         depends_on("libtool", type="build")
-        depends_on("m4", type="build")
         depends_on("pkgconfig", type="build")
     with when("build_system=meson"):
         depends_on("meson@0.49:", type="build")
