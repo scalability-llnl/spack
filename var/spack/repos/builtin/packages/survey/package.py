@@ -67,8 +67,8 @@ class Survey(CMakePackage):
     depends_on("papi@5:", type=("build", "link", "run"))
     depends_on("gotcha@master", type=("build", "link"), when="@:1.0.7")
     depends_on("gotcha@1.0.4", type=("build", "link"), when="@1.0.8:")
-    depends_on("llvm-openmp@9.0.0", type=("build", "link"), when="@:1.0.2")
-    depends_on("llvm-openmp@12.0.1+multicompat", type=("build", "link"), when="@1.0.3:")
+    depends_on("llvm-openmp@9.0.0", type=("build", "link"), when="@:1.0.3")
+    depends_on("llvm-openmp@12.0.1+multicompat", type=("build", "link"), when="@1.0.4:")
 
     # MPI Installation
     depends_on("mpi", type="build", when="+mpi")
