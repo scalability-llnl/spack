@@ -72,7 +72,6 @@ class Cairo(AutotoolsPackage, MesonPackage):
         depends_on("m4", type="build")
         depends_on("which", type="build")
 
-
     # variants and build system depends for the autotools builds
     # these names follow those listed here
     # https://gitlab.freedesktop.org/cairo/cairo/-/blob/1.18.2/meson_options.txt
