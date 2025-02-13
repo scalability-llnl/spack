@@ -518,6 +518,27 @@ class IntelOneapiCompilers(IntelOneApiPackage, CompilerPackage):
         classic_flags = ["-gcc-name={}".format(self.compiler.cc)]
         classic_flags.append("-gxx-name={}".format(self.compiler.cxx))
 
+        # On ubuntu systems `icc` will only add `/usr/include/x86_64-linux-gnu` to the include
+        # directories if the `gcc` that `icc` was installed with also reports `x86_64-linux-gnu` as
+        # its install target. By default `gcc` installed with Spack uses `config.guess` to
+        # determine the install target. For ubuntu systems `config.guess` returns
+        # `x86_64-pc-linux-gnu` instead of `x86_64-linux-gnu`.
+        # `self.compiler.cc` is gcc, so we can assume `-print-multiarch` is a valid option. In
+        # order to get the multiarch include directory used by `gcc` we need to ask `cc1` with the
+        # correct flags.
+        gcc = Executable(self.compiler.cc)
+        cc1 = Executable(gcc("-print-prog-name=cc1", output=str).strip())
+        multiarch_triplet = gcc("-print-multiarch", output=str).strip()
+        incdir = [
+            i
+            for i in cc1(
+                "-imultiarch", multiarch_triplet, "-o", "/dev/null", "-v", "/dev/null", error=str
+            ).split(" ")
+            if "nonexistent" not in i and i.endswith(multiarch_triplet + "\n")
+        ]
+        if incdir:
+            classic_flags.append("-isystem" + incdir[0].strip())
+
         # Older versions trigger -Wunused-command-line-argument warnings whenever
         # linker flags are passed in preprocessor (-E) or compilation mode (-c).
         # The cfg flags are treated as command line flags apparently. Newer versions
