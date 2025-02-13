@@ -516,9 +516,7 @@ class RocmOpenmpExtras(Package):
         llvm_inc = "/rocm-openmp-extras/llvm-project/llvm/include"
         llvm_prefix = self.spec["llvm-amdgpu"].prefix
         omp_bin_dir = "{0}/bin".format(openmp_extras_prefix)
-        omp_lib_dir = "{0}/lib".format(openmp_extras_prefix)
         bin_dir = "{0}/bin".format(llvm_prefix)
-        lib_dir = "{0}/lib".format(llvm_prefix)
         flang_warning = "-Wno-incompatible-pointer-types-discards-qualifiers"
         libpgmath = "/rocm-openmp-extras/flang/runtime/libpgmath/lib/common"
         elfutils_inc = spec["elfutils"].prefix.include
@@ -526,34 +524,6 @@ class RocmOpenmpExtras(Package):
         if self.spec.satisfies("@6.2:"):
             ncurses_lib_dir = self.spec["ncurses"].prefix.lib
             zlib_lib_dir = self.spec["zlib"].prefix.lib
-
-        # flang1 and flang2 symlink needed for build of flang-runtime
-        # libdevice symlink to rocm-openmp-extras for runtime
-        # libdebug symlink to rocm-openmp-extras for runtime
-        if os.path.islink((os.path.join(bin_dir, "flang1"))):
-            os.unlink(os.path.join(bin_dir, "flang1"))
-        if os.path.islink((os.path.join(bin_dir, "flang2"))):
-            os.unlink(os.path.join(bin_dir, "flang2"))
-        if self.spec.version >= Version("6.1.0"):
-            if os.path.islink((os.path.join(bin_dir, "flang-legacy"))):
-                os.unlink(os.path.join(bin_dir, "flang-legacy"))
-        if os.path.islink((os.path.join(lib_dir, "libdevice"))):
-            os.unlink(os.path.join(lib_dir, "libdevice"))
-        if os.path.islink((os.path.join(llvm_prefix, "lib-debug"))):
-            os.unlink(os.path.join(llvm_prefix, "lib-debug"))
-        if not os.path.exists(os.path.join(bin_dir, "flang1")):
-            os.symlink(os.path.join(omp_bin_dir, "flang1"), os.path.join(bin_dir, "flang1"))
-        if not os.path.exists(os.path.join(bin_dir, "flang2")):
-            os.symlink(os.path.join(omp_bin_dir, "flang2"), os.path.join(bin_dir, "flang2"))
-
-        if self.spec.version >= Version("6.1.0"):
-            os.symlink(
-                os.path.join(omp_bin_dir, "flang-legacy"), os.path.join(bin_dir, "flang-legacy")
-            )
-        os.symlink(os.path.join(omp_lib_dir, "libdevice"), os.path.join(lib_dir, "libdevice"))
-        os.symlink(
-            os.path.join(openmp_extras_prefix, "lib-debug"), os.path.join(llvm_prefix, "lib-debug")
-        )
 
         # Set cmake args
         components = dict()
