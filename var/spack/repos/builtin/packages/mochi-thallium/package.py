@@ -78,8 +78,7 @@ class MochiThallium(CMakePackage):
         depends_on("cereal@1.3.1:", when="@0.10.1:")
     # thallium relies on std::decay_t
     conflicts("%gcc@:4.9.0")
-    conflicts("~cereal", when="@0.14.0:",
-              msg="Thallium 0.14.0 and above requires Cereal")
+    conflicts("~cereal", when="@0.14.0:", msg="Thallium 0.14.0 and above requires Cereal")
 
     def cmake_args(self):
         args = []
