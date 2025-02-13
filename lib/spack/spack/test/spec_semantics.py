@@ -460,7 +460,6 @@ class TestSpecSemantics:
             ("foo platform=linux", "platform=test os=redhat6 target=x86"),
             ("foo os=redhat6", "platform=test os=debian6 target=x86_64"),
             ("foo target=x86_64", "platform=test os=redhat6 target=x86"),
-            ("foo arch=test-frontend-frontend", "platform=test os=frontend target=backend"),
             ("foo%intel", "%gcc"),
             ("foo%intel", "%gcc"),
             ("foo%gcc@4.3", "%gcc@4.4:4.6"),
@@ -487,7 +486,6 @@ class TestSpecSemantics:
             ("libelf+debug", "libelf~debug"),
             ("libelf+debug~foo", "libelf+debug+foo"),
             ("libelf debug=True", "libelf debug=False"),
-            ("libelf platform=test target=be os=be", "libelf target=fe os=fe"),
             ("namespace=builtin.mock", "namespace=builtin"),
         ],
     )
@@ -1991,3 +1989,26 @@ def test_equality_discriminate_on_propagation(lhs, rhs):
 
 def test_comparison_multivalued_variants():
     assert Spec("x=a") < Spec("x=a,b") < Spec("x==a,b") < Spec("x==a,b,c")
+
+
+def test_comparison_after_breaking_hash_change():
+    # We simulate a breaking change in DAG hash computation in Spack. We have two specs that are
+    # entirely equal modulo DAG hash. When deserializing these specs, we don't want them to compare
+    # as equal, because DAG hash is used throughout in Spack to distinguish between specs
+    # (e.g. database, build caches, install dir).
+    s = Spec("example@=1.0")
+    s._mark_concrete(True)
+
+    # compute the dag hash and a change to it
+    dag_hash = s.dag_hash()
+    new_dag_hash = f"{'b' if dag_hash[0] == 'a' else 'a'}{dag_hash[1:]}"
+
+    before_breakage = s.to_dict()
+    after_breakage = s.to_dict()
+    after_breakage["spec"]["nodes"][0]["hash"] = new_dag_hash
+    assert before_breakage != after_breakage
+
+    x = Spec.from_dict(before_breakage)
+    y = Spec.from_dict(after_breakage)
+    assert x != y
+    assert len({x, y}) == 2

@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import llnl.util.tty as tty
 
 from spack.package import *
 
@@ -43,6 +42,6 @@ class Oras(Package):
 
         oras = find("bin", "oras")
         if not oras:
-            tty.die("Oras executable missing in bin.")
+            raise InstallError("Oras executable missing in bin.")
         tty.debug("Found oras executable %s to move into install bin" % oras[0])
         install(oras[0], prefix.bin)

@@ -319,7 +319,6 @@ class TestSpecDag:
             ("mpich@1.0", "mpileaks ^mpich@2.0"),
             ("mpich%gcc", "mpileaks ^mpich%intel"),
             ("mpich%gcc@4.6", "mpileaks ^mpich%gcc@4.5"),
-            ("mpich platform=test target=be", "mpileaks ^mpich platform=test target=fe"),
         ],
     )
     def test_unsatisfiable_cases(self, set_dependency, constraint_str, spec_str):
@@ -429,31 +428,29 @@ class TestSpecDag:
         c2 = s["mpileaks"]["mpileaks"].copy()
         assert c0 == c1 == c2 == s
 
-    """
-    Here is the graph with deptypes labeled (assume all packages have a 'dt'
-    prefix). Arrows are marked with the deptypes ('b' for 'build', 'l' for
-    'link', 'r' for 'run').
+    # Here is the graph with deptypes labeled (assume all packages have a 'dt'
+    # prefix). Arrows are marked with the deptypes ('b' for 'build', 'l' for
+    # 'link', 'r' for 'run').
 
-        use -bl-> top
+    #     use -bl-> top
 
-        top -b->  build1
-        top -bl-> link1
-        top -r->  run1
+    #     top -b->  build1
+    #     top -bl-> link1
+    #     top -r->  run1
 
-        build1 -b->  build2
-        build1 -bl-> link2
-        build1 -r->  run2
+    #     build1 -b->  build2
+    #     build1 -bl-> link2
+    #     build1 -r->  run2
 
-        link1 -bl-> link3
+    #     link1 -bl-> link3
 
-        run1 -bl-> link5
-        run1 -r->  run3
+    #     run1 -bl-> link5
+    #     run1 -r->  run3
 
-        link3 -b->  build2
-        link3 -bl-> link4
+    #     link3 -b->  build2
+    #     link3 -bl-> link4
 
-        run3 -b-> build3
-    """
+    #     run3 -b-> build3
 
     @pytest.mark.parametrize(
         "spec_str,deptypes,expected",

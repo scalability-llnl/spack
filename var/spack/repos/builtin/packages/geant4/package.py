@@ -49,6 +49,7 @@ class Geant4(CMakePackage):
     version("10.3.3", sha256="bcd36a453da44de9368d1d61b0144031a58e4b43a6d2d875e19085f2700a89d8")
     version("10.0.4", sha256="97f3744366b00143d1eed52f8786823034bbe523f45998106f798af61d83f863")
 
+    depends_on("c", type="build")
     depends_on("cxx", type="build")
 
     _cxxstd_values = (
