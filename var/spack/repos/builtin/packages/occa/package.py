@@ -76,7 +76,7 @@ class SetupEnvironment:
         s_env.set("OCCA_DIR", self.prefix)
         s_env.set("OCCA_CXX", spack_cxx)
         # Run the tests serially:
-        s_env.set("CTEST_PARALLEL_LEVEL=1")
+        s_env.set("CTEST_PARALLEL_LEVEL", "1")
 
         # Run-time compiler flags:
         cxxflags = spec.compiler_flags["cxxflags"]
