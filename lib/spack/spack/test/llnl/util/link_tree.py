@@ -583,7 +583,6 @@ def test_destination_visitor_path_normalization(tmp_path: pathlib.Path):
 
     dest_visitor = DestinationMergeVisitor(src_visitor)
     dest_visitor.visit_file(dest, "FILE", 0)
-    # not a conflict, since normalization is off
     assert len(dest_visitor.src.files) == 1
     assert len(dest_visitor.src.directories) == 0
     assert "file" in dest_visitor.src.files
