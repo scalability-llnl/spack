@@ -32,7 +32,7 @@ class Ace(MakefilePackage):
         # Dictionary mapping: compiler-name : ACE config-label
         supported = {"intel": "_icc", "gcc": ""}
 
-        if not (self.compiler.name in supported):
+        if self.compiler.name not in supported:
             raise Exception(
                 "compiler " + self.compiler.name + " not supported in ace spack-package"
             )

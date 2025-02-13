@@ -6,8 +6,6 @@
 import os
 import socket
 
-import llnl.util.tty as tty
-
 from spack.build_systems.cmake import CMakeBuilder
 from spack.package import *
 

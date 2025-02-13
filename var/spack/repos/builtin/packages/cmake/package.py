@@ -30,11 +30,13 @@ class Cmake(Package):
     license("BSD-3-Clause")
 
     version("master", branch="master")
+    version("3.31.5", sha256="66fb53a145648be56b46fa9e8ccade3a4d0dfc92e401e52ce76bdad1fea43d27")
     version("3.31.4", sha256="a6130bfe75f5ba5c73e672e34359f7c0a1931521957e8393a5c2922c8b0f7f25")
     version("3.31.3", sha256="fac45bc6d410b49b3113ab866074888d6c9e9dc81a141874446eb239ac38cb87")
     version("3.31.2", sha256="42abb3f48f37dbd739cdfeb19d3712db0c5935ed5c2aef6c340f9ae9114238a2")
     version("3.31.1", sha256="c4fc2a9bd0cd5f899ccb2fb81ec422e175090bc0de5d90e906dd453b53065719")
     version("3.31.0", sha256="300b71db6d69dcc1ab7c5aae61cbc1aa2778a3e00cbd918bc720203e311468c3")
+    version("3.30.7", sha256="470e44d9c7caa3bd869ef953071b84f565b5d378d0a9eccbbbcd72031f21b9de")
     version("3.30.6", sha256="a7aa25cdd8545156fe0fec95ebbd53cb2b5173a8717e227f6e8a755185c168cf")
     version("3.30.5", sha256="9f55e1a40508f2f29b7e065fa08c29f82c402fa0402da839fffe64a25755a86d")
     version("3.30.4", sha256="c759c97274f1e7aaaafcb1f0d261f9de9bf3a5d6ecb7e2df616324a46fe704b2")
@@ -74,45 +76,6 @@ class Cmake(Package):
     version("3.1.0", sha256="8bdc3fa3f2da81bc10c772a6b64cc9052acc2901d42e1e1b2588b40df224aad9")
     version("3.0.2", sha256="6b4ea61eadbbd9bec0ccb383c29d1f4496eacc121ef7acf37c7a24777805693e")
     version("2.8.10.2", sha256="ce524fb39da06ee6d47534bbcec6e0b50422e18b62abc4781a4ba72ea2910eb1")
-
-    with default_args(deprecated=True):
-        version(
-            "3.29.3", sha256="252aee1448d49caa04954fd5e27d189dd51570557313e7b281636716a238bccb"
-        )
-        version(
-            "3.29.2", sha256="36db4b6926aab741ba6e4b2ea2d99c9193222132308b4dc824d4123cb730352e"
-        )
-        version(
-            "3.29.1", sha256="7fb02e8f57b62b39aa6b4cf71e820148ba1a23724888494735021e32ab0eefcc"
-        )
-        version(
-            "3.29.0", sha256="a0669630aae7baa4a8228048bf30b622f9e9fd8ee8cedb941754e9e38686c778"
-        )
-        version(
-            "3.28.4", sha256="eb9c787e078848dc493f4f83f8a4bbec857cd1f38ab6425ce8d2776a9f6aa6fb"
-        )
-        version(
-            "3.28.3", sha256="72b7570e5c8593de6ac4ab433b73eab18c5fb328880460c86ce32608141ad5c1"
-        )
-        version(
-            "3.28.2", sha256="1466f872dc1c226f373cf8fba4230ed216a8f108bd54b477b5ccdfd9ea2d124a"
-        )
-        version(
-            "3.28.1", sha256="15e94f83e647f7d620a140a7a5da76349fc47a1bfed66d0f5cdee8e7344079ad"
-        )
-        version(
-            "3.28.0", sha256="e1dcf9c817ae306e73a45c2ba6d280c65cf4ec00dd958eb144adaf117fb58e71"
-        )
-        # used in py-cmake, to be removed in Spack 0.23
-        version(
-            "3.22.2", sha256="3c1c478b9650b107d452c5bd545c72e2fad4e37c09b89a1984b9a2f46df6aced"
-        )
-        version(
-            "3.21.4", sha256="d9570a95c215f4c9886dd0f0564ca4ef8d18c30750f157238ea12669c2985978"
-        )
-        version(
-            "3.18.0", sha256="83b4ffcb9482a73961521d2bafe4a16df0168f03f56e6624c419c461e5317e29"
-        )
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
@@ -162,9 +125,9 @@ class Cmake(Package):
     patch("mr-9623.patch", when="@3.22.0:3.30")
 
     depends_on("ninja", when="platform=windows")
-    depends_on("gmake", when="platform=linux")
-    depends_on("gmake", when="platform=darwin")
-    depends_on("gmake", when="platform=freebsd")
+    depends_on("gmake", type=("build", "run"), when="platform=linux")
+    depends_on("gmake", type=("build", "run"), when="platform=darwin")
+    depends_on("gmake", type=("build", "run"), when="platform=freebsd")
 
     depends_on("qt", when="+qtgui")
     # Qt depends on libmng, which is a CMake package;

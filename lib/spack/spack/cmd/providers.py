@@ -41,7 +41,11 @@ def providers(parser, args):
     specs = spack.cmd.parse_specs(args.virtual_package)
 
     # Check prerequisites
-    non_virtual = [str(s) for s in specs if not s.virtual or s.name not in valid_virtuals]
+    non_virtual = [
+        str(s)
+        for s in specs
+        if not spack.repo.PATH.is_virtual(s.name) or s.name not in valid_virtuals
+    ]
     if non_virtual:
         msg = "non-virtual specs cannot be part of the query "
         msg += "[{0}]\n".format(", ".join(non_virtual))

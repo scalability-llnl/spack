@@ -21,10 +21,20 @@ class Pandoramonitoring(CMakePackage):
     version("master", branch="master")
     version("3.5.0", sha256="274562abb7c797194634d5460a56227444a1de07a240c88ae35ca806abcbaf60")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     depends_on("root@6.18.04: +x +opengl")
     depends_on("pandorasdk")
+
+    # https://github.com/PandoraPFA/PandoraMonitoring/pull/13
+    @when("@:3.6.0")
+    def patch(self):
+        filter_file(
+            "TTreeWrapper::Branch<T>::~Branch<T>",
+            "TTreeWrapper::Branch<T>::~Branch",
+            "src/TTreeWrapper.cc",
+        )
 
     def cmake_args(self):
         args = [

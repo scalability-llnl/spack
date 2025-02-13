@@ -11,6 +11,13 @@ spack:
       require: "osmesa"
     mpi:
       require: openmpi
+    py-torch:
+      require:
+      - target=x86_64_v3
+      - ~cuda
+      - +rocm
+      - amdgpu_target=gfx90a
+      - ~flash_attention
 
   specs:
     # Horovod

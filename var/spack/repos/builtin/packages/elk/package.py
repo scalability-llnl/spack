@@ -14,6 +14,9 @@ class Elk(MakefilePackage):
 
     license("LGPL-3.0-or-later")
 
+    version("10.2.4", sha256="015e1d2a04a6c8335af2e5f5adaae143c6c0287f34772e069834a691bb15ac9d")
+    version("9.6.8", sha256="d5b60406744a13be42a258a6efd9545ce38a7006d8e76e40e3770368e05c1dae")
+    version("8.8.26", sha256="f0d397a0e2fd8b6f74bc9fccc03fae701bb348e3f08ca143d41757f5f6cf794a")
     version("8.3.22", sha256="1c31f09b7c09d6b24e775d4f0d5e1e8871f95a7656ee4ca21ac17dbe7ea16277")
     version("7.2.42", sha256="73f03776dbf9b2147bfcc5b7c062af5befa0944608f6fc4b6a1e590615400fc6")
     version("7.1.14", sha256="7c2ff30f4b1d72d5dc116de9d70761f2c206700c69d85dd82a17a5a6374453d2")
@@ -36,7 +39,7 @@ class Elk(MakefilePackage):
     # blis - use internal lapack and blas implementation from blis
     variant(
         "linalg",
-        default="internal",
+        default="generic",
         multi=False,
         description="Build with custom BLAS library",
         values=("internal", "generic", "openblas", "mkl", "blis"),
@@ -48,7 +51,7 @@ class Elk(MakefilePackage):
     # should be used with linalg=mkls
     variant(
         "fft",
-        default="internal",
+        default="fftw",
         multi=False,
         description="Build with custom FFT library",
         values=("internal", "fftw", "mkl"),
@@ -62,6 +65,11 @@ class Elk(MakefilePackage):
     conflicts("fft=mkl", when="linalg=generic")
     conflicts("fft=mkl", when="linalg=openblas")
     conflicts("fft=mkl", when="linalg=blis")
+
+    conflicts("linalg=internal", when="@8.6:", msg="Internal BLAS is not supported")
+    conflicts("fft=internal", when="@8.6:", msg="Internal FFTW is not supported")
+    conflicts("libxc@:6", when="@10:", msg="Versions >= 10 requires libxc >= 7")
+    conflicts("libxc@7:", when="@:9", msg="Versions <=9 requires libxc =< 6")
 
     variant("mpi", default=True, description="Enable MPI parallelism")
     variant("openmp", default=True, description="Enable OpenMP support")
@@ -90,7 +98,9 @@ class Elk(MakefilePackage):
     depends_on("mkl", when="fft=mkl")
 
     depends_on("mpi@2:", when="+mpi")
-    depends_on("libxc@5:", when="@7:+libxc")
+    depends_on("libxc@7:", when="@10:+libxc")
+    depends_on("libxc@6:", when="@:9+libxc")
+    depends_on("libxc@5:", when="@:7+libxc")
     depends_on("libxc@:3", when="@:3+libxc")
     depends_on("wannier90", when="+w90")
 
@@ -98,6 +108,13 @@ class Elk(MakefilePackage):
     parallel = False
 
     def edit(self, spec, prefix):
+        if spec.satisfies("@8.6:"):
+            libxc_env_var_src = "SRC_LIBXC"
+            libxc_env_var_lib = "LIB_LIBXC"
+        else:
+            libxc_env_var_src = "SRC_libxc"
+            libxc_env_var_lib = "LIB_libxc"
+
         # Dictionary of configuration options with default values assigned
         config = {
             "MAKE": "make",
@@ -109,7 +126,7 @@ class Elk(MakefilePackage):
             "SRC_OBLAS": "oblas_stub.f90",
             "SRC_OMP": "omp_stub.f90",
             "SRC_BLIS": "blis_stub.f90",
-            "SRC_libxc": "libxcifc_stub.f90",
+            libxc_env_var_src: "libxcifc_stub.f90",
             "SRC_FFT": "zfftifc.f90",
             "SRC_W90S": "w90_stub.f90",
             "F90": spack_fc,
@@ -173,9 +190,14 @@ class Elk(MakefilePackage):
         elif spec.satisfies("fft=fftw"):
             config["LIB_FFT"] = spec["fftw"].libs.ld_flags
             config["SRC_FFT"] = "zfftifc_fftw.f90"
+            if spec.satisfies("@8.6:"):
+                config["LIB_FFT"] += " -lfftw3f"
+                config["SRC_FFT"] += " cfftifc_fftw.f90"
         elif spec.satisfies("fft=mkl"):
             config["LIB_FFT"] = spec["mkl"].libs.ld_flags
             config["SRC_FFT"] = "mkl_dfti.f90 zfftifc_mkl.f90"
+            if spec.satisfies("@8.6:"):
+                config["SRC_FFT"] += " cfftifc_mkl.f90"
             cp = which("cp")
             mkl_prefix = spec["mkl"].prefix
             if spec.satisfies("^intel-mkl"):
@@ -185,21 +207,29 @@ class Elk(MakefilePackage):
                 join_path(self.build_directory, "src"),
             )
 
+        if spec.satisfies("@8.6:"):
+            config["F90_LIB"] = " ".join([config["LIB_LPK"], config["LIB_FFT"]])
+            del config["LIB_LPK"]
+            del config["LIB_FFT"]
+
         # Define targets
         self.build_targets.append("elk")
         print(self.build_targets)
         # Libxc support
         if spec.satisfies("+libxc"):
-            config["LIB_libxc"] = " ".join(
-                [
-                    join_path(spec["libxc"].prefix.lib, "libxcf90.so"),
-                    join_path(spec["libxc"].prefix.lib, "libxc.so"),
-                ]
-            )
-            if self.spec.satisfies("@7:"):
-                config["SRC_libxc"] = "libxcf90.f90 libxcifc.f90"
+            if self.spec.satisfies("@10:"):
+                config[libxc_env_var_lib] = join_path(spec["libxc"].prefix.lib, "libxcf03.so")
             else:
-                config["SRC_libxc"] = "libxc_funcs.f90 libxc.f90 libxcifc.f90"
+                config[libxc_env_var_lib] = join_path(spec["libxc"].prefix.lib, "libxcf90.so")
+            _libxc_lib = join_path(spec["libxc"].prefix.lib, "libxc.so")
+            config[libxc_env_var_lib] += f" {_libxc_lib}"
+
+            if self.spec.satisfies("@10:"):
+                config[libxc_env_var_src] = "libxcf03.f90 libxcifc.f90"
+            elif self.spec.satisfies("@7:9"):
+                config[libxc_env_var_src] = "libxcf90.f90 libxcifc.f90"
+            else:
+                config[libxc_env_var_src] = "libxc_funcs.f90 libxc.f90 libxcifc.f90"
 
         # Write configuration options to include file
         with open("make.inc", "w") as inc:
@@ -222,3 +252,9 @@ class Elk(MakefilePackage):
 
         install_tree("examples", join_path(prefix, "examples"))
         install_tree("species", join_path(prefix, "species"))
+
+    @on_package_attributes(run_tests=True)
+    def check(self):
+        with working_dir("{0}/tests".format(self.build_directory)):
+            bash = which("bash")
+            bash("./test.sh")

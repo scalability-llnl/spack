@@ -201,3 +201,15 @@ def test_drop_redundant_rpath(tmpdir, binary_with_rpaths):
     new_rpaths = elf.get_rpaths(binary)
     assert set(existing_dirs).issubset(new_rpaths)
     assert set(non_existing_dirs).isdisjoint(new_rpaths)
+
+
+def test_elf_invalid_e_shnum(tmp_path):
+    # from llvm/test/Object/Inputs/invalid-e_shnum.elf
+    path = tmp_path / "invalid-e_shnum.elf"
+    with open(path, "wb") as file:
+        file.write(
+            b"\x7fELF\x02\x010000000000\x03\x00>\x0000000000000000000000"
+            b"\x00\x00\x00\x00\x00\x00\x00\x000000000000@\x000000"
+        )
+    with open(path, "rb") as file, pytest.raises(elf.ElfParsingError):
+        elf.parse_elf(file)

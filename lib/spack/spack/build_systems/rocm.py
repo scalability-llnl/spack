@@ -140,7 +140,7 @@ class ROCmPackage(PackageBase):
         when="+rocm",
     )
 
-    depends_on("llvm-amdgpu", when="+rocm")
+    depends_on("llvm-amdgpu", type="build", when="+rocm")
     depends_on("hsa-rocr-dev", when="+rocm")
     depends_on("hip +rocm", when="+rocm")
 

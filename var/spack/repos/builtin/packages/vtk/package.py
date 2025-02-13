@@ -87,6 +87,10 @@ class Vtk(CMakePackage):
 
     conflicts("%gcc@13", when="@9.2")
 
+    # VTK 8 vendors a heavily outdated version of CMake's GenerateExportHeader module, which
+    # has a bogus version check for GCC/Intel version to early exit. This drops the early exit.
+    patch("vtk-bogus-compiler-check.patch", when="@7.1:8")
+
     # Based on PyPI wheel availability
     with when("+python"), default_args(type=("build", "link", "run")):
         depends_on("python@:3.13")

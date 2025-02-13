@@ -1,7 +1,7 @@
 # Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import os.path
+import os
 
 import llnl.util.lang as lang
 
@@ -408,11 +408,12 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
             if option:
                 spack_options.append(option)
 
-    def setup_dependent_package(self, module, dependent_spec):
-        try:
-            self.spec.kokkos_cxx = self.spec["kokkos-nvcc-wrapper"].kokkos_cxx
-        except Exception:
-            self.spec.kokkos_cxx = spack_cxx
+    @property
+    def kokkos_cxx(self) -> str:
+        if self.spec.satisfies("+wrapper"):
+            return self["kokkos-nvcc-wrapper"].kokkos_cxx
+        # Assumes build-time globals have been set already
+        return spack_cxx
 
     def cmake_args(self):
         spec = self.spec
@@ -474,9 +475,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
                 options.append(self.define(tpl + "_DIR", spec[tpl].prefix))
 
         if self.spec.satisfies("+wrapper"):
-            options.append(
-                self.define("CMAKE_CXX_COMPILER", self.spec["kokkos-nvcc-wrapper"].kokkos_cxx)
-            )
+            options.append(self.define("CMAKE_CXX_COMPILER", self.kokkos_cxx))
         elif "+rocm" in self.spec:
             if "+cmake_lang" in self.spec:
                 options.append(
@@ -513,7 +512,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         cmake_source_path = join_path(self.stage.source_path, self.test_script_relative_path)
         if not os.path.exists(cmake_source_path):
             return
-        """Copy test."""
+        # Copy test
         cmake_out_path = join_path(self.test_script_relative_path, "out")
         cmake_args = [
             cmake_source_path,
