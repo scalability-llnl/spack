@@ -2529,10 +2529,10 @@ def install_root_node(
         allow_missing: when true, allows installing a node with missing dependencies
     """
     # Early termination
-    if spec.external or spec.virtual:
-        warnings.warn("Skipping external or virtual package {0}".format(spec.format()))
+    if spec.external or not spec.concrete:
+        warnings.warn("Skipping external or abstract spec {0}".format(spec.format()))
         return
-    elif spec.concrete and spec.installed and not force:
+    elif spec.installed and not force:
         warnings.warn("Package for spec {0} already installed.".format(spec.format()))
         return
 

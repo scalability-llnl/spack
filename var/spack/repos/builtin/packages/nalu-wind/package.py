@@ -140,9 +140,9 @@ class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
         spec = self.spec
         env.append_flags("CXXFLAGS", "-DUSE_STK_SIMD_NONE")
         if spec.satisfies("+cuda"):
-            env.set("OMPI_CXX", self.spec["kokkos-nvcc-wrapper"].kokkos_cxx)
-            env.set("MPICH_CXX", self.spec["kokkos-nvcc-wrapper"].kokkos_cxx)
-            env.set("MPICXX_CXX", self.spec["kokkos-nvcc-wrapper"].kokkos_cxx)
+            env.set("OMPI_CXX", self["kokkos-nvcc-wrapper"].kokkos_cxx)
+            env.set("MPICH_CXX", self["kokkos-nvcc-wrapper"].kokkos_cxx)
+            env.set("MPICXX_CXX", self["kokkos-nvcc-wrapper"].kokkos_cxx)
         if spec.satisfies("+rocm"):
             env.append_flags("CXXFLAGS", "-fgpu-rdc")
 
