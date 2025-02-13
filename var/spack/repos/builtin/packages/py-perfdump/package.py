@@ -4,6 +4,7 @@
 
 from spack.package import *
 
+
 class PyPerfdump(CMakePackage):
     """An MPI- and HDF5- enabled Python module to create PAPI dumps"""
 
