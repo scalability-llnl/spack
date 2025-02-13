@@ -51,7 +51,7 @@ ninja-1.12.1-vmvycib6vmiofkdqgrblo7zsvp7odwut
 
     $ spack buildcache push ./spack-cache ninja
     ==> Pushed ninja@1.12.1/vmvycib
-    ==> Pushed ninja@1.12.1/vmvycibto file:///home/spackuser/spack/spack-cache
+    ==> Pushed ninja@1.12.1/vmvycib to file:///home/spackuser/spack/spack-cache
 
 Note that ``ninja`` must be installed locally for this to work.
 

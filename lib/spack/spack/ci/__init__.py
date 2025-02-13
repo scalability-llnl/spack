@@ -201,7 +201,7 @@ def create_already_built_pruner(
             return RebuildDecision(True, "not found anywhere")
 
         urls = ",".join(
-            [f"{loc.url_and_version.url}@v{loc.url_and_version.url}" for loc in spec_locations]
+            [f"{loc.url_and_version.url}@v{loc.url_and_version.version}" for loc in spec_locations]
         )
         message = f"up-to-date [{urls}]"
         return RebuildDecision(False, message)
