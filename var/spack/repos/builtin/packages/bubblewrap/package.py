@@ -61,6 +61,7 @@ class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
         return [
             "--disable-sudo",
             "--disable-man",
+            "--disable-selinux",
             "--with-bash-completion-dir="
             + join_path(self.spec.prefix, "share", "bash-completion", "completions"),
         ]
