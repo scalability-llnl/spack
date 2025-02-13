@@ -28,6 +28,7 @@ from spack.ci.common import PipelineDag, PipelineOptions, SpackCIConfig
 from spack.ci.generator_registry import generator
 from spack.cmd.ci import FAILED_CREATE_BUILDCACHE_CODE
 from spack.database import INDEX_JSON_FILE
+from spack.error import SpackError
 from spack.schema.buildcache_spec import schema as specfile_schema
 from spack.schema.database_index import schema as db_idx_schema
 from spack.spec import Spec
@@ -1387,11 +1388,23 @@ spack:
     assert f"checkout_commit: {last_two_git_commits[0]}" in rep_out
     assert f"merge_commit: {last_two_git_commits[1]}" in rep_out
 
-    # Test overwriting existing reproduction dir and using a different commit (HEAD)
+    # Test re-running in dirty working dir
+    with pytest.raises(SpackError, match=f"{repro_dir}"):
+        rep_out = ci_cmd(
+            "reproduce-build",
+            "https://example.com/api/v1/projects/1/jobs/2/artifacts",
+            "--working-dir",
+            str(repro_dir),
+            output=str,
+        )
+
+    # Cleanup between  tests
+    shutil.rmtree(repro_dir)
+
+    # Test --use-local-head
     rep_out = ci_cmd(
         "reproduce-build",
         "https://example.com/api/v1/projects/1/jobs/2/artifacts",
-        "--overwrite",
         "--use-local-head",
         "--working-dir",
         str(repro_dir),
@@ -1408,11 +1421,13 @@ spack:
         "download_and_extract_artifacts",
         lambda url, wd: fake_download_and_extract_artifacts(url, wd, False),
     )
+
+    # Cleanup between  tests
+    shutil.rmtree(repro_dir)
+
     rep_out = ci_cmd(
         "reproduce-build",
         "https://example.com/api/v1/projects/1/jobs/2/artifacts",
-        # Overwrite needed to prevent erroring on duplicate reproduction dir
-        "--overwrite",
         "--working-dir",
         str(repro_dir),
         output=str,

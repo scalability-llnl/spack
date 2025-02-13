@@ -177,9 +177,6 @@ def setup_parser(subparser):
         "-s", "--autostart", help="Run docker reproducer automatically", action="store_true"
     )
     reproduce.add_argument(
-        "--overwrite", help="Overwrite the working dir if it exists", action="store_true"
-    )
-    reproduce.add_argument(
         "--use-local-head",
         help="Use the HEAD of the local Spack instead of reproducing a commit",
         action="store_true",
@@ -621,7 +618,6 @@ def ci_reproduce(args):
         args.autostart,
         gpg_key_url,
         args.runtime,
-        args.overwrite,
         args.use_local_head,
     )
 

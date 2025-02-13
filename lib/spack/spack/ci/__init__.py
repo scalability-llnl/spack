@@ -773,7 +773,7 @@ def setup_spack_repro_version(repro_dir, checkout_commit, merge_commit=None):
     return True
 
 
-def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime, overwrite, use_local_head):
+def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime, use_local_head):
     """Given a url to gitlab artifacts.zip from a failed 'spack ci rebuild' job,
     attempt to setup an environment in which the failure can be reproduced
     locally.  This entails the following:
@@ -787,8 +787,8 @@ def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime, overwrite, use_
     commands to run to reproduce the build once inside the container.
     """
     work_dir = os.path.realpath(work_dir)
-    if overwrite and os.path.exists(work_dir):
-        shutil.rmtree(work_dir)
+    if os.path.exists(work_dir) and os.listdir(work_dir):
+        raise SpackError(f"Cannot run reproducer in non-emptry working dir:\n  {work_dir}")
 
     platform_script_ext = "ps1" if IS_WINDOWS else "sh"
     artifact_root = download_and_extract_artifacts(url, work_dir)
