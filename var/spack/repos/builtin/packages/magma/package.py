@@ -61,7 +61,6 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
         "5.6.1",
         "5.7.0",
         "5.7.1",
-        "5.7.3",
         "6.0.0",
         "6.0.2",
         "6.1.0",
