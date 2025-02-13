@@ -270,7 +270,7 @@ class URLBuildcacheEntry:
                 self.has_signed = True
             self._checked_signed = True
 
-        if not self._checked_unsigned:
+        if not self.has_signed and not self._checked_unsigned:
             if web_util.url_exists(self.remote_spec_url_unsigned):
                 if not self.has_signed:
                     self.remote_spec_url = self.remote_spec_url_unsigned
