@@ -8,7 +8,6 @@
 import glob
 import os
 import re
-import sys
 
 import spack.build_systems.generic
 import spack.build_systems.makefile
