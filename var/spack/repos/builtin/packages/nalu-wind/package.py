@@ -127,8 +127,7 @@ class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
     conflicts("^trilinos+cuda", when="~cuda")
     conflicts("^trilinos+rocm", when="~rocm")
     conflicts("+shared", when="+trilinos-solvers")
-    conflicts("openfast@4.0.0", msg="OpenFAST 4.0.0 contains a bug. Use OpenFAST >= 4.0.2.")
-    conflicts("openfast@4.0.1", msg="OpenFAST 4.0.1 contains a bug. Use OpenFAST >= 4.0.2.")
+    conflicts("openfast@4.0.0:4.0.1", msg="OpenFAST 4.0.0:4.0.1 contains a bug. Use OpenFAST >= 4.0.2.")
 
     def setup_dependent_run_environment(self, env, dependent_spec):
         spec = self.spec
