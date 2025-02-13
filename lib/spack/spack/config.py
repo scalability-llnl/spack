@@ -124,7 +124,7 @@ YamlConfigDict = Dict[str, Any]
 #: prefix for name of included configuration scopes
 INCLUDE_SCOPE_PREFIX = "include"
 
-#: safeguard for recursive includes -- raise an error after this many layers.
+#: safeguard for recursive includes -- maximum include depth
 MAX_RECURSIVE_INCLUDES = 100
 
 
