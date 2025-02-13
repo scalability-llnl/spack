@@ -72,6 +72,7 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("nlohmann-json")
     depends_on("geant4@10.5:", when="@0.4.2: +geant4")
     depends_on("geant4@10.5:11.1", when="@0.3.1:0.4.1 +geant4")
+    depends_on("geant4@:11.2", when="@:0.5.0 +geant4")
     depends_on("hepmc3", when="+hepmc3")
     depends_on("root", when="+root")
     depends_on("swig@4.1:", when="+swig")
