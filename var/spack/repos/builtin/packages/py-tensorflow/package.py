@@ -473,6 +473,10 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
     conflicts("%gcc@:11", when="@2.17:")
     conflicts("%gcc@:9.3.0", when="@2.9:")
     conflicts("%gcc@:7.3.0")
+    # https://github.com/tensorflow/tensorflow/issues/76908
+    conflicts("%clang@:15", when="@2.18:")
+    # https://github.com/tensorflow/tensorflow/issues/62416
+    conflicts("%clang", when="@:2.14")
 
     # zlib is vendored and downloaded directly from zlib.org (or mirrors), but
     # old downloads are removed from that site immediately after a new release.
@@ -752,6 +756,7 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
         # Do you want to use Clang to build TensorFlow?
         if "%clang" in spec:
             env.set("TF_NEED_CLANG", "1")
+            env.set("CLANG_COMPILER_PATH", self.compiler.cc)
         else:
             env.set("TF_NEED_CLANG", "0")
 
