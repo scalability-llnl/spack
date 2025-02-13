@@ -14,9 +14,9 @@ import tempfile
 import zipfile
 from collections import namedtuple
 from typing import Callable, Dict, List, Set
-from urllib.error import HTTPError, URLError
-from urllib.request import HTTPHandler, Request, build_opener
+from urllib.request import Request
 
+import llnl.path
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
 from llnl.util.tty.color import cescape, colorize
@@ -63,6 +63,8 @@ spack_compiler = spack.main.SpackCommand("compiler")
 
 PushResult = namedtuple("PushResult", "success url")
 
+urlopen = web_util.urlopen  # alias for mocking in tests
+
 
 def get_change_revisions():
     """If this is a git repo get the revisions to use when checking
@@ -82,6 +84,9 @@ def get_stack_changed(env_path, rev1="HEAD^", rev2="HEAD"):
     whether or not the stack was changed.  Returns True if the environment
     manifest changed between the provided revisions (or additionally if the
     `.gitlab-ci.yml` file itself changed).  Returns False otherwise."""
+    # git returns posix paths always, normalize input to be comptaible
+    # with that
+    env_path = llnl.path.convert_to_posix_path(env_path)
     git = spack.util.git.git()
     if git:
         with fs.working_dir(spack.paths.prefix):
@@ -472,12 +477,9 @@ def generate_pipeline(env: ev.Environment, args) -> None:
     # Use all unpruned specs to populate the build group for this set
     cdash_config = cfg.get("cdash")
     if options.cdash_handler and options.cdash_handler.auth_token:
-        try:
-            options.cdash_handler.populate_buildgroup(
-                [options.cdash_handler.build_name(s) for s in pipeline_specs]
-            )
-        except (SpackError, HTTPError, URLError, TimeoutError) as err:
-            tty.warn(f"Problem populating buildgroup: {err}")
+        options.cdash_handler.populate_buildgroup(
+            [options.cdash_handler.build_name(s) for s in pipeline_specs]
+        )
     elif cdash_config:
         # warn only if there was actually a CDash configuration.
         tty.warn("Unable to populate buildgroup without CDash credentials")
@@ -631,29 +633,19 @@ def download_and_extract_artifacts(url, work_dir):
     if token:
         headers["PRIVATE-TOKEN"] = token
 
-    opener = build_opener(HTTPHandler)
-
-    request = Request(url, headers=headers)
-    request.get_method = lambda: "GET"
-
-    response = opener.open(request, timeout=SPACK_CDASH_TIMEOUT)
-    response_code = response.getcode()
-
-    if response_code != 200:
-        msg = f"Error response code ({response_code}) in reproduce_ci_job"
-        raise SpackError(msg)
-
+    request = Request(url, headers=headers, method="GET")
     artifacts_zip_path = os.path.join(work_dir, "artifacts.zip")
+    os.makedirs(work_dir, exist_ok=True)
 
-    if not os.path.exists(work_dir):
-        os.makedirs(work_dir)
+    try:
+        response = urlopen(request, timeout=SPACK_CDASH_TIMEOUT)
+        with open(artifacts_zip_path, "wb") as out_file:
+            shutil.copyfileobj(response, out_file)
+    except OSError as e:
+        raise SpackError(f"Error fetching artifacts: {e}")
 
-    with open(artifacts_zip_path, "wb") as out_file:
-        shutil.copyfileobj(response, out_file)
-
-    zip_file = zipfile.ZipFile(artifacts_zip_path)
-    zip_file.extractall(work_dir)
-    zip_file.close()
+    with zipfile.ZipFile(artifacts_zip_path) as zip_file:
+        zip_file.extractall(work_dir)
 
     os.remove(artifacts_zip_path)
 

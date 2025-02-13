@@ -158,6 +158,7 @@ class Mfem(Package, CudaPackage, ROCmPackage):
     )
 
     depends_on("cxx", type="build")  # generated
+    depends_on("gmake", type="build")
 
     variant("static", default=True, description="Build static library")
     variant("shared", default=False, description="Build shared library")

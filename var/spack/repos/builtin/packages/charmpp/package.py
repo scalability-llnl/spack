@@ -140,6 +140,7 @@ class Charmpp(Package):
     # Git versions of Charm++ require automake and autoconf
     depends_on("automake", when="@develop")
     depends_on("autoconf", when="@develop")
+    depends_on("gmake", type="build")
 
     conflicts("~tracing", "+papi")
 
@@ -275,7 +276,7 @@ class Charmpp(Package):
     #            build-target=LIBS backend={0}'.format(b))
 
     def install(self, spec, prefix):
-        if not ("backend=mpi" in self.spec) or not ("backend=netlrts" in self.spec):
+        if "backend=mpi" not in self.spec or "backend=netlrts" not in self.spec:
             if self.spec.satisfies("+pthreads"):
                 raise InstallError(
                     "The pthreads option is only available on the Netlrts and MPI network layers."
@@ -395,7 +396,7 @@ class Charmpp(Package):
                         copy(filepath, tmppath)
                         os.remove(filepath)
                         os.rename(tmppath, filepath)
-                    except (IOError, OSError):
+                    except OSError:
                         pass
 
         tmp_path = join_path(builddir, "tmp")

@@ -13,6 +13,7 @@ from llnl.string import plural
 from llnl.util import lang, tty
 
 import spack.cmd
+import spack.concretize
 import spack.config
 import spack.environment as ev
 import spack.paths
@@ -450,7 +451,7 @@ def concrete_specs_from_file(args):
             else:
                 s = spack.spec.Spec.from_json(f)
 
-        concretized = s.concretized()
+        concretized = spack.concretize.concretize_one(s)
         if concretized.dag_hash() != s.dag_hash():
             msg = 'skipped invalid file "{0}". '
             msg += "The file does not contain a concrete spec."

@@ -43,6 +43,7 @@ class Cosmomc(Package):
     depends_on("py-scipy", type=("build", "run"), when="+python")
     depends_on("py-six", type=("build", "run"), when="+python")
     depends_on("python @2.7:2,3.4:", type=("build", "run"), when="+python")
+    depends_on("gmake", type="build")
 
     patch("Makefile.patch")
     patch("errorstop.patch")

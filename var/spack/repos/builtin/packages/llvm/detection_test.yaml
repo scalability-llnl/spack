@@ -16,6 +16,58 @@ paths:
         c: ".*/bin/clang-3.9$"
         cxx: ".*/bin/clang[+][+]-3.9$"
 
+# flang-new detection: flang-new generates slightly-different output than clang
+- layout:
+  - executables:
+    - "bin/clang"
+    - "bin/clang++"
+    script: |
+      echo "clang version 19.1.6 (https://github.com/spack/spack.git 8d3a733b7798b6e33c371518b6dec298c3ebd8b1)"
+      echo "Target: x86_64-unknown-linux-gnu"
+      echo "Thread model: posix"
+      echo "InstalledDir: /path/to/spack/install/llvm/bin"
+  - executables:
+    - "bin/flang-new"
+    script: |
+      echo "flang-new version 19.1.6 (https://github.com/spack/spack.git 8d3a733b7798b6e33c371518b6dec298c3ebd8b1)"
+      echo "Target: x86_64-unknown-linux-gnu"
+      echo "Thread model: posix"
+      echo "InstalledDir: /path/to/spack/install/llvm/bin"
+  platforms: ["darwin", "linux"]
+  results:
+  - spec: 'llvm@19.1.6 +flang+clang~lld~lldb'
+    extra_attributes:
+      compilers:
+        c: ".*/bin/clang"
+        cxx: ".*/bin/clang[+][+]"
+        fortran: ".*/bin/flang-new"
+
+# flang: like previous test, but the fortran compiler is called "flang" vs. "flang-new"
+- layout:
+  - executables:
+    - "bin/clang"
+    - "bin/clang++"
+    script: |
+      echo "clang version 20.1.0-rc1 (https://github.com/llvm/llvm-project af7f483a9d801252247b6c72e3763c1f55c5a506)"
+      echo "Target: x86_64-unknown-linux-gnu"
+      echo "Thread model: posix"
+      echo "InstalledDir: /tmp/clang/LLVM-20.1.0-rc1-Linux-X64/bin"
+  - executables:
+    - "bin/flang"
+    script: |
+      echo "flang version 20.1.0-rc1 (https://github.com/llvm/llvm-project af7f483a9d801252247b6c72e3763c1f55c5a506)"
+      echo "Target: x86_64-unknown-linux-gnu"
+      echo "Thread model: posix"
+      echo "InstalledDir: /tmp/clang/LLVM-20.1.0-rc1-Linux-X64/bin"
+  platforms: ["darwin", "linux"]
+  results:
+  - spec: 'llvm@20.1.0 +flang+clang~lld~lldb'
+    extra_attributes:
+      compilers:
+        c: ".*/bin/clang"
+        cxx: ".*/bin/clang[+][+]"
+        fortran: ".*/bin/flang"
+
 # `~` and other weird characters in the version string
 - layout:
   - executables:

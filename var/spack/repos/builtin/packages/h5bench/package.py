@@ -74,8 +74,8 @@ class H5bench(CMakePackage):
         filter_file("mpirun", f"{launcher}", filename)
         filter_file(r"-n 2", "-n 1 --timeout 240", filename)
 
-        """Copy the example source files after the package is installed to an
-        install test subdirectory for use during `spack test run`."""
+        # Copy the example source files after the package is installed to an
+        # install test subdirectory for use during `spack test run`.
         cache_extra_test_sources(self, ["tests", "samples"])
 
     def mpi_launcher(self):

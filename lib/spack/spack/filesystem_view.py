@@ -35,7 +35,6 @@ from llnl.util.tty.color import colorize
 
 import spack.config
 import spack.directory_layout
-import spack.paths
 import spack.projections
 import spack.relocate
 import spack.schema.projections
@@ -44,7 +43,6 @@ import spack.store
 import spack.util.spack_json as s_json
 import spack.util.spack_yaml as s_yaml
 from spack.error import SpackError
-from spack.hooks import sbang
 
 __all__ = ["FilesystemView", "YamlFilesystemView"]
 
@@ -91,16 +89,10 @@ def view_copy(
     if stat.S_ISLNK(src_stat.st_mode):
         spack.relocate.relocate_links(links=[dst], prefix_to_prefix=prefix_to_projection)
     elif spack.relocate.is_binary(dst):
-        spack.relocate.relocate_text_bin(binaries=[dst], prefixes=prefix_to_projection)
+        spack.relocate.relocate_text_bin(binaries=[dst], prefix_to_prefix=prefix_to_projection)
     else:
         prefix_to_projection[spack.store.STORE.layout.root] = view._root
-
-        # This is vestigial code for the *old* location of sbang.
-        prefix_to_projection[f"#!/bin/bash {spack.paths.spack_root}/bin/sbang"] = (
-            sbang.sbang_shebang_line()
-        )
-
-        spack.relocate.relocate_text(files=[dst], prefixes=prefix_to_projection)
+        spack.relocate.relocate_text(files=[dst], prefix_to_prefix=prefix_to_projection)
 
     # The os module on Windows does not have a chown function.
     if sys.platform != "win32":
@@ -435,7 +427,7 @@ class YamlFilesystemView(FilesystemView):
             try:
                 with open(manifest_file, "r", encoding="utf-8") as f:
                     manifest = s_json.load(f)
-            except (OSError, IOError):
+            except OSError:
                 # if we can't load it, assume it doesn't know about the file.
                 manifest = {}
             return test_path in manifest
@@ -839,7 +831,7 @@ def get_spec_from_file(filename):
     try:
         with open(filename, "r", encoding="utf-8") as f:
             return spack.spec.Spec.from_yaml(f)
-    except IOError:
+    except OSError:
         return None
 
 

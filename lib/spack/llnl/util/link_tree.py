@@ -308,7 +308,7 @@ class LinkTree:
 
     def __init__(self, source_root):
         if not os.path.exists(source_root):
-            raise IOError("No such file or directory: '%s'", source_root)
+            raise OSError("No such file or directory: '%s'", source_root)
 
         self._root = source_root
 

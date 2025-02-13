@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from collections import defaultdict
+from collections import defaultdict, deque
 from typing import (
     Any,
     Callable,
@@ -225,13 +225,13 @@ def get_visitor_from_args(
 
 
 def with_artificial_edges(specs):
-    """Initialize a list of edges from an imaginary root node to the root specs."""
-    return [
+    """Initialize a deque of edges from an artificial root node to the root specs."""
+    return deque(
         EdgeAndDepth(
             edge=spack.spec.DependencySpec(parent=None, spec=s, depflag=0, virtuals=()), depth=0
         )
         for s in specs
-    ]
+    )
 
 
 def traverse_depth_first_edges_generator(edges, visitor, post_order=False, root=True, depth=False):
@@ -272,9 +272,9 @@ def traverse_depth_first_edges_generator(edges, visitor, post_order=False, root=
             yield (edge.depth, edge.edge) if depth else edge.edge
 
 
-def traverse_breadth_first_edges_generator(queue, visitor, root=True, depth=False):
+def traverse_breadth_first_edges_generator(queue: deque, visitor, root=True, depth=False):
     while len(queue) > 0:
-        edge = queue.pop(0)
+        edge = queue.popleft()
 
         # If the visitor doesn't accept the node, we don't yield it nor follow its edges.
         if not visitor.accept(edge):
@@ -297,7 +297,7 @@ def traverse_breadth_first_with_visitor(specs, visitor):
     """
     queue = with_artificial_edges(specs)
     while len(queue) > 0:
-        edge = queue.pop(0)
+        edge = queue.popleft()
 
         # If the visitor doesn't accept the node, we don't traverse it further.
         if not visitor.accept(edge):
@@ -418,10 +418,10 @@ def traverse_topo_edges_generator(edges, visitor, key=id, root=True, all_edges=F
         parent_id = key(edge.parent) if edge.parent is not None else None
         node_to_edges[parent_id].append(edge)
 
-    queue = [None]
+    queue = deque((None,))
 
     while queue:
-        for edge in node_to_edges[queue.pop(0)]:
+        for edge in node_to_edges[queue.popleft()]:
             child_id = key(edge.spec)
             in_edge_count[child_id] -= 1
 
