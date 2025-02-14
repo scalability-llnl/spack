@@ -76,9 +76,8 @@ class GccRuntime(Package):
 
     def _get_libraries_macho(self):
         """Same as _get_libraries_elf but for Mach-O binaries"""
-        cc = Executable(self["gcc"].cc)
+        cc = self._get_compiler()
         path_and_install_name = []
-
         for name in self.LIBRARIES:
             if name == "gcc_s":
                 # On darwin, libgcc_s is versioned and can't be linked as -lgcc_s,
@@ -115,6 +114,23 @@ class GccRuntime(Package):
             path_and_install_name.append((runtime_path, dylib_name))
 
         return path_and_install_name
+
+    def _get_compiler(self):
+        gcc_pkg = self["gcc"]
+        exe_path = None
+        for attr_name in ("cc", "cxx", "fortran"):
+            try:
+                exe_path = getattr(gcc_pkg, attr_name)
+            except AttributeError:
+                pass
+
+            if not exe_path:
+                continue
+            cc = Executable(exe_path)
+            break
+        else:
+            raise InstallError(f"cannot find any compiler for {gcc_pkg.spec}")
+        return cc
 
     @property
     def libs(self):
