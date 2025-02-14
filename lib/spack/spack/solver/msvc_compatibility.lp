@@ -11,33 +11,33 @@
 
 % A package cannot be reused if the msvc is not compatible with it
 error(100, "Cannot reuse {0} since we cannot determine msvc compatibility", ReusedPackage)
-  :- provider(node(X, MsvcPackage), node(0, "msvc")),
-     attr("version", node(X, MsvcPackage), MsvcVersion),
+  :- provider(node(X, MsvcToolsetPackage), node(0, "msvc")),
+     attr("version", node(X, MsvcToolsetPackage), MsvcToolsetVersion),
      attr("hash", node(R, ReusedPackage), Hash),
-     % msvc packages can be reused without the "compatible_msvc" attribute
-     ReusedPackage != MsvcPackage,
-     not attr("compatible_msvc", node(R, ReusedPackage), MsvcPackage, MsvcVersion).
+     % msvc packages can be reused without the "compatible_msvc_toolset" attribute
+     ReusedPackage != MsvcToolsetPackage,
+     not attr("compatible_msvc_toolset", node(R, ReusedPackage), MsvcToolsetPackage, MsvcToolsetVersion).
 
-% A msvc is needed in the DAG
-:- has_built_packages(), not provider(_, node(0, "msvc")).
+% A msvc toolset is needed in the DAG
+:- has_built_packages(), not provider(_, node(0, "msvc-toolset")).
 
 % Non-msvc reused specs must be host msvc compatible. In case we build packages, we get a
 % host compatible msvc provider from other rules. If nothing is built, there is no msvc provider,
 % since it's pruned from reusable specs, meaning we have to explicitly impose reused specs are host
 % compatible.
 :- attr("hash", node(R, ReusedPackage), Hash),
-   not provider(node(R, ReusedPackage), node(0, "msvc")),
-   not attr("compatible_msvc", node(R, ReusedPackage), _, _).
+   not provider(node(R, ReusedPackage), node(0, "msvc-toolset")),
+   not attr("compatible_msvc_toolset", node(R, ReusedPackage), _, _).
 
 % The msvc provider must be one that a compiler can target
 :- has_built_packages(),
-   provider(node(X, MsvcPackage), node(0, "msvc")),
-   attr("node", node(X, MsvcPackage)),
-   attr("version", node(X, MsvcPackage), msvcVersion),
-   not host_msvc(MsvcPackage, msvcVersion).
+   provider(node(X, MsvcToolsetPackage), node(0, "msvc-toolset")),
+   attr("node", node(X, MsvcToolsetPackage)),
+   attr("version", node(X, MsvcToolsetPackage), MsvcToolsetVersion),
+   not host_msvc(MsvcToolsetPackage, MsvcToolsetVersion).
 
 % A built node must depend on msvc
 :- build(PackageNode),
-   provider(msvcNode, node(0, "msvc")),
+   provider(MsvcToolsetNode, node(0, "msvc-toolset")),
    not external(PackageNode),
-   not depends_on(PackageNode, msvcNode).
+   not depends_on(PackageNode, MsvcToolsetNode).
