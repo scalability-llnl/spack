@@ -245,7 +245,7 @@ spack:
   ci:
     pipeline-gen:
     - build-job:
-        image: ghcr.io/spack/spack/ubuntu22.04-runner-amd64-oneapi-2024.2:2024.09.06
+        image: ghcr.io/spack/spack/ubuntu22.04-runner-amd64-oneapi-2025.0:2024.10.29
 
   cdash:
     build-group: E4S OneAPI
