@@ -49,3 +49,9 @@ packages:
     # although the version number used here isn't critical
     - spec: apple-libuuid@1353.100.2
       prefix: /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
+  c:
+    require: apple-clang
+  cxx:
+    require: apple-clang
+  fortran:
+    require: gcc
