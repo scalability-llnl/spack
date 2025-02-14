@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from llnl.util.filesystem import windows_sfn
+
 from spack.package import *
 
 
@@ -53,3 +55,21 @@ class PyMesonPython(PythonPackage):
     # Historical dependencies
     depends_on("py-typing-extensions@3.7.4:", when="@0.12 ^python@:3.9", type=("build", "run"))
     depends_on("py-typing-extensions@3.7.4:", when="@:0.11 ^python@:3.7", type=("build", "run"))
+
+    def setup_dependent_build_environment(self, env, dependent_spec):
+        if self.spec.satisfies("platform=windows"):
+            # The meson build system will incorrectly split the compiler path if it
+            # contains spaces (e.g. Program Files), so we need to tweak windows
+            # compiler path env vars to handle this by using the windows shortname
+            # syntax rather than the full path.
+            #
+            # TODO: Modifying the dependent build environment could have unintended
+            #   consequences, it will change the CC/CXX variables for every tool
+            #   that runs in a build, not just meson. It could also break any reg-ex
+            #   parsing that looks for the compiler name and doesn't expect the shortname.
+            #   One possibility could be to manually update the dependent package's
+            #   pyproject.toml and set the C/C++ compiler paths in a native.ini file
+            #   as discussed in the following PR comment:
+            #   https://github.com/spack/spack/pull/47338#discussion_r1873853058
+            env.set("CC", windows_sfn(dependent_spec.package.compiler.cc))
+            env.set("CXX", windows_sfn(dependent_spec.package.compiler.cxx))

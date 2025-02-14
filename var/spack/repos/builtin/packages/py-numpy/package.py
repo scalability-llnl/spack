@@ -481,14 +481,6 @@ class PyNumpy(PythonPackage):
     def set_blas_lapack(self):
         self.blas_lapack_site_cfg()
 
-    @when("@1.26:")
-    def setup_build_environment(self, env):
-        if self.spec.satisfies("%msvc"):
-            # For meson build system, compiler paths must be in quotes
-            # to prevent paths from being split by spaces.
-            env.set("CC", f'"{self.compiler.cc}"')
-            env.set("CXX", f'"{self.compiler.cxx}"')
-
     @when("@:1.25")
     def setup_build_environment(self, env):
         # Tell numpy which BLAS/LAPACK libraries we want to use.

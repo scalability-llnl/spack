@@ -18,18 +18,51 @@ class LlvmDetection(PackageBase):
     """Base class to detect LLVM based compilers"""
 
     compiler_version_argument = "--version"
-    c_names = ["clang"]
-    cxx_names = ["clang++"]
+
+    # clang-cl is a Windows-specific clang variant compatible with MSVC-style
+    # command-line arguments. It links with MSVC-built binaries via the MSVC
+    # runtime and supports MSVC argument syntax, making it a near drop-in
+    # replacement for cl.exe in MSBuild.
+    if sys.platform == "win32":
+        c_names = ["clang-cl"]
+        cxx_names = ["clang-cl"]
+    else:
+        c_names = ["clang"]
+        cxx_names = ["clang++"]
 
     @classmethod
     def filter_detected_exes(cls, prefix, exes_in_prefix):
         # Executables like lldb-vscode-X are daemon listening on some port and would hang Spack
-        # during detection. clang-cl, clang-cpp, etc. are dev tools that we don't need to test
-        reject = re.compile(
-            r"-(vscode|cpp|cl|ocl|gpu|tidy|rename|scan-deps|format|refactor|offload|"
-            r"check|query|doc|move|extdef|apply|reorder|change-namespace|"
-            r"include-fixer|import-test|dap|server)"
-        )
+        # during detection. clang-cpp, etc. are dev tools that we don't need to test. clang-cl
+        # should only be found on Windows.
+        reject_list = [
+            r"vscode",
+            r"cpp",
+            r"ocl",
+            r"gpu",
+            r"tidy",
+            r"rename",
+            r"scan-deps",
+            r"format",
+            r"refactor",
+            r"offload",
+            r"check",
+            r"query",
+            r"doc",
+            r"move",
+            r"extdef",
+            r"apply",
+            r"reorder",
+            r"change-namespace",
+            r"include-fixer",
+            r"import-test",
+            r"dap",
+            r"server",
+        ]
+        if sys.platform != "win32":
+            reject_list.append(r"cl")
+
+        reject = re.compile(rf"-({'|'.join(reject_list)})")
         return [x for x in exes_in_prefix if not reject.search(x)]
 
 
@@ -809,11 +842,19 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
         lld_found, lldb_found = False, False
         for exe in sorted(exes, key=len):
             name = os.path.basename(exe)
-            if "clang++" in name:
-                compilers.setdefault("cxx", exe)
-            elif "clang" in name:
-                compilers.setdefault("c", exe)
-            elif "flang" in name:
+            if sys.platform == "win32":
+                if "clang-cl" in name:
+                    compilers.setdefault("c", exe)
+                    compilers.setdefault("cxx", exe)
+                    continue
+            else:
+                if "clang++" in name:
+                    compilers.setdefault("cxx", exe)
+                    continue
+                elif "clang" in name:
+                    compilers.setdefault("c", exe)
+                    continue
+            if "flang" in name:
                 variants.append("+flang")
                 compilers.setdefault("fortran", exe)
             elif "ld.lld" in name:

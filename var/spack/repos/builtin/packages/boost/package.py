@@ -716,7 +716,7 @@ class Boost(Package):
         elif self.spec.satisfies("%gcc"):
             bootstrap_options.append("gcc")
         elif self.spec.satisfies("%clang"):
-            bootstrap_options.append("clang")
+            bootstrap_options.append("clang-win")
 
         bootstrap = Executable("cmd.exe")
         bootstrap("/c", ".\\bootstrap.bat", *bootstrap_options)
