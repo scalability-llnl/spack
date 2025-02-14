@@ -71,7 +71,8 @@ class PyTriton(PythonPackage):
 
     # build_directory does not work since apparently one needs to call pip from
     # the parent directory
-    #build_directory = "python"
+    # build_directory = "python"
+
 
 # override pip install to use python subdirectory from parent directory
 class PythonPipBuilder(build_systems.python.PythonPipBuilder):
