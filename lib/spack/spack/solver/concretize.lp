@@ -1499,7 +1499,7 @@ imposed_constraint(Hash, "hash", PackageName, Hash) :- installed_hash(PackageNam
 
 % If a compiler is not used as a library, we just enforce "run" dependency, so we
 % can get by with a much smaller search space.
-avoid_compiler_link_dependency(Hash, DepName) :-
+avoid_link_dependency(Hash, DepName) :-
   hash_attr(Hash, "depends_on", PackageName, DepName, "link"),
   not hash_attr(Hash, "depends_on", PackageName, DepName, "run"),
   hash_attr(Hash, "hash", DepName, DepHash),
@@ -1510,24 +1510,24 @@ avoid_compiler_link_dependency(Hash, DepName) :-
 imposed_constraint(ParentHash, "hash", ChildName, ChildHash) :-
   hash_attr(ParentHash, "hash", ChildName, ChildHash),
   ChildHash != ParentHash,
-  not avoid_compiler_link_dependency(ParentHash, ChildName),
+  not avoid_link_dependency(ParentHash, ChildName),
   not abi_splice_conditions_hold(_, _, ChildName, ChildHash).
 
 imposed_constraint(Hash, "depends_on", PackageName, DepName, Type) :-
   hash_attr(Hash, "depends_on", PackageName, DepName, Type),
   hash_attr(Hash, "hash", DepName, DepHash),
-  not avoid_compiler_link_dependency(Hash, DepName),
+  not avoid_link_dependency(Hash, DepName),
   not attr("splice_at_hash", _, _, DepName, DepHash).
 
 imposed_constraint(Hash, "virtual_on_edge", PackageName, DepName, VirtName) :-
   hash_attr(Hash, "virtual_on_edge", PackageName, DepName, VirtName),
-  not avoid_compiler_link_dependency(Hash, DepName),
+  not avoid_link_dependency(Hash, DepName),
   not attr("splice_at_hash", _, _, DepName,_).
 
 imposed_constraint(Hash, "virtual_node", VirtName) :-
   hash_attr(Hash, "virtual_on_edge", PackageName, DepName, VirtName),
   hash_attr(Hash, "virtual_node", VirtName),
-  not avoid_compiler_link_dependency(Hash, DepName),
+  not avoid_link_dependency(Hash, DepName),
   not attr("splice_at_hash", _, _, DepName,_).
 
 
