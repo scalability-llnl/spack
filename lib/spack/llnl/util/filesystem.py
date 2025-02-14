@@ -2454,22 +2454,46 @@ class WindowsSimulatedRPath:
     and vis versa.
     """
 
-    def __init__(self, package, link_install_prefix=True):
+    def __init__(self, package:"spack.package_base.PackageBase", 
+                 base_modification_prefix:Optional[Union[str, pathlib.Path]]=None, 
+                 link_install_prefix:bool=True):
         """
         Args:
             package (spack.package_base.PackageBase): Package requiring links
+            base_modification_prefix (str|pathlib.Path): Path representation indicating
+                the root directory in which to establish the simulated rpath, ie where the
+                symlinks that comprise the "rpath" behavior will be installed.
+
+                Note: This is a mutually exclusive option with `link_install_prefix` using
+                both is an error.
+
+                Default: None
             link_install_prefix (bool): Link against package's own install or stage root.
                 Packages that run their own executables during build and require rpaths to
-                the build directory during build time require this option. Default: install
+                the build directory during build time require this option.
+
+                Default: install
                 root
+
+                Note: This is a mutually exclusive option with `base_modification_prefix`, using
+                both is an error.
         """
         self.pkg = package
         self._addl_rpaths = set()
+        if link_install_prefix and base_modification_prefix:
+            raise RuntimeError("Invalid combination of arguments given to WindowsSimulated RPath. \n"
+                               "Select either `link_install_prefix` to create an install prefix rpath"
+                               " or specify a `base_modification_prefix` for any other link type. "
+                               "Specifying both arguments is invalid.")
+        
         self.link_install_prefix = link_install_prefix
+        self.base_modification_prefix = pathlib.Path(base_modification_prefix) \
+            if base_modification_prefix \
+            else pathlib.Path(self.pkg.prefix)
         self._additional_library_dependents = set()
         if not self.link_install_prefix:
             tty.debug(
-                f"Generating rpath for non install context, {self.pkg.stage.path} \
+                f"Generating rpath for non install context, {self.pkg.prefix} \
 install prefixes will be omitted as rpath targets"
             )
 
@@ -2498,25 +2522,12 @@ install prefixes will be omitted as rpath targets"
                 new_pth = pathlib.Path(pth).parent
             else:
                 new_pth = pathlib.Path(pth)
-            path_is_in_prefix = new_pth.is_relative_to(self.pkg.prefix)
+            path_is_in_prefix = new_pth.is_relative_to(self.base_modification_prefix)
             add_lib = False
-            if self.link_install_prefix:
-                # We're creating RPath's post install, accept rpath targets anywhere but warn if
-                # out of install prefix
-                if not path_is_in_prefix:
-                    tty.warn(
-                        f"Generating rpath in {new_pth} which is \
-not rooted in target package ({self.pkg}) prefix"
-                    )
-                add_lib = True
-            elif not path_is_in_prefix:
-                # We're creating an RPath for anywhere not in the install prefix, only add rpath
-                # target if it's not in the install prefix
+            if path_is_in_prefix:
                 add_lib = True
             else:
-                # we're creating a test time rpath, but linking to
-                # the install prefix, this is likely an error
-                raise RuntimeError(f"Attempting to create a test rpath in the install prefix: {new_pth}")
+                raise RuntimeError(f"Attempting to generate rpath symlink out of rpath context: {str(self.base_modification_prefix)}")
             if add_lib:
                 self._additional_library_dependents.add(new_pth)
 
