@@ -50,8 +50,13 @@ class SourceMergeVisitor(BaseDirectoryVisitor):
     - A list of merge conflicts in dst/
     """
 
-    def __init__(self, ignore: Optional[Callable[[str], bool]] = None):
+    def __init__(
+        self, ignore: Optional[Callable[[str], bool]] = None, normalize_paths: bool = False
+    ):
         self.ignore = ignore if ignore is not None else lambda f: False
+
+        # On case-insensitive filesystems, normalize paths to detect duplications
+        self.normalize_paths = normalize_paths
 
         # When mapping <src root> to <dst root>/<projection>, we need to prepend the <projection>
         # bit to the relative path in the destination dir.
@@ -71,9 +76,87 @@ class SourceMergeVisitor(BaseDirectoryVisitor):
         # and can run mkdir in order.
         self.directories: Dict[str, Tuple[str, str]] = {}
 
+        # If the visitor is configured to normalize paths, keep a map of
+        # normalized path to: original path, root directory + relative path
+        self._directories_normalized: Dict[str, Tuple[str, str, str]] = {}
+
         # Files to link. Maps dst_rel to (src_root, src_rel). This is an ordered dict, where files
         # are guaranteed to be grouped by src_root in the order they were visited.
         self.files: Dict[str, Tuple[str, str]] = {}
+
+        # If the visitor is configured to normalize paths, keep a map of
+        # normalized path to: original path, root directory + relative path
+        self._files_normalized: Dict[str, Tuple[str, str, str]] = {}
+
+    def _in_directories(self, proj_rel_path: str) -> bool:
+        """
+        Check if a path is already in the directory list
+        """
+        if self.normalize_paths:
+            return proj_rel_path.lower() in self._directories_normalized
+        else:
+            return proj_rel_path in self.directories
+
+    def _directory(self, proj_rel_path: str) -> Tuple[str, str, str]:
+        """
+        Get the directory that is mapped to a path
+        """
+        if self.normalize_paths:
+            return self._directories_normalized[proj_rel_path.lower()]
+        else:
+            return (proj_rel_path, *self.directories[proj_rel_path])
+
+    def _del_directory(self, proj_rel_path: str):
+        """
+        Remove a directory from the list of directories
+        """
+        del self.directories[proj_rel_path]
+        if self.normalize_paths:
+            del self._directories_normalized[proj_rel_path.lower()]
+
+    def _add_directory(self, proj_rel_path: str, root: str, rel_path: str):
+        """
+        Add a directory to the list of directories.
+        Also stores the normalized version for later lookups
+        """
+        self.directories[proj_rel_path] = (root, rel_path)
+        if self.normalize_paths:
+            self._directories_normalized[proj_rel_path.lower()] = (proj_rel_path, root, rel_path)
+
+    def _in_files(self, proj_rel_path: str) -> bool:
+        """
+        Check if a path is already in the files list
+        """
+        if self.normalize_paths:
+            return proj_rel_path.lower() in self._files_normalized
+        else:
+            return proj_rel_path in self.files
+
+    def _file(self, proj_rel_path: str) -> Tuple[str, str, str]:
+        """
+        Get the file that is mapped to a path
+        """
+        if self.normalize_paths:
+            return self._files_normalized[proj_rel_path.lower()]
+        else:
+            return (proj_rel_path, *self.files[proj_rel_path])
+
+    def _del_file(self, proj_rel_path: str):
+        """
+        Remove a file from the list of files
+        """
+        del self.files[proj_rel_path]
+        if self.normalize_paths:
+            del self._files_normalized[proj_rel_path.lower()]
+
+    def _add_file(self, proj_rel_path: str, root: str, rel_path: str):
+        """
+        Add a file to the list of files
+        Also stores the normalized version for later lookups
+        """
+        self.files[proj_rel_path] = (root, rel_path)
+        if self.normalize_paths:
+            self._files_normalized[proj_rel_path.lower()] = (proj_rel_path, root, rel_path)
 
     def before_visit_dir(self, root: str, rel_path: str, depth: int) -> bool:
         """
@@ -84,9 +167,9 @@ class SourceMergeVisitor(BaseDirectoryVisitor):
         if self.ignore(rel_path):
             # Don't recurse when dir is ignored.
             return False
-        elif proj_rel_path in self.files:
+        elif self._in_files(proj_rel_path):
             # Can't create a dir where a file is.
-            src_a_root, src_a_relpath = self.files[proj_rel_path]
+            _, src_a_root, src_a_relpath = self._file(proj_rel_path)
             self.fatal_conflicts.append(
                 MergeConflict(
                     dst=proj_rel_path,
@@ -95,12 +178,12 @@ class SourceMergeVisitor(BaseDirectoryVisitor):
                 )
             )
             return False
-        elif proj_rel_path in self.directories:
+        elif self._in_directories(proj_rel_path):
             # No new directory, carry on.
             return True
         else:
             # Register new directory.
-            self.directories[proj_rel_path] = (root, rel_path)
+            self._add_directory(proj_rel_path, root, rel_path)
             return True
 
     def before_visit_symlinked_dir(self, root: str, rel_path: str, depth: int) -> bool:
@@ -140,22 +223,22 @@ class SourceMergeVisitor(BaseDirectoryVisitor):
 
         if self.ignore(rel_path):
             pass
-        elif proj_rel_path in self.directories:
+        elif self._in_directories(proj_rel_path):
             # Can't create a file where a dir is; fatal error
             self.fatal_conflicts.append(
                 MergeConflict(
                     dst=proj_rel_path,
-                    src_a=os.path.join(*self.directories[proj_rel_path]),
+                    src_a=os.path.join(*self._directory(proj_rel_path)),
                     src_b=os.path.join(root, rel_path),
                 )
             )
-        elif proj_rel_path in self.files:
+        elif self._in_files(proj_rel_path):
             # When two files project to the same path, they conflict iff they are distinct.
             # If they are the same (i.e. one links to the other), register regular files rather
             # than symlinks. The reason is that in copy-type views, we need a copy of the actual
             # file, not the symlink.
 
-            src_a = os.path.join(*self.files[proj_rel_path])
+            src_a = os.path.join(*self._file(proj_rel_path))
             src_b = os.path.join(root, rel_path)
 
             try:
@@ -173,12 +256,13 @@ class SourceMergeVisitor(BaseDirectoryVisitor):
             if not symlink:
                 # Remove the link in favor of the actual file. The del is necessary to maintain the
                 # order of the files dict, which is grouped by root.
-                del self.files[proj_rel_path]
-                self.files[proj_rel_path] = (root, rel_path)
+                existing_proj_rel_path, _, _ = self._file(proj_rel_path)
+                self._del_file(existing_proj_rel_path)
+                self._add_file(proj_rel_path, root, rel_path)
 
         else:
             # Otherwise register this file to be linked.
-            self.files[proj_rel_path] = (root, rel_path)
+            self._add_file(proj_rel_path, root, rel_path)
 
     def visit_symlinked_file(self, root: str, rel_path: str, depth: int) -> None:
         # Treat symlinked files as ordinary files (without "dereferencing")
@@ -197,11 +281,11 @@ class SourceMergeVisitor(BaseDirectoryVisitor):
         path = ""
         for part in self.projection.split(os.sep):
             path = os.path.join(path, part)
-            if path not in self.files:
-                self.directories[path] = ("<projection>", path)
+            if not self._in_files(path):
+                self._add_directory(path, "<projection>", path)
             else:
                 # Can't create a dir where a file is.
-                src_a_root, src_a_relpath = self.files[path]
+                _, src_a_root, src_a_relpath = self._file(path)
                 self.fatal_conflicts.append(
                     MergeConflict(
                         dst=path,
@@ -227,8 +311,8 @@ class DestinationMergeVisitor(BaseDirectoryVisitor):
     def before_visit_dir(self, root: str, rel_path: str, depth: int) -> bool:
         # If destination dir is a file in a src dir, add a conflict,
         # and don't traverse deeper
-        if rel_path in self.src.files:
-            src_a_root, src_a_relpath = self.src.files[rel_path]
+        if self.src._in_files(rel_path):
+            _, src_a_root, src_a_relpath = self.src._file(rel_path)
             self.src.fatal_conflicts.append(
                 MergeConflict(
                     rel_path, os.path.join(src_a_root, src_a_relpath), os.path.join(root, rel_path)
@@ -238,8 +322,9 @@ class DestinationMergeVisitor(BaseDirectoryVisitor):
 
         # If destination dir was also a src dir, remove the mkdir
         # action, and traverse deeper.
-        if rel_path in self.src.directories:
-            del self.src.directories[rel_path]
+        if self.src._in_directories(rel_path):
+            existing_proj_rel_path, _, _ = self.src._directory(rel_path)
+            self.src._del_directory(existing_proj_rel_path)
             return True
 
         # If the destination dir does not appear in the src dir,
@@ -252,38 +337,24 @@ class DestinationMergeVisitor(BaseDirectoryVisitor):
         be seen as files; we should not accidentally merge
         source dir with a symlinked dest dir.
         """
-        # Always conflict
-        if rel_path in self.src.directories:
-            src_a_root, src_a_relpath = self.src.directories[rel_path]
-            self.src.fatal_conflicts.append(
-                MergeConflict(
-                    rel_path, os.path.join(src_a_root, src_a_relpath), os.path.join(root, rel_path)
-                )
-            )
 
-        if rel_path in self.src.files:
-            src_a_root, src_a_relpath = self.src.files[rel_path]
-            self.src.fatal_conflicts.append(
-                MergeConflict(
-                    rel_path, os.path.join(src_a_root, src_a_relpath), os.path.join(root, rel_path)
-                )
-            )
+        self.visit_file(root, rel_path, depth)
 
         # Never descend into symlinked target dirs.
         return False
 
     def visit_file(self, root: str, rel_path: str, depth: int) -> None:
         # Can't merge a file if target already exists
-        if rel_path in self.src.directories:
-            src_a_root, src_a_relpath = self.src.directories[rel_path]
+        if self.src._in_directories(rel_path):
+            _, src_a_root, src_a_relpath = self.src._directory(rel_path)
             self.src.fatal_conflicts.append(
                 MergeConflict(
                     rel_path, os.path.join(src_a_root, src_a_relpath), os.path.join(root, rel_path)
                 )
             )
 
-        elif rel_path in self.src.files:
-            src_a_root, src_a_relpath = self.src.files[rel_path]
+        elif self.src._in_files(rel_path):
+            _, src_a_root, src_a_relpath = self.src._file(rel_path)
             self.src.fatal_conflicts.append(
                 MergeConflict(
                     rel_path, os.path.join(src_a_root, src_a_relpath), os.path.join(root, rel_path)
