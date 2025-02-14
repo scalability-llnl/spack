@@ -2783,7 +2783,15 @@ class SpackSolverSetup:
             if not using_libc_compatibility():
                 continue
 
-            current_libc = CompilerPropertyDetector(compiler).default_libc()
+            current_libc = None
+            if compiler.external or compiler.installed:
+                current_libc = CompilerPropertyDetector(compiler).default_libc()
+            else:
+                try:
+                    current_libc = compiler["libc"]
+                except (KeyError, RuntimeError) as e:
+                    tty.debug(f"{compiler} cannot determine libc because: {e}")
+
             # If this is a compiler yet to be built infer libc from the Python process
             # FIXME (compiler as nodes): recover this use case
             # if not current_libc and compiler.compiler_obj.cc is None:
@@ -2797,7 +2805,7 @@ class SpackSolverSetup:
                     description=f"Add libc when using {compiler}",
                 )
                 recorder("*").depends_on(
-                    str(current_libc),
+                    f"{current_libc.name}@={current_libc.version}",
                     when=f"%{compiler.name}@{compiler.versions}",
                     type="link",
                     description=f"Libc is {current_libc} when using {compiler}",
@@ -3036,8 +3044,17 @@ def possible_compilers(*, configuration) -> List["spack.spec.Spec"]:
         result.add(c)
 
     # Compilers from the local store
-    for pkg_name in spack.compilers.config.supported_compilers():
+    supported_compilers = spack.compilers.config.supported_compilers()
+    for pkg_name in supported_compilers:
         result.update(spack.store.STORE.db.query(pkg_name))
+
+    # Compilers from build cache
+    from_buildcache = [
+        x
+        for x in spack.binary_distribution.update_cache_and_get_specs()
+        if x.name in supported_compilers and not x.external
+    ]
+    result.update(from_buildcache)
 
     result = list(result)
     result.sort()
@@ -3814,6 +3831,9 @@ def _is_reusable(spec: spack.spec.Spec, packages, local: bool) -> bool:
         packages: the packages configuration
     """
     if "dev_path" in spec.variants:
+        return False
+
+    if spec.name == "compiler-wrapper":
         return False
 
     if not spec.external:
