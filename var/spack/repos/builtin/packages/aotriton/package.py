@@ -54,7 +54,7 @@ class Aotriton(CMakePackage):
     depends_on("py-pybind11", type="build")
     conflicts("^openssl@3.3.0")
 
-    #ROCm dependencies
+    # ROCm dependencies
     depends_on("hip", type="build")
     depends_on("llvm-amdgpu", type="build")
     depends_on("comgr", type="build")
@@ -72,7 +72,7 @@ class Aotriton(CMakePackage):
     def setup_build_environment(self, env):
         """Set environment variables used to control the build"""
         if self.spec.satisfies("%clang"):
-            env.set("TRITON_HIP_LLD_PATH",self.spec["llvm-amdgpu"].prefix/bin/ld.lld)
+            env.set("TRITON_HIP_LLD_PATH", self.spec["llvm-amdgpu"].prefix/bin/ld.lld)
 
     def cmake_args(self):
         args = []
