@@ -292,8 +292,8 @@ def generate_gitlab_yaml(pipeline: PipelineDag, spack_ci: SpackCIConfig, options
     )
     maybe_generate_manifest(pipeline, options, manifest_path)
 
-    relative_specs_path = bindist.buildcache_relative_specs_path()
-    relative_keys_path = bindist.buildcache_relative_keys_path()
+    relative_specs_url = bindist.buildcache_relative_specs_url()
+    relative_keys_url = bindist.buildcache_relative_keys_url()
 
     if options.pipeline_type == PipelineType.COPY_ONLY:
         stage_names.append("copy")
@@ -307,7 +307,7 @@ def generate_gitlab_yaml(pipeline: PipelineDag, spack_ci: SpackCIConfig, options
         sync_job["variables"].update(
             {
                 "SPACK_COPY_ONLY_DESTINATION": options.buildcache_destination.fetch_url,
-                "SPACK_BUILDCACHE_RELATIVE_KEYS_PATH": relative_keys_path,
+                "SPACK_BUILDCACHE_RELATIVE_KEYS_URL": relative_keys_url,
             }
         )
 
@@ -342,8 +342,8 @@ def generate_gitlab_yaml(pipeline: PipelineDag, spack_ci: SpackCIConfig, options
             signing_job["variables"].update(
                 {
                     "SPACK_BUILDCACHE_DESTINATION": options.buildcache_destination.push_url,
-                    "SPACK_BUILDCACHE_RELATIVE_SPECS_PATH": relative_specs_path,
-                    "SPACK_BUILDCACHE_RELATIVE_KEYS_PATH": relative_keys_path,
+                    "SPACK_BUILDCACHE_RELATIVE_SPECS_URL": relative_specs_url,
+                    "SPACK_BUILDCACHE_RELATIVE_KEYS_URL": relative_keys_url,
                 }
             )
             signing_job["dependencies"] = []
