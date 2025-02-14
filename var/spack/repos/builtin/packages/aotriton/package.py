@@ -24,10 +24,15 @@ class Aotriton(CMakePackage):
         submodules=True,
     )
     version(
-        "0.8.1b", tag="0.8.1b", commit="3a80554a88ae3b1bcf4b27bc74ad9d7b913b58f6", submodules=True
+        "0.8.1b",
+        git="https://github.com/ROCm/aotriton",
+        tag="0.8.1b",
+        commit="3a80554a88ae3b1bcf4b27bc74ad9d7b913b58f6",
+        submodules=True
     )
     version(
         "0.8b",
+        git="https://github.com/ROCm/aotriton",
         tag="0.8b",
         commit="6f8cbcac8a92775291bb1ba8f514d4beb350baf4",
         submodules=True,
