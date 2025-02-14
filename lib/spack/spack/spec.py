@@ -3751,18 +3751,16 @@ class Spec:
             csv = query_parameters.pop().strip()
             query_parameters = re.split(r"\s*,\s*", csv)
 
-        order = lambda: itertools.chain(
-            self.traverse_edges(deptype=dt.LINK, order="breadth", cover="edges"),
-            self.edges_to_dependencies(depflag=dt.BUILD | dt.RUN | dt.TEST),
-            self.traverse_edges(deptype=dt.ALL, order="breadth", cover="edges"),
+        # Consider all direct dependencies and transitive runtime dependencies
+        order = itertools.chain(
+            self.edges_to_dependencies(depflag=dt.ALL),
+            self.traverse_edges(deptype=dt.LINK | dt.RUN, order="breadth", cover="edges"),
         )
 
-        # Consider runtime dependencies and direct build/test deps before transitive dependencies,
-        # and prefer matches closest to the root.
         try:
-            edge = next((e for e in order() if e.spec.name == name or name in e.virtuals))
-        except StopIteration:
-            raise KeyError(f"No spec with name {name} in {self}")
+            edge = next((e for e in order if e.spec.name == name or name in e.virtuals))
+        except StopIteration as e:
+            raise KeyError(f"No spec with name {name} in {self}") from e
 
         if self._concrete:
             return SpecBuildInterface(

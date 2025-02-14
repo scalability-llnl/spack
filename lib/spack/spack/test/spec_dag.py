@@ -585,8 +585,9 @@ class TestSpecDag:
         assert s["b"].edges_to_dependencies(name="c")[0].depflag == dt.BUILD
         assert s["d"].edges_to_dependencies(name="e")[0].depflag == dt.BUILD | dt.LINK
         assert s["e"].edges_to_dependencies(name="f")[0].depflag == dt.RUN
-
-        assert s["c"].edges_from_dependents(name="b")[0].depflag == dt.BUILD
+        # The subscript follows link/run transitive deps or direct build/test deps, therefore
+        # we need an extra step to get to "c"
+        assert s["b"]["c"].edges_from_dependents(name="b")[0].depflag == dt.BUILD
         assert s["e"].edges_from_dependents(name="d")[0].depflag == dt.BUILD | dt.LINK
         assert s["f"].edges_from_dependents(name="e")[0].depflag == dt.RUN
 
@@ -898,8 +899,9 @@ def test_adding_same_deptype_with_the_same_name_raises(
 
 @pytest.mark.regression("33499")
 def test_indexing_prefers_direct_or_transitive_link_deps():
-    # Test whether spec indexing prefers direct/transitive link type deps over deps of
-    # build/run/test deps, and whether it does fall back to a full dag search.
+    """Tests whether spec indexing prefers direct/transitive link/run type deps over deps of
+    build/test deps.
+    """
     root = Spec("root")
 
     # Use a and z to since we typically traverse by edges sorted alphabetically.
@@ -912,7 +914,7 @@ def test_indexing_prefers_direct_or_transitive_link_deps():
     z3_flavor_1 = Spec("z3 +through_a1")
     z3_flavor_2 = Spec("z3 +through_z1")
 
-    root.add_dependency_edge(a1, depflag=dt.BUILD | dt.RUN | dt.TEST, virtuals=())
+    root.add_dependency_edge(a1, depflag=dt.BUILD | dt.TEST, virtuals=())
 
     # unique package as a dep of a build/run/test type dep.
     a1.add_dependency_edge(a2, depflag=dt.ALL, virtuals=())
@@ -927,8 +929,9 @@ def test_indexing_prefers_direct_or_transitive_link_deps():
     assert "through_z1" in root["z3"].variants
     assert "through_a1" in a1["z3"].variants
 
-    # Ensure that the full DAG is still searched
-    assert root["a2"]
+    # Ensure that only the runtime sub-DAG can be searched
+    with pytest.raises(KeyError):
+        root["a2"]
 
 
 def test_getitem_sticks_to_subdag():
