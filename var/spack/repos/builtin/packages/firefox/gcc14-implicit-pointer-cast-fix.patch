@@ -1,0 +1,26 @@
+diff --git a/media/ffvpx/libavcodec/av1dec.c b/media/ffvpx/libavcodec/av1dec.c
+index 824725c..9e3f218 100644
+--- a/media/ffvpx/libavcodec/av1dec.c
++++ b/media/ffvpx/libavcodec/av1dec.c
+@@ -887,7 +887,7 @@ static av_cold int av1_decode_init(AVCodecContext *avctx)
+         ff_cbs_fragment_reset(&s->current_obu);
+     }
+ 
+-    s->dovi.logctx = avctx;
++    s->dovi.logctx = (AVContext*) avctx;
+     s->dovi.dv_profile = 10; // default for AV1
+     sd = ff_get_coded_side_data(avctx, AV_PKT_DATA_DOVI_CONF);
+     if (sd && sd->size > 0)
+diff --git a/media/ffvpx/libavcodec/libdav1d.c b/media/ffvpx/libavcodec/libdav1d.c
+index f022a4a..b58ebb4 100644
+--- a/media/ffvpx/libavcodec/libdav1d.c
++++ b/media/ffvpx/libavcodec/libdav1d.c
+@@ -289,7 +289,7 @@ static av_cold int libdav1d_init(AVCodecContext *c)
+     c->delay = res > 1 ? res : 0;
+ #endif
+ 
+-    dav1d->dovi.logctx = c;
++    dav1d->dovi.logctx = (AVContext*) c;
+     dav1d->dovi.dv_profile = 10; // default for AV1
+     sd = ff_get_coded_side_data(c, AV_PKT_DATA_DOVI_CONF);
+     if (sd && sd->size > 0)
