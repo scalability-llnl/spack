@@ -137,7 +137,7 @@ class Pythia8(AutotoolsPackage):
     conflicts("+hdf5", when="@:8.304", msg="HDF5 support was added in 8.304")
     conflicts("+hdf5", when="~mpich", msg="MPICH is required for reading HDF5 files")
 
-    conflicts("~yoda", when="+rivet", msg="+rivet requires +yoda")
+    conflicts("~yoda", when="@8.313: +rivet", msg="+rivet requires +yoda")
 
     filter_compiler_wrappers("Makefile.inc", relative_root="share/Pythia8/examples")
 
