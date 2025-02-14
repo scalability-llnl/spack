@@ -434,6 +434,8 @@ class Acts(CMakePackage, CudaPackage):
     conflicts("%gcc@:7", when="@0.23:")
     # When using C++20, disable gcc 9 and lower.
     conflicts("%gcc@:9", when="cxxstd=20")
+    # See https://github.com/acts-project/acts/pull/3362
+    conflicts("^geant4@11.3:", when="@:35")
     # See https://github.com/acts-project/acts/pull/3512
     conflicts("^boost@1.85.0")
     # See https://github.com/acts-project/acts/pull/3921
