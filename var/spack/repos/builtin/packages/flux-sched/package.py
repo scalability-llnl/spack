@@ -17,7 +17,7 @@ class FluxSched(CMakePackage, AutotoolsPackage):
     git = "https://github.com/flux-framework/flux-sched.git"
     tags = ["radiuss", "e4s"]
 
-    maintainers("grondo")
+    maintainers("trws", "jameshcorbett")
 
     license("LGPL-3.0-only")
 
@@ -66,6 +66,7 @@ class FluxSched(CMakePackage, AutotoolsPackage):
     depends_on(
         "boost+exception+filesystem+system+serialization+graph+container+regex@1.53.0,1.59.0: "
     )
+    depends_on("python@3.6:", type=("build", "run"))
     depends_on("py-pyyaml@3.10:", type=("build", "run"))
     depends_on("py-jsonschema@2.3:", type=("build", "run"))
     depends_on("libedit")
@@ -171,6 +172,9 @@ class FluxSched(CMakePackage, AutotoolsPackage):
     @property
     def lua_lib_dir(self):
         return os.path.join("lib", "lua", str(self.lua_version))
+
+    def setup_build_environment(self, env):
+        env.set("PYTHON", self.spec["python"].command.path)
 
     def setup_run_environment(self, env):
         # If this package is external, we expect the external provider to set
