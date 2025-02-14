@@ -398,6 +398,24 @@ class PruneDuplicatePaths(NameModifier):
         env[self.name] = self.separator.join(directories)
 
 
+class FrozenEnvironment:
+    """Freezes os.environ at the time of instanciation"""
+
+    def __init__(self):
+        self._frozen_environ = os.environ.copy()
+
+    def __enter__(self):
+        self._current_environ = os.environ.copy()
+        os.environ.update(self._frozen_environ)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        os.environ.clear()
+        os.environ.update(self._current_environ)
+
+
+INITIAL_ENVIRONMENT = FrozenEnvironment()
+
+
 class EnvironmentModifications:
     """Keeps track of requests to modify the current environment."""
 
