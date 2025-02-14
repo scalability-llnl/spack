@@ -3001,7 +3001,7 @@ def test_filtering_reused_specs(
 @pytest.mark.usefixtures("mutable_database", "mock_store")
 @pytest.mark.parametrize(
     "reuse_yaml,expected_length",
-    [({"from": [{"type": "local"}]}, 20), ({"from": [{"type": "buildcache"}]}, 0)],
+    [({"from": [{"type": "local"}]}, 19), ({"from": [{"type": "buildcache"}]}, 0)],
 )
 @pytest.mark.not_on_windows("Expected length is different on Windows")
 def test_selecting_reused_sources(
@@ -3013,6 +3013,9 @@ def test_selecting_reused_sources(
     selector = spack.solver.asp.ReusableSpecsSelector(mutable_config)
     specs = selector.reusable_specs(["mpileaks"])
     assert len(specs) == expected_length
+
+    # Compiler wrapper is not reused, as it might have changed from previous installations
+    assert not [x for x in specs if x.name == "compiler-wrapper"]
 
 
 @pytest.mark.parametrize(
