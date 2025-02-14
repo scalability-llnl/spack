@@ -369,6 +369,19 @@ class Cmake(Package):
         module.cmake = Executable(self.spec.prefix.bin.cmake)
         module.ctest = Executable(self.spec.prefix.bin.ctest)
 
+    def setup_dependent_build_environment(self, env, dependent_spec):
+        """Ensure certain environment variables are unset to prevent
+        CMake from bringing in unwanted system pollution"""
+        # Prevent env set appbundles from being detected
+        env.unset("CMAKE_APPBUNDLE_PATH")
+        if dependent_spec.satisfies("platform=darwin"):
+            # Prevent env set frameworks from being detected
+            env.unset("CMAKE_FRAMEWORK_PATH")
+        # prevent detection of external copies of our dependent
+        # package from being detected
+        env.set(f"{dependent_spec.name.upper()}_DIR", dependent_spec.prefix)
+        env.set(f"{dependent_spec.name.upper()}_ROOT", dependent_spec.prefix)
+
     @property
     def libs(self):
         """CMake has no libraries, so if you ask for `spec['cmake'].libs`

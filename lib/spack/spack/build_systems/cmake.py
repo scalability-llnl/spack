@@ -417,6 +417,35 @@ class CMakeBuilder(BuilderWithDefaults):
         _conditional_cmake_defaults(pkg, args)
         _maybe_set_python_hints(pkg, args)
 
+        # Establish some CMake based sandboxing from the user env
+
+        args.extend(
+            [
+                # CMake bundles a number of find modules with
+                # its distribution. During package search these
+                # find modules are prefered in the search order.
+                # Spack based installations of CMake pacakges
+                # export their interface in the form of config modules
+                # by default these are secondary to the find modules
+                # Ensure CMake prefers Spack derived modules always
+                # by prefering config modules
+                define("CMAKE_FIND_PACKAGE_PREFER_CONFIG", True),
+                # By default Spack searches given system locations
+                # for package roots, this can bring in non Spack derived, non
+                # externally modeled packages, prevent this by setting this to false
+                define("CMAKE_FIND_USE_PACKAGE_ROOT_PATH", False),
+                # Similar to above, the system package registry can bring in undeterminable
+                # non-spack packages, so we should prevent its use
+                define("CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY", False),
+                # Spack in general does not leverage or require the use of the Package registry
+                define("CMAKE_FIND_USE_PACKAGE_REGISTRY", False),
+                # By default Spack searches some system paths for packages and libraries
+                # disabling that default behavior insulates builds from system libraries
+                # pulled in by CMake unexpectedly
+                define("CMAKE_FIND_USE_SYSTEM_PATH", False),
+            ]
+        )
+
         return args
 
     @staticmethod
