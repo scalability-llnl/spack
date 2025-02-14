@@ -999,7 +999,7 @@ complete -c spack -n '__fish_spack_using_command ci rebuild' -s j -l jobs -r -f 
 complete -c spack -n '__fish_spack_using_command ci rebuild' -s j -l jobs -r -d 'explicitly set number of parallel jobs'
 
 # spack ci reproduce-build
-set -g __fish_spack_optspecs_spack_ci_reproduce_build h/help runtime= working-dir= s/autostart overwrite use-local-head gpg-file= gpg-url=
+set -g __fish_spack_optspecs_spack_ci_reproduce_build h/help runtime= working-dir= s/autostart use-local-head gpg-file= gpg-url=
 complete -c spack -n '__fish_spack_using_command_pos 0 ci reproduce-build' -f
 complete -c spack -n '__fish_spack_using_command ci reproduce-build' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command ci reproduce-build' -s h -l help -d 'show this help message and exit'
@@ -1009,8 +1009,6 @@ complete -c spack -n '__fish_spack_using_command ci reproduce-build' -l working-
 complete -c spack -n '__fish_spack_using_command ci reproduce-build' -l working-dir -r -d 'where to unpack artifacts'
 complete -c spack -n '__fish_spack_using_command ci reproduce-build' -s s -l autostart -f -a autostart
 complete -c spack -n '__fish_spack_using_command ci reproduce-build' -s s -l autostart -d 'Run docker reproducer automatically'
-complete -c spack -n '__fish_spack_using_command ci reproduce-build' -l overwrite -f -a overwrite
-complete -c spack -n '__fish_spack_using_command ci reproduce-build' -l overwrite -d 'Overwrite the working dir if it exists'
 complete -c spack -n '__fish_spack_using_command ci reproduce-build' -l use-local-head -f -a use_local_head
 complete -c spack -n '__fish_spack_using_command ci reproduce-build' -l use-local-head -d 'Use the HEAD of the local Spack instead of reproducing a commit'
 complete -c spack -n '__fish_spack_using_command ci reproduce-build' -l gpg-file -r -f -a gpg_file
