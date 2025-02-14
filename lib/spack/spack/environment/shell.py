@@ -48,7 +48,9 @@ def activate_header(env, shell, prompt=None, view: Optional[str] = None):
         if view:
             cmds += 'set "SPACK_ENV_VIEW=%s"\n' % view
         if prompt:
-            old_prompt = os.environ.get("PROMPT")
+            old_prompt = os.environ.get("SPACK_OLD_PROMPT")
+            if not old_prompt:
+                old_prompt = os.environ.get("PROMPT")
             cmds += f'set "SPACK_OLD_PROMPT={old_prompt}"\n'
             cmds += f'set "PROMPT={prompt} $P$G"\n'
     elif shell == "pwsh":
@@ -119,6 +121,7 @@ def deactivate_header(shell):
         old_prompt = os.environ.get("SPACK_OLD_PROMPT")
         if old_prompt:
             cmds += f'set "PROMPT={old_prompt}"\n'
+            cmds += 'set "SPACK_OLD_PROMPT="\n'
     elif shell == "pwsh":
         cmds += "Set-Item -Path Env:SPACK_ENV\n"
         cmds += "Set-Item -Path Env:SPACK_ENV_VIEW\n"
