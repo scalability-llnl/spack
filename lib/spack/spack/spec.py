@@ -3684,8 +3684,8 @@ class Spec:
 
         # Consider all direct dependencies and transitive runtime dependencies
         order = itertools.chain(
-            self.edges_to_dependencies(depflag=dt.ALL),
             self.traverse_edges(deptype=dt.LINK | dt.RUN, order="breadth", cover="edges"),
+            self.edges_to_dependencies(depflag=dt.BUILD | dt.TEST),
         )
 
         try:
