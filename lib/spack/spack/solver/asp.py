@@ -2639,15 +2639,23 @@ class SpackSolverSetup:
         specs = tuple(specs)  # ensure compatible types to add
 
         _ = spack.compilers.config.all_compilers(init_config=True)
-        self.possible_compilers = possible_compilers(configuration=spack.config.CONFIG)
-        for x in self.possible_compilers:
-            if x.external:
+
+        # Get compilers from buildcache only if injected through "reuse" specs
+        supported_compilers = spack.compilers.config.supported_compilers()
+        compilers_from_reuse = {
+            x for x in reuse if x.name in supported_compilers and not x.external
+        }
+        candidate_compilers = possible_compilers(configuration=spack.config.CONFIG)
+        for x in candidate_compilers:
+            if x.external or x in reuse:
                 continue
             reuse.append(x)
             for dep in x.traverse(root=False, deptype="run"):
                 reuse.extend(dep.traverse(deptype=("link", "run")))
 
-        # reuse.extend([x for x in self.possible_compilers if not x.external])
+        candidate_compilers.update(compilers_from_reuse)
+        self.possible_compilers = list(candidate_compilers)
+        self.possible_compilers.sort()
 
         self.gen.h1("Reusable concrete specs")
         self.define_concrete_input_specs(specs, self.pkgs)
@@ -2791,11 +2799,6 @@ class SpackSolverSetup:
                     current_libc = compiler["libc"]
                 except (KeyError, RuntimeError) as e:
                     tty.debug(f"{compiler} cannot determine libc because: {e}")
-
-            # If this is a compiler yet to be built infer libc from the Python process
-            # FIXME (compiler as nodes): recover this use case
-            # if not current_libc and compiler.compiler_obj.cc is None:
-            #    current_libc = spack.util.libc.libc_from_current_python_process()
 
             if current_libc:
                 recorder("*").depends_on(
@@ -3011,7 +3014,7 @@ class ProblemInstanceBuilder:
         return "".join(self.asp_problem)
 
 
-def possible_compilers(*, configuration) -> List["spack.spec.Spec"]:
+def possible_compilers(*, configuration) -> Set["spack.spec.Spec"]:
     result = set()
 
     # Compilers defined in configuration
@@ -3048,16 +3051,6 @@ def possible_compilers(*, configuration) -> List["spack.spec.Spec"]:
     for pkg_name in supported_compilers:
         result.update(spack.store.STORE.db.query(pkg_name))
 
-    # Compilers from build cache
-    from_buildcache = [
-        x
-        for x in spack.binary_distribution.update_cache_and_get_specs()
-        if x.name in supported_compilers and not x.external
-    ]
-    result.update(from_buildcache)
-
-    result = list(result)
-    result.sort()
     return result
 
 
