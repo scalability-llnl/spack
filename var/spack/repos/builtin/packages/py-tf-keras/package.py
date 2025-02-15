@@ -56,19 +56,19 @@ class PyTfKeras(PythonPackage):
     depends_on("py-absl-py", type=("build", "run"))
     depends_on("py-h5py", type=("build", "run"))
 
-    def patch(self):
-        infile = join_path(self.package_dir, "protobuf_build.patch")
-        with open(infile, "r") as source_file:
-            text = source_file.read()
-        with open("tf_keras/keras.bzl", mode="a") as f:
-            f.write(text)
-
-        filter_file(
-            'load("@com_google_protobuf//:protobuf.bzl", "py_proto_library")',
-            'load("@org_keras//tf_keras:keras.bzl", "py_proto_library")',
-            "tf_keras/protobuf/BUILD",
-            string=True,
-        )
+    # def patch(self):
+    #     infile = join_path(self.package_dir, "protobuf_build.patch")
+    #     with open(infile, "r") as source_file:
+    #         text = source_file.read()
+    #     with open("tf_keras/keras.bzl", mode="a") as f:
+    #         f.write(text)
+    #
+    #     filter_file(
+    #         'load("@com_google_protobuf//:protobuf.bzl", "py_proto_library")',
+    #         'load("@org_keras//tf_keras:keras.bzl", "py_proto_library")',
+    #         "tf_keras/protobuf/BUILD",
+    #         string=True,
+    #     )
 
     def install(self, spec, prefix):
         self.tmp_path = tempfile.mkdtemp(prefix="spack")
