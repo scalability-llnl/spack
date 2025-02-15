@@ -246,7 +246,7 @@ class LockableStagingDir:
         if not self._lock:
             sha1 = hashlib.sha1(self.name.encode("utf-8")).digest()
             lock_id = prefix_bits(sha1, bit_length(sys.maxsize))
-            stage_lock_path = os.path.join(get_stage_root(), ".lock")
+            stage_lock_path = os.path.join(get_stage_root(), f"{os.getpid()}.lock")
             self._lock = spack.util.lock.Lock(
                 stage_lock_path, start=lock_id, length=1, desc=self.name
             )
