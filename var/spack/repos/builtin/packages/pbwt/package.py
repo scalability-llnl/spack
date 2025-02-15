@@ -27,22 +27,10 @@ class Pbwt(MakefilePackage):
     depends_on("curl")
 
     def patch(self):
-        htslib = self.spec['htslib']
-        filter_file(
-            "^HTSDIR=../htslib$",
-            f"HTSDIR={htslib.prefix}",
-            "Makefile",
-        )
-        filter_file(
-            r"^CPPFLAGS=-I\$\(HTSDIR\)$",
-            r"CPPFLAGS=-I$(HTSDIR)/include",
-            "Makefile",
-        )
-        filter_file(
-            r"^HTSLIB=\$\(HTSDIR\)/libhts.a$",
-            "HTSLIB=$(HTSDIR)/lib/libhts.a",
-            "Makefile",
-        )
+        htslib = self.spec["htslib"]
+        filter_file("^HTSDIR=../htslib$", f"HTSDIR={htslib.prefix}", "Makefile")
+        filter_file(r"^CPPFLAGS=-I\$\(HTSDIR\)$", r"CPPFLAGS=-I$(HTSDIR)/include", "Makefile")
+        filter_file(r"^HTSLIB=\$\(HTSDIR\)/libhts.a$", "HTSLIB=$(HTSDIR)/lib/libhts.a", "Makefile")
         filter_file(
             r"^LDLIBS=-lpthread \$\(HTSLIB\) -lz -lm -lbz2 -llzma -lcurl$",
             "LDLIBS=-lpthread $(HTSLIB) -lz -lm -lbz2 -llzma -lcurl -lcrypto -ldeflate",
@@ -52,4 +40,3 @@ class Pbwt(MakefilePackage):
     @property
     def install_targets(self):
         return ["install", f"PREFIX={self.prefix.bin}"]
-
