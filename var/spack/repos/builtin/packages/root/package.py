@@ -706,6 +706,8 @@ class Root(CMakePackage):
             define_from_variant("fitsio", "fits"),
             define_from_variant("ftgl", "opengl"),
             define_from_variant("gdml"),
+            define_from_variant("geom"),
+            define_from_variant("geombuilder"),
             define_from_variant("genvector", "math"),
             define("geocad", False),
             define("gfal", False),
