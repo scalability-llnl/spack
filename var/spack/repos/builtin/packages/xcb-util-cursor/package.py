@@ -18,6 +18,7 @@ class XcbUtilCursor(AutotoolsPackage, XorgPackage):
 
     license("MIT")
 
+    version("0.1.5", sha256="0caf99b0d60970f81ce41c7ba694e5eaaf833227bb2cbcdb2f6dc9666a663c57")
     version("0.1.4", sha256="28dcfe90bcab7b3561abe0dd58eb6832aa9cc77cfe42fcdfa4ebe20d605231fb")
     version(
         "0.1.3",
