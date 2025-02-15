@@ -3244,9 +3244,11 @@ def test_spec_unification(unify, mutable_config, mock_packages):
 @pytest.mark.parametrize(
     "spec_str, should_pass, error_type",
     [
-        (f"git-ref-package@main commit={'a' *40}", True, None),
-        (f"git-ref-package@main commit={'a' *39}", False, AssertionError),
-        # TODO only versions with git refs should allow the commit variant
+        (f"git-ref-package@main commit={'a' * 40}", True, None),
+        (f"git-ref-package@main commit={'a' * 39}", False, AssertionError),
+        (f"git-ref-package@2.1.6 commit={'a' * 40}", False, AssertionError),
+        (f"git-ref-package@git.2.1.6=2.1.6 commit={'a' * 40}", True, None),
+        (f"git-ref-package@2.1.6 commit={'a' * 40}", False, AssertionError),
     ],
 )
 def test_spec_containing_commit_variant(spec_str, should_pass, error_type):
@@ -3259,7 +3261,7 @@ def test_spec_containing_commit_variant(spec_str, should_pass, error_type):
 
 
 @pytest.mark.usefixtures("mutable_config", "mock_packages", "do_not_check_runtimes_on_reuse")
-@pytest.mark.parametrize("version_str", [f"git.{'a' *40}=main", "git.2.1.5=main"])
+@pytest.mark.parametrize("version_str", [f"git.{'a' * 40}=main", "git.2.1.5=main"])
 def test_relationship_git_versions_and_commit_variant(version_str):
     spec = spack.spec.Spec(f"git-ref-package@{version_str}").concretized()
     if spec.version.commit_sha:

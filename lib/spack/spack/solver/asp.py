@@ -3796,7 +3796,7 @@ def _specs_with_commits(spec):
 
     # Specs with commit variants
     # - variant value satsifies commit regex
-    # - paired to a GitVersion or can create GitVersion from version that was selected
+    # - paired to a GitVersion or version that is associated with a branch/tag
     # - variant value should match GitVersion's commit value
     if has_commit_var:
         invalid_commit_msg = (
@@ -3816,6 +3816,11 @@ def _specs_with_commits(spec):
             return
 
         spec.variants["commit"] = vt.SingleValuedVariant("commit", spec.version.commit_sha)
+    else:
+        # if we are not a GitVersion then only versions with a branch or tag should be
+        # allowed to have the commit variant
+        version_dict = spec.package_class.versions.get(spec.version, {})
+        assert version_dict.get("branch") or version_dict.get("tag")
 
 
 def _develop_specs_from_env(spec, env):
