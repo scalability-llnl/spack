@@ -3794,6 +3794,9 @@ def _specs_with_commits(spec):
     if not (has_commit_var or has_git_version):
         return
 
+    if "dev_path" in spec.variants:
+        assert False
+
     # Specs with commit variants
     # - variant value satsifies commit regex
     # - paired to a GitVersion or version that is associated with a branch/tag
