@@ -367,6 +367,27 @@ def load():
         ],
         description="Highly configurable implementation of the mandatory C99/C++ preprocessor.",
     )
+    # fmt: off
+    _boost_variant(
+        "asio",
+        when="@1.35.0:",
+        requires=[
+            {"spec": "+context", "when": "@1.80.0:", "msg": "Boost.Asio requires Boost.Context"},
+        ],
+        description="Portable networking and other low-level I/O.",
+    )
+    # fmt: on
+    _boost_variant(
+        "gil",
+        when="@1.35.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.GIL requires at least c++11"},
+            {"when": "cxxstd=03", "msg": "Boost.GIL requires at least c++11"},
+            {"when": "cxxstd=11 @1.80.0:", "msg": "Boost.GIL requires at least c++14"},
+            {"when": "%gcc@:6 @1.80.0:", "msg": "Boost.GIL requires gcc-6 or newer"},
+        ],
+        description="Generic Image Library",
+    )
     _boost_variant(
         "mpi",
         default=False,
