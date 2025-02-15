@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,8 @@ class Libshm(Package):
     license("MIT")
 
     version("master")
+
+    depends_on("cxx", type="build")  # generated
 
     def install(self, spec, prefix):
         install_tree("include", prefix.include)

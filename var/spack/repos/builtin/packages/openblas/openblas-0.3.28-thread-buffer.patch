@@ -1,0 +1,14 @@
+--- a/driver/others/blas_server.c	2024-09-18 17:09:48.362101394 -0700
++++ b/driver/others/blas_server.c	2024-09-18 17:12:59.690940586 -0700
+@@ -1076,6 +1076,11 @@
+       main_status[cpu] = MAIN_RUNNING1;
+ #endif
+
++if (buffer == NULL) {
++	blas_thread_buffer[cpu] = blas_memory_alloc(2);
++	buffer = blas_thread_buffer[cpu];
++}
++
+ //For target LOONGSON3R5, applying an offset to the buffer is essential
+ //for minimizing cache conflicts and optimizing performance.
+ #if defined(ARCH_LOONGARCH64) && !defined(NO_AFFINITY)

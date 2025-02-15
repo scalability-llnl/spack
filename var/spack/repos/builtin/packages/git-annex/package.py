@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -124,7 +123,7 @@ class GitAnnex(Package):
     def install(self, spec, prefix):
         install_tree(".", prefix.bin)
 
-        if "~standalone" in spec:
+        if spec.satisfies("~standalone"):
             # use git provided by spack instead of the one in the package
             git_files = ["git", "git-receive-pack", "git-shell", "git-upload-pack"]
             for i in git_files:

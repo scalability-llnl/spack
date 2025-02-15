@@ -1,8 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 from spack.pkg.builtin.boost import Boost
 
@@ -22,6 +22,8 @@ class Sgpp(SConsPackage):
     version("3.4.0", sha256="450d4002850b0a48c561abe221b634261ca44eee111ca605c3e80797182f40b3")
     version("3.3.0", sha256="ca4d5b79f315b425ce69b04940c141451a76848bf1bd7b96067217304c68e2d4")
     version("3.2.0", sha256="dab83587fd447f92ed8546eacaac6b8cbe65b8db5e860218c0fa2e42f776962d")
+
+    depends_on("cxx", type="build")  # generated
     # Note: Older versions of SGpp required Python 2 (and offered Python 2 bindings) and have
     # thus been removed from this list as Spack now requires Python 3.
     # The last spack release with support for Python 2 is v0.19 - there, the spack package
@@ -188,5 +190,4 @@ class Sgpp(SConsPackage):
     @run_after("install")
     def python_install(self):
         if "+python" in self.spec:
-            args = std_pip_args + ["--prefix=" + self.prefix, "."]
-            pip(*args)
+            pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")

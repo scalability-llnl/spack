@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,7 +12,7 @@ class Xf86driproto(AutotoolsPackage, XorgPackage):
     the video hardware without requiring data to be passed through the X
     server."""
 
-    homepage = "https://cgit.freedesktop.org/xorg/proto/xf86driproto"
+    homepage = "https://gitlab.freedesktop.org/xorg/proto/xf86driproto"
     xorg_mirror_path = "proto/xf86driproto-2.1.1.tar.gz"
 
     license("MIT")

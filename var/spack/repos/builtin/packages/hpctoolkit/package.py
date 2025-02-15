@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -7,8 +6,8 @@ import configparser
 import os
 import tempfile
 
-import llnl.util.tty as tty
-
+import spack.build_systems.autotools
+import spack.build_systems.meson
 from spack.package import *
 
 
@@ -20,7 +19,7 @@ class Hpctoolkit(AutotoolsPackage, MesonPackage):
     measurements of a program's work, resource consumption, and inefficiency
     and attributes them to the full calling context in which they occur."""
 
-    homepage = "http://hpctoolkit.org"
+    homepage = "https://hpctoolkit.org"
     git = "https://gitlab.com/hpctoolkit/hpctoolkit.git"
     maintainers("mwkrentel")
 
@@ -38,11 +37,11 @@ class Hpctoolkit(AutotoolsPackage, MesonPackage):
     version("2023.03.stable", branch="release/2023.03")
     version("2023.03.01", commit="9e0daf2ad169f6c7f6c60408475b3c2f71baebbf")
     version("2022.10.01", commit="e8a5cc87e8f5ddfd14338459a4106f8e0d162c83")
-    version("2022.05.15", commit="8ac72d9963c4ed7b7f56acb65feb02fbce353479")
-    version("2022.04.15", commit="a92fdad29fc180cc522a9087bba9554a829ee002")
-    version("2022.01.15", commit="0238e9a052a696707e4e65b2269f342baad728ae")
-    version("2021.10.15", commit="a8f289e4dc87ff98e05cfc105978c09eb2f5ea16")
-    version("2021.05.15", commit="004ea0c2aea6a261e7d5d216c24f8a703fc6c408")
+    version("2022.05.15", commit="8ac72d9963c4ed7b7f56acb65feb02fbce353479", deprecated=True)
+    version("2022.04.15", commit="a92fdad29fc180cc522a9087bba9554a829ee002", deprecated=True)
+    version("2022.01.15", commit="0238e9a052a696707e4e65b2269f342baad728ae", deprecated=True)
+    version("2021.10.15", commit="a8f289e4dc87ff98e05cfc105978c09eb2f5ea16", deprecated=True)
+    version("2021.05.15", commit="004ea0c2aea6a261e7d5d216c24f8a703fc6c408", deprecated=True)
     version("2021.03.01", commit="68a051044c952f0f4dac459d9941875c700039e7", deprecated=True)
     version("2020.08.03", commit="d9d13c705d81e5de38e624254cf0875cce6add9a", deprecated=True)
     version("2020.07.21", commit="4e56c780cffc53875aca67d6472a2fb3678970eb", deprecated=True)
@@ -50,8 +49,9 @@ class Hpctoolkit(AutotoolsPackage, MesonPackage):
     version("2020.03.01", commit="94ede4e6fa1e05e6f080be8dc388240ea027f769", deprecated=True)
     version("2019.12.28", commit="b4e1877ff96069fd8ed0fdf0e36283a5b4b62240", deprecated=True)
     version("2019.08.14", commit="6ea44ed3f93ede2d0a48937f288a2d41188a277c", deprecated=True)
-    version("2018.12.28", commit="8dbf0d543171ffa9885344f32f23cc6f7f6e39bc", deprecated=True)
-    version("2018.11.05", commit="d0c43e39020e67095b1f1d8bb89b75f22b12aee9", deprecated=True)
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     # Options for MPI and hpcprof-mpi.  We always support profiling
     # MPI applications.  These options add hpcprof-mpi, the MPI
@@ -116,6 +116,12 @@ class Hpctoolkit(AutotoolsPackage, MesonPackage):
         when="build_system=autotools",
     )
     variant("viewer", default=True, description="Include hpcviewer.")
+    variant(
+        "docs",
+        default=False,
+        description="Include extra documentation (user's manual)",
+        when="@develop",
+    )
 
     variant(
         "python", default=False, description="Support unwinding Python source.", when="@2023.03:"
@@ -151,8 +157,8 @@ class Hpctoolkit(AutotoolsPackage, MesonPackage):
         " +graph +regex +shared +multithreaded visibility=global"
     )
 
-    depends_on("binutils +libiberty", type="link", when="@2021:2022.06")
-    depends_on("binutils +libiberty~nls", type="link", when="@2020.04:2020")
+    depends_on("binutils@:2.39 +libiberty", type="link", when="@2021:2022.06")
+    depends_on("binutils@:2.39 +libiberty~nls", type="link", when="@2020.04:2020")
     depends_on("binutils@:2.33.1 +libiberty~nls", type="link", when="@:2020.03")
     depends_on("boost" + boost_libs)
     depends_on("bzip2+shared", type="link")
@@ -178,9 +184,14 @@ class Hpctoolkit(AutotoolsPackage, MesonPackage):
     depends_on("xz", type="link")
     depends_on("xz+pic libs=static", type="link", when="@:2023.08")
     depends_on("yaml-cpp@0.7.0: +shared", when="@2022.10:")
+    depends_on("googletest@1.8.1: +gmock", type="test", when="@develop")
 
     depends_on("zlib-api")
     depends_on("zlib+shared", when="^[virtuals=zlib-api] zlib")
+
+    depends_on("py-docutils", type="build", when="@develop")
+    depends_on("py-sphinx", type="build", when="+docs")
+    depends_on("py-myst-parser@0.19:", type="build", when="+docs")
 
     depends_on("cuda", when="+cuda")
     depends_on("oneapi-level-zero", when="+level_zero")
@@ -188,7 +199,6 @@ class Hpctoolkit(AutotoolsPackage, MesonPackage):
     depends_on("intel-gtpin", when="+gtpin")
     depends_on("opencl-c-headers", when="+opencl")
 
-    depends_on("intel-xed+pic", when="target=x86_64:")
     depends_on("memkind", type=("build", "run"), when="@2021.05.01:2023.08")
     depends_on("papi", when="+papi")
     depends_on("libpfm4", when="~papi")
@@ -196,7 +206,12 @@ class Hpctoolkit(AutotoolsPackage, MesonPackage):
     depends_on("mpi", when="+mpi")
     depends_on("hpcviewer@2022.10:", type="run", when="@2022.10: +viewer")
     depends_on("hpcviewer", type="run", when="+viewer")
-    depends_on("python@3.10:", type=("build", "run"), when="+python")
+    depends_on("python@3.10:", type=("build", "run"), when="@:2023.08 +python")
+    depends_on("python@3.8:", type=("build", "run"), when="@2024.01: +python")
+
+    with when("target=x86_64:"):
+        depends_on("intel-xed+pic")
+        depends_on("intel-xed+deprecated-includes", when="@:2024.01.1")
 
     # Avoid 'link' dep, we don't actually link, and that adds rpath
     # that conflicts with app.
@@ -212,6 +227,12 @@ class Hpctoolkit(AutotoolsPackage, MesonPackage):
     conflicts("^binutils@2.35:2.35.1", msg="avoid binutils 2.35 and 2.35.1 (spews errors)")
     conflicts("^xz@5.2.7:5.2.8", msg="avoid xz 5.2.7:5.2.8 (broken symbol versions)")
     conflicts("^intel-xed@2023.08:", when="@:2023.09")
+
+    # https://gitlab.com/hpctoolkit/hpctoolkit/-/issues/831
+    conflicts(
+        "^elfutils@0.191:",
+        msg="avoid elfutils 0.191 (known critical errors in hpcstruct for CUDA binaries)",
+    )
 
     conflicts("+cray", when="@2022.10.01", msg="hpcprof-mpi is not available in 2022.10.01")
     conflicts("+mpi", when="@2022.10.01", msg="hpcprof-mpi is not available in 2022.10.01")
@@ -253,7 +274,7 @@ class Hpctoolkit(AutotoolsPackage, MesonPackage):
         env.prepend_path("MANPATH", spec.prefix.share.man)
         env.prepend_path("CPATH", spec.prefix.include)
         env.prepend_path("LD_LIBRARY_PATH", spec.prefix.lib.hpctoolkit)
-        if "+viewer" in spec:
+        if spec.satisfies("+viewer"):
             env.prepend_path("PATH", spec["hpcviewer"].prefix.bin)
             env.prepend_path("MANPATH", spec["hpcviewer"].prefix.share.man)
 
@@ -319,18 +340,18 @@ class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
         if spec.satisfies("@2022.10:"):
             args.append("--with-yaml-cpp=%s" % spec["yaml-cpp"].prefix)
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             args.append("--with-cuda=%s" % spec["cuda"].prefix)
 
-        if "+level_zero" in spec:
+        if spec.satisfies("+level_zero"):
             args.append("--with-level0=%s" % spec["oneapi-level-zero"].prefix)
 
             # gtpin requires level_zero
-            if "+gtpin" in spec:
+            if spec.satisfies("+gtpin"):
                 args.append("--with-gtpin=%s" % spec["intel-gtpin"].prefix)
                 args.append("--with-igc=%s" % spec["oneapi-igc"].prefix)
 
-        if "+opencl" in spec:
+        if spec.satisfies("+opencl"):
             args.append("--with-opencl=%s" % spec["opencl-c-headers"].prefix)
 
         if spec.satisfies("+rocm"):
@@ -389,17 +410,22 @@ class MesonBuilder(spack.build_systems.meson.MesonBuilder):
         spec = self.spec
 
         args = [
-            "-Dhpcprof_mpi=" + ("enabled" if "+mpi" in spec else "disabled"),
-            "-Dpython=" + ("enabled" if "+python" in spec else "disabled"),
-            "-Dpapi=" + ("enabled" if "+papi" in spec else "disabled"),
-            "-Dopencl=" + ("enabled" if "+opencl" in spec else "disabled"),
-            "-Dcuda=" + ("enabled" if "+cuda" in spec else "disabled"),
-            "-Drocm=" + ("enabled" if "+rocm" in spec else "disabled"),
-            "-Dlevel0=" + ("enabled" if "+level_zero" in spec else "disabled"),
-            "-Dgtpin=" + ("enabled" if "+gtpin" in spec else "disabled"),
+            "-Dmanpages=enabled",
+            "-Dmanual=" + ("enabled" if spec.satisfies("+docs") else "disabled"),
+            "-Dhpcprof_mpi=" + ("enabled" if spec.satisfies("+mpi") else "disabled"),
+            "-Dpython=" + ("enabled" if spec.satisfies("+python") else "disabled"),
+            "-Dpapi=" + ("enabled" if spec.satisfies("+papi") else "disabled"),
+            "-Dopencl=" + ("enabled" if spec.satisfies("+opencl") else "disabled"),
+            "-Dcuda=" + ("enabled" if spec.satisfies("+cuda") else "disabled"),
+            "-Drocm=" + ("enabled" if spec.satisfies("+rocm") else "disabled"),
+            "-Dlevel0=" + ("enabled" if spec.satisfies("+level_zero") else "disabled"),
+            "-Dgtpin=" + ("enabled" if spec.satisfies("+gtpin") else "disabled"),
         ]
 
-        if "@:2024.01" in spec:
+        if spec.satisfies("@develop"):
+            args.append("-Dtests=" + ("enabled" if self.pkg.run_tests else "disabled"))
+
+        if spec.satisfies("@:2024.01"):
             args.append(f"--native-file={self.gen_prefix_file()}")
 
         return args
@@ -434,29 +460,29 @@ class MesonBuilder(spack.build_systems.meson.MesonBuilder):
 
         cfg["properties"]["prefix_yaml_cpp"] = f"'''{spec['yaml-cpp'].prefix}'''"
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             cfg["properties"]["prefix_cuda"] = f"'''{spec['cuda'].prefix}'''"
 
-        if "+level_zero" in spec:
+        if spec.satisfies("+level_zero"):
             cfg["properties"]["prefix_level0"] = f"'''{spec['oneapi-level-zero'].prefix}'''"
 
-        if "+gtpin" in spec:
+        if spec.satisfies("+gtpin"):
             cfg["properties"]["prefix_gtpin"] = f"'''{spec['intel-gtpin'].prefix}'''"
             cfg["properties"]["prefix_igc"] = f"'''{spec['oneapi-igc'].prefix}'''"
 
-        if "+opencl" in spec:
+        if spec.satisfies("+opencl"):
             cfg["properties"]["prefix_opencl"] = f"'''{spec['opencl-c-headers'].prefix}'''"
 
-        if "+rocm" in spec:
+        if spec.satisfies("+rocm"):
             cfg["properties"]["prefix_rocm_hip"] = f"'''{spec['hip'].prefix}'''"
             cfg["properties"]["prefix_rocm_hsa"] = f"'''{spec['hsa-rocr-dev'].prefix}'''"
             cfg["properties"]["prefix_rocm_tracer"] = f"'''{spec['roctracer-dev'].prefix}'''"
             cfg["properties"]["prefix_rocm_profiler"] = f"'''{spec['rocprofiler-dev'].prefix}'''"
 
-        if "+python" in spec:
+        if spec.satisfies("+python"):
             cfg["binaries"]["python"] = f"'''{spec['python'].command}'''"
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             cfg["binaries"]["mpicxx"] = f"'''{spec['mpi'].mpicxx}'''"
 
         native_fd, native_path = tempfile.mkstemp(

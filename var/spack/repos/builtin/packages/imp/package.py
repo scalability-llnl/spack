@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,9 @@ class Imp(CMakePackage):
     license("LGPL-2.1-or-later")
 
     version("2.8.0", sha256="0b46b8988febd7cdfc5838849007f9a547493ed4b6c752fe54571467eeb1acd2")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("python@2.7:")
     depends_on("swig")

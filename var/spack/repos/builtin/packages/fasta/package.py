@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,6 +27,8 @@ class Fasta(MakefilePackage):
         url="https://github.com/wrpearson/fasta36/archive/refs/tags/v36.3.8h_04-May-2020.tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("zlib-api")
 
     # The src tree includes a plethora of variant Makefiles and the
@@ -40,7 +41,7 @@ class Fasta(MakefilePackage):
         elif self.spec.satisfies("platform=linux target=x86_64:"):
             name = "Makefile.linux64_sse2"
         else:
-            tty.die(
+            raise InstallError(
                 """Unsupported platform/target, must be
 Darwin (assumes 64-bit)
 Linux x86_64

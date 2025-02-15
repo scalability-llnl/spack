@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -31,6 +30,9 @@ class Ncurses(AutotoolsPackage, GNUMirrorPackage):
     version("6.1", sha256="aa057eeeb4a14d470101eff4597d5833dcef5965331be3528c08d99cebaa0d17")
     version("6.0", sha256="f551c24b30ce8bfb6e96d9f59b42fbea30fa3a6123384172f9e7284bcf647260")
     version("5.9", sha256="9046298fb440324c9d4135ecea7879ffed8546dd1b58e59430ea07a4633f563b")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("symlinks", default=False, description="Enables symlinks. Needed on AFS filesystem.")
     variant(

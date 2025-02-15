@@ -1,5 +1,4 @@
-% Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-% Spack Project Developers. See the top-level COPYRIGHT file for details.
+% Copyright Spack Project Developers. See COPYRIGHT file for details.
 %
 % SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,9 +16,6 @@ error(100, "Cannot reuse {0} since we cannot determine libc compatibility", Reus
      % Libc packages can be reused without the "compatible_libc" attribute
      ReusedPackage != LibcPackage,
      not attr("compatible_libc", node(R, ReusedPackage), LibcPackage, LibcVersion).
-
-% Check whether the DAG has any built package
-has_built_packages() :- build(X), not external(X).
 
 % A libc is needed in the DAG
 :- has_built_packages(), not provider(_, node(0, "libc")).

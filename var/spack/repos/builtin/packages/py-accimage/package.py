@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,8 @@ class PyAccimage(PythonPackage):
     license("BSD-2-Clause")
 
     version("0.1.1", sha256="573c56866a42683c7cf25185620fe82ec2ce78468e0621c29fac8f4134a785f5")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("python", type=("build", "link", "run"))
     # pip silently replaces distutils with setuptools

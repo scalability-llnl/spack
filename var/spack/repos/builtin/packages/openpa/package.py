@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -20,3 +19,5 @@ class Openpa(AutotoolsPackage):
     version("1.0.2", sha256="13b5ef8ea3502822ab03861bf9d047c3bda722b22605edf3f508fb355746db4f")
     version("1.0.1", sha256="63fae765d44e5741506b92cd0ff55c237c1e19d20bd5539c77cea1c67d5b4303")
     version("1.0.0", sha256="0f163da7fbe39a438c301b52bb876961bfedfe4ab6248a98297dd326fabee627")
+
+    depends_on("c", type="build")  # generated

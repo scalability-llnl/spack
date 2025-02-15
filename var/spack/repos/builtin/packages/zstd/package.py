@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -40,6 +39,9 @@ class Zstd(CMakePackage, MakefilePackage):
     version("1.3.8", sha256="90d902a1282cc4e197a8023b6d6e8d331c1fd1dfe60f7f8e4ee9da40da886dc3")
     version("1.3.0", sha256="0fdba643b438b7cbce700dcc0e7b3e3da6d829088c63757a5984930e2f70b348")
     version("1.1.2", sha256="980b8febb0118e22f6ed70d23b5b3e600995dbf7489c1f6d6122c1411cdda8d8")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("programs", default=False, description="Build executables")
     variant(

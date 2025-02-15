@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,9 @@ class Fms(CMakePackage):
     license("LGPL-3.0-or-later")
 
     maintainers("AlexanderRichert-NOAA", "Hang-Lei-NOAA", "edwardhartnett", "rem1776", "climbfuji")
+    version("2025.01", sha256="19997ef5468a06c60c1e7af3a56ab7f8a33da814a30827293ca34df5bd888d6f")
+    version("2024.03", sha256="4c1e6bdfafcfec19a4a1c08770c313ab3135d47ec8319f6b07f24d2589caf44d")
+    version("2024.02", sha256="47e5740bb066f5eb032e1de163eb762c7258880a2932f4cc4e34e769e0cc2b0e")
     version(
         "2024.01.01", sha256="41c8686bad2b1aed76275e35cbe1af855f7dfce9b6d8907744ea2e8174758f6a"
     )
@@ -52,6 +54,32 @@ class Fms(CMakePackage):
     )
     version(
         "2020.04.01", sha256="2c409242de7dea0cf29f8dbf7495698b6bcac1eeb5c4599a728bdea172ffe37c"
+    )
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
+    # https://github.com/NOAA-GFDL/FMS/issues/1417
+    patch(
+        "https://github.com/NOAA-GFDL/FMS/commit/c9bba516ba1115d4a7660fba92f9d67cf3fd32ad.patch?full_index=1",
+        sha256="07d5b68838bba61ee547bd4cd7c12d81228c91a80a966b8693694fa236d0ac30",
+        when="@2023.03",
+    )
+
+    variant(
+        "portable_kinds",
+        description="Use iso_c_binding variable kinds",
+        when="@2025.01:",
+        default=False,
+    )
+
+    variant("shared", description="Build shared libraries", when="@2024.02:", default=False)
+    # What the following patch is providing is available in version 2024.03
+    # and newer so it is only needed to 2024.02
+    patch(
+        "https://github.com/NOAA-GFDL/fms/pull/1559.patch?full_index=1",
+        sha256="2b12a6c35f357c3dddcfa5282576e56ab0e8e6c1ad1dab92a2c85ce3dfb815d4",
+        when="@2024.02",
     )
 
     variant(
@@ -104,12 +132,15 @@ class Fms(CMakePackage):
     depends_on("netcdf-fortran")
     depends_on("mpi")
     depends_on("libyaml", when="+yaml")
+    depends_on("llvm-openmp", when="+openmp %apple-clang", type=("build", "run"))
 
     def cmake_args(self):
         args = [
             self.define_from_variant("GFS_PHYS"),
             self.define_from_variant("OPENMP"),
             self.define_from_variant("ENABLE_QUAD_PRECISION", "quad_precision"),
+            self.define_from_variant("SHARED_LIBS", "shared"),
+            self.define_from_variant("PORTABLE_KINDS", "portable_kinds"),
             self.define_from_variant("WITH_YAML", "yaml"),
             self.define_from_variant("CONSTANTS"),
             self.define_from_variant("LARGEFILE", "large_file"),

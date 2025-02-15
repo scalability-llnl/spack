@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,8 @@ class Dialign(MakefilePackage):
     license("LGPL-2.1-or-later")
 
     version("2.2.1", sha256="046361bb4ca6e4ab2ac5e634cfcd673f964a887006c09c1b8bd3310fac86f519")
+
+    depends_on("c", type="build")  # generated
 
     build_directory = "src"
 

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,5 +19,7 @@ class Gocryptfs(GoPackage):
 
     version("2.4.0", sha256="26a93456588506f4078f192b70e7816b6a4042a14b748b28a50d2b6c9b10e2ec")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("openssl")
-    depends_on("pkg-config", type="build")
+    depends_on("pkgconfig", type="build")

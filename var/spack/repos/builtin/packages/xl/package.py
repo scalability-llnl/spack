@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -30,8 +29,8 @@ class Xl(Package, CompilerPackage):
 
     @classmethod
     def determine_variants(cls, exes, version_str):
-        _r_exes = [e for e in exes if "_r" in e]
-        _exes = [e for e in exes if "_r" not in e]
+        _r_exes = [e for e in exes if e.endswith("_r")]
+        _exes = [e for e in exes if not e.endswith("_r")]
 
         _r_compilers = cls.determine_compiler_paths(exes=_r_exes) if _r_exes else None
         _compilers = cls.determine_compiler_paths(exes=_exes) if _exes else None

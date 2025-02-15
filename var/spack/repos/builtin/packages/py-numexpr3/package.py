@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,9 @@ class PyNumexpr3(PythonPackage):
     license("BSD-3-Clause")
 
     version("3.0.1a1", sha256="de06f1b4206704b5bc19ea09b5c94350b97c211c26bc866f275252a8461b87e6")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
     # TODO: Add CMake build system for better control of passing flags related
     # to CPU ISA.
 

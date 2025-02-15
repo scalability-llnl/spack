@@ -1,8 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -26,6 +26,9 @@ class Cmor(AutotoolsPackage):
     version("3.3.0", sha256="b763707272c470fc6f7077d9c541591a60f9075b52f5f0298eaf2cb2f2fff4d2")
     version("3.2.0", sha256="8d49899549dd4c08197739300d507e6fc2b4a5cfe2bfd3e6b44e8e3eaf79b132")
     version("3.1.2", sha256="ee58b6d405f081e4e0633af931b7992f1a570953b71ece17c01ab9e15889211a")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("fortran", default=True, description="Enable Fortran API")
     variant("python", default=False, description="Enable PYTHON support", when="@3.4:")
@@ -73,5 +76,4 @@ class Cmor(AutotoolsPackage):
         make("install")
 
         if spec.satisfies("+python"):
-            args = std_pip_args + ["--prefix=" + prefix, "."]
-            pip(*args)
+            pip(*PythonPipBuilder.std_args(self), f"--prefix={prefix}", ".")

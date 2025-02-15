@@ -1,5 +1,4 @@
-.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-   Spack Project Developers. See the top-level COPYRIGHT file for details.
+.. Copyright Spack Project Developers. See COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -281,7 +280,7 @@ When spack queries for configuration parameters, it searches in
 higher-precedence scopes first. So, settings in a higher-precedence file
 can override those with the same key in a lower-precedence one. For
 list-valued settings, Spack *prepends* higher-precedence settings to
-lower-precedence settings. Completely ignoring higher-level configuration
+lower-precedence settings. Completely ignoring lower-precedence configuration
 options is supported with the ``::`` notation for keys (see
 :ref:`config-overrides` below).
 
@@ -511,6 +510,7 @@ Spack understands over a dozen special variables. These are:
 * ``$target_family``. The target family for the current host, as
   detected by ArchSpec. E.g. ``x86_64`` or ``aarch64``.
 * ``$date``: the current date in the format YYYY-MM-DD
+* ``$spack_short_version``: the Spack version truncated to the first components.
 
 
 Note that, as with shell variables, you can write these as ``$varname``

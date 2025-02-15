@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,7 +8,7 @@ from spack.package import *
 class PyCroniter(PythonPackage):
     """croniter provides iteration for datetime object with cron like format."""
 
-    homepage = "http://github.com/kiorky/croniter"
+    homepage = "https://github.com/kiorky/croniter"
     pypi = "croniter/croniter-1.3.8.tar.gz"
 
     license("MIT")

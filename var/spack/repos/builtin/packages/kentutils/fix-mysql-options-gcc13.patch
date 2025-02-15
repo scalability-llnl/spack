@@ -1,0 +1,13 @@
+diff --git a/jksql.c.orig b/jksql.c
+index bf38b3b..69b2c42 100644
+--- a/kent/src/hg/lib/jksql.c
++++ b/kent/src/hg/lib/jksql.c
+@@ -1129,7 +1129,7 @@ mysql_options(conn, MYSQL_OPT_LOCAL_INFILE, NULL);
+ if (sp->verifyServerCert && !sameString(sp->verifyServerCert,"0"))
+     {
+     #if !defined(MARIADB_VERSION_ID) && MYSQL_VERSION_ID >= 80000
+-    mysql_options(conn, MYSQL_OPT_SSL_MODE, SSL_MODE_REQUIRED);
++    mysql_options(conn, MYSQL_OPT_SSL_MODE, (void*) SSL_MODE_REQUIRED);
+     #else
+     my_bool flag = TRUE;
+     mysql_options(conn, MYSQL_OPT_SSL_VERIFY_SERVER_CERT, &flag);

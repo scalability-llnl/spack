@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,10 @@ class Cloc(Package):
     version("1.84", sha256="c3f0a6bd2319110418ccb3e55a7a1b6d0edfd7528bfd2ae5d530938abe90f254")
     version("1.80", sha256="082f53530eee3f9ee84ec449eca59a77ff114250cd7daf9519679537b5b21d67")
     version("1.74", sha256="55ac423d5766c74236700a47838ed66bea47ba42e1d594fdd894074ba3eb0567")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("perl")
 

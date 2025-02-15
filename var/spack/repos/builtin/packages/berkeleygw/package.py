@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -46,6 +45,10 @@ class Berkeleygw(MakefilePackage):
         url="https://app.box.com/shared/static/ze3azi5vlyw7hpwvl9i5f82kaiid6g0x.gz",
         expand=False,
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # For parallel computing support, enable +mpi. It uses MPI and ScaLAPACK
     # which are inter-dependent in the berkeleygw code(they need each other):
@@ -115,10 +118,10 @@ class Berkeleygw(MakefilePackage):
     def edit(self, spec, prefix):
         # archive is a tar file, despite the .gz expension
         tar = which("tar")
-        tar("-x", "-f", self.stage.archive_file, "--strip-components=1")
+        tar("-x", "-o", "-f", self.stage.archive_file, "--strip-components=1")
 
         # get generic arch.mk template
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             copy(join_path(self.stage.source_path, "config", "generic.mpi.linux.mk"), "arch.mk")
         else:
             copy(join_path(self.stage.source_path, "config", "generic.serial.linux.mk"), "arch.mk")
@@ -134,10 +137,9 @@ class Berkeleygw(MakefilePackage):
         # use parallelization in tests
         filter_file(
             r"cd testsuite \&\& \$\(MAKE\) check$",
-            "cd testsuite && export BGW_TEST_MPI_NPROCS=2 OMP_NUM_THREADS=2 \
-             SAVETESTDIRS=yes TEMPDIRPATH=%s && \
-             $(MAKE) check-parallel"
-            % join_path(self.build_directory, "tmp"),
+            "cd testsuite && export BGW_TEST_MPI_NPROCS=2 OMP_NUM_THREADS=2 "
+            "SAVETESTDIRS=yes TEMPDIRPATH=%s && "
+            "$(MAKE) check-parallel" % join_path(self.build_directory, "tmp"),
             "Makefile",
         )
 
@@ -185,27 +187,27 @@ class Berkeleygw(MakefilePackage):
         buildopts = []
         paraflags = []
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             paraflags.append("-DMPI")
 
         # We need to copy fflags in case we append to it (#34019):
         fflags = spec.compiler_flags["fflags"][:]
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             paraflags.append("-DOMP")
             fflags.append(self.compiler.openmp_flag)
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             buildopts.append("C_PARAFLAG=-DPARA")
             buildopts.append("PARAFLAG=%s" % " ".join(paraflags))
 
         debugflag = ""
-        if "+debug" in spec:
+        if spec.satisfies("+debug"):
             debugflag += "-DDEBUG "
-        if "+verbose" in spec:
+        if spec.satisfies("+verbose"):
             debugflag += "-DVERBOSE "
         buildopts.append("DEBUGFLAG=%s" % debugflag)
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             buildopts.append("LINK=%s" % spec["mpi"].mpifc)
             buildopts.append("C_LINK=%s" % spec["mpi"].mpicxx)
         else:
@@ -224,7 +226,7 @@ class Berkeleygw(MakefilePackage):
 
         buildopts.append("LAPACKLIB=%s" % spec["lapack"].libs.ld_flags)
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             mathflags.append("-DUSESCALAPACK")
             buildopts.append("SCALAPACKLIB=%s" % spec["scalapack"].libs.ld_flags)
 
@@ -232,7 +234,7 @@ class Berkeleygw(MakefilePackage):
             buildopts.append("COMPFLAG=-DINTEL")
             buildopts.append("MOD_OPT=-module ")
             buildopts.append("FCPP=cpp -C -P -ffreestanding")
-            if "+mpi" in spec:
+            if spec.satisfies("+mpi"):
                 buildopts.append("F90free=%s -free" % spec["mpi"].mpifc)
                 buildopts.append("C_COMP=%s" % spec["mpi"].mpicc)
                 buildopts.append("CC_COMP=%s" % spec["mpi"].mpicxx)
@@ -258,7 +260,7 @@ class Berkeleygw(MakefilePackage):
             buildopts.append(
                 "FCPP=%s -C -nostdinc -std=c11" % join_path(self.compiler.prefix, "bin", "cpp")
             )
-            if "+mpi" in spec:
+            if spec.satisfies("+mpi"):
                 buildopts.append("F90free=%s %s" % (spec["mpi"].mpifc, f90_flags))
                 buildopts.append("C_COMP=%s %s" % (spec["mpi"].mpicc, c_flags))
                 buildopts.append("CC_COMP=%s %s" % (spec["mpi"].mpicxx, cxx_flags))
@@ -274,7 +276,7 @@ class Berkeleygw(MakefilePackage):
             buildopts.append("COMPFLAG=")
             buildopts.append("MOD_OPT=-module ")
             buildopts.append("FCPP=cpp -C -nostdinc")
-            if "+mpi" in spec:
+            if spec.satisfies("+mpi"):
                 buildopts.append("F90free=%s %s" % (spec["mpi"].mpifc, f90_flags))
                 buildopts.append("C_COMP=%s %s" % (spec["mpi"].mpicc, c_flags))
                 buildopts.append("CC_COMP=%s %s" % (spec["mpi"].mpicxx, cxx_flags))
@@ -289,16 +291,16 @@ class Berkeleygw(MakefilePackage):
                 "BerkeleyGW with compiler %s" % spec.compiler
             )
 
-        if "+hdf5" in spec:
+        if spec.satisfies("+hdf5"):
             mathflags.append("-DHDF5")
             buildopts.append("HDF5INCLUDE=%s" % spec["hdf5"].prefix.include)
             buildopts.append("HDF5LIB=%s" % spec["hdf5:hl,fortran"].libs.ld_flags)
 
-        if "+elpa" in spec:
+        if spec.satisfies("+elpa"):
             mathflags.append("-DUSEELPA")
             elpa = spec["elpa"]
 
-            if "+openmp" in spec:
+            if spec.satisfies("+openmp"):
                 elpa_suffix = "_openmp"
             else:
                 elpa_suffix = ""

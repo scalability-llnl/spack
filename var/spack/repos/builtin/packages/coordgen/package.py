@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,8 @@ class Coordgen(CMakePackage):
     license("BSD-3-Clause")
 
     version("3.0.2", sha256="f67697434f7fec03bca150a6d84ea0e8409f6ec49d5aab43badc5833098ff4e3")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("maeparser", default=True, description="Use MAE parser")
     variant("example", default=False, description="Build sample executable")

@@ -1,11 +1,9 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 import re
-from typing import List
 
 import llnl.util.lang
 
@@ -13,18 +11,6 @@ import spack.compiler
 
 
 class Nag(spack.compiler.Compiler):
-    # Subclasses use possible names of C compiler
-    cc_names: List[str] = []
-
-    # Subclasses use possible names of C++ compiler
-    cxx_names: List[str] = []
-
-    # Subclasses use possible names of Fortran 77 compiler
-    f77_names = ["nagfor"]
-
-    # Subclasses use possible names of Fortran 90 compiler
-    fc_names = ["nagfor"]
-
     # Named wrapper links within build_env_path
     # Use default wrappers for C and C++, in case provided in compilers.yaml
     link_paths = {

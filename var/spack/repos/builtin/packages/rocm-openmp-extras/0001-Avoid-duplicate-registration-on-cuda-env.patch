@@ -1,0 +1,26 @@
+From 518621c818c285d8b5d11f56c331243b985d7654 Mon Sep 17 00:00:00 2001
+From: Renjith Ravindran <Renjith.RavindranKannath@amd.com>
+Date: Fri, 9 Aug 2024 22:04:55 +0000
+Subject: [PATCH] Avoiding registration of duplicate when built on cuda
+ environemnt
+
+---
+ .../openmp/libomptarget/plugins/cuda/CMakeLists.txt             | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/rocm-openmp-extras/llvm-project/openmp/libomptarget/plugins/cuda/CMakeLists.txt b/rocm-openmp-extras/llvm-project/openmp/libomptarget/plugins/cuda/CMakeLists.txt
+index 9b991c735..f21cccdd5 100644
+--- a/rocm-openmp-extras/llvm-project/openmp/libomptarget/plugins/cuda/CMakeLists.txt
++++ b/rocm-openmp-extras/llvm-project/openmp/libomptarget/plugins/cuda/CMakeLists.txt
+@@ -102,8 +102,6 @@ target_include_directories(omptarget.rtl.cuda PRIVATE
+ option(LIBOMPTARGET_FORCE_NVIDIA_TESTS "Build NVIDIA libomptarget tests" OFF)
+ if (LIBOMPTARGET_FOUND_NVIDIA_GPU OR LIBOMPTARGET_FORCE_NVIDIA_TESTS)
+   libomptarget_say("Enable tests using CUDA plugin")
+-  set(LIBOMPTARGET_SYSTEM_TARGETS "${LIBOMPTARGET_SYSTEM_TARGETS} nvptx64-nvidia-cuda nvptx64-nvidia-cuda-oldDriver" PARENT_SCOPE)
+-  set(LIBOMPTARGET_SYSTEM_TARGETS "${LIBOMPTARGET_SYSTEM_TARGETS} nvptx64-nvidia-cuda nvptx64-nvidia-cuda-LTO" PARENT_SCOPE)
+   list(APPEND LIBOMPTARGET_TESTED_PLUGINS "omptarget.rtl.cuda")
+   set(LIBOMPTARGET_TESTED_PLUGINS "${LIBOMPTARGET_TESTED_PLUGINS}" PARENT_SCOPE)
+ else()
+-- 
+2.34.1
+

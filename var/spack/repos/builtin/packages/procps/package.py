@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,6 +27,8 @@ class Procps(AutotoolsPackage):
     version("3.3.16", sha256="7f09945e73beac5b12e163a7ee4cae98bcdd9a505163b6a060756f462907ebbc")
     version("3.3.15", sha256="14dfa751517dd844efa9f492e3ad8071f908a269c6aea643b9a1759235fa2053")
     version("3.3.14", sha256="1ff716e7bde6b3841b8519831690b10b644ed344490369c55e410edc8db2fe18")
+
+    depends_on("c", type="build")  # generated
 
     variant("nls", default=True, description="Enable Native Language Support.")
 

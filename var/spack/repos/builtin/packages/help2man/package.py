@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,5 +19,7 @@ class Help2man(AutotoolsPackage, GNUMirrorPackage):
     version("1.47.11", sha256="5985b257f86304c8791842c0c807a37541d0d6807ee973000cf8a3fe6ad47b88")
     version("1.47.8", sha256="528f6a81ad34cbc76aa7dce5a82f8b3d2078ef065271ab81fda033842018a8dc")
     version("1.47.4", sha256="d4ecf697d13f14dd1a78c5995f06459bff706fd1ce593d1c02d81667c0207753")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("perl", type=("build", "run"))

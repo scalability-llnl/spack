@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -25,6 +24,8 @@ class PyGmxapi(PythonPackage):
     version("0.4.2", sha256="c746c6498c73a75913d7fcb01c13cc001d4bcb82999e9bf91d63578565ed1a1f")
     version("0.4.1", sha256="cc7a2e509ab8a59c187d388dcfd21ea78b785c3b355149b1818085f34dbda62a")
     version("0.4.0", sha256="7fd58e6a4b1391043379e8ba55555ebeba255c5b394f5df9d676e6a5571d7eba")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("gromacs@2022.1:~mdrun_only+shared")
     depends_on("mpi")

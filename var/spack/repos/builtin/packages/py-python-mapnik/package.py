@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,8 @@ class PyPythonMapnik(PythonPackage):
 
     version("3.0.16", sha256="643117752fa09668a1e26a360d13cd137329ae2013eb14ad92ab72fbc479fc70")
     version("3.0.13", sha256="ced684745e778c0cac0edba89c09c6f9b9f1db18fc12744ed4710a88b78a3389")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("py-setuptools", type="build")
     depends_on("mapnik", type=("build", "link", "run"))

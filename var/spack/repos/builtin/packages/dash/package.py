@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,8 @@ class Dash(AutotoolsPackage):
 
     version("0.5.12", sha256="0d632f6b945058d84809cac7805326775bd60cb4a316907d0bd4228ff7107154")
     version("0.5.9.1", sha256="3f747013a20a3a9d2932be1a6dd1b002ca5649849b649be0af8a8da80bd8a918")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("libedit", type="link")
 

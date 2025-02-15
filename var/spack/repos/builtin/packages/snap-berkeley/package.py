@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,6 +27,8 @@ class SnapBerkeley(MakefilePackage):
         sha256="bea0174c8d01907023494d7ffd2a6dab9c38d248cfe4d3c26feedf9d5becce9a",
         preferred=True,
     )
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("zlib-api")
 

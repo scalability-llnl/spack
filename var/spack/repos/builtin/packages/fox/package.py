@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,6 +26,8 @@ class Fox(AutotoolsPackage):
         preferred=True,
         sha256="65ef15de9e0f3a396dc36d9ea29c158b78fad47f7184780357b929c94d458923",
     )
+
+    depends_on("cxx", type="build")  # generated
 
     patch("no_rexdebug.patch", when="@1.7.67")
 

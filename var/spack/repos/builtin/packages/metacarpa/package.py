@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,8 @@ class Metacarpa(MakefilePackage):
     url = "https://github.com/hmgu-itg/metacarpa/archive/refs/tags/1.0.1.tar.gz"
 
     version("1.0.1", sha256="7d8fc774a88bf75a53ef8f74462924abba9b99fccbaa9979654c01e4379fab91")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("boost@1.60.0")
     depends_on(Boost.with_default_variants)

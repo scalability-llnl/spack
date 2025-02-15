@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,10 @@ class Openmm(CMakePackage, CudaPackage):
     version("7.5.1", sha256="c88d6946468a2bde2619acb834f57b859b5e114a93093cf562165612e10f4ff7")
     version("7.5.0", sha256="516748b4f1ae936c4d70cc6401174fc9384244c65cd3aef27bc2c53eac6d6de5")
     version("7.4.1", sha256="e8102b68133e6dcf7fcf29bc76a11ea54f30af71d8a7705aec0aee957ebe3a6d")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     install_targets = ["install", "PythonInstall"]
 

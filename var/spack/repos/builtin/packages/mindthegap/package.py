@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,9 @@ class Mindthegap(CMakePackage):
     version(
         "2.0.2", tag="v2.0.2", commit="8401af2a2bce9997396fbf0a04757ca7c887a1da", submodules=True
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3.1:", type="build", when="@2.3.0")
     depends_on("cmake@2.6:", type="build", when="@2.0.2")

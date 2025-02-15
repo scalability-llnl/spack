@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Low-level wrappers around clingo API."""
@@ -42,6 +41,17 @@ def _id(thing: Any) -> Union[str, AspObject]:
         return str(thing)
     else:
         return f'"{str(thing)}"'
+
+
+class AspVar(AspObject):
+    """Represents a variable in an ASP rule, allows for conditionally generating
+    rules"""
+
+    def __init__(self, name: str):
+        self.name = name
+
+    def __str__(self) -> str:
+        return str(self.name)
 
 
 @lang.key_ordering
@@ -88,6 +98,8 @@ class AspFunction(AspObject):
             return clingo().Number(arg)
         elif isinstance(arg, AspFunction):
             return clingo().Function(arg.name, [self._argify(x) for x in arg.args], positive=True)
+        elif isinstance(arg, AspVar):
+            return clingo().Variable(arg.name)
         return clingo().String(str(arg))
 
     def symbol(self):
@@ -230,6 +242,13 @@ class NodeArgument(NamedTuple):
     pkg: str
 
 
+class NodeFlag(NamedTuple):
+    flag_type: str
+    flag: str
+    flag_group: str
+    source: str
+
+
 def intermediate_repr(sym):
     """Returns an intermediate representation of clingo models for Spack's spec builder.
 
@@ -247,6 +266,13 @@ def intermediate_repr(sym):
         if sym.name == "node":
             return NodeArgument(
                 id=intermediate_repr(sym.arguments[0]), pkg=intermediate_repr(sym.arguments[1])
+            )
+        elif sym.name == "node_flag":
+            return NodeFlag(
+                flag_type=intermediate_repr(sym.arguments[0]),
+                flag=intermediate_repr(sym.arguments[1]),
+                flag_group=intermediate_repr(sym.arguments[2]),
+                source=intermediate_repr(sym.arguments[3]),
             )
     except RuntimeError:
         # This happens when using clingo w/ CFFI and trying to access ".name" for symbols

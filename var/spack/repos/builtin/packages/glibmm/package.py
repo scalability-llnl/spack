@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class Glibmm(AutotoolsPackage):
     version("2.19.3", sha256="23958368535c19188b1241c4615dcf1f35e80e0922a04236bb9247dcd8fe0a2b")
     version("2.16.0", sha256="99795b9c6e58e490df740a113408092bf47a928427cbf178d77c35adcb6a57a3")
     version("2.4.8", sha256="78b97bfa1d001cc7b398f76bf09005ba55b45ae20780b297947a1a71c4f07e1f")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("libsigcpp")
     # https://libsigcplusplus.github.io/libsigcplusplus/index.html

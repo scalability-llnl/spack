@@ -1,0 +1,33 @@
+From b42116d6067a5233f72e5598032d4b396bb8eaac Mon Sep 17 00:00:00 2001
+From: NIIBE Yutaka <gniibe@fsij.org>
+Date: Thu, 4 Jul 2024 11:17:03 +0900
+Subject: [PATCH] cipher:blake2: Fix for use_avx512.
+
+* cipher/blake2.c (blake2s_init_ctx): Conditional with USE_AVX512.
+
+--
+
+GnuPG-bug-id: 7184
+Reported-by: Aaron Howland
+Fixing-commit: 909daa700e4b45d75469df298ee564b8fc2f4b72
+Signed-off-by: NIIBE Yutaka <gniibe@fsij.org>
+---
+ cipher/blake2.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/cipher/blake2.c b/cipher/blake2.c
+index 451e71f6..1a04fbd8 100644
+--- a/cipher/blake2.c
++++ b/cipher/blake2.c
+@@ -830,7 +830,7 @@ static gcry_err_code_t blake2s_init_ctx(void *ctx, unsigned int flags,
+ #ifdef USE_AVX
+   c->use_avx = !!(features & HWF_INTEL_AVX);
+ #endif
+-#ifdef USE_AVX
++#ifdef USE_AVX512
+   c->use_avx512 = !!(features & HWF_INTEL_AVX512);
+ #endif
+ 
+-- 
+2.30.2
+

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -84,7 +83,7 @@ class Autoconf(AutotoolsPackage, GNUMirrorPackage):
         # We save and restore the modification timestamp of the file to prevent
         # regeneration of the respective man page:
         with keep_modification_time(patched_file):
-            if "@2.70:" in self.spec:
+            if self.spec.satisfies("@2.70:"):
                 shebang_string = "^#! @PERL@"
             else:
                 shebang_string = "^#! @PERL@ -w"
@@ -104,7 +103,7 @@ class Autoconf(AutotoolsPackage, GNUMirrorPackage):
         # target will try to rebuild the binaries (filter_file updates the
         # timestamps)
 
-        if "@2.70:" in self.spec:
+        if self.spec.satisfies("@2.70:"):
             shebang_string = "#! {0}"
         else:
             shebang_string = "#! {0} -w"

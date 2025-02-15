@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -55,6 +54,9 @@ class PyGrpcio(PythonPackage):
         deprecated=True,
         # Released 6ish years ago and does not install for python 3.8 with gcc11
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("py-setuptools", type="build")
     with default_args(type=("build", "run")):

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -19,6 +18,8 @@ class Seqan(CMakePackage):
     license("BSD-3-Clause")
 
     version("2.4.0", sha256="d7084d17729214003e84818e0280a16f223c8f1c6a30eeef040c27e0c0047bd7")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3.4.0:", type="build")
     depends_on("python@2.7.0:", type="build")

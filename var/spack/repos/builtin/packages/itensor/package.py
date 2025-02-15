@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -33,6 +32,8 @@ class Itensor(MakefilePackage):
     version("3.0.1", sha256="5e2ac3a5b62fb3e34f1e520e6da911b56659507fb4143118d4a602a5866bc912")
     version("3.0.0", sha256="1d249a3a6442188a9f7829b32238c1025457c2930566d134a785994b1f7c54a9")
     version("2.1.1", sha256="b91a67af66ed0fa7678494f3895b5d5ae7f1dc1026540689f9625f515cb7791c")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("openmp", default=False, description="Enable OpenMP support.")
     variant("hdf5", default=False, description="Build rockstar with HDF5 support.")
@@ -90,12 +91,12 @@ class Itensor(MakefilePackage):
         filter_file(r"^BLAS_LAPACK_LIBFLAGS.+", vlib, mf)
 
         # 3.HDF5
-        if "+hdf5" in spec:
+        if spec.satisfies("+hdf5"):
             hdf5p = f"HDF5_PREFIX={spec['hdf5'].prefix.lib}"
             filter_file("^#HDF5.+", hdf5p, mf)
 
         # 4.openmp
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             filter_file("#ITENSOR_USE_OMP", "ITENSOR_USE_OMP", mf)
             filter_file("-fopenmp", self.compiler.openmp_flag, mf)
 
@@ -103,7 +104,7 @@ class Itensor(MakefilePackage):
         filter_file(r"^PREFIX.+", f"PREFIX={os.getcwd()}", mf)
 
         # 5.shared
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             filter_file("ITENSOR_MAKE_DYLIB=0", "ITENSOR_MAKE_DYLIB=1", mf)
 
     def install(self, spec, prefix):

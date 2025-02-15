@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import numbers
@@ -40,6 +39,9 @@ class Pythia6(CMakePackage):
         url="https://pythia.org/download/pythia6/pythia6428-split.tgz",
         sha256="01cbff47e99365b5e46f6d62c1735d3cae1932c4710604850d59f538cb758020",
     )
+
+    depends_on("c", type="build")
+    depends_on("fortran", type="build")
 
     # Root's TPythia6 interface requires extra sources to be built into
     # the Pythia6 library.
@@ -136,9 +138,7 @@ class Pythia6(CMakePackage):
         # Use our provided CMakeLists.txt. The Makefile provided with
         # the source is GCC (gfortran) specific, and would have required
         # additional patching for the +root variant.
-        llnl.util.filesystem.copy(
-            os.path.join(os.path.dirname(__file__), "CMakeLists.txt"), self.stage.source_path
-        )
+        copy(os.path.join(os.path.dirname(__file__), "CMakeLists.txt"), self.stage.source_path)
         # Apply the variant value at the relevant place in the source.
         filter_file(
             r"^(\s+PARAMETER\s*\(\s*NMXHEP\s*=\s*)\d+",

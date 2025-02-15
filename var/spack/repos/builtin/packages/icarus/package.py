@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,9 @@ class Icarus(AutotoolsPackage):
     version("12_0", sha256="a68cb1ef7c017ef090ebedb2bc3e39ef90ecc70a3400afb4aa94303bc3beaa7d")
     version("11_0", sha256="6327fb900e66b46803d928b7ca439409a0dc32731d82143b20387be0833f1c95")
     version("10_3", commit="453c5465895eaca4a792d18b75e9ec14db6ea50e")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("bison", type="build")

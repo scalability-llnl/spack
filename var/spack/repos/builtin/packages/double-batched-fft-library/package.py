@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,14 +27,16 @@ class DoubleBatchedFftLibrary(CMakePackage):
     version("0.4.0", sha256="f3518012b632c92c2a933d70a040d6b0eee2d631ab6b1881a192a8d1624f242d")
     version("0.3.6", sha256="ff163251d77d3c686563141e871c702bf4997c0302d53616add55d6cf9b02d28")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Shared library")
     variant("sycl", default=True, description="Build bbfft-sycl")
-    variant("level-zero", default=True, when="~sycl", description="Build bbfft-level-zero")
+    variant("level_zero", default=True, when="~sycl", description="Build bbfft-level-zero")
     variant("opencl", default=True, when="~sycl", description="Build bbfft-opencl")
 
     depends_on("cmake@3.23.0:", type="build")
     depends_on("oneapi-level-zero", when="+sycl")
-    depends_on("oneapi-level-zero", when="+level-zero")
+    depends_on("oneapi-level-zero", when="+level_zero")
     depends_on("opencl", when="+opencl")
 
     patch("0001-Add-CPATH-and-LIBRARY_PATHs-to-OpenCL-search-paths.patch", when="@:0.3.6")
@@ -48,7 +49,7 @@ class DoubleBatchedFftLibrary(CMakePackage):
         return [
             self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
             self.define_from_variant("BUILD_SYCL", "sycl"),
-            self.define_from_variant("BUILD_LEVEL_ZERO", "level-zero"),
+            self.define_from_variant("BUILD_LEVEL_ZERO", "level_zero"),
             self.define_from_variant("BUILD_OPENCL", "opencl"),
             self.define("BUILD_BENCHMARK", False),
             self.define("BUILD_EXAMPLE", False),

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,10 @@ class Njet(AutotoolsPackage):
 
     version("2.1.1", sha256="3858ad37e84f3652711aa033819a6566352ecff04a1cb0189d6590af75b7bb56")
     version("2.0.0", sha256="a1f5c171b8aff3553d9dde24d3ced5479bdaeec67f4c90c70a846ee3449b40ea")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("qd")
 

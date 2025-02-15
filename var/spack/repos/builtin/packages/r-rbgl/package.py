@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,6 +25,8 @@ class RRbgl(RPackage):
     version("1.56.0", commit="a1fa9d89c6a3401892c5dd1493df6a14031f0912")
     version("1.54.0", commit="e9c743d380e83c155495cb8732102f01f213c905")
     version("1.52.0", commit="93e8fcfafec8f1cd5638fe30dc0f9506d15b49c0")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r-graph", type=("build", "run"))
     depends_on("r-bh", type=("build", "run"), when="@1.60.0:")

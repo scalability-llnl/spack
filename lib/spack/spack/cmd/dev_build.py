@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -8,10 +7,14 @@ import sys
 
 import llnl.util.tty as tty
 
+import spack.build_environment
 import spack.cmd
+import spack.cmd.common.arguments
+import spack.concretize
 import spack.config
 import spack.repo
 from spack.cmd.common import arguments
+from spack.installer import PackageInstaller
 
 description = "developer build: build from code in current working directory"
 section = "build"
@@ -111,8 +114,8 @@ def dev_build(self, args):
     source_path = os.path.abspath(source_path)
 
     # Forces the build to run out of the source directory.
-    spec.constrain("dev_path=%s" % source_path)
-    spec.concretize()
+    spec.constrain(f'dev_path="{source_path}"')
+    spec = spack.concretize.concretize_one(spec)
 
     if spec.installed:
         tty.error("Already installed in %s" % spec.prefix)
@@ -129,9 +132,9 @@ def dev_build(self, args):
     elif args.test == "root":
         tests = [spec.name for spec in specs]
 
-    spec.package.do_install(
+    PackageInstaller(
+        [spec.package],
         tests=tests,
-        make_jobs=args.jobs,
         keep_prefix=args.keep_prefix,
         install_deps=not args.ignore_deps,
         verbose=not args.quiet,
@@ -139,7 +142,7 @@ def dev_build(self, args):
         stop_before=args.before,
         skip_patch=args.skip_patch,
         stop_at=args.until,
-    )
+    ).install()
 
     # drop into the build environment of the package?
     if args.shell is not None:

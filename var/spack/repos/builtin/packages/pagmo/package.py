@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,9 @@ class Pagmo(CMakePackage):
     license("GPL-3.0-or-later")
 
     version("1.1.7", sha256="6d8fab89ef9d5d5f30f148225bf9b84b2e5a38997f3d68b85547840e9fd95172")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("examples", default=False, description="Build examples")
     variant("cxx", default=True, description="Build the C++ interface")

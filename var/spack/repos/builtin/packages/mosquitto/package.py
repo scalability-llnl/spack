@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,9 @@ class Mosquitto(CMakePackage):
     version("1.5.11", sha256="4a3b8a8f5505d27a7a966dd68bfd76f1e69feb51796d1b46b7271d1bb5a1a299")
     version("1.4.15", sha256="7d3b3e245a3b4ec94b05678c8199c806359737949f4cfe0bf936184f6ca89a83")
     version("1.3.5", sha256="16eb3dbef183827665feee9288362c7352cd016ba04ca0402a0ccf857d1c2ab2")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("tls", default=True, description="Build with TLS support")
     variant("cjson", default=True, description="Build with cJSON support", when="@2.0.0:")

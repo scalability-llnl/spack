@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,6 +8,14 @@ import platform
 from spack.package import *
 
 _versions = {
+    # cuDNN 9.2.0
+    "9.2.0.82-12": {
+        "Linux-x86_64": "1362b4d437e37e92c9814c3b4065db5106c2e03268e22275a5869e968cee7aa8",
+        "Linux-aarch64": "24cc2a0308dfe412c02c7d41d4b07ec12dacb021ebf8c719de38eb77d22f68c1",
+    },
+    "9.2.0.82-11": {
+        "Linux-x86_64": "99dcb3fa2bf7eed7f35b0f8e58e7d1f04d9a52e01e382efc1de16fed230d3b26"
+    },
     # cuDNN 8.9.7
     "8.9.7.29-12": {
         "Linux-x86_64": "475333625c7e42a7af3ca0b2f7506a106e30c93b1aa0081cd9c13efb6e21e3bb",
@@ -378,16 +385,19 @@ class Cudnn(Package):
         # Package is not compiled, and does not work unless LD_LIBRARY_PATH is set
         env.prepend_path("LD_LIBRARY_PATH", self.prefix.lib)
 
-        if "target=ppc64le: platform=linux" in self.spec:
+        if self.spec.satisfies("target=ppc64le: platform=linux"):
             env.set("cuDNN_ROOT", os.path.join(self.prefix, "targets", "ppc64le-linux"))
 
     def install(self, spec, prefix):
         install_tree(".", prefix)
 
-        if "target=ppc64le: platform=linux" in spec:
+        if spec.satisfies("target=ppc64le: platform=linux"):
             target_lib = os.path.join(prefix, "targets", "ppc64le-linux", "lib")
             if os.path.isdir(target_lib) and not os.path.isdir(prefix.lib):
                 symlink(target_lib, prefix.lib)
             target_include = os.path.join(prefix, "targets", "ppc64le-linux", "include")
             if os.path.isdir(target_include) and not os.path.isdir(prefix.include):
                 symlink(target_include, prefix.include)
+
+    # contains precompiled binaries without rpaths
+    unresolved_libraries = ["*"]

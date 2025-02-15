@@ -1,8 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
+import pathlib
 import re
 
 import spack.build_systems.autotools
@@ -26,6 +26,8 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
         checked_by="tgamblin",
     )
 
+    version("2.43.1", sha256="becaac5d295e037587b63a42fad57fe3d9d7b83f478eb24b67f9eec5d0f1872f")
+    version("2.43", sha256="fed3c3077f0df7a4a1aa47b080b8c53277593ccbb4e5e78b73ffb4e3f265e750")
     version("2.42", sha256="aa54850ebda5064c72cd4ec2d9b056c294252991486350d9a97ab2a6dfdfaf12")
     version("2.41", sha256="a4c4bec052f7b8370024e60389e194377f3f48b56618418ea51067f67aaab30b")
     version("2.40", sha256="f8298eb153a4b37d112e945aa5cb2850040bcf26a3ea65b5a715c83afe05e48a")
@@ -87,6 +89,9 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     variant("plugins", default=True, description="enable plugins, needed for gold linker")
     # When you build ld.gold you automatically get ld, even when you add the
     # --disable-ld flag
@@ -119,6 +124,12 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
         description="Enable debug section compression by default in ld, gas, gold.",
         when="@2.26:",
     )
+    variant(
+        "debuginfod",
+        default=False,
+        description="Enable debuginfod HTTP server support for readelf and objdump",
+        when="@2.34:",
+    )
 
     patch("cr16.patch", when="@:2.29.1")
     patch("update_symbol-2.26.patch", when="@2.26")
@@ -129,12 +140,15 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
     patch("gold-gcc4.patch", when="@2.42 %gcc@:4.8.5")
 
     # compression libs for debug symbols.
-    # pkg-config is used to find zstd in gas/configure
-    depends_on("pkgconfig", type="build")
     depends_on("zstd@1.4.0:", when="@2.40:")
     depends_on("zlib-api")
 
+    depends_on("elfutils+debuginfod", when="+debuginfod")
+
+    # pkg-config is used to locate zstd, libdebuginfod
+    depends_on("pkgconfig", type="build")
     depends_on("diffutils", type="build")
+
     depends_on("gettext", when="+nls")
 
     # PGO runs tests, which requires `runtest` from dejagnu
@@ -155,8 +169,11 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
 
     with when("platform=darwin"):
         conflicts("+gold", msg="Binutils cannot build linkers on macOS")
+        # 2.41 doesn't seem to have any problems.
         conflicts(
-            "libs=shared", when="@2.37:2.40", msg="https://github.com/spack/spack/issues/35817"
+            "libs=shared",
+            when="@2.37:2.40,2.42:",
+            msg="https://github.com/spack/spack/issues/35817",
         )
 
     conflicts(
@@ -176,6 +193,20 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
         output = Executable(exe)("--version", output=str, error=str)
         match = re.search(r"GNU (nm|readelf).* (\S+)", output)
         return Version(match.group(2)).dotted.up_to(3) if match else None
+
+    @classmethod
+    def determine_variants(cls, exes, version_str):
+        bin_dir = pathlib.Path(exes[0]).parent
+        include_dir = bin_dir.parent / "include"
+        plugin_h = include_dir / "plugin-api.h"
+
+        variants = "+gold" if find(str(bin_dir), "gold", recursive=False) else "~gold"
+        if find(str(include_dir), str(plugin_h), recursive=False):
+            variants += "+headers"
+        else:
+            variants += "~headers"
+
+        return variants
 
     def flag_handler(self, name, flags):
         spec = self.spec
@@ -204,6 +235,7 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
         return (iflags, None, flags)
 
     def test_binaries(self):
+        """check versions reported by binaries"""
         binaries = [
             "ar",
             "c++filt",
@@ -257,18 +289,19 @@ class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
             "--enable-targets={}".format(targets),
             "--with-sysroot=/",
             "--with-system-zlib",
+            *self.enable_or_disable("gas"),
+            *self.enable_or_disable("gold"),
+            *self.enable_or_disable("gprofng"),
+            *self.enable_or_disable("install-libiberty", variant="libiberty"),
+            *self.enable_or_disable("interwork"),
+            *self.enable_or_disable("ld"),
+            *self.enable_or_disable("libs"),
+            *self.enable_or_disable("lto"),
+            *self.enable_or_disable("nls"),
+            *self.enable_or_disable("plugins"),
+            *self.with_or_without("debuginfod"),
         ]
-        args += self.enable_or_disable("gas")
-        args += self.enable_or_disable("gold")
-        args += self.enable_or_disable("gprofng")
-        args += self.enable_or_disable("install-libiberty", variant="libiberty")
-        args += self.enable_or_disable("interwork")
-        args += self.enable_or_disable("ld")
-        args += self.enable_or_disable("libs")
-        args += self.enable_or_disable("lto")
-        args += self.enable_or_disable("nls")
-        args += self.enable_or_disable("plugins")
-        if "+pgo" in self.spec:
+        if self.spec.satisfies("+pgo"):
             args.append("--enable-pgo-build=lto")
         else:
             args.append("--disable-pgo-build")

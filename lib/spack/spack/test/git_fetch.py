@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,7 +10,11 @@ import pytest
 
 from llnl.util.filesystem import mkdirp, touch, working_dir
 
+import spack.concretize
 import spack.config
+import spack.error
+import spack.fetch_strategy
+import spack.platforms
 import spack.repo
 from spack.fetch_strategy import GitFetchStrategy
 from spack.spec import Spec
@@ -183,8 +186,9 @@ def test_adhoc_version_submodules(
     monkeypatch.setitem(pkg_class.versions, Version("git"), t.args)
     monkeypatch.setattr(pkg_class, "git", "file://%s" % mock_git_repository.path, raising=False)
 
-    spec = Spec("git-test@{0}".format(mock_git_repository.unversioned_commit))
-    spec.concretize()
+    spec = spack.concretize.concretize_one(
+        Spec("git-test@{0}".format(mock_git_repository.unversioned_commit))
+    )
     spec.package.do_stage()
     collected_fnames = set()
     for root, dirs, files in os.walk(spec.package.stage.source_path):
@@ -390,3 +394,38 @@ def test_gitsubmodules_falsey(
         assert not os.path.isfile(file_path)
         file_path = os.path.join(s.package.stage.source_path, "third_party/submodule1/r0_file_1")
         assert not os.path.isfile(file_path)
+
+
+@pytest.mark.disable_clean_stage_check
+def test_git_sparse_paths_partial_clone(
+    mock_git_repository, git_version, default_mock_concretization, mutable_mock_repo, monkeypatch
+):
+    """
+    Test partial clone of repository when using git_sparse_paths property
+    """
+    type_of_test = "many-directories"
+    sparse_paths = ["dir0"]
+    omitted_paths = ["dir1", "dir2"]
+    t = mock_git_repository.checks[type_of_test]
+    args = copy.copy(t.args)
+    args["git_sparse_paths"] = sparse_paths
+    s = default_mock_concretization("git-test")
+    monkeypatch.setitem(s.package.versions, Version("git"), args)
+    s.package.do_stage()
+    with working_dir(s.package.stage.source_path):
+        # top level directory files are cloned via sparse-checkout
+        assert os.path.isfile("r0_file")
+
+        for p in sparse_paths:
+            assert os.path.isdir(p)
+
+        if git_version < Version("2.26.0.0"):
+            # older versions of git should fall back to a full clone
+            for p in omitted_paths:
+                assert os.path.isdir(p)
+        else:
+            for p in omitted_paths:
+                assert not os.path.isdir(p)
+
+        # fixture file is in the sparse-path expansion tree
+        assert os.path.isfile(t.file)

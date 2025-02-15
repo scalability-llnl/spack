@@ -1,0 +1,24 @@
+diff --git a/packager/nativelib.py b/packager/nativelib.py
+index 1a3df2e..24ba471 100644
+--- a/packager/nativelib.py
++++ b/packager/nativelib.py
+@@ -133,6 +133,7 @@ def locate_or_build_libxgboost(
+         sys_prefix = pathlib.Path(sys.base_prefix)
+         sys_prefix_candidates = [
+             sys_prefix / "lib",
++            sys_prefix / "lib64",
+             # Paths possibly used on Windows
+             sys_prefix / "bin",
+             sys_prefix / "Library",
+diff --git a/xgboost/libpath.py b/xgboost/libpath.py
+index 92d46a0..2007579 100644
+--- a/xgboost/libpath.py
++++ b/xgboost/libpath.py
+@@ -28,6 +28,7 @@ def find_lib_path() -> List[str]:
+         # use libxgboost from a system prefix, if available.  This should be the last
+         # option.
+         os.path.join(sys.base_prefix, "lib"),
++        os.path.join(sys.base_prefix, "lib64"),
+     ]
+ 
+     if sys.platform == "win32":

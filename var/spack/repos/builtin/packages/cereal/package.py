@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -32,6 +31,9 @@ class Cereal(CMakePackage):
     version("1.1.0", sha256="69113debdac9de561f499af4cf7755b2e8c3afa92649b8178b34a7c6bbe4f12f")
     version("1.0.0", sha256="51c31c84d4c9e410e56d8bfc3424076b3234f11aa349ac8cda3db9f18118c125")
     version("0.9.1", sha256="2a99722df9c3d0f75267f732808a4d7e564cb5a35318a3d1c00086e2ef139385")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     patch("Boost.patch", when="@:1.3.0")
     patch("Boost2.patch", when="@1.2.2:1.3.0")

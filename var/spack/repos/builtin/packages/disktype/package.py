@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,8 @@ class Disktype(MakefilePackage):
     license("MIT")
 
     version("9.2.1", sha256="fb274d6ce6b69c0d36eb23fcc9f01db3c32c3996b404900d46bb743ce4fa8154")
+
+    depends_on("c", type="build")  # generated
 
     build_directory = "src"
 

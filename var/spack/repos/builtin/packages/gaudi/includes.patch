@@ -1,0 +1,38 @@
+diff --git a/GaudiHive/src/AvalancheSchedulerSvc.cpp b/GaudiHive/src/AvalancheSchedulerSvc.cpp
+index 7f49e6f75..76601bed8 100644
+--- a/GaudiHive/src/AvalancheSchedulerSvc.cpp
++++ b/GaudiHive/src/AvalancheSchedulerSvc.cpp
+@@ -23,6 +23,7 @@
+ 
+ // C++
+ #include <algorithm>
++#include <fstream>
+ #include <map>
+ #include <queue>
+ #include <sstream>
+diff --git a/GaudiHive/src/PRGraph/Visitors/Rankers.cpp b/GaudiHive/src/PRGraph/Visitors/Rankers.cpp
+index 33f733633..e4d33080f 100644
+--- a/GaudiHive/src/PRGraph/Visitors/Rankers.cpp
++++ b/GaudiHive/src/PRGraph/Visitors/Rankers.cpp
+@@ -10,6 +10,8 @@
+ \***********************************************************************************/
+ #include "Rankers.h"
+ 
++#include <fstream>
++
+ namespace concurrency {
+ 
+   //--------------------------------------------------------------------------
+diff --git a/GaudiHive/src/PrecedenceSvc.cpp b/GaudiHive/src/PrecedenceSvc.cpp
+index ac4a7b7d9..1ff1e3f9e 100644
+--- a/GaudiHive/src/PrecedenceSvc.cpp
++++ b/GaudiHive/src/PrecedenceSvc.cpp
+@@ -17,6 +17,8 @@
+ #include <Gaudi/Algorithm.h>
+ #include <Gaudi/Sequence.h>
+ 
++#include <fstream>
++
+ #define ON_DEBUG if ( msgLevel( MSG::DEBUG ) )
+ #define ON_VERBOSE if ( msgLevel( MSG::VERBOSE ) )
+ 

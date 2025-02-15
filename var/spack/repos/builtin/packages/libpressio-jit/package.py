@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,8 @@ class LibpressioJit(CMakePackage):
     license("BSD-4-Clause", checked_by="robertu94")
 
     version("0.0.1", sha256="6aa771c624980589cc941e8cfca1c5fb6cea3fef2b060f58bfdf07109eda8c08")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("poorjit", description="include the prototype poorjit compiler", default=True)
 

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,6 +26,8 @@ class Jellyfish(AutotoolsPackage):
         sha256="496645d96b08ba35db1f856d857a159798c73cbc1eccb852ef1b253d1678c8e2",
         url="https://www.cbcb.umd.edu/software/jellyfish/jellyfish-1.1.11.tar.gz",
     )
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("perl", when="@2.2.7:", type=("build", "run"))
     variant("ruby", default=False, description="Enable ruby bindings")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,10 @@ from io import BytesIO, TextIOWrapper
 import pytest
 
 import spack
+import spack.cmd.logs
+import spack.concretize
+import spack.main
+import spack.spec
 from spack.main import SpackCommand
 
 logs = SpackCommand("logs")
@@ -32,7 +35,7 @@ def stdout_as_buffered_text_stream():
     original_stdout = sys.stdout
 
     with tempfile.TemporaryFile(mode="w+b") as tf:
-        sys.stdout = TextIOWrapper(tf)
+        sys.stdout = TextIOWrapper(tf, encoding="utf-8")
         try:
             yield tf
         finally:
@@ -51,7 +54,7 @@ def disable_capture(capfd):
 
 
 def test_logs_cmd_errors(install_mockery, mock_fetch, mock_archive, mock_packages):
-    spec = spack.spec.Spec("libelf").concretized()
+    spec = spack.concretize.concretize_one("libelf")
     assert not spec.installed
 
     with pytest.raises(spack.main.SpackCommandError, match="is not installed or staged"):
@@ -80,7 +83,7 @@ def test_dump_logs(install_mockery, mock_fetch, mock_archive, mock_packages, dis
     decompress them.
     """
     cmdline_spec = spack.spec.Spec("libelf")
-    concrete_spec = cmdline_spec.concretized()
+    concrete_spec = spack.concretize.concretize_one(cmdline_spec)
 
     # Sanity check, make sure this test is checking what we want: to
     # start with

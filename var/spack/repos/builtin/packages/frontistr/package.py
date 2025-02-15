@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -58,3 +57,7 @@ class Frontistr(FrontistrBase):
     version("5.1", tag="v5.1", commit="f3fe347a8fd83cd45983476521d43061c8528da0")
     version("5.0", tag="v5.0", commit="39b83f057a2639af4b5083fb911e0726f0972b75")
     version("master", tag="master")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated

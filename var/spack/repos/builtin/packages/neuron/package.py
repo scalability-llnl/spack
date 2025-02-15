@@ -1,8 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_environment import optimization_flags
 from spack.package import *
 
 
@@ -36,6 +36,10 @@ class Neuron(CMakePackage):
     version(
         "7.8.2", tag="7.8.2", commit="09b151ecb2b3984335c265932dc6ba3e4fcb318e", submodules="True"
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("backtrace", default=False, description="Enable printing backtraces on failure")
     variant("interviews", default=False, description="Enable GUI with INTERVIEWS")
@@ -145,7 +149,7 @@ class Neuron(CMakePackage):
 
         # add cpu arch specific optimisation flags to CMake so that they are passed
         # to embedded Makefile that neuron has for compiling MOD files
-        compilation_flags = self.spec.architecture.target.optimization_flags(self.spec.compiler)
+        compilation_flags = optimization_flags(self.compiler, self.spec.target)
         args.append(self.define("CMAKE_CXX_FLAGS", compilation_flags))
 
         return args

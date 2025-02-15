@@ -1,10 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
-from spack.util.executable import which_string
 
 
 class NinjaFortran(Package):
@@ -46,6 +44,9 @@ class NinjaFortran(Package):
         "1.7.1.0.g7ca7f", sha256="53472d0c3cf9c1cff7e991699710878be55d21a1c229956dea6a2c3e44edee80"
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python", type="build")
 
     phases = ["configure", "install"]
@@ -61,7 +62,7 @@ class NinjaFortran(Package):
         split_ver = str(ver).split(".")
         url_version = ".".join(split_ver[:3]) + "." + split_ver[4]
 
-        if version < spack.version.Version("1.8.2.1"):
+        if version < Version("1.8.2.1"):
             url = "https://github.com/Kitware/ninja/archive/v{0}.kitware.dyndep-1.tar.gz"
         else:
             url = (
@@ -95,6 +96,6 @@ class NinjaFortran(Package):
 
         module.ninja = MakeExecutable(
             which_string(name, path=[self.spec.prefix.bin], required=True),
-            determine_number_of_jobs(parallel=dspec.package.parallel),
+            jobs=determine_number_of_jobs(parallel=dspec.package.parallel),
             supports_jobserver=True,  # This fork supports jobserver
         )

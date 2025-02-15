@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,13 +13,20 @@ class MiopenHip(CMakePackage):
 
     homepage = "https://github.com/ROCm/MIOpen"
     git = "https://github.com/ROCm/MIOpen.git"
-    url = "https://github.com/ROCm/MIOpen/archive/rocm-6.1.1.tar.gz"
+    url = "https://github.com/ROCm/MIOpen/archive/rocm-6.1.2.tar.gz"
     tags = ["rocm"]
 
-    maintainers("srekolam", "renjithravindrankannath")
+    maintainers("srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["libMIOpen"]
 
     license("MIT")
+    version("6.3.2", sha256="7abda3b437e396a1611a6f63e73ab1656d45d5405194504136c0ccbb75b81fea")
+    version("6.3.1", sha256="edb82a74086fb96f8d7ee9e50a180302f716332cd0dff96bf7244bdc6fab5895")
+    version("6.3.0", sha256="171834978d6316a5ec7607d4b10c7c69e5bfe9064edae8bdb9b207e578b41c1d")
+    version("6.2.4", sha256="8e4836e007e5e66fa487288887a098aaeeb95f3c63a19c2b91f6e848c023a040")
+    version("6.2.1", sha256="c7abe5ae7a332813a3c3da849e9a50b91221fe05c6bb622413e5b048b1f15982")
+    version("6.2.0", sha256="f4473f724362732019d505a0e01c17b060b542350859cb1e4bd4e3898b609276")
+    version("6.1.2", sha256="c8ff4af72264b2049bfe2685d581ea0f3e43319db7bd00dc347159bcf2731614")
     version("6.1.1", sha256="cf568ea16dd23b32fe89e250bb33ed4722fea8aa7f407cc66ff37c37aab037ce")
     version("6.1.0", sha256="3b373117eaeaf618aab9b39bb22e9950fd49bd0e264c8587b0c51fa348afe0d1")
     version("6.0.2", sha256="e6f671bd6af59f7470f42cda2ff9e77441d8f6c2105772bbf855d31da1085ffa")
@@ -31,16 +37,20 @@ class MiopenHip(CMakePackage):
     version("5.6.0", sha256="d620ddab5b488bdf81242654fefa337c6b71dc410c2ff26d30a4ee86a8d22d11")
     version("5.5.1", sha256="2cd75071b8ee876c69a94f028b6c8a9346d6d2fde7d4b64e6d635f3b6c994262")
     version("5.5.0", sha256="791087242551669e546225e36123c21663f0dad14dbcfd6d0ce0e7bad0ab0de1")
-    version("5.4.3", sha256="37ffe2ed3d7942da8ea2f6bdb85c7a2f58e3ccd31767db158a322769d3604efd")
-    version("5.4.0", sha256="b4153791f9eeee4cbc5534bc6ad8b32c0947bcd38e08b77ebe144065a4fa5456")
-    version("5.3.3", sha256="7efc98215d23a2caaf212378c37e9a6484f54a4ed3e9660719286e4f287d3715")
-    version("5.3.0", sha256="c5819f593d71beeda2eb24b89182912240cc40f83b2b8f9de695a8e230aa4ea6")
     with default_args(deprecated=True):
-        version("5.2.3", sha256="28747847446955b3bab24f7fc65c1a6b863a12f12ad3a35e0312072482d38122")
-        version("5.2.1", sha256="0977a8876d41bbd2fa268341c93892f35878d7efc1711194ad87582f877ff500")
-        version("5.2.0", sha256="5fda69426e81df9f8fb6658e579176b9c4fcce3516fc8488d3cfd2b6f6f2b3b4")
-        version("5.1.3", sha256="510461f5c5bdbcf8dc889099d1e5960b9f84bd845a9fc9154588a9898c701c1d")
-        version("5.1.0", sha256="bb50201334d68addf153b84b88ab803027c4913d71bdbda6f5ccde3f672f6fdd")
+        version("5.4.3", sha256="37ffe2ed3d7942da8ea2f6bdb85c7a2f58e3ccd31767db158a322769d3604efd")
+        version("5.4.0", sha256="b4153791f9eeee4cbc5534bc6ad8b32c0947bcd38e08b77ebe144065a4fa5456")
+        version("5.3.3", sha256="7efc98215d23a2caaf212378c37e9a6484f54a4ed3e9660719286e4f287d3715")
+        version("5.3.0", sha256="c5819f593d71beeda2eb24b89182912240cc40f83b2b8f9de695a8e230aa4ea6")
+
+    variant("asan", default=False, description="Build with address-sanitizer enabled or disabled")
+
+    conflicts("+asan", when="os=rhel9")
+    conflicts("+asan", when="os=centos7")
+    conflicts("+asan", when="os=centos8")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     depends_on("cmake@3.5:", type="build")
     depends_on("pkgconfig", type="build")
@@ -52,12 +62,14 @@ class MiopenHip(CMakePackage):
     depends_on("boost@1.67.0:1.73.0")
     depends_on("bzip2")
     depends_on("sqlite")
-    depends_on("half")
+    depends_on("half@1")
     depends_on("zlib-api")
 
     patch("miopen-hip-include-nlohmann-include-directory.patch", when="@5.4.0:5.7")
     patch("0002-add-include-dir-miopen-hip-6.0.0.patch", when="@6.0")
-    patch("0002-add-include-dir-miopen-hip-6.1.0.patch", when="@6.1")
+    patch("0001-link-with-roctracer-when-building-miopendriver-6.1.0.patch", when="@6.1")
+    patch("0001-link-with-roctracer-when-building-miopendriver-6.2.0.patch", when="@6.2")
+    patch("0003-link-with-hipblas-roctracer-rocrand-6.3.0.patch", when="@6.3")
     patch(
         "https://github.com/ROCm/MIOpen/commit/f60aa1ff89f8fb596b4a6a4c70aa7d557803db87.patch?full_index=1",
         sha256="7f382c872d89f22da1ad499e85ffe9881cc7404c8465e42877a210a09382e2ea",
@@ -65,11 +77,6 @@ class MiopenHip(CMakePackage):
     )
 
     for ver in [
-        "5.1.0",
-        "5.1.3",
-        "5.2.0",
-        "5.2.1",
-        "5.2.3",
         "5.3.0",
         "5.3.3",
         "5.4.0",
@@ -84,29 +91,97 @@ class MiopenHip(CMakePackage):
         "6.0.2",
         "6.1.0",
         "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
+        "6.3.2",
     ]:
         depends_on(f"rocm-cmake@{ver}:", type="build", when=f"@{ver}")
         depends_on(f"hip@{ver}", when=f"@{ver}")
-        depends_on(f"rocm-clang-ocl@{ver}", when=f"@{ver}")
         depends_on(f"rocblas@{ver}", when=f"@{ver}")
 
-    for ver in ["5.1.0", "5.1.3", "5.2.0", "5.2.1", "5.2.3", "5.3.0", "5.3.3"]:
+    for ver in [
+        "5.3.0",
+        "5.3.3",
+        "5.4.0",
+        "5.4.3",
+        "5.5.0",
+        "5.5.1",
+        "5.6.0",
+        "5.6.1",
+        "5.7.0",
+        "5.7.1",
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+    ]:
+        depends_on(f"rocm-clang-ocl@{ver}", when=f"@{ver}")
+
+    for ver in ["5.3.0", "5.3.3"]:
         depends_on(f"mlirmiopen@{ver}", when=f"@{ver}")
 
-    for ver in ["5.5.1", "5.6.0", "5.6.1", "5.7.0", "5.7.1", "6.0.0", "6.0.2", "6.1.0", "6.1.1"]:
+    for ver in [
+        "5.5.1",
+        "5.6.0",
+        "5.6.1",
+        "5.7.0",
+        "5.7.1",
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
+        "6.3.2",
+    ]:
         depends_on("nlohmann-json", type="link")
         depends_on(f"composable-kernel@{ver}", when=f"@{ver}")
     for ver in ["5.4.0", "5.4.3", "5.5.0"]:
         depends_on("nlohmann-json", type="link")
         depends_on(f"rocmlir@{ver}", when=f"@{ver}")
-    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1"]:
-        depends_on("roctracer-dev@" + ver, when="@" + ver)
-    for ver in ["6.1.0", "6.1.1"]:
+    for ver in [
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
+        "6.3.2",
+    ]:
+        depends_on(f"roctracer-dev@{ver}", when=f"@{ver}")
+    for ver in ["6.1.0", "6.1.1", "6.1.2"]:
         depends_on("googletest")
+    for ver in ["6.2.0", "6.2.1", "6.2.4", "6.3.0", "6.3.1", "6.3.2"]:
+        depends_on(f"rocrand@{ver}", when=f"@{ver}")
+    for ver in ["6.3.0", "6.3.1", "6.3.2"]:
+        depends_on(f"hipblas@{ver}", when=f"@{ver}")
+        depends_on(f"hipblaslt@{ver}", when=f"@{ver}")
 
     def setup_build_environment(self, env):
         lib_dir = self.spec["zlib-api"].libs.directories[0]
         env.prepend_path("LIBRARY_PATH", lib_dir)
+        if self.spec.satisfies("+asan"):
+            env.set("CC", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang")
+            env.set("CXX", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang++")
+            env.set("ASAN_OPTIONS", "detect_leaks=0")
+            env.set("CFLAGS", "-fsanitize=address -shared-libasan")
+            env.set("CXXFLAGS", "-fsanitize=address -shared-libasan")
+            env.set("LDFLAGS", "-fuse-ld=lld")
+        if self.spec.satisfies("%gcc@8.0:8.9") and self.spec.satisfies("@6.1:"):
+            env.append_flags("LDFLAGS", "-lstdc++fs")
 
     def get_bitcode_dir(self):
         return self.spec["llvm-amdgpu"].prefix.amdgcn.bitcode
@@ -140,7 +215,7 @@ class MiopenHip(CMakePackage):
         if self.spec.satisfies("@5.1.0:5.3"):
             mlir_inc = spec["mlirmiopen"].prefix.include
             args.append(self.define("CMAKE_CXX_FLAGS", "-I{0}".format(mlir_inc)))
-        if self.spec.satisfies("@5.4.0:"):
+        if self.spec.satisfies("@5.4.0:6.1"):
             args.append(
                 "-DNLOHMANN_JSON_INCLUDE={0}".format(self.spec["nlohmann-json"].prefix.include)
             )
@@ -154,14 +229,22 @@ class MiopenHip(CMakePackage):
             args.append(self.define("MIOPEN_USE_MLIR", "OFF"))
         if self.spec.satisfies("@5.7.0:"):
             args.append(self.define("MIOPEN_ENABLE_AI_IMMED_MODE_FALLBACK", "OFF"))
-        args.append(
-            "-DNLOHMANN_JSON_INCLUDE={0}".format(self.spec["nlohmann-json"].prefix.include)
-        )
-        if self.spec.satisfies("@6.0.0:"):
+        if self.spec.satisfies("@6.0"):
             args.append(
                 "-DROCTRACER_INCLUDE_DIR={0}".format(self.spec["roctracer-dev"].prefix.include)
             )
             args.append("-DROCTRACER_LIB_DIR={0}".format(self.spec["roctracer-dev"].prefix.lib))
-        if self.spec.satisfies("@6.1:"):
             args.append("-DSQLITE_INCLUDE_DIR={0}".format(self.spec["sqlite"].prefix.include))
+        if self.spec.satisfies("@6.1:"):
+            args.append(
+                "-DROCTRACER_INCLUDE_DIR={0}".format(self.spec["roctracer-dev"].prefix.include)
+            )
+            args.append(self.define("MIOPEN_USE_ROCTRACER", "ON"))
+            args.append(
+                self.define(
+                    "CMAKE_CXX_FLAGS",
+                    f"-I{self.spec['nlohmann-json'].prefix.include} "
+                    f"-I{self.spec['sqlite'].prefix.include} ",
+                )
+            )
         return args

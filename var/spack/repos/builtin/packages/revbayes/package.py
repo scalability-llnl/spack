@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -29,6 +28,9 @@ class Revbayes(CMakePackage):
     version("1.0.12", sha256="80c926bb6b37288d02e36e07b44e4663841cd1fe541e2cc0b0e44c89ca929759")
     version("1.0.11", sha256="03052194baa220dde7e622a739f09f34393f67ea00a0b163b409d313d7fc7c02")
     version("1.0.10", sha256="6a3cf303e7224b0b32637bd8e2c3c2cf2621f5dbe599cd74ce4b0c215d0fcd2d")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("mpi", default=True, description="Enable MPI parallel support")
 

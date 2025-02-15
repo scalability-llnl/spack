@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,8 @@ class Debugedit(AutotoolsPackage):
 
     version("develop", branch="main")
     version("0.2", sha256="b78258240bb7ec5bbff109495092dcc111aa0393f135f2d2a4b43887ba26a942")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("help2man", type="build")
     depends_on("pkgconfig", type="build")

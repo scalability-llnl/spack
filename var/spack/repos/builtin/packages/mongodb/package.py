@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 # ----------------------------------------------------------------------------
@@ -20,6 +19,9 @@ class Mongodb(SConsPackage):
     license("SSPL-1.0")
 
     version("6.2", git="https://github.com/mongodb/mongo.git", branch="v6.2")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     requires(
         "%gcc", "%clang", policy="one_of", msg="<myNicePackage> builds only with GCC or Clang"

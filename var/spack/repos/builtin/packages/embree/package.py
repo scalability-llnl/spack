@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,8 +12,10 @@ class Embree(CMakePackage):
     url = "https://github.com/embree/embree/archive/v3.7.0.tar.gz"
     maintainers("aumuell")
 
-    license("Apache-2.0")
+    license("Apache-2.0", checked_by="wdconinc")
 
+    version("4.3.3", sha256="8a3bc3c3e21aa209d9861a28f8ba93b2f82ed0dc93341dddac09f1f03c36ef2d")
+    version("4.3.2", sha256="dc7bb6bac095b2e7bc64321435acd07c6137d6d60e4b79ec07bb0b215ddf81cb")
     version("4.3.1", sha256="824edcbb7a8cd393c5bdb7a16738487b21ecc4e1d004ac9f761e934f97bb02a4")
     version("4.3.0", sha256="baf0a57a45837fc055ba828a139467bce0bc0c6a9a5f2dccb05163d012c12308")
     version("4.2.0", sha256="b0479ce688045d17aa63ce6223c84b1cdb5edbf00d7eda71c06b7e64e21f53a0")
@@ -36,6 +37,9 @@ class Embree(CMakePackage):
     version("3.8.0", sha256="40cbc90640f63c318e109365d29aea00003e4bd14aaba8bb654fc1010ea5753a")
     version("3.7.0", sha256="2b6300ebe30bb3d2c6e5f23112b4e21a25a384a49c5e3c35440aa6f3c8d9fe84")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("ispc", default=True, description="Enable ISPC support")
     depends_on("ispc", when="+ispc", type="build")
 
@@ -56,9 +60,10 @@ class Embree(CMakePackage):
         spec = self.spec
 
         args = [
-            "-DBUILD_TESTING=OFF",
-            "-DEMBREE_TUTORIALS=OFF",
-            "-DEMBREE_IGNORE_CMAKE_CXX_FLAGS=ON",
+            self.define("BUILD_TESTING", self.run_tests),
+            self.define("EMBREE_TUTORIALS", self.run_tests),
+            self.define("EMBREE_TUTORIALS_GLFW", False),
+            self.define("EMBREE_IGNORE_CMAKE_CXX_FLAGS", True),
             self.define_from_variant("EMBREE_ISPC_SUPPORT", "ispc"),
         ]
 
@@ -76,7 +81,7 @@ class Embree(CMakePackage):
             avx512_suffix = ""
             if spec.satisfies("@:3.12"):
                 avx512_suffix = "SKX"
-            args.append(self.define("EMBREE_ISA_AVX512" + avx512_suffix, True)),
+            args.append(self.define("EMBREE_ISA_AVX512" + avx512_suffix, True))
             if spec.satisfies("%gcc@:7"):
                 # remove unsupported -mprefer-vector-width=256, otherwise copied
                 # from common/cmake/gnu.cmake

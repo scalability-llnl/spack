@@ -1,10 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 
+import spack
 from spack.package import *
 
 
@@ -66,6 +66,10 @@ class SingularityEos(CMakePackage, CudaPackage):
 
     variant("closure", default=True, description="Build closure module")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build", when="+fortran")
+
     # building/testing/docs
     depends_on("cmake@3.19:", type="build")
     depends_on("python@3:", when="+python")
@@ -107,19 +111,17 @@ class SingularityEos(CMakePackage, CudaPackage):
     for _flag in ("~cuda", "+cuda", "~openmp", "+openmp"):
         depends_on("kokkos ~shared" + _flag, when="+kokkos" + _flag)
         depends_on("kokkos-kernels" + _flag, when="+kokkos-kernels" + _flag)
-        depends_on("spiner" + _flag, when="+kokkos" + _flag)
 
     # specfic specs when using GPU/cuda offloading
     depends_on("kokkos +wrapper+cuda_lambda", when="+cuda+kokkos")
 
     # fix for older spacks
-    if spack.version.Version(spack.spack_version) >= spack.version.Version("0.17"):
+    if Version(spack.spack_version) >= Version("0.17"):
         depends_on("kokkos-kernels ~shared", when="+kokkos-kernels")
 
     for _flag in list(CudaPackage.cuda_arch_values):
         depends_on("kokkos cuda_arch=" + _flag, when="+cuda+kokkos cuda_arch=" + _flag)
         depends_on("kokkos-kernels cuda_arch=" + _flag, when="+cuda+kokkos cuda_arch=" + _flag)
-        depends_on("spiner cuda_arch=" + _flag, when="+cuda+kokkos cuda_arch=" + _flag)
 
     conflicts("cuda_arch=none", when="+cuda", msg="CUDA architecture is required")
 
@@ -182,7 +184,7 @@ class SingularityEos(CMakePackage, CudaPackage):
         ]
 
         if "+kokkos+cuda" in self.spec:
-            args.append(self.define("CMAKE_CXX_COMPILER", self.spec["kokkos"].kokkos_cxx))
+            args.append(self.define("CMAKE_CXX_COMPILER", self["kokkos"].kokkos_cxx))
 
         return args
 

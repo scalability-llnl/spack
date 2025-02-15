@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class PyYtoptAutotune(PythonPackage):
     version("master", branch="master")
     version("1.1.0", sha256="5ee7fa6a1c83131c5ceba1537b25f00de84182e4d0e6ebd0fd6efa4e8aee1bc4")
     version("1.0.0", sha256="13f10594156a7a220561467fdbee52173238ea82c07e8188fdf6584d4524f46f")
+
+    depends_on("c", type="build")  # generated
 
     patch("version.patch", when="@1.1.0")
 

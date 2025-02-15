@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -33,6 +32,9 @@ class RVctrs(RPackage):
     version("0.3.6", sha256="df7d368c9f2d2ad14872ba2a09821ec4f5a8ad77c81a0b05e1f440e5ffebad25")
     version("0.3.5", sha256="11605d98106e294dae1a9b205462dd3906a6159a647150752b85dd290f6635cc")
     version("0.2.0", sha256="5bce8f228182ecaa51230d00ad8a018de9cf2579703e82244e0931fe31f20016")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r@3.2:", type=("build", "run"))
     depends_on("r@3.3:", type=("build", "run"), when="@0.3.5:")

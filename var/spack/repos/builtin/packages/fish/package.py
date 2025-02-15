@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -35,6 +34,8 @@ class Fish(CMakePackage):
     version("3.1.2", sha256="d5b927203b5ca95da16f514969e2a91a537b2f75bec9b21a584c4cd1c7aa74ed")
     version("3.1.0", sha256="e5db1e6839685c56f172e1000c138e290add4aa521f187df4cd79d4eab294368")
     version("3.0.0", sha256="ea9dd3614bb0346829ce7319437c6a93e3e1dfde3b7f6a469b543b0d2c68f2cf")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("docs", default=False, description="Build documentation")
 
@@ -78,7 +79,7 @@ class Fish(CMakePackage):
             "-DPCRE2_INCLUDE_DIR=" + self.spec["pcre2"].headers.directories[0],
         ]
 
-        if "+docs" in self.spec:
+        if self.spec.satisfies("+docs"):
             args.append("-DBUILD_DOCS=ON")
         else:
             args.append("-DBUILD_DOCS=OFF")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,6 +25,9 @@ class Rosco(CMakePackage):
     version("2.7.0", sha256="b6a2cda92680cf6a460d194901a2f16c2635710a82788576a6383a3bb189fc83")
     version("2.6.0", sha256="ca1c1a6ac53e8220b107accccfb8b5299772c38b7c77cd8d2ba383e9825daeaa")
     version("2.5.1", sha256="55fe7bba612321baa6e089ee1156ef4db2e3bccf1b69534829b06f3367fff05d")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("shared", default=False, description="Build shared libraries")
     variant("pic", default=False, description="Position independent code")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,9 @@ class Nettle(AutotoolsPackage, GNUMirrorPackage):
     version("3.2", sha256="ea4283def236413edab5a4cf9cf32adf540c8df1b9b67641cfc2302fca849d97")
     version("2.7.1", sha256="bc71ebd43435537d767799e414fce88e521b7278d48c860651216e1fc6555b40")
     version("2.7", sha256="c294ea133c05382cc2effb1734d49f4abeb1ad8515543a333de49a11422cd4d6")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("gmp")
     depends_on("m4", type="build")

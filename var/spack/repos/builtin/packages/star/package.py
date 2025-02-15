@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -36,6 +35,9 @@ class Star(MakefilePackage):
         sha256="ac166d190c0fd34bf3418a5640050b0e7734d279813e02daa013d0924fb579b0",
         url="https://github.com/alexdobin/STAR/archive/STAR_2.4.2a.tar.gz",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("zlib-api")
     # required for certain steps in the makefile

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,9 @@ class Armcimpi(AutotoolsPackage):
     version(
         "0.3.1-beta", sha256="f3eaa8f365fb55123ecd9ced401086b0732e37e4df592b27916d71a67ab34fe9"
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("shared", default=True, description="Builds a shared version of the library")
     variant("progress", default=False, description="Enable asynchronous progress")

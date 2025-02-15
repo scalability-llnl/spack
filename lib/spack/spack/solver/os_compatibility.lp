@@ -1,5 +1,4 @@
-% Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-% Spack Project Developers. See the top-level COPYRIGHT file for details.
+% Copyright Spack Project Developers. See COPYRIGHT file for details.
 %
 % SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,7 @@
 %=============================================================================
 
 % macOS
+os_compatible("sequoia", "sonoma").
 os_compatible("sonoma", "ventura").
 os_compatible("ventura", "monterey").
 os_compatible("monterey", "bigsur").

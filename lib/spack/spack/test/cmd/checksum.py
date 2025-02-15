@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -8,10 +7,10 @@ import argparse
 import pytest
 
 import spack.cmd.checksum
+import spack.concretize
+import spack.error
 import spack.package_base
-import spack.parser
 import spack.repo
-import spack.spec
 import spack.stage
 import spack.util.web
 from spack.main import SpackCommand
@@ -83,7 +82,6 @@ def test_checksum_args(arguments, expected):
     assert check == expected
 
 
-@pytest.mark.not_on_windows("Not supported on Windows (yet)")
 @pytest.mark.parametrize(
     "arguments,expected",
     [
@@ -305,12 +303,12 @@ def test_checksum_deprecated_version(mock_packages, can_fetch_versions):
 
 def test_checksum_url(mock_packages, config):
     pkg_cls = spack.repo.PATH.get_pkg_class("zlib")
-    with pytest.raises(spack.parser.SpecSyntaxError):
+    with pytest.raises(spack.error.SpecSyntaxError):
         spack_checksum(f"{pkg_cls.url}")
 
 
 def test_checksum_verification_fails(default_mock_concretization, capsys, can_fetch_versions):
-    spec = spack.spec.Spec("zlib").concretized()
+    spec = spack.concretize.concretize_one("zlib")
     pkg = spec.package
     versions = list(pkg.versions.keys())
     version_hashes = {versions[0]: "abadhash", Version("0.1"): "123456789"}

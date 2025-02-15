@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,7 +12,7 @@ class PyOrbaxCheckpoint(PythonPackage):
     composable API which maximizes flexibility for diverse use cases.
     """
 
-    homepage = "http://github.com/google/orbax"
+    homepage = "https://github.com/google/orbax"
     pypi = "orbax_checkpoint/orbax_checkpoint-0.5.3.tar.gz"
 
     license("Apache-2.0")

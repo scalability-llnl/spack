@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -7,11 +6,59 @@ import os
 import re
 import sys
 
-from spack.build_environment import dso_suffix
+import spack.compilers
+import spack.package_base
 from spack.package import *
 
 
-class Mpich(AutotoolsPackage, CudaPackage, ROCmPackage):
+class MpichEnvironmentModifications(spack.package_base.PackageBase):
+    """Collects the environment modifications that are usually needed for the life-cycle of
+    MPICH, and derivatives.
+    """
+
+    def setup_dependent_build_environment(self, env, dependent_spec):
+        dependent_module = dependent_spec.package.module
+        for var_name, attr_name in (
+            ("MPICH_CC", "spack_cc"),
+            ("MPICH_CXX", "spack_cxx"),
+            ("MPICH_FC", "spack_fc"),
+            ("MPICH_F90", "spack_fc"),
+            ("MPICH_F77", "spack_f77"),
+        ):
+            if not hasattr(dependent_module, attr_name):
+                continue
+
+            env.set(var_name, getattr(dependent_module, attr_name))
+
+    def setup_build_environment(self, env):
+        env.unset("F90")
+        env.unset("F90FLAGS")
+
+    def setup_run_environment(self, env):
+        self.setup_mpi_wrapper_variables(env)
+
+    def setup_dependent_package(self, module, dependent_spec):
+        spec = self.spec
+        spec.mpicc = join_path(self.prefix.bin, "mpicc")
+        spec.mpicxx = join_path(self.prefix.bin, "mpicxx")
+        # Some derived packages define the "fortran" variant, most don't. Checking on the
+        # presence of ~fortran makes us default to add fortran wrappers if the variant is
+        # not declared.
+        if spec.satisfies("~fortran"):
+            return
+        spec.mpifc = join_path(self.prefix.bin, "mpif90")
+        spec.mpif77 = join_path(self.prefix.bin, "mpif77")
+
+    def setup_mpi_wrapper_variables(self, env):
+        # Because MPI implementations provide compilers, they have to add to
+        # their run environments the code to make the compilers available.
+        env.set("MPICC", join_path(self.prefix.bin, "mpicc"))
+        env.set("MPICXX", join_path(self.prefix.bin, "mpicxx"))
+        env.set("MPIF77", join_path(self.prefix.bin, "mpif77"))
+        env.set("MPIF90", join_path(self.prefix.bin, "mpif90"))
+
+
+class Mpich(MpichEnvironmentModifications, AutotoolsPackage, CudaPackage, ROCmPackage):
     """MPICH is a high performance and widely portable implementation of
     the Message Passing Interface (MPI) standard."""
 
@@ -30,6 +77,8 @@ class Mpich(AutotoolsPackage, CudaPackage, ROCmPackage):
     license("mpich2")
 
     version("develop", submodules=True)
+    version("4.2.3", sha256="7a019180c51d1738ad9c5d8d452314de65e828ee240bcb2d1f80de9a65be88a8")
+    version("4.2.2", sha256="883f5bb3aeabf627cb8492ca02a03b191d09836bbe0f599d8508351179781d41")
     version("4.2.1", sha256="23331b2299f287c3419727edc2df8922d7e7abbb9fd0ac74e03b9966f9ad42d7")
     version("4.2.0", sha256="a64a66781b9e5312ad052d32689e23252f745b27ee8818ac2ac0c8209bc0b90e")
     version("4.1.2", sha256="3492e98adab62b597ef0d292fb2459b6123bc80070a8aa0a30be6962075a12f0")
@@ -127,9 +176,6 @@ supported, and netmod is ignored if device is ch3:sock.""",
             depends_on("yaksa+cuda", when="+cuda")
             depends_on("yaksa+rocm", when="+rocm")
 
-    conflicts("datatype-engine=yaksa", when="device=ch3")
-    conflicts("datatype-engine=yaksa", when="device=ch3:sock")
-
     variant(
         "hcoll",
         default=False,
@@ -137,9 +183,20 @@ supported, and netmod is ignored if device is ch3:sock.""",
         "collective operations library",
         when="@3.3: device=ch4 netmod=ucx",
     )
-    depends_on("hcoll", when="+hcoll")
 
     variant("xpmem", default=False, when="@3.4:", description="Enable XPMEM support")
+    variant("level_zero", default=False, description="Enable level zero support")
+
+    conflicts("datatype-engine=yaksa", when="device=ch3")
+    conflicts("datatype-engine=yaksa", when="device=ch3:sock")
+    conflicts("datatype-engine=dataloop", when="+cuda")
+    conflicts("datatype-engine=dataloop", when="+rocm")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build", when="+fortran")
+
+    depends_on("hcoll", when="+hcoll")
     depends_on("xpmem", when="+xpmem")
 
     # Todo: cuda can be a conditional variant, but it does not seem to work when
@@ -253,7 +310,6 @@ supported, and netmod is ignored if device is ch3:sock.""",
     depends_on("hwloc@2.0.0:", when="@3.3: +hwloc")
 
     depends_on("libfabric", when="netmod=ofi")
-    depends_on("libfabric fabrics=gni", when="netmod=ofi pmi=cray")
     # The ch3 ofi netmod results in crashes with libfabric 1.7
     # See https://github.com/pmodels/mpich/issues/3665
     depends_on("libfabric@:1.6", when="device=ch3 netmod=ofi")
@@ -295,6 +351,7 @@ supported, and netmod is ignored if device is ch3:sock.""",
     depends_on("python@3.0:", when="@develop", type="build")
 
     depends_on("cray-pmi", when="pmi=cray")
+    depends_on("oneapi-level-zero", when="+level_zero")
 
     conflicts("device=ch4", when="@:3.2")
     conflicts("netmod=ofi", when="@:3.1.4")
@@ -438,43 +495,10 @@ supported, and netmod is ignored if device is ch3:sock.""",
         return flags, None, None
 
     def setup_build_environment(self, env):
-        env.unset("F90")
-        env.unset("F90FLAGS")
-
+        MpichEnvironmentModifications.setup_build_environment(self, env)
         if "pmi=cray" in self.spec:
             env.set("CRAY_PMI_INCLUDE_OPTS", "-I" + self.spec["cray-pmi"].headers.directories[0])
             env.set("CRAY_PMI_POST_LINK_OPTS", "-L" + self.spec["cray-pmi"].libs.directories[0])
-
-    def setup_run_environment(self, env):
-        # Because MPI implementations provide compilers, they have to add to
-        # their run environments the code to make the compilers available.
-        env.set("MPICC", join_path(self.prefix.bin, "mpicc"))
-        env.set("MPICXX", join_path(self.prefix.bin, "mpic++"))
-        env.set("MPIF77", join_path(self.prefix.bin, "mpif77"))
-        env.set("MPIF90", join_path(self.prefix.bin, "mpif90"))
-
-    def setup_dependent_build_environment(self, env, dependent_spec):
-        dependent_module = dependent_spec.package.module
-        env.set("MPICH_CC", dependent_module.spack_cc)
-        env.set("MPICH_CXX", dependent_module.spack_cxx)
-        env.set("MPICH_F77", dependent_module.spack_f77)
-        env.set("MPICH_F90", dependent_module.spack_fc)
-        env.set("MPICH_FC", dependent_module.spack_fc)
-
-    def setup_dependent_package(self, module, dependent_spec):
-        spec = self.spec
-
-        spec.mpicc = join_path(self.prefix.bin, "mpicc")
-        spec.mpicxx = join_path(self.prefix.bin, "mpic++")
-
-        if "+fortran" in spec:
-            spec.mpifc = join_path(self.prefix.bin, "mpif90")
-            spec.mpif77 = join_path(self.prefix.bin, "mpif77")
-
-        spec.mpicxx_shared_libs = [
-            join_path(self.prefix.lib, "libmpicxx.{0}".format(dso_suffix)),
-            join_path(self.prefix.lib, "libmpi.{0}".format(dso_suffix)),
-        ]
 
     def autoreconf(self, spec, prefix):
         """Not needed usually, configure should be already there"""
@@ -515,7 +539,12 @@ supported, and netmod is ignored if device is ch3:sock.""",
             "--{0}-ibverbs".format("with" if "+verbs" in spec else "without"),
             "--enable-wrapper-rpath={0}".format("no" if "~wrapperrpath" in spec else "yes"),
             "--with-yaksa={0}".format(spec["yaksa"].prefix if "^yaksa" in spec else "embedded"),
+            *self.with_or_without("ze", variant="level_zero"),
         ]
+
+        # https://github.com/pmodels/mpich/commit/bbfc4cab6ade0b75ef3803a83af1cad4a262a564
+        if self.spec.satisfies("@:4.2 ~hwloc"):
+            config_args += self.enable_or_disable("levelzero", variant="level_zero")
 
         # see https://github.com/pmodels/mpich/issues/5530
         if spec.platform == "darwin":
@@ -533,8 +562,7 @@ supported, and netmod is ignored if device is ch3:sock.""",
                 )
             )
 
-        if "~fortran" in spec:
-            config_args.append("--disable-fortran")
+        config_args.extend(self.enable_or_disable("fortran"))
 
         if "+slurm" in spec:
             config_args.append("--with-slurm=yes")
@@ -644,7 +672,7 @@ supported, and netmod is ignored if device is ch3:sock.""",
     def cache_test_sources(self):
         """Copy the example source files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources(["examples", join_path("test", "mpi")])
+        cache_extra_test_sources(self, ["examples", join_path("test", "mpi")])
 
     def mpi_launcher(self):
         """Determine the appropriate launcher."""

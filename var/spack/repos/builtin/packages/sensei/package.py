@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -34,6 +33,9 @@ class Sensei(CMakePackage):
     version("2.0.0", sha256="e985778ebbf0b9a103d11e069e58f8975f98a63dc2861b7cde34ea12a23fee20")
     version("1.1.0", sha256="769e0b5db50be25666c0d13176a7e4f89cbffe19cdc12349437d0efff615b200")
     version("1.0.0", sha256="5b8609352048e048e065a7b99f615a602f84b3329085e40274341488ef1b9522")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("shared", default=True, description="Enables shared libraries")
     variant("ascent", default=False, description="Build with ParaView-Catalyst support")
@@ -85,11 +87,13 @@ class Sensei(CMakePackage):
     # HDF5
     depends_on("hdf5", when="+hdf5")
 
-    depends_on("python@3:", when="+python", type=("build", "run"))
-    extends("python", when="+python")
-    depends_on("py-numpy", when="+python", type=("build", "run"))
-    depends_on("py-mpi4py", when="+python", type=("build", "run"))
-    depends_on("swig", when="+python", type="build")
+    with when("+python"):
+        extends("python")
+        depends_on("python@3:", type=("build", "link", "run"))
+        depends_on("py-numpy", type=("build", "run"))
+        depends_on("py-mpi4py@:3", type=("build", "run"))
+        depends_on("swig", type="build")
+
     depends_on("cmake@3.6:", when="@3:", type="build")
     depends_on("pugixml")
     depends_on("mpi")
@@ -157,5 +161,14 @@ class Sensei(CMakePackage):
             if spec.satisfies("@3:"):
                 args.append(self.define("SENSEI_PYTHON_VERSION", 3))
             args.append(self.define_from_variant(f"{prefix}ENABLE_CATALYST_PYTHON", "catalyst"))
+
+            # lib/libsensei.so links to lib/pythonX.Y/site-packages/sensei/_PythonAnalysis.so, so
+            # register the install rpath.
+            install_rpaths = [
+                self.spec.prefix.lib,
+                self.spec.prefix.lib64,
+                join_path(python_platlib, "sensei"),
+            ]
+            args.append(self.define("CMAKE_INSTALL_RPATH", install_rpaths))
 
         return args

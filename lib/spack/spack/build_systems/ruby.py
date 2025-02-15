@@ -1,15 +1,15 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import glob
-import inspect
 
 import spack.builder
 import spack.package_base
+import spack.spec
+import spack.util.prefix
 from spack.directives import build_system, extends, maintainers
 
-from ._checks import BaseBuilder
+from ._checks import BuilderWithDefaults
 
 
 class RubyPackage(spack.package_base.PackageBase):
@@ -29,7 +29,7 @@ class RubyPackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("ruby")
-class RubyBuilder(BaseBuilder):
+class RubyBuilder(BuilderWithDefaults):
     """The Ruby builder provides two phases that can be overridden if required:
 
     #. :py:meth:`~.RubyBuilder.build`
@@ -44,7 +44,9 @@ class RubyBuilder(BaseBuilder):
     #: Names associated with package attributes in the old build-system format
     legacy_attributes = ()
 
-    def build(self, pkg, spec, prefix):
+    def build(
+        self, pkg: RubyPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Build a Ruby gem."""
 
         # ruby-rake provides both rake.gemspec and Rakefile, but only
@@ -52,15 +54,17 @@ class RubyBuilder(BaseBuilder):
         gemspecs = glob.glob("*.gemspec")
         rakefiles = glob.glob("Rakefile")
         if gemspecs:
-            inspect.getmodule(self.pkg).gem("build", "--norc", gemspecs[0])
+            pkg.module.gem("build", "--norc", gemspecs[0])
         elif rakefiles:
-            jobs = inspect.getmodule(self.pkg).make_jobs
-            inspect.getmodule(self.pkg).rake("package", "-j{0}".format(jobs))
+            jobs = pkg.module.make_jobs
+            pkg.module.rake("package", "-j{0}".format(jobs))
         else:
             # Some Ruby packages only ship `*.gem` files, so nothing to build
             pass
 
-    def install(self, pkg, spec, prefix):
+    def install(
+        self, pkg: RubyPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Install a Ruby gem.
 
         The ruby package sets ``GEM_HOME`` to tell gem where to install to."""
@@ -70,6 +74,6 @@ class RubyBuilder(BaseBuilder):
             # if --install-dir is not used, GEM_PATH is deleted from the
             # environement, and Gems required to build native extensions will
             # not be found. Those extensions are built during `gem install`.
-            inspect.getmodule(self.pkg).gem(
+            pkg.module.gem(
                 "install", "--norc", "--ignore-dependencies", "--install-dir", prefix, gems[0]
             )

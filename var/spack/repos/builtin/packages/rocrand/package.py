@@ -1,9 +1,7 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import glob
 import os
 import re
 
@@ -19,13 +17,20 @@ class Rocrand(CMakePackage):
     url = "https://github.com/ROCm/rocRAND/archive/rocm-6.0.2.tar.gz"
     tags = ["rocm"]
 
-    maintainers("cgmb", "srekolam", "renjithravindrankannath")
+    maintainers("cgmb", "srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["librocrand"]
 
     license("MIT")
 
     version("develop", branch="develop")
     version("master", branch="master")
+    version("6.3.2", sha256="57f364806369ddb80761ce44187920075cf446de527dd1fbc6adbb4b4b3e9bb8")
+    version("6.3.1", sha256="80d86c31ec9cb40f5c5532281b42cf99fbc8a81e3ffd3bc8b3bbe4a7e509bf5f")
+    version("6.3.0", sha256="396d2dc842c64d29f577365c348fbccd6260a11431eec61f233fdb0f38b7625d")
+    version("6.2.4", sha256="94a2ea2413623b427ddf69365b3996c18721456965024c0dfac506a13c8dc547")
+    version("6.2.1", sha256="ed07f638b5e30199251ddda6dd9ee53ee0ec49bcf37cc571a3de85c3a9833248")
+    version("6.2.0", sha256="7f5318e9c9eb36fb3660392e97520268920c59af3a51af19633aabe5046ef1af")
+    version("6.1.2", sha256="ac3c858c0f76188ac50574591aa6b41b27bda2af5925314451a44242319f28c8")
     version("6.1.1", sha256="d6302d014045694be85385cdc683ea75476e23fd92ae170079c261c0b041764b")
     version("6.1.0", sha256="ea80c5d657fa48b1122a47986239a04118977195ee4826d2b14b8bfe0fabce6e")
     version("6.0.2", sha256="51d66c645987cbfb593aaa6be94109e87fe4cb7e9c70309eb3c159af0de292d7")
@@ -36,16 +41,14 @@ class Rocrand(CMakePackage):
     version("5.6.0", sha256="cc894d2f1af55e16b62c179062063946609c656043556189c656a115fd7d6f5f")
     version("5.5.1", sha256="e8bed3741b19e296bd698fc55b43686206f42f4deea6ace71513e0c48258cc6e")
     version("5.5.0", sha256="0481e7ef74c181026487a532d1c17e62dd468e508106edde0279ca1adeee6f9a")
-    version("5.4.3", sha256="463aa760e9f74e45b326765040bb8a8a4fa27aaeaa5e5df16f8289125f88a619")
-    version("5.4.0", sha256="0f6a0279b8b5a6dfbe32b45e1598218fe804fee36170d5c1f7b161c600544ef2")
-    version("5.3.3", sha256="b0aae79dce7f6f9ef76ad2594745fe1f589a7b675b22f35b4d2369e7d5e1985a")
-    version("5.3.0", sha256="be4c9f9433415bdfea50d9f47b8afb43ac315f205ed39674f863955a6c256dca")
     with default_args(deprecated=True):
-        version("5.2.3", sha256="01eda8022fab7bafb2c457fe26a9e9c99950ed1b772ae7bf8710b23a90b56e32")
-        version("5.2.1", sha256="4b2a7780f0112c12b5f307e1130e6b2c02ab984a0c1b94e9190dae38f0067600")
-        version("5.2.0", sha256="ab3057e7c17a9fbe584f89ef98ec92a74d638a98d333e7d0f64daf7bc9051e38")
-        version("5.1.3", sha256="4a19e1bcb60955a02a73ad64594c23886d6749afe06b0104e2b877dbe02c8d1c")
-        version("5.1.0", sha256="0c6f114a775d0b38be71f3f621a10bde2104a1f655d5d68c5fecb79b8b51a815")
+        version("5.4.3", sha256="463aa760e9f74e45b326765040bb8a8a4fa27aaeaa5e5df16f8289125f88a619")
+        version("5.4.0", sha256="0f6a0279b8b5a6dfbe32b45e1598218fe804fee36170d5c1f7b161c600544ef2")
+        version("5.3.3", sha256="b0aae79dce7f6f9ef76ad2594745fe1f589a7b675b22f35b4d2369e7d5e1985a")
+        version("5.3.0", sha256="be4c9f9433415bdfea50d9f47b8afb43ac315f205ed39674f863955a6c256dca")
+
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     amdgpu_targets = ROCmPackage.amdgpu_targets
 
@@ -56,6 +59,11 @@ class Rocrand(CMakePackage):
         sticky=True,
     )
     variant("hiprand", default=True, when="@5.1.0:", description="Build the hiprand library")
+    variant("asan", default=False, description="Build with address-sanitizer enabled or disabled")
+
+    conflicts("+asan", when="os=rhel9")
+    conflicts("+asan", when="os=centos7")
+    conflicts("+asan", when="os=centos8")
 
     depends_on("cmake@3.10.2:", type="build")
 
@@ -75,11 +83,6 @@ class Rocrand(CMakePackage):
         ("5.4.0", "125d691d3bcc6de5f5d63cf5f5a993c636251208"),
         ("5.3.3", "12e2f070337945318295c330bf69c6c060928b9e"),
         ("5.3.0", "12e2f070337945318295c330bf69c6c060928b9e"),
-        ("5.2.3", "12e2f070337945318295c330bf69c6c060928b9e"),
-        ("5.2.1", "12e2f070337945318295c330bf69c6c060928b9e"),
-        ("5.2.0", "12e2f070337945318295c330bf69c6c060928b9e"),
-        ("5.1.3", "20ac3db9d7462c15a3e96a6f0507cd5f2ee089c4"),
-        ("5.1.0", "20ac3db9d7462c15a3e96a6f0507cd5f2ee089c4"),
     ]:
         resource(
             name="hipRAND",
@@ -107,11 +110,6 @@ class Rocrand(CMakePackage):
     )
 
     for ver in [
-        "5.1.0",
-        "5.1.3",
-        "5.2.0",
-        "5.2.1",
-        "5.2.3",
         "5.3.0",
         "5.3.3",
         "5.4.0",
@@ -126,6 +124,13 @@ class Rocrand(CMakePackage):
         "6.0.2",
         "6.1.0",
         "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
+        "6.3.2",
     ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"rocm-cmake@{ver}:", type="build", when=f"@{ver}")
@@ -137,26 +142,13 @@ class Rocrand(CMakePackage):
 
     def setup_build_environment(self, env):
         env.set("CXX", self.spec["hip"].hipcc)
-
-    @run_after("install")
-    def fix_library_locations(self):
-        if self.spec.satisfies("~hiprand"):
-            return
-        """Fix the rocRAND and hipRAND libraries location"""
-        # rocRAND installs librocrand.so* and libhiprand.so* to rocrand/lib and
-        # hiprand/lib, respectively. This confuses spack's RPATH management. We
-        # fix it by adding a symlink to the libraries.
-        if self.spec.satisfies("@5.1.0:5.1.3"):
-            if not os.path.isdir(os.path.join(self.prefix, "hiprand")):
-                os.mkdir(os.path.join(self.prefix, "hiprand"))
-            os.mkdir(os.path.join(self.prefix, "hiprand", "include"))
-            hiprand_include_path = join_path(self.prefix, "include", "hiprand")
-            with working_dir(hiprand_include_path):
-                hiprand_includes = glob.glob("*.h*")
-            hiprand_path = join_path(self.prefix, "hiprand", "include")
-            with working_dir(hiprand_path):
-                for header_file in hiprand_includes:
-                    os.symlink(join_path("../../include/hiprand", header_file), header_file)
+        if self.spec.satisfies("+asan"):
+            env.set("CC", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang")
+            env.set("CXX", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang++")
+            env.set("ASAN_OPTIONS", "detect_leaks=0")
+            env.set("CFLAGS", "-fsanitize=address -shared-libasan")
+            env.set("CXXFLAGS", "-fsanitize=address -shared-libasan")
+            env.set("LDFLAGS", "-fuse-ld=lld")
 
     @classmethod
     def determine_version(cls, lib):

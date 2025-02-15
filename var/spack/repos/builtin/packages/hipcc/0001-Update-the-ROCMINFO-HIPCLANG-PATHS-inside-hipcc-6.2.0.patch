@@ -1,0 +1,57 @@
+From 8d2e14328cd99bbad2eaa498c207cf41f688fc30 Mon Sep 17 00:00:00 2001
+From: sreenivasa murthy kolam <sreenivasamurthy.kolam@amd.com>
+Date: Mon, 23 Sep 2024 10:34:16 +0000
+Subject: [PATCH] Use the rocminfo_path and hipclang_path inside the hipcc.pl
+ and hipbin_amd.h
+
+---
+ amd/hipcc/bin/hipcc.pl     | 9 ++++++---
+ amd/hipcc/src/hipBin_amd.h | 2 +-
+ 2 files changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/amd/hipcc/bin/hipcc.pl b/amd/hipcc/bin/hipcc.pl
+index 27839e5..fcb8d4e 100755
+--- a/amd/hipcc/bin/hipcc.pl
++++ b/amd/hipcc/bin/hipcc.pl
+@@ -160,11 +160,13 @@ if ($HIP_PLATFORM eq "amd") {
+     if($isWindows) {
+         $execExtension = ".exe";
+     }
+-    $HIPCC=get_normalized_path("$HIP_CLANG_PATH/clang++" . $execExtension);
++    # hip_clang_path is set inside the hip recipe
++    $HIP_CLANG_PATH= $ENV{'HIP_CLANG_PATH'};
++    $HIPCC="${HIP_CLANG_PATH}/clang++" . $execExtension;
+ 
+     # If $HIPCC clang++ is not compiled, use clang instead
+     if ( ! -e $HIPCC ) {
+-        $HIPCC=get_normalized_path("$HIP_CLANG_PATH/clang" . $execExtension);
++        $HIPCC="${HIP_CLANG_PATH}/clang" . $execExtension;
+         $HIPLDFLAGS = "--driver-mode=g++";
+     }
+     # to avoid using dk linker or MSVC linker
+@@ -480,7 +482,8 @@ if($HIP_PLATFORM eq "amd"){
+             $targetsStr = $ENV{HCC_AMDGPU_TARGET};
+         } elsif (not $isWindows) {
+             # Else try using rocm_agent_enumerator
+-            $ROCM_AGENT_ENUM = "${ROCM_PATH}/bin/rocm_agent_enumerator";
++            $ROCMINFO_PATH = $ENV{'ROCMINFO_PATH'} // $ROCMINFO_PATH;
++            $ROCM_AGENT_ENUM = "${ROCMINFO_PATH}/bin/rocm_agent_enumerator";
+             $targetsStr = `${ROCM_AGENT_ENUM} -t GPU`;
+             $targetsStr =~ s/\n/,/g;
+         }
+diff --git a/amd/hipcc/src/hipBin_amd.h b/amd/hipcc/src/hipBin_amd.h
+index 57d0098..d53d081 100644
+--- a/amd/hipcc/src/hipBin_amd.h
++++ b/amd/hipcc/src/hipBin_amd.h
+@@ -752,7 +752,7 @@ void HipBinAmd::executeHipCCCmd(vector<string> argv) {
+     } else if (os != windows) {
+       // Else try using rocm_agent_enumerator
+       string ROCM_AGENT_ENUM;
+-      ROCM_AGENT_ENUM = roccmPath + "/bin/rocm_agent_enumerator";
++      ROCM_AGENT_ENUM = string(getenv("ROCMINFO_PATH")) + "/bin/rocm_agent_enumerator";
+       targetsStr = ROCM_AGENT_ENUM +" -t GPU";
+       SystemCmdOut sysOut = hipBinUtilPtr_->exec(targetsStr.c_str());
+       regex toReplace("\n+");
+-- 
+2.39.3
+

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -35,6 +34,8 @@ class Udunits(AutotoolsPackage):
         sha256="a154d1f8428c24e92723f9e50bdb5cc00827e3f5ff9cba64d33e5409f5c03455",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
 
     depends_on("expat")
 

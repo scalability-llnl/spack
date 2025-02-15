@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,8 @@ class GtkDoc(AutotoolsPackage):
 
     version("1.33.2", sha256="2d1b0cbd26edfcb54694b2339106a02a81d630a7dedc357461aeb186874cc7c0")
     version("1.32", sha256="0890c1f00d4817279be51602e67c4805daf264092adc58f9c04338566e8225ba")
+
+    depends_on("c", type="build")  # generated
 
     # Commented out until package dblatex has been created
     # variant('pdf', default=False, description='Adds PDF support')

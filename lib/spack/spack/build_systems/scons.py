@@ -1,14 +1,14 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import inspect
-
 import spack.builder
 import spack.package_base
+import spack.phase_callbacks
+import spack.spec
+import spack.util.prefix
 from spack.directives import build_system, depends_on
 
-from ._checks import BaseBuilder, execute_build_time_tests
+from ._checks import BuilderWithDefaults, execute_build_time_tests
 
 
 class SConsPackage(spack.package_base.PackageBase):
@@ -30,7 +30,7 @@ class SConsPackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("scons")
-class SConsBuilder(BaseBuilder):
+class SConsBuilder(BuilderWithDefaults):
     """The Scons builder provides the following phases that can be overridden:
 
     1. :py:meth:`~.SConsBuilder.build`
@@ -61,20 +61,21 @@ class SConsBuilder(BaseBuilder):
         """Arguments to pass to build."""
         return []
 
-    def build(self, pkg, spec, prefix):
+    def build(
+        self, pkg: SConsPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Build the package."""
-        args = self.build_args(spec, prefix)
-        inspect.getmodule(self.pkg).scons(*args)
+        pkg.module.scons(*self.build_args(spec, prefix))
 
     def install_args(self, spec, prefix):
         """Arguments to pass to install."""
         return []
 
-    def install(self, pkg, spec, prefix):
+    def install(
+        self, pkg: SConsPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Install the package."""
-        args = self.install_args(spec, prefix)
-
-        inspect.getmodule(self.pkg).scons("install", *args)
+        pkg.module.scons("install", *self.install_args(spec, prefix))
 
     def build_test(self):
         """Run unit tests after build.
@@ -84,4 +85,4 @@ class SConsBuilder(BaseBuilder):
         """
         pass
 
-    spack.builder.run_after("build")(execute_build_time_tests)
+    spack.phase_callbacks.run_after("build")(execute_build_time_tests)

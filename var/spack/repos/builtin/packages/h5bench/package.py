@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -32,6 +31,10 @@ class H5bench(CMakePackage):
     version(
         "1.0", commit="9d3438c1bc66c5976279ef203bd11a8d48ade724", submodules=True, deprecated=True
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("metadata", default=False, when="@1.2:", description="Enables metadata benchmark")
     variant("amrex", default=False, when="@1.2:", description="Enables AMReX benchmark")
@@ -71,8 +74,8 @@ class H5bench(CMakePackage):
         filter_file("mpirun", f"{launcher}", filename)
         filter_file(r"-n 2", "-n 1 --timeout 240", filename)
 
-        """Copy the example source files after the package is installed to an
-        install test subdirectory for use during `spack test run`."""
+        # Copy the example source files after the package is installed to an
+        # install test subdirectory for use during `spack test run`.
         cache_extra_test_sources(self, ["tests", "samples"])
 
     def mpi_launcher(self):

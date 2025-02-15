@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -41,6 +40,9 @@ class Tetgen(Package):
         sha256="952711bb06b7f64fd855eb24c33f08e3faf40bdd54764de10bbe5ed5b0dce034",
         url="http://www.tetgen.org/files/tetgen1.4.3.tar.gz",
     )
+
+    depends_on("cxx", type="build")  # generated
+    depends_on("gmake", type="build")
 
     variant("pic", default=True, description="Builds the library in pic mode.")
     variant("debug", default=False, description="Builds the library in debug mode.")

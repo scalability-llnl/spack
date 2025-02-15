@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,9 @@ class Openwsman(CMakePackage):
     version("2.7.0", sha256="8870c4a21cbaba9387ad38c37667e2cee29008faacaaf7eb18ad2061e2fc89a1")
     version("2.6.11", sha256="895eaaae62925f9416766ea3e71a5368210e6cfe13b23e4e0422fa0e75c2541c")
     version("2.6.10", sha256="d3c624a03d7bc1835544ce1af56efd010f77cbee0c02b34e0755aa9c9b2c317b")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("python", default=True, description="Enable python")
 

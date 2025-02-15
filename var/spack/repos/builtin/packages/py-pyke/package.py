@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,7 +11,7 @@ class PyPyke(PythonPackage):
     engine (expert system) written in 100% Python.
     """
 
-    homepage = "https://sourceforge.net/projects/pyke"
+    homepage = "https://sourceforge.net/projects/pyke/"
     url = "https://sourceforge.net/projects/pyke/files/pyke/1.1.1/pyke-1.1.1.zip"
 
     license("MIT")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class Xclip(AutotoolsPackage):
     license("GPL-2.0-or-later")
 
     version("0.13", commit="9aa7090c3b8b437c6489edca32ae43d82e0c1281")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("libxmu")
     depends_on("libx11")

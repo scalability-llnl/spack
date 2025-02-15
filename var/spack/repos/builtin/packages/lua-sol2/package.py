@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,8 +25,17 @@ class LuaSol2(CMakePackage):
     version("3.0.3", sha256="bf089e50387edfc70063e24fd7fbb693cceba4a50147d864fabedd1b33483582")
     version("3.0.2", sha256="3f5f369eae6732ae9a315fe4370bbdc9900d2f2f4f291206aeb5b2d5533f0c99")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     # Lua is not needed when building, since sol2 is headers-only
     depends_on("lua", type=("link", "run"))
+
+    patch(
+        "https://github.com/ThePhD/sol2/pull/1606.patch?full_index=1",
+        when="@3.3.0 %oneapi@2025:",
+        sha256="ed6c5924a0639fb1671e6d7dacbb88dce70aa006bcee2f380b6acd34da89664c",
+    )
 
     def cmake_args(self):
         args = [

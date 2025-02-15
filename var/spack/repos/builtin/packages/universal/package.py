@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,3 +16,6 @@ class Universal(CMakePackage):
     license("MIT")
 
     version("3.68", sha256="67de4e0a3276b873a298ab98f1237ff3fd23240178e71405bf813ee38e4b1f62")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated

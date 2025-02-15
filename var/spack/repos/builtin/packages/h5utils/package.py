@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,9 @@ class H5utils(AutotoolsPackage):
         url="https://github.com/NanoComp/h5utils/archive/refs/tags/1.12.1.tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("png", default=True, description="Enable PNG support")
     variant("vis5d", default=False, description="Enable Vis5d support")
     variant("octave", default=False, description="Enable GNU Octave support")
@@ -44,17 +46,17 @@ class H5utils(AutotoolsPackage):
         spec = self.spec
         args = []
 
-        if "+vis5d" in spec:
+        if spec.satisfies("+vis5d"):
             args.append(f"--with-v5d={spec['vis5d'].prefix}")
         else:
             args.append("--without-v5d")
 
-        if "+octave" in spec:
+        if spec.satisfies("+octave"):
             args.append("--with-octave")
         else:
             args.append("--without-octave")
 
-        if "+hdf" in spec:
+        if spec.satisfies("+hdf"):
             args.append("--with-hdf4")
         else:
             args.append("--without-hdf4")

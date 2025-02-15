@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,9 @@ class Faust(MakefilePackage):
     version("2.54.9", sha256="14648f020d77874e6f7411d7ff605820015645bbd4b891b24bee3d3a898e48d2")
     version("2.27.2", sha256="3367a868a93b63582bae29ab8783f1df7a10f4084a2bc1d2258ebf3d6a8c31d7")
     version("2.27.1", sha256="b3e93ca573025b231931e5eb92efc1a1e7f7720902aa3b285061519600a8c417")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake", type="build")
 

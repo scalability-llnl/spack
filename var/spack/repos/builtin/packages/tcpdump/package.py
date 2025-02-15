@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,8 @@ class Tcpdump(AutotoolsPackage):
     version("4.9.3", sha256="2cd47cb3d460b6ff75f4a9940f594317ad456cfbf2bd2c8e5151e16559db6410")
     version("4.9.2", sha256="798b3536a29832ce0cbb07fafb1ce5097c95e308a6f592d14052e1ef1505fe79")
     version("4.9.1", sha256="f9448cf4deb2049acf713655c736342662e652ef40dbe0a8f6f8d5b9ce5bd8f3")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("libpcap")
     depends_on("libpcap@1.10.0:", when="@4.99.0:")

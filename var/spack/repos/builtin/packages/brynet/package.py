@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class Brynet(CMakePackage):
     version("1.0.8", sha256="e37dee5fa14acec99bdd7ce8530a00ff5116f608f0a5401cd2e32e10f23975fc")
     version("1.0.7", sha256="60116fccff108d03f3ff0a3d5c1fb5ad442bad7ef155bf1a3c7819ffc9d57524")
     version("1.0.6", sha256="5e94b5b64fbdfbcb4e33b11fb7832cf0ca3898ab6b6461867182598bab7ca65f")
+
+    depends_on("cxx", type="build")  # generated
 
     def cmake_args(self):
         args = []

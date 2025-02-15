@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,9 @@ class PyTorchScatter(PythonPackage):
     maintainers("adamjstewart")
 
     version("2.1.2", sha256="69b3aa435f2424ac6a1bfb6ff702da6eb73b33ca0db38fb26989c74159258e47")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     depends_on("python", type=("build", "link", "run"))
     depends_on("py-setuptools", type="build")

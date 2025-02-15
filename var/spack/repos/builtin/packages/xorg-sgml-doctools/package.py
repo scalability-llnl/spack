@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,7 +10,7 @@ class XorgSgmlDoctools(AutotoolsPackage, XorgPackage):
     sheets used in building/formatting the documentation provided in other
     X.Org packages."""
 
-    homepage = "https://cgit.freedesktop.org/xorg/doc/xorg-sgml-doctools"
+    homepage = "https://gitlab.freedesktop.org/xorg/doc/xorg-sgml-doctools"
     xorg_mirror_path = "doc/xorg-sgml-doctools-1.11.tar.gz"
 
     maintainers("wdconinc")

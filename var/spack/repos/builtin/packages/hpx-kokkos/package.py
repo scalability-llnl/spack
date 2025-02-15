@@ -1,9 +1,6 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-import llnl.util.filesystem as fs
 
 from spack.package import *
 
@@ -19,10 +16,13 @@ class HpxKokkos(CMakePackage, CudaPackage, ROCmPackage):
     license("BSL-1.0")
 
     version("master", branch="master")
+    version("0.4.1", sha256="dd6153c8d626013e30537606f7a791e4f36969219337f41dad942351d7f33ffa")
     version("0.4.0", sha256="dafef55521cf4bf7ab28ebad546ea1d3fb83fac3a9932e292db4ab3666cd833f")
     version("0.3.0", sha256="83c1d11dab95552ad0abdae767c71f757811d7b51d82bd231653dc942e89a45d")
     version("0.2.0", sha256="289b711cea26afe80be002fc521234c9194cd0e8f69863f3b08b654674dbe5d5")
     version("0.1.0", sha256="24edb817d0969f4aea1b68eab4984c2ea9a58f4760a9b8395e20f85b178f0850")
+
+    depends_on("cxx", type="build")
 
     cxxstds = ("14", "17", "20")
     variant(
@@ -47,6 +47,11 @@ class HpxKokkos(CMakePackage, CudaPackage, ROCmPackage):
 
     depends_on("hpx@1.8:", when="@0.3:")
     depends_on("kokkos@3.6:", when="@0.3:")
+    # Incompatibilities caused by https://github.com/STEllAR-GROUP/hpx/pull/6565
+    # and https://github.com/kokkos/kokkos/pull/7156 fixed by
+    # https://github.com/STEllAR-GROUP/hpx-kokkos/pull/25
+    conflicts("^hpx@1.11:", when="@:0.4.0")
+    conflicts("^kokkos@4.4:", when="@:0.4.0")
 
     depends_on("hpx@1.7", when="@0.2")
     depends_on("kokkos@3.6:", when="@0.2")
@@ -79,7 +84,7 @@ class HpxKokkos(CMakePackage, CudaPackage, ROCmPackage):
             self.define("HPX_KOKKOS_ENABLE_BENCHMARKS", self.run_tests),
         ]
 
-        if "+rocm" in self.spec:
+        if self.spec.satisfies("+rocm"):
             args += [self.define("CMAKE_CXX_COMPILER", self.spec["hip"].hipcc)]
 
         return args
@@ -88,7 +93,7 @@ class HpxKokkos(CMakePackage, CudaPackage, ROCmPackage):
 
     def check(self):
         if self.run_tests:
-            with fs.working_dir(self.build_directory):
+            with working_dir(self.build_directory):
                 cmake("--build", ".", "--target", "tests")
                 cmake("--build", ".", "--target", "benchmarks")
                 ctest("--output-on-failure")

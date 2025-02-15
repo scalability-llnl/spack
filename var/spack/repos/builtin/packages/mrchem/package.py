@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,8 @@ class Mrchem(CMakePackage):
     version("0.2.1", sha256="c1d0da5fefae356d9746f8ee761a94f6f6cd8b735a8309a4048ad6b8943ad242")
     version("0.2.0", sha256="eea223db8275f9f2ce09601088264ec952ce2557a7050466301f53070ab03b82")
     version("0.1.0", sha256="325fa45fe1918b4d394060f36d23432ab8139596ebc22b65b1284c1f673e8164")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("openmp", default=True, description="Enable OpenMP support.")
 

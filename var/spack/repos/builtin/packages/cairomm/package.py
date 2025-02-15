@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,8 @@ class Cairomm(AutotoolsPackage):
 
     version("1.6.4", sha256="3cb2c898d0ceb94ad2deb722b50a3a6ee46abdda741ecd6e5a40517c85ecea4c")
     version("1.6.2", sha256="068edc1743d92ff1d102141ba7597ba02a47379f9cb97799b0c3310848b56eff")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cairo")
     depends_on("libsigcpp")

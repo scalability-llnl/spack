@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,8 @@ class Aegean(MakefilePackage):
 
     version("0.16.0", sha256="c6303ec58289f6c7bc4dd0edcd0e6c0bce4d95b21e25386f314f2b5e2f835812")
     version("0.15.2", sha256="734c9dd23ab3415c3966083bfde5fb72c81e6ace84e08ee3fe0d4c338331d975")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("genometools")
 

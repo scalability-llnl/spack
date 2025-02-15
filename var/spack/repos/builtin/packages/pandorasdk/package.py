@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -8,9 +7,7 @@ from spack.package import *
 
 
 class Pandorasdk(CMakePackage):
-    """Metadata package to bring together and build multiple Pandora libraries.
-    NOTE: for proper version control with spack, this should be broken up and
-    the subpackages installed individually."""
+    """Pandora Software Development Kit for pattern-recognition algorithms"""
 
     url = "https://github.com/PandoraPFA/PandoraSDK/archive/v03-04-00.tar.gz"
     homepage = "https://github.com/PandoraPFA/PandoraSDK"
@@ -25,14 +22,24 @@ class Pandorasdk(CMakePackage):
     version("3.4.1", sha256="9607bf52a9d79d88d28c45d4f3336e066338b36ab81b4d2d125226f4ad3a7aaf")
     version("3.4.0", sha256="1e30db056d4a43f8659fccdda00270af14593425d933f91e91d5c97f1e124c6b")
 
+    variant(
+        "cxxstd",
+        default="17",
+        values=("17", "20"),
+        multi=False,
+        description="Use the specified C++ standard when building.",
+    )
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     depends_on("pandorapfa")
 
     def cmake_args(self):
         args = [
-            self.define("LC_PANDORA_CONTENT", True),
-            self.define("LAR_PANDORA_CONTENT", True),
             self.define("CMAKE_MODULE_PATH", self.spec["pandorapfa"].prefix.cmakemodules),
-            self.define("CMAKE_CXX_FLAGS", "-std=c++17"),
+            self.define("CMAKE_CXX_FLAGS", "-Wno-error"),
+            self.define("CMAKE_CXX_STANDARD", self.spec.variants["cxxstd"].value),
         ]
         return args
 

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -29,6 +28,10 @@ class Ecflow(CMakePackage):
     version("4.13.0", sha256="c743896e0ec1d705edd2abf2ee5a47f4b6f7b1818d8c159b521bdff50a403e39")
     version("4.12.0", sha256="566b797e8d78e3eb93946b923ef540ac61f50d4a17c9203d263c4fd5c39ab1d1")
     version("4.11.1", sha256="b3bcc1255939f87b9ba18d802940e08c0cf6379ca6aeec1fef7bd169b0085d6c")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("ssl", default=True, description="Enable SSL")
     variant(
@@ -72,6 +75,7 @@ class Ecflow(CMakePackage):
     # https://github.com/JCSDA/spack-stack/issues/1001
     # https://github.com/JCSDA/spack-stack/issues/1009
     patch("ctsapi_cassert.patch", when="@5.11.4")
+    patch("vfile_cassert.patch", when="@5.11.4")
 
     @when("@:4.13.0")
     def patch(self):

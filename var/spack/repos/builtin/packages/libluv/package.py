@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,8 @@ class Libluv(CMakePackage):
     version("1.42.0-1", sha256="4b6fbaa89d2420edf6070ad9e522993e132bd7eb2540ff754c2b9f1497744db2")
     version("1.42.0-0", sha256="b5228a9d0eaacd9f862b6270c732d5c90773a28ce53b6d9e32a14050e7947f36")
     version("1.36.0-0", sha256="f2e7eb372574f25c6978c1dc74280d22efdcd7df2dda4a286c7fe7dceda26445")
+
+    depends_on("c", type="build")  # generated
 
     # https://github.com/neovim/neovim/issues/25770
     # up to 1.45 (included) dynamic library on macOS did not have the @rpath prefix, being not

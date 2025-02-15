@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,11 +13,13 @@ class Highfive(CMakePackage):
     homepage = "https://github.com/BlueBrain/HighFive"
     url = "https://github.com/BlueBrain/HighFive/archive/v1.2.tar.gz"
     git = "https://github.com/BlueBrain/HighFive.git"
-    maintainers("alkino")
+    maintainers("1uc")
 
     license("BSL-1.0")
 
     version("develop", branch="master")
+    version("2.10.1", sha256="60d66ba1315730494470afaf402bb40300a39eb6ef3b9d67263335a236069cce")
+    version("2.10.0", sha256="c29e8e1520e7298fabb26545f804e35bb3af257005c1c2df62e39986458d7c38")
     version("2.9.0", sha256="6301def8ceb9f4d7a595988612db288b448a3c0546f6c83417dab38c64994d7e")
     version("2.8.0", sha256="cd2502cae61bfb00e32dd18c9dc75289e09ad1db5c2a46d3b0eefd32e0df983b")
     version("2.7.1", sha256="25b4c51a94d1e670dc93b9b73f51e79b65d8ff49bcd6e5d5582d5ecd2789a249")
@@ -41,6 +42,9 @@ class Highfive(CMakePackage):
     version("1.1", sha256="430fc312fc1961605ffadbfad82b9753a5e59482e9fbc64425fb2c184123d395")
     version("1.0", sha256="d867fe73d00817f686d286f3c69a23731c962c3e2496ca1657ea7302cd0bb944")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     variant("boost", default=False, description="Support Boost")
     variant("mpi", default=True, description="Support MPI")
 
@@ -54,10 +58,9 @@ class Highfive(CMakePackage):
     depends_on("hdf5 +mpi", when="+mpi")
 
     def cmake_args(self):
-        args = [
-            "-DUSE_BOOST:Bool={0}".format("+boost" in self.spec),
-            "-DHIGHFIVE_PARALLEL_HDF5:Bool={0}".format("+mpi" in self.spec),
-            "-DHIGHFIVE_UNIT_TESTS:Bool=false",
-            "-DHIGHFIVE_EXAMPLES:Bool=false",
+        return [
+            self.define_from_variant("USE_BOOST", "boost"),
+            self.define_from_variant("HIGHFIVE_PARALLEL_HDF5", "mpi"),
+            self.define("HIGHFIVE_UNIT_TESTS", False),
+            self.define("HIGHFIVE_EXAMPLES", False),
         ]
-        return args

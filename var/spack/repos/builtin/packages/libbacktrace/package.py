@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,8 @@ class Libbacktrace(AutotoolsPackage):
 
     version("master", branch="master")
     version("2020-02-19", commit="ca0de0517f3be44fedf5a2c01cfaf6437d4cae68")
+
+    depends_on("c", type="build")  # generated
 
     variant("shared", default=False, description="Additionally build shared library")
 

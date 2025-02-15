@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,8 @@ class Dbxtool(MakefilePackage):
 
     version("8", sha256="196d9475f7cf3aa52d8e0c29c20affb7c903512e13895edb6296caf02d4a983b")
     version("7", sha256="486b8a7cf4e149ab9630783e5259d6af70a7022209e1e48fbee9b54c48535c5e")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("efivar")
     depends_on("popt")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,13 @@ class Hipcc(CMakePackage):
     maintainers("srekolam", "renjithravindrankannath", "afzpatel")
 
     license("MIT")
+    version("6.3.2", sha256="1f52e45660ea508d3fe717a9903fe27020cee96de95a3541434838e0193a4827")
+    version("6.3.1", sha256="e9c2481cccacdea72c1f8d3970956c447cec47e18dfb9712cbbba76a2820552c")
+    version("6.3.0", sha256="79580508b039ca6c50dfdfd7c4f6fbcf489fe1931037ca51324818851eea0c1c")
+    version("6.2.4", sha256="7af782bf5835fcd0928047dbf558f5000e7f0207ca39cf04570969343e789528")
+    version("6.2.1", sha256="4840f109d8f267c28597e936c869c358de56b8ad6c3ed4881387cf531846e5a7")
+    version("6.2.0", sha256="12ce17dc920ec6dac0c5484159b3eec00276e4a5b301ab1250488db3b2852200")
+    version("6.1.2", sha256="300e9d6a137dcd91b18d5809a316fddb615e0e7f982dc7ef1bb56876dff6e097")
     version("6.1.1", sha256="f1a67efb49f76a9b262e9735d3f75ad21e3bd6a05338c9b15c01e6c625c4460d")
     version("6.1.0", sha256="6bd9912441de6caf6b26d1323e1c899ecd14ff2431874a2f5883d3bc5212db34")
     version("6.0.2", sha256="d6209b14fccdd00d7231dec4b4f962aa23914b9dde389ba961370e8ba918bde5")
@@ -31,10 +37,15 @@ class Hipcc(CMakePackage):
     version("5.7.1", sha256="d47d27ef2b5de7f49cdfd8547832ac9b437a32e6fc6f0e9c1646f4b704c90aee")
     version("5.7.0", sha256="9f839bf7226e5e26f3150f8ba6eca507ab9a668e68b207736301b3bb9040c973")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("numactl")
 
     patch("0014-remove-compiler-rt-linkage-for-host.6.0.patch", when="@6.0")
-    patch("0014-remove-compiler-rt-linkage-for-host.6.1.patch", when="@6.1:")
+    patch("0014-remove-compiler-rt-linkage-for-host.6.1.patch", when="@6.1")
+    patch("0001-Update-the-ROCMINFO-HIPCLANG-PATHS-inside-hipcc-6.2.0.patch", when="@6.2:")
 
     @property
     def root_cmakelists_dir(self):
@@ -48,7 +59,7 @@ class Hipcc(CMakePackage):
         if self.spec.satisfies("@:6.0"):
             with working_dir("bin"):
                 filter_shebang("hipconfig")
-        else:
+        elif self.spec.satisfies("@:6.2"):
             with working_dir("amd/hipcc/bin"):
                 filter_shebang("hipconfig")
 

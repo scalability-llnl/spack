@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -7,7 +6,7 @@ import bisect
 import re
 import struct
 from struct import calcsize, unpack, unpack_from
-from typing import BinaryIO, Dict, List, NamedTuple, Optional, Pattern, Tuple
+from typing import BinaryIO, Callable, Dict, List, NamedTuple, Optional, Pattern, Tuple
 
 
 class ElfHeader(NamedTuple):
@@ -196,7 +195,10 @@ def parse_program_headers(f: BinaryIO, elf: ElfFile) -> None:
         elf: ELF file parser data
     """
     # Forward to the program header
-    f.seek(elf.elf_hdr.e_phoff)
+    try:
+        f.seek(elf.elf_hdr.e_phoff)
+    except OSError:
+        raise ElfParsingError("Could not seek to program header")
 
     # Here we have to make a mapping from virtual address to offset in the file.
     ph_fmt = elf.byte_order + ("LLQQQQQQ" if elf.is_64_bit else "LLLLLLLL")
@@ -246,7 +248,10 @@ def parse_pt_interp(f: BinaryIO, elf: ElfFile) -> None:
         f: file handle
         elf: ELF file parser data
     """
-    f.seek(elf.pt_interp_p_offset)
+    try:
+        f.seek(elf.pt_interp_p_offset)
+    except OSError:
+        raise ElfParsingError("Could not seek to PT_INTERP entry")
     data = read_exactly(f, elf.pt_interp_p_filesz, "Malformed PT_INTERP entry")
     elf.pt_interp_str = parse_c_string(data)
 
@@ -265,7 +270,10 @@ def find_strtab_size_at_offset(f: BinaryIO, elf: ElfFile, offset: int) -> int:
     """
     section_hdr_fmt = elf.byte_order + ("LLQQQQLLQQ" if elf.is_64_bit else "LLLLLLLLLL")
     section_hdr_size = calcsize(section_hdr_fmt)
-    f.seek(elf.elf_hdr.e_shoff)
+    try:
+        f.seek(elf.elf_hdr.e_shoff)
+    except OSError:
+        raise ElfParsingError("Could not seek to section header table")
     for _ in range(elf.elf_hdr.e_shnum):
         data = read_exactly(f, section_hdr_size, "Malformed section header")
         sh = SectionHeader(*unpack(section_hdr_fmt, data))
@@ -287,7 +295,10 @@ def retrieve_strtab(f: BinaryIO, elf: ElfFile, offset: int) -> bytes:
     Returns: file offset
     """
     size = find_strtab_size_at_offset(f, elf, offset)
-    f.seek(offset)
+    try:
+        f.seek(offset)
+    except OSError:
+        raise ElfParsingError("Could not seek to string table")
     return read_exactly(f, size, "Could not read string table")
 
 
@@ -320,7 +331,10 @@ def parse_pt_dynamic(f: BinaryIO, elf: ElfFile) -> None:
     count_runpath = 0
     count_strtab = 0
 
-    f.seek(elf.pt_dynamic_p_offset)
+    try:
+        f.seek(elf.pt_dynamic_p_offset)
+    except OSError:
+        raise ElfParsingError("Could not seek to PT_DYNAMIC entry")
 
     # In case of broken ELF files, don't read beyond the advertized size.
     for _ in range(elf.pt_dynamic_p_filesz // dynamic_array_size):
@@ -476,6 +490,34 @@ def get_interpreter(path: str) -> Optional[str]:
         return None
 
 
+def _delete_dynamic_array_entry(
+    f: BinaryIO, elf: ElfFile, should_delete: Callable[[int, int], bool]
+) -> None:
+    try:
+        f.seek(elf.pt_dynamic_p_offset)
+    except OSError:
+        raise ElfParsingError("Could not seek to PT_DYNAMIC entry")
+    dynamic_array_fmt = elf.byte_order + ("qQ" if elf.is_64_bit else "lL")
+    dynamic_array_size = calcsize(dynamic_array_fmt)
+    new_offset = elf.pt_dynamic_p_offset  # points to the new dynamic array
+    old_offset = elf.pt_dynamic_p_offset  # points to the current dynamic array
+    for _ in range(elf.pt_dynamic_p_filesz // dynamic_array_size):
+        data = read_exactly(f, dynamic_array_size, "Malformed dynamic array entry")
+        tag, val = unpack(dynamic_array_fmt, data)
+
+        if tag == ELF_CONSTANTS.DT_NULL or not should_delete(tag, val):
+            if new_offset != old_offset:
+                f.seek(new_offset)
+                f.write(data)
+                f.seek(old_offset + dynamic_array_size)
+            new_offset += dynamic_array_size
+
+        if tag == ELF_CONSTANTS.DT_NULL:
+            break
+
+        old_offset += dynamic_array_size
+
+
 def delete_rpath(path: str) -> None:
     """Modifies a binary to remove the rpath. It zeros out the rpath string and also drops the
     DT_R(UN)PATH entry from the dynamic section, so it doesn't show up in 'readelf -d file', nor
@@ -492,29 +534,22 @@ def delete_rpath(path: str) -> None:
         f.seek(rpath_offset)
         f.write(new_rpath_string)
 
-        # Next update the dynamic array
-        f.seek(elf.pt_dynamic_p_offset)
-        dynamic_array_fmt = elf.byte_order + ("qQ" if elf.is_64_bit else "lL")
-        dynamic_array_size = calcsize(dynamic_array_fmt)
-        new_offset = elf.pt_dynamic_p_offset  # points to the new dynamic array
-        old_offset = elf.pt_dynamic_p_offset  # points to the current dynamic array
-        for _ in range(elf.pt_dynamic_p_filesz // dynamic_array_size):
-            data = read_exactly(f, dynamic_array_size, "Malformed dynamic array entry")
-            tag, _ = unpack(dynamic_array_fmt, data)
+        # Delete DT_RPATH / DT_RUNPATH entries from the dynamic section
+        _delete_dynamic_array_entry(
+            f, elf, lambda tag, _: tag == ELF_CONSTANTS.DT_RPATH or tag == ELF_CONSTANTS.DT_RUNPATH
+        )
 
-            # Overwrite any entry that is not DT_RPATH or DT_RUNPATH, including DT_NULL
-            if tag != ELF_CONSTANTS.DT_RPATH and tag != ELF_CONSTANTS.DT_RUNPATH:
-                if new_offset != old_offset:
-                    f.seek(new_offset)
-                    f.write(data)
-                    f.seek(old_offset + dynamic_array_size)
-                new_offset += dynamic_array_size
 
-            # End of the dynamic array
-            if tag == ELF_CONSTANTS.DT_NULL:
-                break
+def delete_needed_from_elf(f: BinaryIO, elf: ElfFile, needed: bytes) -> None:
+    """Delete a needed library from the dynamic section of an ELF file"""
+    if not elf.has_needed or needed not in elf.dt_needed_strs:
+        return
 
-            old_offset += dynamic_array_size
+    offset = elf.dt_needed_strtab_offsets[elf.dt_needed_strs.index(needed)]
+
+    _delete_dynamic_array_entry(
+        f, elf, lambda tag, val: tag == ELF_CONSTANTS.DT_NEEDED and val == offset
+    )
 
 
 class CStringType:

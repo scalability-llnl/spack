@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,6 +27,8 @@ class Glfw(CMakePackage):
     version("3.1", sha256="2140f4c532e7ce4c84cb7e4c419d0979d5954fa1ce204b7646491bd2cc5bf308")
     version("3.0.4", sha256="a4e7c57db2086803de4fc853bd472ff8b6d2639b9aa16e6ac6b19ffb53958caf")
     version("3.0.3", sha256="7a182047ba6b1fdcda778b79aac249bb2328b6d141188cb5df29560715d01693")
+
+    depends_on("c", type="build")  # generated
 
     variant("doc", default=False, description="Build documentation")
     variant("shared", default=False, description="Builds a shared version of the library")

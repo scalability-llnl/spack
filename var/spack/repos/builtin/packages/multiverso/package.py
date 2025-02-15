@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,8 @@ class Multiverso(CMakePackage):
     version("master", branch="master")
     version("143187", commit="143187575d1cfa410100037b8aea2e767e0af637")
     version("0.2", sha256="40e86543968faa2fe203cf0b004a4c7905303db0c860efe4ce4e1f27e46394fc")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("mpi")
     depends_on("boost+exception+test")

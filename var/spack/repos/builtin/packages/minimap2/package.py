@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,6 +26,8 @@ class Minimap2(PythonPackage):
     version("2.10", sha256="52b36f726ec00bfca4a2ffc23036d1a2b5f96f0aae5a92fd826be6680c481c20")
     version("2.2", sha256="7e8683aa74c4454a8cfe3821f405c4439082e24c152b4b834fdb56a117ecaed9")
 
+    depends_on("c", type="build")  # generated
+
     conflicts("target=aarch64:", when="@:2.10")
     depends_on("zlib-api", type="link")
     depends_on("py-setuptools", type="build")
@@ -34,6 +35,7 @@ class Minimap2(PythonPackage):
 
     variant("jstools", default=False, description="Include Javascript tools (paftools)")
     depends_on("k8", type="run", when="+jstools")
+    depends_on("gmake", type="build")
 
     @run_after("install")
     def install_minimap2(self):

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -42,6 +41,9 @@ class Upp(CMakePackage):
         submodules=True,
     )
     version("8.2.0", sha256="38de2178dc79420f42aa3fb8b85796fc49d43d66f90e5276e47ab50c282627ac")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("openmp", default=True, description="Use OpenMP threading")
     variant("postexec", default=True, description="Build NCEPpost executable")

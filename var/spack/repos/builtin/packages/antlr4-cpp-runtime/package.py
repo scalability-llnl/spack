@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,7 +25,7 @@ class Antlr4CppRuntime(CMakePackage):
         "clanglibcpp", default=False, description="Compile with clang libc++ instead of libstdc++"
     )
 
-    depends_on("libuuid", type=["build", "link"], when="@:4.10.1")
+    depends_on("uuid", type=["build", "link"], when="@:4.10.1")
     depends_on("git", type=["build"])
     depends_on("pkgconfig", type=["build"])
 

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,5 +19,7 @@ class PerlDbdSqlite(PerlPackage):
     version("1.58", sha256="7120dd99d0338dea2802fda8bfe3fbf10077d5af559f6c67ae35e9270d1a1d3b")
     version("1.57_01", sha256="fa7fb111fa8bfc257c3208f8980ac802a9cac4531ab98afc1988b88929672184")
     version("1.56", sha256="c5f831a67a94f9bb2fb3c44051f309fc7994b2725d1896c018ad5d4cd865e991")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("perl-dbi", type=("build", "run"))

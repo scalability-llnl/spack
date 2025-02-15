@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -17,6 +16,8 @@ class Nyancat(MakefilePackage):
     version("1.5.1", sha256="c948c769d230b4e41385173540ae8ab1f36176de689b6e2d6ed3500e9179b50a")
     version("1.5.0", sha256="9ae4f740060b77bba815d8d4e97712d822bd0812a118b88b7fd6b4136a971bce")
     version("1.4.5", sha256="b26d752b95088be9d5caa73daea884572c0fc836ba55f0062e4d975301c4c661")
+
+    depends_on("c", type="build")  # generated
 
     def edit(self, spec, prefix):
         makefile = FileFilter("Makefile")

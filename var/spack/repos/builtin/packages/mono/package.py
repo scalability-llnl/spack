@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -65,6 +64,10 @@ class Mono(AutotoolsPackage):
     version("5.4.0.167", sha256="c2afe51b0fb074936a8e7eaee805c352f37cbf1093bb41c5345078f77d913ce0")
     version("5.0.1.1", sha256="48d6ae71d593cd01bf0f499de569359d45856cda325575e1bacb5fabaa7e9718")
     version("4.8.0.524", sha256="ca02614cfc9fe65e310631cd611d7b07d1ff205ce193006d4be0f9919c26bdcf")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     def patch(self):
         if "+patch-folder-path" in self.spec:

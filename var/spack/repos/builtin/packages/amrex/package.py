@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,6 +25,14 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
     license("BSD-3-Clause")
 
     version("develop", branch="development")
+    version("25.02", sha256="2680a5a9afba04e211cd48d27799c5a25abbb36c6c3d2b6c13cd4757c7176b23")
+    version("25.01", sha256="29eb35cf67d66b0fd0654282454c210abfadf27fcff8478b256e3196f237c74f")
+    version("24.12", sha256="ca4b41ac73fabb9cf3600b530c9823eb3625f337d9b7b9699c1089e81c67fc67")
+    version("24.11", sha256="31cc37b39f15e02252875815f6066046fc56a479bf459362b9889b0d6a202df6")
+    version("24.10", sha256="a2d15e417bd7c41963749338e884d939c80c5f2fcae3279fe3f1b463e3e4208a")
+    version("24.09", sha256="a1435d16532d04a1facce9a9ae35d68a57f7cd21a5f22a6590bde3c265ea1449")
+    version("24.08", sha256="e09623e715887a19a1f86ed6fdb8335022fd6c03f19372d8f13b55cdeeadf5de")
+    version("24.07", sha256="6baf76c1377d765e94020a9bd89dd1bf1485d0440d41cce2ba35d4dfee562580")
     version("24.06", sha256="103a97163d81716165fcff1af56df61741608b56f90730a725e9e4eb797bebf0")
     version("24.05", sha256="f3db5ea2b81973e3e244c5cf39d5a5383a98f297f56ed91c8dcdd2e24f7b750e")
     version("24.04", sha256="77a91e75ad0106324a44ca514e1e8abc54f2fc2d453406441c871075726a8167")
@@ -86,6 +93,10 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
     version("18.10", sha256="298eba03ef03d617c346079433af1089d38076d6fab2c34476c687740c1f4234")
     version("18.09.1", sha256="a065ee4d1d98324b6c492ae20ea63ba12a4a4e23432bf5b3fe9788d44aa4398e")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # Config options
     variant(
         "dimensions",
@@ -112,7 +123,21 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
         description="Real precision (double/single)",
         values=("single", "double"),
     )
-    variant("eb", default=False, description="Build Embedded Boundary classes")
+    variant("ascent", default=False, description="Enable Ascent in situ visualization")
+    variant(
+        "catalyst",
+        default=False,
+        description="Enable Catalyst2 in situ visualization",
+        when="@24.09:",
+    )
+    variant(
+        "conduit",
+        default=False,
+        description="Enable Conduit for data exchange (in situ visualization)",
+    )
+    variant("eb", default=True, description="Build Embedded Boundary classes", when="@24.10:")
+    variant("eb", default=False, description="Build Embedded Boundary classes", when="@:24.09")
+    variant("fft", default=False, description="Build FFT support", when="@24.11:")
     variant("fortran", default=False, description="Build Fortran API")
     variant("linear_solvers", default=True, description="Build linear solvers")
     variant("amrdata", default=False, description="Build data services")
@@ -128,9 +153,25 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
 
     # Build dependencies
     depends_on("mpi", when="+mpi")
-    depends_on("sundials@4.0.0:4.1.0 +ARKODE +CVODE", when="@19.08:20.11 +sundials")
-    depends_on("sundials@5.7.0: +ARKODE +CVODE", when="@21.07:22.04 +sundials")
-    depends_on("sundials@6.0.0: +ARKODE +CVODE", when="@22.05: +sundials")
+    with when("+linear_solvers"):
+        depends_on("rocsparse", when="@25.01: +rocm")
+    with when("+fft"):
+        depends_on("rocfft", when="+rocm")
+        depends_on("fftw@3", when="~cuda ~rocm ~sycl")
+    with when("+ascent"):
+        depends_on("ascent")
+        depends_on("ascent +cuda", when="+cuda")
+        depends_on("ascent +mpi", when="+mpi")
+    with when("+conduit"):
+        depends_on("conduit")
+        depends_on("conduit +mpi", when="+mpi")
+    with when("+catalyst"):
+        depends_on("libcatalyst@2.0: +conduit")
+        depends_on("libcatalyst +mpi", when="+mpi")
+    with when("+sundials"):
+        depends_on("sundials@4.0.0:4.1.0 +ARKODE +CVODE", when="@19.08:20.11")
+        depends_on("sundials@5.7.0: +ARKODE +CVODE", when="@21.07:22.04")
+        depends_on("sundials@6.0.0: +ARKODE +CVODE", when="@22.05:")
     for arch in CudaPackage.cuda_arch_values:
         depends_on(
             "sundials@5.7.0: +ARKODE +CVODE +cuda cuda_arch=%s" % arch,
@@ -150,9 +191,10 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
             when="@22.05: +sundials +rocm amdgpu_target=%s" % tgt,
         )
 
-    depends_on("cuda@9.0.0:", when="@:22.04 +cuda")
-    depends_on("cuda@10.0.0:", when="@22.05: +cuda")
-    depends_on("cuda@11.0.0:", when="@22.12: +cuda")
+    with when("+cuda"):
+        depends_on("cuda@9.0.0:", when="@:22.04")
+        depends_on("cuda@10.0.0:", when="@22.05:")
+        depends_on("cuda@11.0.0:", when="@22.12:")
     depends_on("python@2.7:", type="build", when="@:20.04")
     depends_on("cmake@3.5:", type="build", when="@:18.10")
     depends_on("cmake@3.13:", type="build", when="@18.11:19.03")
@@ -167,9 +209,10 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("rocrand", type="build", when="+rocm")
     depends_on("hiprand", type="build", when="+rocm")
     depends_on("rocprim", type="build", when="@21.05: +rocm")
-    depends_on("hypre@2.18.2:", type="link", when="@:21.02 +hypre")
-    depends_on("hypre@2.19.0:", type="link", when="@21.03: ~cuda +hypre")
-    depends_on("hypre@2.20.0:", type="link", when="@21.03: +cuda +hypre")
+    with when("+hypre"):
+        depends_on("hypre@2.18.2:", type="link", when="@:21.02")
+        depends_on("hypre@2.19.0:", type="link", when="@21.03: ~cuda")
+        depends_on("hypre@2.20.0:", type="link", when="@21.03: +cuda")
     depends_on("petsc", type="link", when="+petsc")
     depends_on("intel-oneapi-mkl", type=("build", "link"), when="+sycl")
 
@@ -179,6 +222,14 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
     conflicts("%gcc@8.1.0:8.2.0", when="@21.01:21.02")
 
     # Check options compatibility
+    conflicts(
+        "+ascent", when="~conduit", msg="AMReX Ascent support needs Conduit interfaces (+conduit)"
+    )
+    conflicts(
+        "+catalyst",
+        when="~conduit",
+        msg="AMReX Catalyst2 support needs Conduit interfaces (+conduit)",
+    )
     conflicts(
         "+sundials",
         when="@19.08:20.11 ~fortran",
@@ -266,6 +317,9 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
             "-DUSE_XSDK_DEFAULTS=ON",
             self.define_from_variant("AMReX_SPACEDIM", "dimensions"),
             self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
+            self.define_from_variant("AMReX_ASCENT", "ascent"),
+            self.define_from_variant("AMReX_CATALYST", "catalyst"),
+            self.define_from_variant("AMReX_CONDUIT", "conduit"),
             self.define_from_variant("AMReX_MPI", "mpi"),
             self.define_from_variant("AMReX_OMP", "openmp"),
             "-DXSDK_PRECISION:STRING=%s" % self.spec.variants["precision"].value.upper(),
@@ -284,27 +338,30 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
             self.define_from_variant("AMReX_PIC", "pic"),
         ]
 
+        if self.spec.satisfies("+fft"):
+            args.append("-DAMReX_FFT=ON")
+
         if self.spec.satisfies("%fj"):
             args.append("-DCMAKE_Fortran_MODDIR_FLAG=-M")
 
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             args.append("-DAMReX_GPU_BACKEND=CUDA")
             args.append("-DAMReX_CUDA_ERROR_CAPTURE_THIS=ON")
             args.append("-DAMReX_CUDA_ERROR_CROSS_EXECUTION_SPACE_CALL=ON")
             cuda_arch = self.spec.variants["cuda_arch"].value
             args.append("-DAMReX_CUDA_ARCH=" + self.get_cuda_arch_string(cuda_arch))
 
-        if "+rocm" in self.spec:
+        if self.spec.satisfies("+rocm"):
             args.append("-DCMAKE_CXX_COMPILER={0}".format(self.spec["hip"].hipcc))
             args.append("-DAMReX_GPU_BACKEND=HIP")
             targets = self.spec.variants["amdgpu_target"].value
             args.append("-DAMReX_AMD_ARCH=" + ";".join(str(x) for x in targets))
 
-        if "+sycl" in self.spec:
+        if self.spec.satisfies("+sycl"):
             args.append("-DAMReX_GPU_BACKEND=SYCL")
             # SYCL GPU backend only supported with Intel's oneAPI or DPC++ compilers
             sycl_compatible_compilers = ["icpx"]
-            if not (os.path.basename(self.compiler.cxx) in sycl_compatible_compilers):
+            if os.path.basename(self.compiler.cxx) not in sycl_compatible_compilers:
                 raise InstallError(
                     "AMReX's SYCL GPU Backend requires the oneAPI CXX (icpx) compiler."
                 )
@@ -339,7 +396,7 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
         if self.spec.satisfies("%fj"):
             args.append("-DCMAKE_Fortran_MODDIR_FLAG=-M")
 
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             cuda_arch = self.spec.variants["cuda_arch"].value
             args.append("-DCUDA_ARCH=" + self.get_cuda_arch_string(cuda_arch))
 
@@ -351,7 +408,7 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
         if self.spec.satisfies("@:21.11"):
             return
 
-        self.cache_extra_test_sources(["Tests"])
+        cache_extra_test_sources(self, ["Tests"])
 
     def test_run_install_test(self):
         """build and run AmrCore test"""
@@ -360,11 +417,11 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
 
         args = ["-S{0}".format(join_path(".", "cache", "amrex", "Tests", "SpackSmokeTest"))]
         args.append("-DAMReX_ROOT=" + self.prefix)
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             args.append("-DMPI_C_COMPILER=" + self.spec["mpi"].mpicc)
             args.append("-DMPI_CXX_COMPILER=" + self.spec["mpi"].mpicxx)
 
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             args.append("-DCMAKE_CUDA_COMPILER=" + join_path(self.spec["cuda"].prefix.bin, "nvcc"))
 
         args.extend(self.cmake_args())

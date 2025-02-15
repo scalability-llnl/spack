@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class Dhtest(MakefilePackage):
     license("GPL-2.0-or-later")
 
     version("1.5", sha256="df66150429a59a3b6cea9b29e2687707d04ab10db5dfe1c893ba3e0b0531b151")
+
+    depends_on("c", type="build")  # generated
 
     def install(self, spec, prefix):
         mkdirp(prefix.bin)

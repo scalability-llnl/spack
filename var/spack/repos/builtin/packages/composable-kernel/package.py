@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,12 +12,19 @@ class ComposableKernel(CMakePackage):
 
     homepage = "https://github.com/ROCm/composable_kernel"
     git = "https://github.com/ROCm/composable_kernel.git"
-    url = "https://github.com/ROCm/composable_kernel/archive/refs/tags/rocm-6.1.1.tar.gz"
+    url = "https://github.com/ROCm/composable_kernel/archive/refs/tags/rocm-6.1.2.tar.gz"
     maintainers("srekolam", "afzpatel")
 
     license("MIT")
 
     version("master", branch="develop")
+    version("6.3.2", sha256="875237fe493ff040f8f63b827cddf2ff30a8d3aa18864f87d0e35323c7d62a2d")
+    version("6.3.1", sha256="3e8c8c832ca3f9ceb99ab90f654b93b7db876f08d90eda87a70bc629c854052a")
+    version("6.3.0", sha256="274f87fc27ec2584c76b5bc7ebdbe172923166b6b93e66a24f98475b44be272d")
+    version("6.2.4", sha256="5598aea4bce57dc95b60f2029831edfdade80b30a56e635412cc02b2a6729aa6")
+    version("6.2.1", sha256="708ff25218dc5fa977af4a37105b380d7612a70c830fa7977b40b3df8b8d3162")
+    version("6.2.0", sha256="4a3024f4f93c080db99d560a607ad758745cd2362a90d0e8f215331686a6bc64")
+    version("6.1.2", sha256="54db801e1c14239f574cf94dd764a2f986b4abcc223393d55c49e4b276e738c9")
     version("6.1.1", sha256="f55643c6eee0878e8f2d14a382c33c8b84af0bdf8f31b37b6092b377f7a9c6b5")
     version("6.1.0", sha256="355a4514b96b56aa9edf78198a3e22067e7397857cfe29d9a64d9c5557b9f83d")
     version("6.0.2", sha256="f648a99388045948b7d5fbf8eb8da6a1803c79008b54d406830b7f9119e1dcf6")
@@ -29,8 +35,11 @@ class ComposableKernel(CMakePackage):
     version("5.6.0", commit="f5ec04f091fa5c48c67d7bacec36a414d0be06a5")
     version("5.5.1", commit="ac9e01e2cc3721be24619807adc444e1f59a9d25")
     version("5.5.0", commit="8b76b832420a3d69708401de6607a033163edcce")
-    version("5.4.3", commit="bb3d9546f186e39cefedc3e7f01d88924ba20168")
-    version("5.4.0", commit="236bd148b98c7f1ec61ee850fcc0c5d433576305")
+    with default_args(deprecated=True):
+        version("5.4.3", commit="bb3d9546f186e39cefedc3e7f01d88924ba20168")
+        version("5.4.0", commit="236bd148b98c7f1ec61ee850fcc0c5d433576305")
+
+    depends_on("cxx", type="build")  # generated
 
     amdgpu_targets = ROCmPackage.amdgpu_targets
     variant(
@@ -52,6 +61,13 @@ class ComposableKernel(CMakePackage):
 
     for ver in [
         "master",
+        "6.3.2",
+        "6.3.1",
+        "6.3.0",
+        "6.2.4",
+        "6.2.1",
+        "6.2.0",
+        "6.1.2",
         "6.1.1",
         "6.1.0",
         "6.0.2",
@@ -69,6 +85,10 @@ class ComposableKernel(CMakePackage):
         depends_on("llvm-amdgpu@" + ver, when="@" + ver)
         depends_on("rocm-cmake@" + ver, when="@" + ver, type="build")
 
+    # Build is breaking on warning, -Werror, -Wunused-parameter. The patch is part of:
+    # https://github.com/ROCm/composable_kernel/commit/959073842c0db839d45d565eb260fd018c996ce4
+    patch("0001-mark-kernels-maybe-unused.patch", when="@6.2")
+
     def setup_build_environment(self, env):
         env.set("CXX", self.spec["hip"].hipcc)
 
@@ -83,12 +103,19 @@ class ComposableKernel(CMakePackage):
         ]
         if "auto" not in self.spec.variants["amdgpu_target"]:
             args.append(self.define_from_variant("GPU_TARGETS", "amdgpu_target"))
-        if self.spec.satisfies("@5.6.0:"):
+        else:
             args.append(self.define("INSTANCES_ONLY", "ON"))
+        if self.spec.satisfies("@5.6.0:"):
+            if self.run_tests:
+                args.append(self.define("BUILD_TESTING", "ON"))
+            elif self.spec.satisfies("@:6.1"):
+                args.append(self.define("INSTANCES_ONLY", "ON"))
             args.append(self.define("CK_BUILD_JIT_LIB", "ON"))
             args.append(self.define("CMAKE_POSITION_INDEPENDENT_CODE", "ON"))
         if self.spec.satisfies("@:5.7"):
             args.append(self.define("CMAKE_CXX_FLAGS", "-O3"))
+        if self.spec.satisfies("@6.2:"):
+            args.append(self.define("BUILD_DEV", "OFF"))
         return args
 
     def build(self, spec, prefix):

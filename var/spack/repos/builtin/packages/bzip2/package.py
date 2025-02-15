@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,6 +26,8 @@ class Bzip2(Package, SourcewarePackage):
     version("1.0.8", sha256="ab5a03176ee106d3f0fa90e381da478ddae405918153cca248e682cd0c4a2269")
     version("1.0.7", sha256="e768a87c5b1a79511499beb41500bcc4caf203726fff46a6f5f9ad27fe08ab2b")
     version("1.0.6", sha256="a2848f34fcd5d6cf47def00461fcb528a0484d8edef8208d6d2e2909dc61d9cd")
+
+    depends_on("c", type="build")  # generated
 
     variant(
         "shared",
@@ -63,9 +64,9 @@ class Bzip2(Package, SourcewarePackage):
 
     def flag_handler(self, name, flags):
         if name == "cflags":
-            if "+pic" in self.spec:
+            if self.spec.satisfies("+pic"):
                 flags.append(self.compiler.cc_pic_flag)
-            if "+debug" in self.spec:
+            if self.spec.satisfies("+debug"):
                 flags.append("-g")
         return (flags, None, None)
 
@@ -82,7 +83,7 @@ class Bzip2(Package, SourcewarePackage):
         filter_file(r"^CC=gcc", "CC={0}".format(spack_cc), "Makefile-libbz2_so")
 
         # The Makefiles use GCC flags that are incompatible with PGI
-        if self.spec.satisfies("%pgi") or self.spec.satisfies("%nvhpc@:20.11"):
+        if self.spec.satisfies("%nvhpc@:20.11"):
             filter_file("-Wall -Winline", "-Minform=inform", "Makefile")
             filter_file("-Wall -Winline", "-Minform=inform", "Makefile-libbz2_so")
 
@@ -121,7 +122,7 @@ class Bzip2(Package, SourcewarePackage):
 
     def install(self, spec, prefix):
         # Build the dynamic library first
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             make("-f", "Makefile-libbz2_so")
 
         # Build the static library and everything else
@@ -143,7 +144,7 @@ class Bzip2(Package, SourcewarePackage):
             make()
             make("install", "PREFIX={0}".format(prefix))
 
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             install("bzip2-shared", join_path(prefix.bin, "bzip2"))
 
             v1, v2, v3 = (self.spec.version.up_to(i) for i in (1, 2, 3))

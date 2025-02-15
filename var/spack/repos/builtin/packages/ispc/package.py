@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,6 +26,7 @@ class Ispc(CMakePackage):
     license("BSD-3-Clause")
 
     version("main", branch="main")
+    version("1.24.0", sha256="fac82c8f3f7ece2bc96620cef0b34e10b29462de9349447bcd8c3ba98cfdcd72")
     version("1.23.0", sha256="e268eabed9a9021b4402725ed1c120b8eca776ee4aaf50ddeb0e4adaadda05f9")
     version("1.22.0", sha256="1f115eeed7df5028c19c9b256887949ca88c29c146f641b031d8e080297f5acd")
     version("1.21.1", sha256="99bbb1d1f15bc4433d6a63b5bb35b321af3e3af753c3b28a61850d1748e8a89f")
@@ -43,6 +43,9 @@ class Ispc(CMakePackage):
     version("1.14.0", sha256="1ed72542f56738c632bb02fb0dd56ad8aec3e2487839ebbc0def8334f305a4c7")
     version("1.13.0", sha256="aca595508b51dd1ff065c406a3fd7c93822320c510077dd4d97a2b98a23f097a")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python", type="build")
     depends_on("bison", type="build")
     depends_on("flex", type="build")
@@ -53,6 +56,7 @@ class Ispc(CMakePackage):
     depends_on("llvm libcxx=none", when="platform=darwin", type="build")
     depends_on("llvm targets=arm,aarch64", when="target=arm:", type="build")
     depends_on("llvm targets=arm,aarch64", when="target=aarch64:", type="build")
+    depends_on("llvm@:18.1", when="@:1.24", type="build")
     depends_on("llvm@:17", when="@:1.23", type="build")
     depends_on("llvm@:15", when="@:1.20", type="build")
     depends_on("llvm@:14", when="@:1.18", type="build")

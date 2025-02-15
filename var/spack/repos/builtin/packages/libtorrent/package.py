@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,8 @@ class Libtorrent(AutotoolsPackage):
     license("GPL-2.0-or-later")
 
     version("0.13.8", sha256="0f6c2e7ffd3a1723ab47fdac785ec40f85c0a5b5a42c1d002272205b988be722")
+
+    depends_on("cxx", type="build")  # generated
 
     def autoreconf(self, spec, prefix):
         bash = which("bash")

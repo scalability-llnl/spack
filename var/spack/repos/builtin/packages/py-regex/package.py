@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,6 +27,8 @@ class PyRegex(PythonPackage):
     version(
         "2017.07.11", sha256="dbda8bdc31a1c85445f1a1b29d04abda46e5c690f8f933a9cc3a85a358969616"
     )
+
+    depends_on("c", type="build")  # generated
 
     depends_on("py-setuptools", type="build")
     depends_on("python@3.6:", when="@2022.8.17:", type=("build", "run"))
