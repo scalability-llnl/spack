@@ -15,6 +15,9 @@ class Davix(CMakePackage):
 
     license("LGPL-2.1-or-later")
 
+    version("0.8.10", sha256="66aa9adadee6ff2bae14caba731597ba7a7cd158763d9d80a9cfe395afc17403")
+    version("0.8.9", sha256="0dc7e3702500fc4a88e037ababf096e8c1cad2532c34e08add043d4dc84283f6")
+    version("0.8.8", sha256="7ff139babf39030dd9984ad5ff8cd5da1ced2963f53f04efc387101840ff3458")
     version("0.8.7", sha256="78c24e14edd7e4e560392d67147ec8658c2aa0d3640415bdf6bc513afcf695e6")
     version("0.8.6", sha256="7383b6f6595c77a9dc8c03c5483c67dc32bd6d23751e956cf9c174768e7eeb5b")
     version("0.8.5", sha256="f9ce21bcc2ed248f7825059d17577876616258c35177d74fad8f854a818a87f9")
@@ -64,7 +67,7 @@ class Davix(CMakePackage):
     depends_on("libxml2")
     depends_on("uuid")
     depends_on("openssl")
-    depends_on("curl")
+    depends_on("curl", when="@0.8.1:")
     depends_on("rapidjson", when="@0.8.7:")
 
     variant("thirdparty", default=False, description="Build vendored libraries")
@@ -76,5 +79,6 @@ class Davix(CMakePackage):
             self.define_from_variant("ENABLE_THIRD_PARTY_COPY", variant="thirdparty"),
             # Disable the use of embedded packages; use Spack to fetch them instead
             self.define("EMBEDDED_LIBCURL", False),
+            self.define("EMBEDDED_RAPIDJSON", False),
             self.define("CMAKE_MACOSX_RPATH", self.spec.satisfies("platform=darwin")),
         ]
