@@ -24,7 +24,7 @@ class Pandoramonitoring(CMakePackage):
     depends_on("c", type="build")
     depends_on("cxx", type="build")
 
-    depends_on("root@6.18.04: +x +opengl")
+    depends_on("root@6.18.04: +geom +opengl +x")
     depends_on("pandorasdk")
 
     # https://github.com/PandoraPFA/PandoraMonitoring/pull/13
