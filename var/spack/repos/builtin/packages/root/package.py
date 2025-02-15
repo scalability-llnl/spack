@@ -208,6 +208,10 @@ class Root(CMakePackage):
         default=True,
         description="Ignore most of Root's feature defaults except for " "basic graphic options",
     )
+    variant("geom", default=True, description="Enable support for the geometry library")
+    conflicts("~geom", when="@:6.33", msg="geom is always enabled through 6.33")
+    variant("geombuilder", default=False, description="Enable support for the geombuilder library")
+    conflicts("~geombuilder", when="@:6.33", msg="geombuilder is always enabled through 6.33")
     variant("gsl", default=True, description="Enable linking against shared libraries for GSL")
     variant("http", default=False, description="Enable HTTP server support")
     variant(
@@ -557,6 +561,8 @@ class Root(CMakePackage):
         _add_variant(v, f, "fitsio", "+fits")
         _add_variant(v, f, ("ftgl", "opengl"), "+opengl")
         _add_variant(v, f, "gdml", "+gdml")
+        _add_variant(v, f, "geom", "+geom")
+        _add_variant(v, f, "geombuilder", "+geombuilder")
         _add_variant(v, f, "mathmore", "+math")
         _add_variant(v, f, "gviz", "+graphviz")
         _add_variant(v, f, "http", "+http")
