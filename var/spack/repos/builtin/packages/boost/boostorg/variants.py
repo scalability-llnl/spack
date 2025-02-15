@@ -98,8 +98,8 @@ def load():
         "cxxstd",
         default="14",
         values=(
-            "98",
-            "03",
+            sp.conditional("98", when="@:1.84.0"),
+            sp.conditional("03", when="@:1.84.0"),
             "11",
             "14",
             sp.conditional("17", when="@1.63.0:"),
@@ -327,6 +327,15 @@ def load():
         description=(
             "LL parser framework represents parsers directly as EBNF grammars in inlined C++."
         ),
+    )
+    _boost_variant(
+        "variant",
+        when="@1.31.0:",
+        conflicts=[
+            {"when": "@1.84.0: cxxstd=98", "msg": "Boost.variant requires cxxstd >= 11"},
+            {"when": "@1.84.0: cxxstd=03", "msg": "Boost.variant requires cxxstd >= 11"},
+        ],
+        description="Safe, generic, stack-based discriminated union container.",
     )
     _boost_variant(
         "program_options",
@@ -565,6 +574,9 @@ def load():
         "log",
         when="@1.54.0:",
         buildable="@1.54.0:",
+        requires=[
+            {"spec": "+regex", "when": "@1.84.0:", "msg": "Boost.Log requires Boost.Regex"},
+        ],
         description="Logging library.",
     )
     _boost_variant(
@@ -819,6 +831,22 @@ def load():
             {"when": "cxxstd=03", "msg": "Boost.compat requires cxxstd >= 11"},
         ],
         description="C++11 implementations of standard components added in later C++ standards.",
+    )
+    _boost_variant(
+        "redis",
+        when="@1.84.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Redis requires cxxstd >= 17"},
+            {"when": "cxxstd=03", "msg": "Boost.Redis requires cxxstd >= 17"},
+            {"when": "cxxstd=11", "msg": "Boost.Redis requires cxxstd >= 17"},
+            {"when": "cxxstd=14", "msg": "Boost.Redis requires cxxstd >= 17"},
+        ],
+        # fmt: off
+        requires=[
+            {"spec": "+asio", "msg": "Boost.Redis requires Boost.Asio"},
+        ],
+        # fmt: on
+        description="Redis async client library built on top of Boost.Asio.",
     )
     _boost_variant(
         "cobalt",
