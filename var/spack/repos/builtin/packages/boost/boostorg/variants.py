@@ -297,6 +297,15 @@ def load():
         when="@1.23.0:",
         description="Quaternions.",
     )
+    _boost_variant(
+        "smart_ptr",
+        when="@1.23.0:",
+        conflicts=[
+            {"when": "@1.87.0: cxxstd=98", "msg": "Boost.SmartPtr requires cxxstd >= 11"},
+            {"when": "@1.87.0: cxxstd=03", "msg": "Boost.SmartPtr requires cxxstd >= 11"},
+        ],
+        description="Smart pointers.",
+    )
     # fmt: on
     _boost_variant(
         "thread",
@@ -931,5 +940,9 @@ def load():
         description="A collection of scope guards and a unique_resource wrapper.",
     )
     # fmt: on
-
+    _boost_variant(
+        "parser",
+        when="@1.87.0:",
+        description="A parser combinator library for building complex parsers.",
+    )
     return library_names
