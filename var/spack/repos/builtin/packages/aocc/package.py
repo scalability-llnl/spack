@@ -1,9 +1,7 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from llnl.util import tty
 
 from spack.package import *
 from spack.pkg.builtin.llvm import LlvmDetection
@@ -33,6 +31,12 @@ class Aocc(Package, LlvmDetection, CompilerPackage):
 
     maintainers("amd-toolchain-support")
 
+    version(
+        ver="5.0.0",
+        sha256="966fac2d2c759e9de6e969c10ada7a7b306c113f7f1e07ea376829ec86380daa",
+        url="https://download.amd.com/developer/eula/aocc/aocc-5-0/aocc-compiler-5.0.0.tar",
+        preferred=True,
+    )
     version(
         ver="4.2.0",
         sha256="ed5a560ec745b24dc0685ccdcbde914843fb2f2dfbfce1ba592de4ffbce1ccab",

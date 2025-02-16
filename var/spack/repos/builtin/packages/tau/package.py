@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,6 +27,7 @@ class Tau(Package):
     license("MIT")
 
     version("master", branch="master")
+    version("2.34", sha256="229ab425e0532e635a0be76d60b8aa613adf7596d15a9ced0b87e7f243bb2132")
     version("2.33.2", sha256="8ee81fe75507612379f70033183bed2a90e1245554b2a78196b6c5145da44f27")
     version("2.33.1", sha256="13cc5138e110932f34f02ddf548db91d8219ccb7ff9a84187f0790e40a502403")
     version("2.33", sha256="04d9d67adb495bc1ea56561f33c5ce5ba44f51cc7f64996f65bd446fac5483d9")
@@ -104,6 +104,9 @@ class Tau(Package):
     variant(
         "rocprofv2", default=False, description="Activates ROCm rocprofiler support", when="@2.34:"
     )
+    variant(
+        "salt", default=False, description="Activates SALT source instrumentation", when="@2.34:"
+    )
     variant("opencl", default=False, description="Activates OpenCL support")
     variant("fortran", default=darwin_default, description="Activates Fortran support")
     variant("io", default=True, description="Activates POSIX I/O support")
@@ -167,6 +170,7 @@ class Tau(Package):
     depends_on("hsa-rocr-dev", when="+rocm")
     depends_on("rocm-smi-lib", when="@2.32.1: +rocm")
     depends_on("rocm-core", when="@2.34: +rocm")
+    depends_on("salt", when="+salt", type="run")
     depends_on("hip", when="@2.34: +roctracer")
     depends_on("java", type="run")  # for paraprof
     depends_on("oneapi-level-zero", when="+level_zero")
@@ -323,8 +327,8 @@ class Tau(Package):
                 env["F77"] = spec["mpi"].mpif77
                 env["FC"] = spec["mpi"].mpifc
             if spec["mpi"].name == "intel-oneapi-mpi":
-                options.append("-mpiinc=%s/include" % spec["mpi"].package.component_prefix)
-                options.append("-mpilib=%s/lib" % spec["mpi"].package.component_prefix)
+                options.append("-mpiinc=%s/include" % self["mpi"].component_prefix)
+                options.append("-mpilib=%s/lib" % self["mpi"].component_prefix)
             else:
                 options.append("-mpiinc=%s" % spec["mpi"].prefix.include)
                 options.append("-mpilib=%s" % spec["mpi"].prefix.lib)
@@ -427,8 +431,14 @@ class Tau(Package):
         # Link arch-specific directories into prefix since there is
         # only one arch per prefix the way spack installs.
         self.link_tau_arch_dirs()
-        # TAU may capture Spack's internal compiler wrapper. Replace
-        # it with the correct compiler.
+        # TAU may capture Spack's internal compiler wrapper. Fixed
+        # by filter_compiler_wrappers. Switch back the environment
+        # variables the filter uses.
+        if "+mpi" in spec:
+            env["CC"] = spack_cc
+            env["CXX"] = spack_cxx
+            env["FC"] = spack_fc
+            env["F77"] = spack_f77
 
     def link_tau_arch_dirs(self):
         for subdir in os.listdir(self.prefix):
@@ -595,3 +605,6 @@ class Tau(Package):
         ):
             rocm_test_dir = join_path(self.test_suite.current_test_cache_dir, self.rocm_test)
             self._run_rocm_test("test_rocm", "Testing rocm", rocm_test_dir)
+
+    # tau contains various prebuilt binaries with missing system dependencies
+    unresolved_libraries = ["*"]

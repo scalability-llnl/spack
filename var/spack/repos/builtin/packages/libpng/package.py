@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -48,8 +47,10 @@ class Libpng(CMakePackage):
     def libs(self):
         # v1.2 does not have a version-less symlink
         libraries = f"libpng{self.version.up_to(2).joined}"
-        shared = "libs=shared" in self.spec
-        return find_libraries(libraries, root=self.prefix, shared=shared, recursive=True)
+        shared = self.spec.satisfies("libs=shared")
+        return find_libraries(
+            libraries, root=self.prefix, shared=shared, recursive=True, runtime=False
+        )
 
 
 class CMakeBuilder(CMakeBuilder):

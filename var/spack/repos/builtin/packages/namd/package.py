@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -7,8 +6,7 @@ import os
 import platform
 import sys
 
-import llnl.util.tty as tty
-
+from spack.build_environment import optimization_flags
 from spack.package import *
 
 
@@ -147,11 +145,9 @@ class Namd(MakefilePackage, CudaPackage, ROCmPackage):
     def _append_option(self, opts, lib):
         if lib != "python":
             self._copy_arch_file(lib)
-        spec = self.spec
+        lib_pkg = self[lib]
         lib_prefix = (
-            spec[lib].package.component_prefix
-            if spec[lib].name == "intel-oneapi-mkl"
-            else spec[lib].prefix
+            lib_pkg.component_prefix if lib_pkg.name == "intel-oneapi-mkl" else lib_pkg.prefix
         )
         opts.extend(["--with-{0}".format(lib), "--{0}-prefix".format(lib), lib_prefix])
 
@@ -175,33 +171,25 @@ class Namd(MakefilePackage, CudaPackage, ROCmPackage):
                 # this options are take from the default provided
                 # configuration files
                 # https://github.com/UIUC-PPL/charm/pull/2778
-                archopt = spec.architecture.target.optimization_flags(spec.compiler)
+                archopt = optimization_flags(self.compiler, spec.target)
 
                 if self.spec.satisfies("^charmpp@:6.10.1"):
                     optims_opts = {
                         "gcc": m64
-                        + "-O3 -fexpensive-optimizations \
-                                        -ffast-math -lpthread "
+                        + "-O3 -fexpensive-optimizations -ffast-math -lpthread "
                         + archopt,
                         "intel": "-O2 -ip -qopenmp-simd" + archopt,
                         "clang": m64 + "-O3 -ffast-math -fopenmp " + archopt,
-                        "aocc": m64
-                        + "-O3 -ffp-contract=fast -ffast-math \
-                                        -fopenmp "
-                        + archopt,
+                        "aocc": m64 + "-O3 -ffp-contract=fast -ffast-math -fopenmp " + archopt,
                     }
                 else:
                     optims_opts = {
                         "gcc": m64
-                        + "-O3 -fexpensive-optimizations \
-                                        -ffast-math -lpthread "
+                        + "-O3 -fexpensive-optimizations -ffast-math -lpthread "
                         + archopt,
                         "intel": "-O2 -ip " + archopt,
                         "clang": m64 + "-O3 -ffast-math -fopenmp " + archopt,
-                        "aocc": m64
-                        + "-O3 -ffp-contract=fast \
-                                        -ffast-math "
-                        + archopt,
+                        "aocc": m64 + "-O3 -ffp-contract=fast -ffast-math " + archopt,
                     }
 
                 if self.spec.satisfies("+avxtiles"):

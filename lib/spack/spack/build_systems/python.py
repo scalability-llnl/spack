@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,15 +23,19 @@ import spack.deptypes as dt
 import spack.detection
 import spack.multimethod
 import spack.package_base
+import spack.phase_callbacks
+import spack.platforms
+import spack.repo
 import spack.spec
 import spack.store
+import spack.util.prefix
 from spack.directives import build_system, depends_on, extends
 from spack.error import NoHeadersError, NoLibrariesError
 from spack.install_test import test_part
 from spack.spec import Spec
 from spack.util.prefix import Prefix
 
-from ._checks import BaseBuilder, execute_install_time_tests
+from ._checks import BuilderWithDefaults, execute_install_time_tests
 
 
 def _flatten_dict(dictionary: Mapping[str, object]) -> Iterable[str]:
@@ -261,16 +264,17 @@ class PythonExtension(spack.package_base.PackageBase):
                     # Ensure architecture information is present
                     if not python.architecture:
                         host_platform = spack.platforms.host()
-                        host_os = host_platform.operating_system("default_os")
-                        host_target = host_platform.target("default_target")
+                        host_os = host_platform.default_operating_system()
+                        host_target = host_platform.default_target()
                         python.architecture = spack.spec.ArchSpec(
                             (str(host_platform), str(host_os), str(host_target))
                         )
                     else:
                         if not python.architecture.platform:
                             python.architecture.platform = spack.platforms.host()
+                        platform = spack.platforms.by_name(python.architecture.platform)
                         if not python.architecture.os:
-                            python.architecture.os = "default_os"
+                            python.architecture.os = platform.default_operating_system()
                         if not python.architecture.target:
                             python.architecture.target = archspec.cpu.host().family.name
 
@@ -337,7 +341,7 @@ class PythonPackage(PythonExtension):
     legacy_buildsystem = "python_pip"
 
     #: Callback names for install-time test
-    install_time_test_callbacks = ["test"]
+    install_time_test_callbacks = ["test_imports"]
 
     build_system("python_pip")
 
@@ -372,7 +376,7 @@ class PythonPackage(PythonExtension):
         return None
 
     @property
-    def python_spec(self):
+    def python_spec(self) -> Spec:
         """Get python-venv if it exists or python otherwise."""
         python, *_ = self.spec.dependencies("python-venv") or self.spec.dependencies("python")
         return python
@@ -423,11 +427,11 @@ class PythonPackage(PythonExtension):
 
 
 @spack.builder.builder("python_pip")
-class PythonPipBuilder(BaseBuilder):
+class PythonPipBuilder(BuilderWithDefaults):
     phases = ("install",)
 
     #: Names associated with package methods in the old build-system format
-    legacy_methods = ("test",)
+    legacy_methods = ("test_imports",)
 
     #: Same as legacy_methods, but the signature is different
     legacy_long_methods = ("install_options", "global_options", "config_settings")
@@ -436,7 +440,7 @@ class PythonPipBuilder(BaseBuilder):
     legacy_attributes = ("archive_files", "build_directory", "install_time_test_callbacks")
 
     #: Callback names for install-time test
-    install_time_test_callbacks = ["test"]
+    install_time_test_callbacks = ["test_imports"]
 
     @staticmethod
     def std_args(cls) -> List[str]:
@@ -541,4 +545,4 @@ class PythonPipBuilder(BaseBuilder):
         with fs.working_dir(self.build_directory):
             pip(*args)
 
-    spack.builder.run_after("install")(execute_install_time_tests)
+    spack.phase_callbacks.run_after("install")(execute_install_time_tests)

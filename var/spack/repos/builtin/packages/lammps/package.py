@@ -1,10 +1,11 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import datetime as dt
 import os
 
+from spack.build_environment import optimization_flags
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -29,10 +30,17 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
     #   marked deprecated=True
     # * patch releases older than a stable release should be marked deprecated=True
     version("develop", branch="develop")
+    version("20250204", sha256="a4cb0a58451d47ac31ee3e1f148d92f445298d6e27f2d06f161b9b4168d79eb1")
+    version("20241119", sha256="7d1a825f13eef06d82ed8ae950f4a5ca6da9f6a5979745a85a7a58781e4c6ffa")
+    version(
+        "20240829.1",
+        sha256="3aea41869aa2fb8120fc4814cab645686f969e2eb7c66aa5587e500597d482dc",
+        preferred=True,
+    )
     version(
         "20240829",
         sha256="6112e0cc352c3140a4874c7f74db3c0c8e30134024164509ecf3772b305fde2e",
-        preferred=True,
+        deprecated=True,
     )
     version(
         "20240627",
@@ -393,15 +401,27 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
 
     depends_on("cxx", type="build")
 
-    # mdi, scafacos, ml-quip, qmmm require C, but not available in Spack
-    for c_pkg in ("adios", "atc", "awpmd", "ml-pod", "electrode", "kim", "h5md", "tools", "rheo"):
+    # ml-quip, qmmm require C, but not available in Spack
+    for c_pkg in (
+        "adios",
+        "atc",
+        "awpmd",
+        "electrode",
+        "h5md",
+        "kim",
+        "ml-pod",
+        "rheo",
+        "scafacos",
+        "tools",
+    ):
         depends_on("c", type="build", when=f"+{c_pkg}")
 
-    # scafacos, ml-quip require Fortran, but not available in Spack
-    for fc_pkg in ("kim",):
+    # ml-quip require Fortran, but not available in Spack
+    for fc_pkg in ("kim", "scafacos"):
         depends_on("fortran", type="build", when=f"+{fc_pkg}")
 
     stable_versions = {
+        "20240829.1",
         "20240829",
         "20230802.4",
         "20230802.3",
@@ -468,6 +488,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         "drude": {"when": "@20210702:"},
         "eff": {"when": "@20210702:"},
         "electrode": {"when": "@20220504:"},
+        "extra-command": {"when": "@20240829:"},
         "extra-compute": {"when": "@20210728:"},
         "extra-dump": {"when": "@20210728:"},
         "extra-fix": {"when": "@20210728:"},
@@ -488,12 +509,14 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         "manifold": {"when": "@20210702:"},
         "manybody": {"default": True},
         "mc": {},
+        "mdi": {"when": "@20210702:"},
         "meam": {"when": "@:20181212,20210702:"},
         "mesont": {"when": "@20210702:"},
         "mgpt": {"when": "@20210702:"},
         "misc": {},
         "ml-hdnnp": {"when": "@20210702:"},
         "ml-iap": {"when": "@20210702:"},
+        "ml-pace": {"when": "@20210702:"},
         "ml-pod": {"when": "@20221222:"},
         "ml-rann": {"when": "@20210702:"},
         "ml-snap": {"when": "@20210702:"},
@@ -522,6 +545,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         "rheo": {"when": "@20240829:"},
         "replica": {},
         "rigid": {"default": True},
+        "scafacos": {"when": "@20210702:"},
         "shock": {},
         "smtbq": {"when": "@20210702:"},
         "snap": {"when": "@:20210527"},
@@ -574,12 +598,8 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         "voronoi": {},
         "vtk": {"when": "@20210702:"},
         "yaff": {"when": "@20210702:"},
-        # "mdi": {"when": "@20210702:"}, no mdi package
-        # "ml-pace": {"when": "@20210702:"}, no pace package
         # "ml-quip": {"when": "@20210702:"}, no quip package
-        # "scafacos": {"when": "@20210702:"}, no scafacos package
         # "user-quip": {"when": "@20190201:20210527"}, no quip package
-        # "user-scafacos": {"when": "@20180905:20210527"}, no scafacos package
     }
 
     for pkg_name, pkg_options in supported_packages.items():
@@ -631,15 +651,22 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         default="fftw3",
         when="+kspace",
         description="FFT library for KSPACE package",
-        values=("kiss", "fftw3", "mkl"),
+        values=("kiss", "fftw3", "mkl", "nvpl"),
         multi=False,
     )
+    variant(
+        "heffte",
+        default=False,
+        when="+kspace @20240207:",
+        description="Use heffte as distubuted FFT engine",
+    )
+
     variant(
         "fft_kokkos",
         default="fftw3",
         when="@20240417: +kspace+kokkos",
         description="FFT library for Kokkos-enabled KSPACE package",
-        values=("kiss", "fftw3", "mkl", "hipfft", "cufft"),
+        values=("kiss", "fftw3", "mkl", "mkl_gpu", "nvpl", "hipfft", "cufft"),
         multi=False,
     )
     variant(
@@ -652,15 +679,20 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
     )
     variant("tools", default=False, description="Build LAMMPS tools (msi2lmp, binary2txt, chain)")
 
-    depends_on("cmake@3.16:", when="@20231121:")
+    depends_on("cmake@3.16:", when="@20231121:", type="build")
     depends_on("mpi", when="+mpi")
     depends_on("mpi", when="+mpiio")
     depends_on("fftw-api@3", when="+kspace fft=fftw3")
+    depends_on("heffte", when="+heffte")
+    depends_on("heffte+fftw", when="+heffte fft=fftw3")
+    depends_on("heffte+mkl", when="+heffte fft=mkl")
     depends_on("mkl", when="+kspace fft=mkl")
     depends_on("hipfft", when="+kokkos+kspace+rocm fft_kokkos=hipfft")
     depends_on("fftw-api@3", when="+kokkos+kspace fft_kokkos=fftw3")
     depends_on("mkl", when="+kokkos+kspace fft_kokkos=mkl")
-    depends_on("voropp+pic", when="+voronoi")
+    depends_on("nvpl-fft", when="+kspace fft=nvpl")
+    depends_on("nvpl-fft", when="+kokkos+kspace fft_kokkos=nvpl")
+    depends_on("voropp", when="+voronoi")
     depends_on("netcdf-c+mpi", when="+user-netcdf")
     depends_on("netcdf-c+mpi", when="+netcdf")
     depends_on("blas", when="+user-atc")
@@ -692,14 +724,18 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
     depends_on("kokkos@3.7.01:", when="@20230208: +kokkos")
     depends_on("kokkos@4.3.00:", when="@20240417: +kokkos")
     depends_on("kokkos@4.3.01:", when="@20240627: +kokkos")
+    depends_on("kokkos@4.4.01:", when="@20241119: +kokkos")
+    depends_on("kokkos@4.5.01:", when="@20250204: +kokkos")
     depends_on("adios2", when="+user-adios")
     depends_on("adios2", when="+adios")
     depends_on("plumed", when="+user-plumed")
     depends_on("plumed", when="+plumed")
     depends_on("eigen@3:", when="+user-smd")
     depends_on("eigen@3:", when="+machdyn")
+    depends_on("pace", when="+ml-pace", type="build")
     depends_on("py-cython", when="+mliap+python", type="build")
     depends_on("py-cython", when="+ml-iap+python", type="build")
+    depends_on("py-mdi", when="+mdi", type=("build", "run"))
     depends_on("py-pip", when="+python", type="build")
     depends_on("py-wheel", when="+python", type="build")
     depends_on("py-build", when="+python", type="build")
@@ -710,6 +746,8 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         with when(_n2p2_cond):
             depends_on("n2p2@2.1.4:")
             depends_on("n2p2+shared", when="+lib")
+    depends_on("scafacos", when="+scafacos")
+    depends_on("scafacos cflags=-fPIC cxxflags=-fPIC fflags=-fPIC", when="+scafacos+lib")
     depends_on("vtk", when="+user-vtk")
     depends_on("vtk", when="+vtk")
     depends_on("hipcub", when="~kokkos +rocm")
@@ -734,7 +772,6 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
     conflicts("+cuda", when="+opencl")
     conflicts("+rocm", when="+opencl")
     conflicts("+body", when="+poems@:20180628")
-    conflicts("+latte", when="@:20170921")
     conflicts("+python", when="~lib")
     conflicts("+qeq", when="~manybody")
     conflicts("+user-atc", when="~manybody")
@@ -776,6 +813,15 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         msg="ROCm builds of the GPU package not maintained prior to version 20220623",
     )
     conflicts("+intel", when="%aocc@:3.2.9999", msg="+intel with AOCC requires version 4 or newer")
+    conflicts("fft=nvpl", when="@:20240829", msg="fft=nvpl requires newer LAMMPS version")
+    conflicts(
+        "fft_kokkos=nvpl", when="@:20240829", msg="fft_kokkos=nvpl requires newer LAMMPS version"
+    )
+    conflicts(
+        "fft_kokkos=mkl_gpu",
+        when="@:20240829",
+        msg="fft_kokkos=mkl_gpu requires newer LAMMPS version",
+    )
 
     # Backport of https://github.com/lammps/lammps/pull/3726
     conflicts("+kokkos+rocm+kspace", when="@:20210929.3")
@@ -826,6 +872,22 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
 
     root_cmakelists_dir = "cmake"
 
+    def flag_handler(self, name, flags):
+        wrapper_flags = []
+        build_system_flags = []
+
+        if self.spec.satisfies("+mpi+cuda") or self.spec.satisfies("+mpi+rocm"):
+            if self.spec.satisfies("^[virtuals=mpi] cray-mpich"):
+                gtl_lib = self.spec["cray-mpich"].package.gtl_lib
+                build_system_flags.extend(gtl_lib.get(name) or [])
+            # hipcc is not wrapped, we need to pass the flags via the build
+            # system.
+            build_system_flags.extend(flags)
+        else:
+            wrapper_flags.extend(flags)
+
+        return (wrapper_flags, [], build_system_flags)
+
     def cmake_args(self):
         spec = self.spec
 
@@ -844,12 +906,12 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
             self.define("ENABLE_TESTING", self.run_tests),
             self.define("DOWNLOAD_POTENTIALS", False),
         ]
-        if "~kokkos" in spec:
+        if spec.satisfies("~kokkos"):
             # LAMMPS can be build with the GPU package OR the KOKKOS package
             # Using both in a single build is discouraged.
             # +cuda only implies that one of the two is used
             # by default it will use the GPU package if kokkos wasn't enabled
-            if "+cuda" in spec:
+            if spec.satisfies("+cuda"):
                 args.append(self.define("PKG_GPU", True))
                 args.append(self.define("GPU_API", "cuda"))
                 args.append(self.define_from_variant("GPU_PREC", "gpu_precision"))
@@ -857,13 +919,13 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
                 if cuda_arch != "none":
                     args.append(self.define("GPU_ARCH", "sm_{0}".format(cuda_arch[0])))
                 args.append(self.define_from_variant("CUDA_MPS_SUPPORT", "cuda_mps"))
-            elif "+opencl" in spec:
+            elif spec.satisfies("+opencl"):
                 # LAMMPS downloads and bundles its own OpenCL ICD Loader by default
                 args.append(self.define("USE_STATIC_OPENCL_LOADER", False))
                 args.append(self.define("PKG_GPU", True))
                 args.append(self.define("GPU_API", "opencl"))
                 args.append(self.define_from_variant("GPU_PREC", "gpu_precision"))
-            elif "+rocm" in spec:
+            elif spec.satisfies("+rocm"):
                 args.append(self.define("PKG_GPU", True))
                 args.append(self.define("GPU_API", "hip"))
                 args.append(self.define_from_variant("GPU_PREC", "gpu_precision"))
@@ -884,11 +946,16 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
                     "-O3 -fno-math-errno -fno-unroll-loops "
                     "-fveclib=AMDLIBM -muse-unaligned-vector-move"
                 )
-                if spec.satisfies("%aocc@4.1:"):
+                if spec.satisfies("%aocc@4.1:4.2"):
                     cxx_flags += (
                         " -mllvm -force-gather-overhead-cost=50"
                         " -mllvm -enable-masked-gather-sequence=false"
                     )
+                elif spec.satisfies("%aocc@5.0:"):
+                    cxx_flags += " -mllvm -enable-aggressive-gather"
+                    if spec.target >= "zen5":
+                        cxx_flags += " -fenable-restrict-based-lv"
+
                 # add -fopenmp-simd if OpenMP not already turned on
                 if spec.satisfies("~openmp"):
                     cxx_flags += " -fopenmp-simd"
@@ -899,7 +966,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
             args.append(self.define("CMAKE_CXX_FLAGS_RELWITHDEBINFO", cxx_flags))
 
         # Overwrite generic cpu tune option
-        cmake_tune_flags = spec.architecture.target.optimization_flags(spec.compiler)
+        cmake_tune_flags = optimization_flags(self.compiler, spec.target)
         args.append(self.define("CMAKE_TUNE_FLAGS", cmake_tune_flags))
 
         args.append(self.define_from_variant("LAMMPS_SIZES", "lammps_sizes"))
@@ -916,6 +983,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
 
         if spec.satisfies("+kspace"):
             args.append(self.define_from_variant("FFT", "fft"))
+            args.append(self.define_from_variant("FFT_USE_HEFFTE", "heffte"))
             if spec.satisfies("fft=fftw3 ^armpl-gcc") or spec.satisfies("fft=fftw3 ^acfl"):
                 args.append(self.define("FFTW3_LIBRARY", self.spec["fftw-api"].libs[0]))
                 args.append(
@@ -926,27 +994,27 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
             # for transposing 3d FFT data.
             args.append(self.define("FFT_SINGLE", spec.satisfies("fftw_precision=single")))
 
-        if "+user-adios" in spec or "+adios" in spec:
+        if spec.satisfies("+user-adios") or spec.satisfies("+adios"):
             args.append(self.define("ADIOS2_DIR", self.spec["adios2"].prefix))
-        if "+user-plumed" in spec or "+plumed" in spec:
+        if spec.satisfies("+user-plumed") or spec.satisfies("+plumed"):
             args.append(self.define("DOWNLOAD_PLUMED", False))
             if "+shared" in self.spec["plumed"]:
                 args.append(self.define("PLUMED_MODE", "shared"))
             else:
                 args.append(self.define("PLUMED_MODE", "static"))
-        if "+user-smd" in spec or "+machdyn" in spec:
+        if spec.satisfies("+user-smd") or spec.satisfies("+machdyn"):
             args.append(self.define("DOWNLOAD_EIGEN3", False))
             args.append(self.define("EIGEN3_INCLUDE_DIR", self.spec["eigen"].prefix.include))
-        if "+user-hdnnp" in spec or "+ml-hdnnp" in spec:
+        if spec.satisfies("+user-hdnnp") or spec.satisfies("+ml-hdnnp"):
             args.append(self.define("DOWNLOAD_N2P2", False))
             args.append(self.define("N2P2_DIR", self.spec["n2p2"].prefix))
 
-        if "+rocm" in spec:
+        if spec.satisfies("+rocm"):
             args.append(self.define("CMAKE_CXX_COMPILER", spec["hip"].hipcc))
-            if "@:20231121" in spec:
-                if "^hip@:5.4" in spec:
+            if spec.satisfies("@:20231121"):
+                if spec.satisfies("^hip@:5.4"):
                     args.append(self.define("HIP_PATH", f"{spec['hip'].prefix}/hip"))
-                elif "^hip@5.5:" in spec:
+                elif spec.satisfies("^hip@5.5:"):
                     args.append(self.define("HIP_PATH", spec["hip"].prefix))
 
         return args
@@ -957,14 +1025,14 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
 
     def setup_run_environment(self, env):
         env.set("LAMMPS_POTENTIALS", self.prefix.share.lammps.potentials)
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             if self.spec.platform == "darwin":
                 env.prepend_path("DYLD_FALLBACK_LIBRARY_PATH", self.prefix.lib)
                 env.prepend_path("DYLD_FALLBACK_LIBRARY_PATH", self.prefix.lib64)
             else:
                 env.prepend_path("LD_LIBRARY_PATH", self.prefix.lib)
                 env.prepend_path("LD_LIBRARY_PATH", self.prefix.lib64)
-        if "+plugin" in self.spec:
+        if self.spec.satisfies("+plugin"):
             env.prepend_path("LAMMPS_PLUGIN_PATH", self.prefix.lib.lammps.plugins)
             env.prepend_path("LAMMPS_PLUGIN_PATH", self.prefix.lib64.lammps.plugins)
 
@@ -981,5 +1049,4 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
                 os.environ["LAMMPS_VERSION_FILE"] = join_path(
                     self.stage.source_path, "src", "version.h"
                 )
-                args = std_pip_args + ["--prefix=" + self.prefix, "."]
-                pip(*args)
+                pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")

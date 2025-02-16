@@ -1,10 +1,7 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 # ----------------------------------------------------------------------------\
-
-from llnl.util import tty
 
 import spack.build_systems.autotools
 import spack.build_systems.cmake
@@ -49,11 +46,13 @@ class Amdlibflame(CMakePackage, LibflameBase):
     maintainers("amd-toolchain-support")
 
     license("BSD-3-Clause")
+
     version(
-        "4.2",
-        sha256="93a433c169528ffba74a99df0ba3ce3d5b1fab9bf06ce8d2fd72ee84768ed84c",
+        "5.0",
+        sha256="3bee3712459a8c5bd728a521d8a4c8f46735730bf35d48c878d2fc45fc000918",
         preferred=True,
     )
+    version("4.2", sha256="93a433c169528ffba74a99df0ba3ce3d5b1fab9bf06ce8d2fd72ee84768ed84c")
     version("4.1", sha256="8aed69c60d11cc17e058cabcb8a931cee4f343064ade3e73d3392b7214624b61")
     version("4.0", sha256="bcb05763aa1df1e88f0da5e43ff86d956826cbea1d9c5ff591d78a3e091c66a4")
     version("3.2", sha256="6b5337fb668b82d0ed0a4ab4b5af4e2f72e4cedbeeb4a8b6eb9a3ef057fb749a")
@@ -67,13 +66,6 @@ class Amdlibflame(CMakePackage, LibflameBase):
     depends_on("fortran", type="build")  # generated
 
     variant("ilp64", default=False, when="@3.0.1: ", description="Build with ILP64 support")
-    variant(
-        "enable-aocl-blas",
-        default=False,
-        when="@4.1.0:",
-        description="Enables tight coupling with AOCL-BLAS library in order to use AOCL-BLAS\
-                internal routines",
-    )
     variant(
         "vectorization",
         default="auto",
@@ -94,7 +86,7 @@ class Amdlibflame(CMakePackage, LibflameBase):
     # Required dependencies
     with when("build_system=cmake"):
         generator("make")
-        depends_on("cmake@3.15.0:", type="build")
+        depends_on("cmake@3.22:", type="build")
 
     conflicts("threads=pthreads", msg="pthread is not supported")
     conflicts("threads=openmp", when="@:3", msg="openmp is not supported by amdlibflame < 4.0")
@@ -103,12 +95,14 @@ class Amdlibflame(CMakePackage, LibflameBase):
     patch("aocc-2.2.0.patch", when="@:2", level=1)
     patch("cray-compiler-wrapper.patch", when="@:3.0.0", level=1)
     patch("supermat.patch", when="@4.0:4.1", level=1)
+    patch("libflame-pkgconfig.patch", when="@4.2")
 
     provides("flame@5.2", when="@2:")
 
     depends_on("python+pythoncmd", type="build")
     depends_on("gmake@4:", when="@3.0.1,3.1:", type="build")
-    for vers in ["4.1", "4.2"]:
+
+    for vers in ["4.1", "4.2", "5.0"]:
         with when(f"@{vers}"):
             depends_on(f"aocl-utils@{vers}")
 
@@ -128,9 +122,14 @@ class Amdlibflame(CMakePackage, LibflameBase):
 
     def flag_handler(self, name, flags):
         if name == "cflags":
+            if (
+                self.spec.satisfies("%clang@16:")
+                or self.spec.satisfies("%aocc@4.1.0:")
+                or self.spec.satisfies("%gcc@14:")
+            ):
+                flags.append("-Wno-implicit-function-declaration")
             if self.spec.satisfies("%clang@16:") or self.spec.satisfies("%aocc@4.1.0:"):
                 flags.append("-Wno-error=incompatible-function-pointer-types")
-                flags.append("-Wno-implicit-function-declaration")
                 flags.append("-Wno-sometimes-uninitialized")
         if name == "ldflags":
             if self.spec.satisfies("^aocl-utils~shared"):
@@ -153,10 +152,13 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
             else:
                 args.append(self.define("ENABLE_AMD_FLAGS", True))
 
+        if spec.satisfies("threads=none"):
+            args.append(self.define("ENABLE_MULTITHREADING", False))
+
         if spec.satisfies("@3.0.1: +ilp64"):
             args.append(self.define("ENABLE_ILP64", True))
 
-        if spec.satisfies("@4.1.0: +enable-aocl-blas"):
+        if spec.satisfies("@4.2: ^[virtuals=blas] amdblis"):
             args.append(self.define("ENABLE_AOCL_BLAS", True))
             args.append("-DAOCL_ROOT:PATH={0}".format(spec["blas"].prefix))
 
@@ -170,6 +172,8 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
         else:
             args.append(self.define("LF_ISA_CONFIG", spec.variants["vectorization"].value))
 
+        args.append(self.define_from_variant("BUILD_SHARED_LIBS", "shared"))
+
         return args
 
 
@@ -178,18 +182,6 @@ class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
         """configure_args function"""
         args = self.pkg.configure_args()
         spec = self.spec
-
-        if not (
-            spec.satisfies(r"%aocc@3.2:4.2")
-            or spec.satisfies(r"%gcc@12.2:13.1")
-            or spec.satisfies(r"%clang@15:17")
-        ):
-            tty.warn(
-                "AOCL has been tested to work with the following compilers "
-                "versions - gcc@12.2:13.1, aocc@3.2:4.2, and clang@15:17 "
-                "see the following aocl userguide for details: "
-                "https://www.amd.com/content/dam/amd/en/documents/developer/version-4-2-documents/aocl/aocl-4-2-user-guide.pdf"
-            )
 
         # From 3.2 version, amd optimized flags are encapsulated under:
         # enable-amd-aocc-flags for AOCC compiler
@@ -210,8 +202,8 @@ class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
             args.append("--enable-void-return-complex")
 
         if spec.satisfies("@3.0:3.1 %aocc"):
-            """To enabled Fortran to C calling convention for
-            complex types when compiling with aocc flang"""
+            # To enable Fortran to C calling convention for complex types when compiling with
+            # aocc flang
             args.append("--enable-f2c-dotc")
 
         if spec.satisfies("@3.0.1: +ilp64"):

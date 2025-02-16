@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,15 @@ class PyNanobind(PythonPackage):
     license("BSD-3-Clause")
 
     version("master", branch="master", submodules=True)
+    version(
+        "2.4.0", tag="v2.4.0", commit="0f9ce749b257fdfe701edb3cf6f7027ba029434a", submodules=True
+    )
+    version(
+        "2.2.0", tag="v2.2.0", commit="784efa2a0358a4dc5432c74f5685ee026e20f2b6", submodules=True
+    )
+    version(
+        "2.1.0", tag="v2.1.0", commit="9641bb7151f04120013b812789b3ebdfa7e7324f", submodules=True
+    )
     version(
         "2.0.0", tag="v2.0.0", commit="8d7f1ee0621c17fa370b704b2100ffa0243d5bfb", submodules=True
     )
@@ -57,12 +65,15 @@ class PyNanobind(PythonPackage):
     depends_on("cxx", type="build")  # generated
 
     depends_on("python@3.8:", type=("build", "run"))
-    depends_on("py-setuptools@42:", type="build")
-    depends_on("py-scikit-build", type="build")
-    depends_on("py-typing-extensions", when="@2:", type="build")
 
-    depends_on("cmake@3.17:", type="build")
-    depends_on("ninja", type="build")
+    depends_on("py-setuptools@42:", when="@:2.0", type="build")
+    depends_on("py-scikit-build", when="@:2.0", type="build")
+    depends_on("py-typing-extensions", when="@2.0", type="build")
+    depends_on("ninja", when="@2.0", type="build")
+    depends_on("cmake@3.17:", when="@:2.0", type="build")
+
+    depends_on("py-scikit-build-core+pyproject@0.9:", when="@2.1", type="build")
+    depends_on("py-scikit-build-core+pyproject@0.10:", when="@2.2:", type="build")
 
     @property
     def cmake_prefix_paths(self):

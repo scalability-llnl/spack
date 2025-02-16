@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import concurrent.futures
@@ -9,7 +8,7 @@ import sys
 import traceback
 from typing import Optional
 
-from spack.util.cpus import determine_number_of_jobs
+import spack.config
 
 
 class ErrorFromWorker:
@@ -98,9 +97,14 @@ class SequentialExecutor(concurrent.futures.Executor):
         return future
 
 
-def make_concurrent_executor() -> concurrent.futures.Executor:
-    """Can't use threading because it's unsafe, and can't use spawned processes because of globals.
-    That leaves only forking."""
-    if multiprocessing.get_start_method() == "fork":
-        return concurrent.futures.ProcessPoolExecutor(determine_number_of_jobs(parallel=True))
-    return SequentialExecutor()
+def make_concurrent_executor(
+    jobs: Optional[int] = None, *, require_fork: bool = True
+) -> concurrent.futures.Executor:
+    """Create a concurrent executor. If require_fork is True, then the executor is sequential
+    if the platform does not enable forking as the default start method. Effectively
+    require_fork=True makes the executor sequential in the current process on Windows, macOS, and
+    Linux from Python 3.14+ (which changes defaults)"""
+    if require_fork and multiprocessing.get_start_method() != "fork":
+        return SequentialExecutor()
+    jobs = jobs or spack.config.determine_number_of_jobs(parallel=True)
+    return concurrent.futures.ProcessPoolExecutor(jobs)

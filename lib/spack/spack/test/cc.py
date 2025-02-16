@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,7 +12,6 @@ import pytest
 
 import spack.build_environment
 import spack.config
-import spack.spec
 from spack.paths import build_env_path
 from spack.util.environment import SYSTEM_DIR_CASE_ENTRY, set_env
 from spack.util.executable import Executable, ProcessError
@@ -200,7 +198,7 @@ def check_args(cc, args, expected):
     """
     with set_env(SPACK_TEST_COMMAND="dump-args"):
         cc_modified_args = cc(*args, output=str).strip().split("\n")
-        assert expected == cc_modified_args
+        assert cc_modified_args == expected
 
 
 def check_args_contents(cc, args, must_contain, must_not_contain):
@@ -271,6 +269,43 @@ def test_ccld_mode(wrapper_environment):
 def test_ld_mode(wrapper_environment):
     assert dump_mode(ld, []) == "ld"
     assert dump_mode(ld, ["foo.o", "bar.o", "baz.o", "-o", "foo", "-Wl,-rpath,foo"]) == "ld"
+
+
+def test_ld_unterminated_rpath(wrapper_environment):
+    check_args(
+        ld,
+        ["foo.o", "bar.o", "baz.o", "-o", "foo", "-rpath"],
+        ["ld", "--disable-new-dtags", "foo.o", "bar.o", "baz.o", "-o", "foo", "-rpath"],
+    )
+
+
+def test_xlinker_unterminated_rpath(wrapper_environment):
+    check_args(
+        cc,
+        ["foo.o", "bar.o", "baz.o", "-o", "foo", "-Xlinker", "-rpath"],
+        [real_cc]
+        + target_args
+        + [
+            "-Wl,--disable-new-dtags",
+            "foo.o",
+            "bar.o",
+            "baz.o",
+            "-o",
+            "foo",
+            "-Xlinker",
+            "-rpath",
+        ],
+    )
+
+
+def test_wl_unterminated_rpath(wrapper_environment):
+    check_args(
+        cc,
+        ["foo.o", "bar.o", "baz.o", "-o", "foo", "-Wl,-rpath"],
+        [real_cc]
+        + target_args
+        + ["-Wl,--disable-new-dtags", "foo.o", "bar.o", "baz.o", "-o", "foo", "-Wl,-rpath"],
+    )
 
 
 def test_ld_flags(wrapper_environment, wrapper_flags):

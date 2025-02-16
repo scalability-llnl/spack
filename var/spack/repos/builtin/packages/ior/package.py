@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -66,18 +65,18 @@ class Ior(AutotoolsPackage):
 
         env["CC"] = spec["mpi"].mpicc
 
-        if "+hdf5" in spec:
+        if spec.satisfies("+hdf5"):
             config_args.append("--with-hdf5")
             config_args.append("CFLAGS=-D H5_USE_16_API")
         else:
             config_args.append("--without-hdf5")
 
-        if "+ncmpi" in spec:
+        if spec.satisfies("+ncmpi"):
             config_args.append("--with-ncmpi")
         else:
             config_args.append("--without-ncmpi")
 
-        if "+lustre" in spec:
+        if spec.satisfies("+lustre"):
             config_args.append("--with-lustre")
         else:
             config_args.append("--without-lustre")

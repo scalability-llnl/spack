@@ -1,13 +1,12 @@
-.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-   Spack Project Developers. See the top-level COPYRIGHT file for details.
+.. Copyright Spack Project Developers. See COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 .. chain:
 
-============================
-Chaining Spack Installations
-============================
+=============================================
+Chaining Spack Installations (upstreams.yaml)
+=============================================
 
 You can point your Spack installation to another installation to use any
 packages that are installed there. To register the other Spack instance,

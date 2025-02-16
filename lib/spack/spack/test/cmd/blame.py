@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,7 +8,6 @@ import pytest
 
 from llnl.util.filesystem import working_dir
 
-import spack.cmd
 import spack.paths
 import spack.util.spack_json as sjson
 from spack.main import SpackCommand

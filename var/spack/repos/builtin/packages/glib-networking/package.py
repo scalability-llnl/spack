@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,9 +17,10 @@ class GlibNetworking(MesonPackage):
     version("2.65.90", sha256="91b35c5d7472d10229b0b01c0631ac171903e96f84a6fb22c4126a40528c09e2")
     version("2.65.1", sha256="d06311004f7dda4561c210f286a3678b631fb7187cb3b90616c5ba39307cc91f")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     depends_on("gettext", type="build")
+    depends_on("pkgconfig", type="build")
     depends_on("glib")
     depends_on("gnutls")
     depends_on("gsettings-desktop-schemas")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,11 +21,16 @@ class Rocalution(CMakePackage):
     url = "https://github.com/ROCm/rocALUTION/archive/rocm-6.1.2.tar.gz"
     tags = ["rocm"]
 
-    maintainers("cgmb", "srekolam", "renjithravindrankannath")
+    maintainers("cgmb", "srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["librocalution_hip"]
 
     license("MIT")
-
+    version("6.3.2", sha256="b13118a5c0af08a666d80af78d52bdfba12ed134f6745ab36d8de75ed3bc7584")
+    version("6.3.1", sha256="94b78b34ac750c09831aa70a3d7f8cd220c540a75e4f91c391ba435de420c536")
+    version("6.3.0", sha256="a7476e1ce79915cb8e01917de372ae6b15d7e51b1a25e15cde346dadf2391068")
+    version("6.2.4", sha256="993c55e732d0ee390746890639486649f36ae806110cf7490b9bb5d49b0663c0")
+    version("6.2.1", sha256="94f15add5316c81529ce84ae8bf2701e9a4df57d08eda04a2f70147d31b12632")
+    version("6.2.0", sha256="fd9ad0aae5524d3995343d4d7c1948e7b21f0bdf5b1203d1de58548a814a9c39")
     version("6.1.2", sha256="5f9fb302ab1951a1caf54ed31b41d6f41a353dd4b5ee32bc3de2e9f9244dd4ef")
     version("6.1.1", sha256="1f80b33813291c2e81e5b1efc325d3f5bb6592c8670c016930d01e73e74ab46b")
     version("6.1.0", sha256="699a9b73844fcd4e30d0607b4042dc779f9bcdc27ad732e7a038968ff555af2b")
@@ -78,6 +82,12 @@ class Rocalution(CMakePackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
+        "6.3.2",
     ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"rocprim@{ver}", when=f"@{ver}")
@@ -137,7 +147,7 @@ class Rocalution(CMakePackage):
         if self.spec.satisfies("^cmake@3.21.0:3.21.2"):
             args.append(self.define("__skip_rocmclang", "ON"))
 
-        if self.spec.satisfies("@5.2:"):
+        if self.spec.satisfies("@5.2:6.3.1"):
             args.append(self.define("BUILD_FILE_REORG_BACKWARD_COMPATIBILITY", True))
 
         if self.spec.satisfies("@5.3:"):

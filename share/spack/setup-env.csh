@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -62,9 +61,9 @@ if (! $?SPACK_PYTHON) then
     setenv SPACK_PYTHON ""
 endif
 foreach cmd ("$SPACK_PYTHON" python3 python python2)
-    command -v "$cmd" >& /dev/null
+    set status=`which "$cmd" >& /dev/null; echo $?`
     if ($status == 0) then
-        setenv SPACK_PYTHON `command -v "$cmd"`
+        setenv SPACK_PYTHON `which "$cmd"`
         break
     endif
 end

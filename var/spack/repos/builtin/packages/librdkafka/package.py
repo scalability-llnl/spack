@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,10 @@ class Librdkafka(AutotoolsPackage):
 
     license("BSD-2-Clause")
 
+    version("2.8.0", sha256="5bd1c46f63265f31c6bfcedcde78703f77d28238eadf23821c2b43fc30be3e25")
+    version("2.6.1", sha256="0ddf205ad8d36af0bc72a2fec20639ea02e1d583e353163bf7f4683d949e901b")
+    version("2.6.0", sha256="abe0212ecd3e7ed3c4818a4f2baf7bf916e845e902bb15ae48834ca2d36ac745")
+    version("2.5.3", sha256="eaa1213fdddf9c43e28834d9a832d9dd732377d35121e42f875966305f52b8ff")
     version("2.2.0", sha256="af9a820cbecbc64115629471df7c7cecd40403b6c34bfdbb9223152677a47226")
     version("2.1.1", sha256="7be1fc37ab10ebdc037d5c5a9b35b48931edafffae054b488faaff99e60e0108")
     version("2.1.0", sha256="d8e76c4b1cde99e283a19868feaaff5778aa5c6f35790036c5ef44bc5b5187aa")
@@ -29,3 +32,6 @@ class Librdkafka(AutotoolsPackage):
 
     depends_on("zstd")
     depends_on("lz4")
+    depends_on("curl")
+    depends_on("openssl")
+    depends_on("zlib")

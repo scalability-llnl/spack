@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -35,7 +34,7 @@ class Krakenuniq(Package):
 
     def install(self, spec, prefix):
         local_script = which("./install_krakenuniq.sh")
-        if "+jellyfish" in self.spec:
+        if self.spec.satisfies("+jellyfish"):
             local_script("-j", prefix.bin)
         else:
             local_script(prefix.bin)

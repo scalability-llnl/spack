@@ -1,0 +1,22 @@
+diff --git a/masm.pri b/masm-quote.pri
+index b67ee79..b757ee5 100644
+--- a/qtdeclarative/src/3rdparty/masm/masm.pri
++++ b/qtdeclarative/src/3rdparty/masm/masm.pri
+@@ -58,7 +58,7 @@ contains(DEFINES, WTF_USE_UDIS86=1) {
+     udis86.output = udis86_itab.h
+     udis86.input = ITAB
+     udis86.CONFIG += no_link
+-    udis86.commands = $$QMAKE_PYTHON $$PWD/disassembler/udis86/itab.py ${QMAKE_FILE_IN}
++    udis86.commands = "\"$$QMAKE_PYTHON\"" $$PWD/disassembler/udis86/itab.py ${QMAKE_FILE_IN}
+     QMAKE_EXTRA_COMPILERS += udis86
+ 
+     udis86_tab_cfile.target = $$OUT_PWD/udis86_itab.c
+@@ -111,7 +111,7 @@ retgen.output = $$GENERATEDDIR/RegExpJitTables.h
+ retgen.script = $$PWD/yarr/create_regex_tables
+ retgen.input = retgen.script
+ retgen.CONFIG += no_link
+-retgen.commands = $$QMAKE_PYTHON $$retgen.script > ${QMAKE_FILE_OUT}
++retgen.commands = "\"$$QMAKE_PYTHON\"" $$retgen.script > ${QMAKE_FILE_OUT}
+ QMAKE_EXTRA_COMPILERS += retgen
+ 
+ # Taken from WebKit/Tools/qmake/mkspecs/features/unix/default_post.prf

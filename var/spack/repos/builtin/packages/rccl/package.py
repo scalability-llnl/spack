@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,11 +15,32 @@ class Rccl(CMakePackage):
 
     homepage = "https://github.com/ROCm/rccl"
     git = "https://github.com/ROCm/rccl.git"
-    url = "https://github.com/ROCm/rccl/archive/rocm-6.1.2.tar.gz"
+    url = "https://github.com/ROCm/rccl/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
-    maintainers("srekolam", "renjithravindrankannath")
+    maintainers("srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["librccl"]
+    version(
+        "6.3.2",
+        tag="rocm-6.3.2",
+        commit="9a0e6a114c8f7371fa3050b413a350d6945fb7db",
+        submodules=True,
+    )
+    version(
+        "6.3.1",
+        tag="rocm-6.3.1",
+        commit="4ab67f5a5946d851a963b281cd9aa7b86eee752a",
+        submodules=True,
+    )
+    version(
+        "6.3.0",
+        tag="rocm-6.3.0",
+        commit="eef7b2918cef592a18b6e59859558e6a3f0f0614",
+        submodules=True,
+    )
+    version("6.2.4", sha256="12a04743ed89a74b4a08aa046b6a549d385e15d6866042fd41eac8f085f50eea")
+    version("6.2.1", sha256="0f5e35c7afbb21c1d49ff201b7d1ddf163d853c27c75c3eaf7b449f4dc1e2188")
+    version("6.2.0", sha256="a29c94ea3b9c1a0121d7b1450cb01a697f9f9132169632312b9b0bf744d3c0e3")
     version("6.1.2", sha256="98af99c12d800f5439c7740d797162c35810a25e08e3b11b397d3300d3c0148e")
     version("6.1.1", sha256="6368275059ba190d554535d5aeaa5c2510d944b56efd85c90a1701d0292a14c5")
     version("6.1.0", sha256="c6308f6883cbd63dceadbe4ee154cc6fa9e6bdccbd2f0fda295b564b0cf01e9a")
@@ -51,7 +71,8 @@ class Rccl(CMakePackage):
     )
 
     patch("0003-Fix-numactl-rocm-smi-path-issue.patch", when="@5.2.3:5.6")
-    patch("0004-Set-rocm-core-path-for-version-file.patch", when="@6.0:")
+    patch("0004-Set-rocm-core-path-for-version-file.patch", when="@6.0:6.2")
+    patch("0004-Set-rocm-core-path-for-version-file-6.3.patch", when="@6.3")
 
     depends_on("cmake@3.5:", type="build")
     depends_on("chrpath", when="@5.3.0:5", type="build")
@@ -73,6 +94,12 @@ class Rccl(CMakePackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
+        "6.3.2",
     ]:
         depends_on(f"rocm-cmake@{ver}:", type="build", when=f"@{ver}")
         depends_on(f"hip@{ver}", when=f"@{ver}")
@@ -91,10 +118,16 @@ class Rccl(CMakePackage):
         "6.0.2",
         "6.1.0",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
+        "6.3.2",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 
-    depends_on("googletest@1.11.0:", when="@5.3:")
+    depends_on("googletest@1.11.0:", type="test", when="@5.3:")
 
     @classmethod
     def determine_version(cls, lib):
@@ -115,15 +148,16 @@ class Rccl(CMakePackage):
         args = [
             self.define("NUMACTL_DIR", self.spec["numactl"].prefix),
             self.define("ROCM_SMI_DIR", self.spec["rocm-smi-lib"].prefix),
+            self.define("ROCM_PATH", self.spec["hip"].prefix),
         ]
         if "auto" not in self.spec.variants["amdgpu_target"]:
             args.append(self.define_from_variant("AMDGPU_TARGETS", "amdgpu_target"))
 
         if self.spec.satisfies("^cmake@3.21.0:3.21.2"):
-            args.append(self.define("__skip_rocmclang", "ON"))
+            args.append(self.define("__skip_rocmclang", True))
 
         if self.spec.satisfies("@5.3.0:"):
-            args.append(self.define("BUILD_TESTS", "ON"))
+            args.append(self.define("BUILD_TESTS", self.run_tests))
         return args
 
     def test_unit(self):

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,7 @@ class Pandorapfa(Package):
     maintainers("jmcarcell", "wdconinc")
 
     version("master", branch="master")
+    version("4.11.2", sha256="02b0e8c1844ec515055cb85f9d14d9d13eda28607c634611a59d767eb08a8b34")
     version("4.3.1", sha256="2f4757a6ed2e10d3effc300b330f67ba13c499dbf21ba720b29b50527332fcdb")
     version("4.3.0", sha256="a794022c33b3a5afc1272740ac385e0c4ab96a112733012e7dfcbe80b5a3b445")
     version("4.2.1", sha256="1d262417748d18e00466ae3f1714ab0d7452e903bd1430773a72c652cf4666e4")

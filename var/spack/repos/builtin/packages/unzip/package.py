@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,8 +27,9 @@ class Unzip(MakefilePackage):
         make_args = ["-f", join_path("unix", "Makefile")]
 
         cflags = []
-        cflags.append("-Wno-error=implicit-function-declaration")
-        cflags.append("-Wno-error=implicit-int")
+        if not self.spec.satisfies("%nvhpc"):
+            cflags.append("-Wno-error=implicit-function-declaration")
+            cflags.append("-Wno-error=implicit-int")
         cflags.append("-DLARGE_FILE_SUPPORT")
 
         make_args.append(f"LOC={' '.join(cflags)}")

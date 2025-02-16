@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import spack.build_systems.autotools
@@ -48,6 +47,7 @@ class Sz(CMakePackage, AutotoolsPackage):
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
+    depends_on("fortran", type="build", when="+fortran")
 
     build_system(
         conditional("autotools", when="@:2.1.8.0"),
@@ -86,6 +86,9 @@ class Sz(CMakePackage, AutotoolsPackage):
     conflicts("%clang@15:", when="@:2.1.12.4+hdf5")
 
     patch("ctags-only-if-requested.patch", when="@2.1.8.1:2.1.8.3")
+
+    # Windows requires numerous commits that only exist on master at the moment
+    conflicts("platform=windows", when="@:2.1.12.5")
 
     def flag_handler(self, name, flags):
         if name == "cflags":

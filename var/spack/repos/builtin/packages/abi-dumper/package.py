@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,6 +24,7 @@ class AbiDumper(Package):
     depends_on("binutils")
     depends_on("universal-ctags")
     depends_on("vtable-dumper@1.1:")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         make(f"prefix={prefix}", "install")

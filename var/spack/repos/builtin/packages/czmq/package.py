@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -32,12 +31,11 @@ class Czmq(AutotoolsPackage):
     depends_on("libzmq")
 
     def flag_handler(self, name, flags):
-        iflags = []
         if name == "cflags":
             if self.spec.satisfies("%oneapi@2022.2.0:"):
-                iflags.append("-Wno-error=gnu-null-pointer-arithmetic")
-                iflags.append("-Wno-error=strict-prototypes")
-        return (iflags, None, None)
+                flags.append("-Wno-error=gnu-null-pointer-arithmetic")
+                flags.append("-Wno-error=strict-prototypes")
+        return (flags, None, None)
 
     def autoreconf(self, spec, prefix):
         autogen = Executable("./autogen.sh")

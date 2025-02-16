@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -65,6 +64,7 @@ class Libfuse(MesonPackage):
     depends_on("automake", type="build", when="@:2")
     depends_on("libtool", type="build", when="@:2")
     depends_on("gettext", type="build", when="@:2")
+    depends_on("gmake", type="build")
 
     provides("fuse")
     conflicts("+useroot", when="~system_install", msg="useroot requires system_install")
@@ -106,19 +106,19 @@ class Libfuse(MesonPackage):
     def meson_args(self):
         args = []
 
-        if "+utils" in self.spec:
+        if self.spec.satisfies("+utils"):
             args.append("-Dutils=true")
             args.append("-Dexamples=true")
         else:
             args.append("-Dutils=false")
             args.append("-Dexamples=false")
 
-        if "+useroot" in self.spec:
+        if self.spec.satisfies("+useroot"):
             args.append("-Duseroot=true")
         else:
             args.append("-Duseroot=false")
 
-        if "~system_install" in self.spec:
+        if self.spec.satisfies("~system_install"):
             # Fix meson's setup if meson does not have the host system's udev package:
             args.append("-Dudevrulesdir={0}".format(self.prefix.etc.rules.d))
 
@@ -147,10 +147,14 @@ class Libfuse(MesonPackage):
         ]
 
         args.append(
-            "--enable-static" if "default_library=static" in self.spec else "--disable-static"
+            "--enable-static"
+            if self.spec.satisfies("default_library=static")
+            else "--disable-static"
         )
         args.append(
-            "--enable-shared" if "default_library=shared" in self.spec else "--disable-shared"
+            "--enable-shared"
+            if self.spec.satisfies("default_library=shared")
+            else "--disable-shared"
         )
 
         configure(*args)

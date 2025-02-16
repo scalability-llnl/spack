@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -310,7 +309,7 @@ class Libpressio(CMakePackage, CudaPackage):
     depends_on("sz3@3.1.8:", when="@0.98.1: +sz3")
     depends_on("bzip2", when="+bzip2")
     depends_on("qoz", when="+qoz")
-    depends_on("cusz@0.6.0:", when="+cusz")
+    depends_on("cusz@0.9", when="+cusz")
 
     extends("python", when="+python")
 
@@ -374,11 +373,14 @@ class Libpressio(CMakePackage, CudaPackage):
             self.define_from_variant("LIBPRESSIO_INSTALL_DOCS", "docs"),
             self.define_from_variant("BUILD_PYTHON_WRAPPER", "python"),
             self.define("LIBPRESSIO_HAS_MPI4PY", self.spec.satisfies("+python +mpi")),
-            self.define("LIBPRESSIO_BUILD_MODE", "FULL" if "+core" in self.spec else "CORE"),
+            self.define(
+                "LIBPRESSIO_BUILD_MODE", "FULL" if self.spec.satisfies("+core") else "CORE"
+            ),
             self.define("BUILD_TESTING", self.run_tests),
             # this flag was removed in 0.52.0, we should deprecate and remove this
             self.define(
-                "LIBPRESSIO_CXX_VERSION", "11" if "+boost" in self.spec else self.lp_cxx_version()
+                "LIBPRESSIO_CXX_VERSION",
+                "11" if self.spec.satisfies("+boost") else self.lp_cxx_version(),
             ),
         ]
         # if cuda is backed by the shim, we need to set these linker flags to
@@ -386,15 +388,15 @@ class Libpressio(CMakePackage, CudaPackage):
         if self.spec.satisfies("+cusz +cuda"):
             args.append("-DCMAKE_EXE_LINKER_FLAGS=-Wl,--allow-shlib-undefined")
         # libpressio needs to know where to install the python libraries
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             args.append(f"-DLIBPRESSIO_PYTHON_SITELIB={python_platlib}")
         # help ensure that libpressio finds the correct HDF5 package
-        if "+hdf5" in self.spec:
+        if self.spec.satisfies("+hdf5"):
             args.append("-DHDF5_ROOT=" + self.spec["hdf5"].prefix)
         return args
 
     def setup_run_environment(self, env):
-        if "+hdf5" in self.spec and "+json" in self.spec:
+        if self.spec.satisfies("+hdf5") and self.spec.satisfies("+json"):
             env.prepend_path("HDF5_PLUGIN_PATH", self.prefix.lib64)
 
     @run_after("build")
@@ -404,7 +406,7 @@ class Libpressio(CMakePackage, CudaPackage):
 
     @run_after("build")
     def install_docs(self):
-        if "+docs" in self.spec:
+        if self.spec.satisfies("+docs"):
             with working_dir(self.build_directory):
                 make("docs")
 

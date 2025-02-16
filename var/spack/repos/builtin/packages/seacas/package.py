@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -147,9 +146,9 @@ class Seacas(CMakePackage):
         deprecated=True,
     )
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build", when="+fortran")
 
     # ###################### Variants ##########################
     # Package options
@@ -195,6 +194,11 @@ class Seacas(CMakePackage):
         "faodel",
         default=False,
         description="Enable Faodel. See https://github.com/sandialabs/faodel",
+    )
+    variant(
+        "libcatalyst",
+        default=False,
+        description="Enable libcatalyst tpl (catalyst api 2); Kitware insitu library",
     )
     variant(
         "matio",
@@ -262,6 +266,10 @@ class Seacas(CMakePackage):
     depends_on("catch2@3:", when="@2024-03-11:+tests")
 
     depends_on("matio", when="+matio")
+
+    depends_on("libcatalyst+mpi~python", when="+libcatalyst+mpi")
+    depends_on("libcatalyst~mpi~python", when="+libcatalyst~mpi")
+
     depends_on("libx11", when="+x11")
 
     with when("+cgns"):
@@ -287,6 +295,9 @@ class Seacas(CMakePackage):
     )
     conflicts("+shared", when="platform=windows")
     conflicts("+x11", when="platform=windows")
+
+    conflicts("@2024-06-27 platform=windows")
+
     # Remove use of variable in array assignment (triggers c2057 on MSVC)
     # See https://github.com/sandialabs/seacas/issues/438
     patch(
@@ -294,6 +305,9 @@ class Seacas(CMakePackage):
         sha256="d088208511fb0a087e2bf70ae70676e59bfefe8d8f5b24bd53b829566f5147d2",
         when="@:2023-10-24",
     )
+
+    # Based on install-tpl.sh script, cereal seems to only be used when faodel enabled
+    depends_on("cereal", when="@2021-04-02: +faodel")
 
     def setup_run_environment(self, env):
         env.prepend_path("PYTHONPATH", self.prefix.lib)
@@ -477,9 +491,21 @@ class Seacas(CMakePackage):
             if pkg.lower() in spec:
                 options.append(define(pkg + "_ROOT", spec[pkg.lower()].prefix))
 
+        if "+faodel" in spec:
+            # faodel headers are under $faodel_prefix/include/faodel but seacas
+            # leaves off the faodel part
+            faodel_incdir = spec["faodel"].prefix.include
+            faodel_incdir2 = spec["faodel"].prefix.include.faodel
+            faodel_incdirs = [faodel_incdir, faodel_incdir2]
+            options.append(define("Faodel_INCLUDE_DIRS", ";".join(faodel_incdirs)))
+            options.append(define("Faodel_LIBRARY_DIRS", spec["faodel"].prefix.lib))
+
         options.append(from_variant("TPL_ENABLE_ADIOS2", "adios2"))
         if "+adios2" in spec:
             options.append(define("ADIOS2_ROOT", spec["adios2"].prefix))
+
+        if "+libcatalyst" in spec:
+            options.append(define("TPL_ENABLE_Catalyst2", "ON"))
 
         # ################# RPath Handling ######################
         if sys.platform == "darwin" and macos_version() >= Version("10.12"):

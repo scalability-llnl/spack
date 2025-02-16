@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -66,8 +65,8 @@ def test_repo_unknown_pkg(mutable_mock_repo):
         mutable_mock_repo.get_pkg_class("builtin.mock.nonexistentpackage")
 
 
-@pytest.mark.maybeslow
-def test_repo_last_mtime():
+@pytest.mark.not_on_windows("mtime granularity issues on windows")
+def test_repo_last_mtime(mock_packages):
     latest_mtime = max(
         os.path.getmtime(p.module.__file__) for p in spack.repo.PATH.all_package_classes()
     )
@@ -75,7 +74,9 @@ def test_repo_last_mtime():
 
 
 def test_repo_invisibles(mutable_mock_repo, extra_repo):
-    with open(os.path.join(extra_repo[0].root, extra_repo[1], ".invisible"), "w"):
+    with open(
+        os.path.join(extra_repo[0].root, extra_repo[1], ".invisible"), "w", encoding="utf-8"
+    ):
         pass
     extra_repo[0].all_package_names()
 
@@ -90,13 +91,13 @@ def test_namespace_hasattr(attr_name, exists, mutable_mock_repo):
 
 
 @pytest.mark.regression("24552")
-def test_all_package_names_is_cached_correctly():
+def test_all_package_names_is_cached_correctly(mock_packages):
     assert "mpi" in spack.repo.all_package_names(include_virtuals=True)
     assert "mpi" not in spack.repo.all_package_names(include_virtuals=False)
 
 
 @pytest.mark.regression("29203")
-def test_use_repositories_doesnt_change_class():
+def test_use_repositories_doesnt_change_class(mock_packages):
     """Test that we don't create the same package module and class multiple times
     when swapping repositories.
     """
@@ -165,18 +166,25 @@ def test_repo_dump_virtuals(tmpdir, mutable_mock_repo, mock_packages, ensure_deb
     assert "package.py" in os.listdir(tmpdir), "Expected the virtual's package to be copied"
 
 
-@pytest.mark.parametrize(
-    "repo_paths,namespaces",
-    [
-        ([spack.paths.packages_path], ["builtin"]),
-        ([spack.paths.mock_packages_path], ["builtin.mock"]),
-        ([spack.paths.packages_path, spack.paths.mock_packages_path], ["builtin", "builtin.mock"]),
-        ([spack.paths.mock_packages_path, spack.paths.packages_path], ["builtin.mock", "builtin"]),
-    ],
-)
-def test_repository_construction_doesnt_use_globals(
-    nullify_globals, tmp_path, repo_paths, namespaces
-):
+@pytest.mark.parametrize("repos", [["mock"], ["extra"], ["mock", "extra"], ["extra", "mock"]])
+def test_repository_construction_doesnt_use_globals(nullify_globals, tmp_path, repos):
+    def _repo_paths(repos):
+        repo_paths, namespaces = [], []
+        for entry in repos:
+            if entry == "mock":
+                repo_paths.append(spack.paths.mock_packages_path)
+                namespaces.append("builtin.mock")
+            if entry == "extra":
+                name = "extra.mock"
+                repo_dir = tmp_path / name
+                repo_dir.mkdir()
+                _ = spack.repo.MockRepositoryBuilder(repo_dir, name)
+                repo_paths.append(str(repo_dir))
+                namespaces.append(name)
+        return repo_paths, namespaces
+
+    repo_paths, namespaces = _repo_paths(repos)
+
     repo_cache = spack.util.file_cache.FileCache(str(tmp_path / "cache"))
     repo_path = spack.repo.RepoPath(*repo_paths, cache=repo_cache)
     assert len(repo_path.repos) == len(namespaces)

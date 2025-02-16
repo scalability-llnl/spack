@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -36,6 +35,8 @@ class Rust(Package):
     version("nightly")
 
     # Stable versions.
+    version("1.83.0", sha256="722d773bd4eab2d828d7dd35b59f0b017ddf9a97ee2b46c1b7f7fac5c8841c6e")
+    version("1.81.0", sha256="872448febdff32e50c3c90a7e15f9bb2db131d13c588fe9071b0ed88837ccfa7")
     version("1.78.0", sha256="ff544823a5cb27f2738128577f1e7e00ee8f4c83f2a348781ae4fc355e91d5a9")
     version("1.76.0", sha256="9e5cff033a7f0d2266818982ad90e4d3e4ef8f8ee1715776c6e25073a136c021")
     version("1.75.0", sha256="5b739f45bc9d341e2d1c570d65d2375591e22c2d23ef5b8a37711a0386abc088")
@@ -91,11 +92,15 @@ class Rust(Package):
     depends_on("rust-bootstrap@1.73:1.74", type="build", when="@1.74")
     depends_on("rust-bootstrap@1.74:1.75", type="build", when="@1.75")
     depends_on("rust-bootstrap@1.77:1.78", type="build", when="@1.78")
+    depends_on("rust-bootstrap@1.80:1.81", type="build", when="@1.81")
+    depends_on("rust-bootstrap@1.82:1.83", type="build", when="@1.83")
 
     # src/llvm-project/llvm/cmake/modules/CheckCompilerVersion.cmake
     conflicts("%gcc@:7.3", when="@1.73:", msg="Host GCC version must be at least 7.4")
     # https://github.com/rust-lang/llvm-project/commit/4d039a7a71899038b3bc6ed6fe5a8a48d915caa0
     conflicts("%gcc@13:", when="@:1.63", msg="Rust<1.64 not compatible with GCC>=13")
+    conflicts("%intel", msg="Rust not compatible with Intel Classic compilers")
+    conflicts("%oneapi", msg="Rust not compatible with Intel oneAPI compilers")
 
     extendable = True
     executables = ["^rustc$", "^cargo$"]
@@ -202,7 +207,10 @@ class Rust(Package):
         configure(*flags)
 
     def build(self, spec, prefix):
-        python("./x.py", "build")
+        python("./x.py", "build", "-j", str(make_jobs))
 
     def install(self, spec, prefix):
-        python("./x.py", "install")
+        python("./x.py", "install", "-j", str(make_jobs))
+
+    # known issue: https://github.com/rust-lang/rust/issues/132604
+    unresolved_libraries = ["libz.so.*"]

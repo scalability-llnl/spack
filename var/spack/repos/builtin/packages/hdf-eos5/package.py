@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -107,9 +106,9 @@ class HdfEos5(AutotoolsPackage):
 
         # Provide config args for dependencies
         extra_args.append("--with-hdf5={0}".format(self.spec["hdf5"].prefix))
-        if "szip" in self.spec:
+        if self.spec.satisfies("^szip"):
             extra_args.append("--with-szlib={0}".format(self.spec["szip"].prefix))
-        if "zlib-api" in self.spec:
+        if self.spec.satisfies("^zlib-api"):
             extra_args.append("--with-zlib={0}".format(self.spec["zlib-api"].prefix))
 
         return extra_args

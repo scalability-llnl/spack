@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -56,8 +55,8 @@ class Libpsm3(AutotoolsPackage):
         env.prepend_path("FI_PROVIDER_PATH", self.prefix.lib)
         env.set("FI_PROVIDER", "psm3")
         env.set("PSM3_ALLOW_ROUTERS", "1")
-        if "+sockets" in self.spec and "~verbs" in self.spec:
+        if self.spec.satisfies("+sockets ~verbs"):
             env.set("PSM3_HAL", "sockets")
         env.set("FI_PSM3_NAME_SERVER", "1")
-        if "+debug" in self.spec:
+        if self.spec.satisfies("+debug"):
             env.set("PSM3_IDENTIFY", "1")

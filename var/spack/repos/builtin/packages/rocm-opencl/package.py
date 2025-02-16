@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,7 +16,7 @@ class RocmOpencl(CMakePackage):
     git = "https://github.com/ROCm/ROCm-OpenCL-Runtime.git"
     tags = ["rocm"]
 
-    maintainers("srekolam", "renjithravindrankannath")
+    maintainers("srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["libOpenCL"]
 
     def url_for_version(self, version):
@@ -36,6 +35,12 @@ class RocmOpencl(CMakePackage):
     license("MIT")
 
     version("master", branch="main")
+    version("6.3.2", sha256="ec13dc4ffe212beee22171cb2825d2b16cdce103c835adddb482b9238cf4f050"),
+    version("6.3.1", sha256="bfb8a4a59e7bd958e2cd4bf6f14c6cdea601d9827ebf6dc7af053a90e963770f")
+    version("6.3.0", sha256="829e61a5c54d0c8325d02b0191c0c8254b5740e63b8bfdb05eec9e03d48f7d2c")
+    version("6.2.4", sha256="0a3164af7f997a4111ade634152957378861b95ee72d7060eb01c86c87208c54")
+    version("6.2.1", sha256="e9cff3a8663defdbda833d49c9e7160171eca14dc285ffe4061378607d6c890d")
+    version("6.2.0", sha256="620e4c6a7f05651cc7a170bc4700fef8cae002420307a667c638b981d00b25e8")
     version("6.1.2", sha256="1a1e21640035d957991559723cd093f0c7e202874423667d2ba0c7662b01fea4")
     version("6.1.1", sha256="2db02f335c9d6fa69befcf7c56278e5cecfe3db0b457eaaa41206c2585ef8256")
     version("6.1.0", sha256="49b23eef621f4e8e528bb4de8478a17436f42053a2f7fde21ff221aa683205c7")
@@ -67,6 +72,7 @@ class RocmOpencl(CMakePackage):
     depends_on("numactl", type="link")
     depends_on("libx11", when="+asan")
     depends_on("xproto", when="+asan")
+    depends_on("opencl-icd-loader@2024.05.08", when="@6.2:")
 
     for d_version, d_shasum in [
         ("5.6.1", "cc9a99c7e4de3d9360c0a471b27d626e84a39c9e60e0aff1e8e1500d82391819"),
@@ -119,12 +125,30 @@ class RocmOpencl(CMakePackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
+        "6.3.2",
         "master",
     ]:
         depends_on(f"comgr@{ver}", type="build", when=f"@{ver}")
         depends_on(f"hsa-rocr-dev@{ver}", type="link", when=f"@{ver}")
 
-    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2"]:
+    for ver in [
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
+        "6.3.2",
+    ]:
         depends_on(f"aqlprofile@{ver}", type="link", when=f"@{ver}")
 
     for ver in [
@@ -139,8 +163,13 @@ class RocmOpencl(CMakePackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
+        "6.3.2",
     ]:
-
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 
     @classmethod
@@ -169,6 +198,9 @@ class RocmOpencl(CMakePackage):
                     f"-I{self.spec['xproto'].prefix.include}",
                 )
             )
+        if self.spec.satisfies("@6.2:"):
+            args.append(self.define("BUILD_ICD", False))
+            args.append(self.define("AMD_ICD_LIBRARY_DIR", self.spec["opencl-icd-loader"].prefix))
 
         return args
 
@@ -182,7 +214,7 @@ class RocmOpencl(CMakePackage):
             env.set("LDFLAGS", "-fuse-ld=lld")
 
     def setup_run_environment(self, env):
-        env.prepend_path("LD_LIBRARY_PATH", self.prefix.lib),
+        env.prepend_path("LD_LIBRARY_PATH", self.prefix.lib)
         env.set("OCL_ICD_VENDORS", self.prefix.vendors + "/")
 
     @run_after("install")

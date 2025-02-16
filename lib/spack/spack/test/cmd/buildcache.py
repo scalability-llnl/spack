@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,14 +12,14 @@ import pytest
 
 import spack.binary_distribution
 import spack.cmd.buildcache
-import spack.deptypes
+import spack.concretize
 import spack.environment as ev
 import spack.error
 import spack.main
-import spack.mirror
+import spack.mirrors.mirror
 import spack.spec
 import spack.util.url
-from spack.spec import Spec
+from spack.installer import PackageInstaller
 
 buildcache = spack.main.SpackCommand("buildcache")
 install = spack.main.SpackCommand("install")
@@ -82,7 +81,7 @@ def tests_buildcache_create(install_mockery, mock_fetch, monkeypatch, tmpdir):
 
     buildcache("push", "--unsigned", str(tmpdir), pkg)
 
-    spec = Spec(pkg).concretized()
+    spec = spack.concretize.concretize_one(pkg)
     tarball_path = spack.binary_distribution.tarball_path_name(spec, ".spack")
     tarball = spack.binary_distribution.tarball_name(spec, ".spec.json")
     assert os.path.exists(os.path.join(str(tmpdir), "build_cache", tarball_path))
@@ -102,7 +101,7 @@ def tests_buildcache_create_env(
 
         buildcache("push", "--unsigned", str(tmpdir))
 
-    spec = Spec(pkg).concretized()
+    spec = spack.concretize.concretize_one(pkg)
     tarball_path = spack.binary_distribution.tarball_path_name(spec, ".spack")
     tarball = spack.binary_distribution.tarball_name(spec, ".spec.json")
     assert os.path.exists(os.path.join(str(tmpdir), "build_cache", tarball_path))
@@ -146,7 +145,7 @@ def test_update_key_index(
 
     gpg("create", "Test Signing Key", "nobody@nowhere.com")
 
-    s = Spec("libdwarf").concretized()
+    s = spack.concretize.concretize_one("libdwarf")
 
     # Install a package
     install(s.name)
@@ -176,10 +175,10 @@ def test_buildcache_autopush(tmp_path, install_mockery, mock_fetch):
     mirror("add", "--unsigned", "mirror", mirror_dir.as_uri())
     mirror("add", "--autopush", "--unsigned", "mirror-autopush", mirror_autopush_dir.as_uri())
 
-    s = Spec("libdwarf").concretized()
+    s = spack.concretize.concretize_one("libdwarf")
 
     # Install and generate build cache index
-    s.package.do_install()
+    PackageInstaller([s.package], explicit=True).install()
 
     metadata_file = spack.binary_distribution.tarball_name(s, ".spec.json")
 
@@ -220,7 +219,7 @@ def test_buildcache_sync(
             assert False
 
     # Install a package and put it in the buildcache
-    s = Spec(out_env_pkg).concretized()
+    s = spack.concretize.concretize_one(out_env_pkg)
     install(s.name)
     buildcache("push", "-u", "-f", src_mirror_url, s.name)
 
@@ -284,7 +283,7 @@ def test_buildcache_sync(
             ]
 
         manifest_file = os.path.join(tmpdir.strpath, "manifest_dest.json")
-        with open(manifest_file, "w") as fd:
+        with open(manifest_file, "w", encoding="utf-8") as fd:
             test_env = ev.active_environment()
 
             manifest = {}
@@ -298,7 +297,7 @@ def test_buildcache_sync(
         shutil.rmtree(dest_mirror_dir)
 
         manifest_file = os.path.join(tmpdir.strpath, "manifest_bad_dest.json")
-        with open(manifest_file, "w") as fd:
+        with open(manifest_file, "w", encoding="utf-8") as fd:
             manifest = {}
             for spec in test_env.specs_by_hash.values():
                 manifest_insert(
@@ -330,7 +329,7 @@ def test_buildcache_create_install(
 
     buildcache("push", "--unsigned", str(tmpdir), pkg)
 
-    spec = Spec(pkg).concretized()
+    spec = spack.concretize.concretize_one(pkg)
     tarball_path = spack.binary_distribution.tarball_path_name(spec, ".spack")
     tarball = spack.binary_distribution.tarball_name(spec, ".spec.json")
     assert os.path.exists(os.path.join(str(tmpdir), "build_cache", tarball_path))
@@ -380,12 +379,14 @@ def test_correct_specs_are_pushed(
     things_to_install, expected, tmpdir, monkeypatch, default_mock_concretization, temporary_store
 ):
     spec = default_mock_concretization("dttop")
-    spec.package.do_install(fake=True)
+    PackageInstaller([spec.package], explicit=True, fake=True).install()
     slash_hash = f"/{spec.dag_hash()}"
 
     class DontUpload(spack.binary_distribution.Uploader):
         def __init__(self):
-            super().__init__(spack.mirror.Mirror.from_local_path(str(tmpdir)), False, False)
+            super().__init__(
+                spack.mirrors.mirror.Mirror.from_local_path(str(tmpdir)), False, False
+            )
             self.pushed = []
 
         def push(self, specs: List[spack.spec.Spec]):
@@ -439,17 +440,17 @@ def test_push_and_install_with_mirror_marked_unsigned_does_not_require_extra_fla
     # Install
     if signed:
         # Need to pass "--no-check-signature" to avoid install errors
-        kwargs = {"cache_only": True, "unsigned": True}
+        kwargs = {"explicit": True, "cache_only": True, "unsigned": True}
     else:
         # No need to pass "--no-check-signature" if the mirror is unsigned
-        kwargs = {"cache_only": True}
+        kwargs = {"explicit": True, "cache_only": True}
 
     spec.package.do_uninstall(force=True)
-    spec.package.do_install(**kwargs)
+    PackageInstaller([spec.package], **kwargs).install()
 
 
 def test_skip_no_redistribute(mock_packages, config):
-    specs = list(Spec("no-redistribute-dependent").concretized().traverse())
+    specs = list(spack.concretize.concretize_one("no-redistribute-dependent").traverse())
     filtered = spack.cmd.buildcache._skip_no_redistribute_for_public(specs)
     assert not any(s.name == "no-redistribute" for s in filtered)
     assert any(s.name == "no-redistribute-dependent" for s in filtered)
@@ -489,8 +490,8 @@ def test_push_without_build_deps(tmp_path, temporary_store, mock_packages, mutab
 
     mirror("add", "--unsigned", "my-mirror", str(tmp_path))
 
-    s = spack.spec.Spec("dtrun3").concretized()
-    s.package.do_install(fake=True)
+    s = spack.concretize.concretize_one("dtrun3")
+    PackageInstaller([s.package], explicit=True, fake=True).install()
     s["dtbuild3"].package.do_uninstall()
 
     # fails when build deps are required

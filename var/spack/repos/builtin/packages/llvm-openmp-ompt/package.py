@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -32,8 +31,7 @@ class LlvmOpenmpOmpt(CMakePackage):
     variant(
         "standalone",
         default=False,
-        description="Build llvm openmpi ompt library as a \
-                         stand alone entity.",
+        description="Build llvm openmpi ompt library as a stand alone entity.",
     )
     # variant for building libomptarget
     variant(
@@ -61,7 +59,7 @@ class LlvmOpenmpOmpt(CMakePackage):
         # Build llvm-openmp-ompt as a stand alone library
         # CMAKE rpath variable prevents standalone error
         # where this package wants the llvm tools path
-        if "+standalone" in self.spec:
+        if self.spec.satisfies("+standalone"):
             cmake_args.extend(
                 [
                     "-DLIBOMP_STANDALONE_BUILD=true",
@@ -72,11 +70,11 @@ class LlvmOpenmpOmpt(CMakePackage):
 
         # Build llvm-openmp-ompt using the tr6_forwards branch
         # This requires the version to be 5.0 (50)
-        if "@tr6_forwards" in self.spec:
+        if self.spec.satisfies("@tr6_forwards"):
             cmake_args.extend(["-DLIBOMP_OMP_VERSION=50"])
 
         # Disable support for libomptarget
-        if "~libomptarget" in self.spec:
+        if self.spec.satisfies("~libomptarget"):
             cmake_args.extend(["-DOPENMP_ENABLE_LIBOMPTARGET=OFF"])
 
         return cmake_args

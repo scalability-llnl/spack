@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -50,5 +49,5 @@ class Homer(Package):
         perl("configureHomer.pl", "-local")
 
         # download extra data if requested
-        if "+data" in spec:
+        if spec.satisfies("+data"):
             perl("configureHomer.pl", "-install", "-all")

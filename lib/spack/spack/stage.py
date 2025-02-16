@@ -1,8 +1,6 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import concurrent.futures
 import errno
 import getpass
 import glob
@@ -17,6 +15,7 @@ from typing import Callable, Dict, Generator, Iterable, List, Optional, Set
 
 import llnl.string
 import llnl.util.lang
+import llnl.util.symlink
 import llnl.util.tty as tty
 from llnl.util.filesystem import (
     can_access,
@@ -34,17 +33,17 @@ from llnl.util.tty.color import colorize
 import spack.caches
 import spack.config
 import spack.error
-import spack.fetch_strategy as fs
-import spack.mirror
-import spack.paths
+import spack.mirrors.layout
+import spack.mirrors.utils
 import spack.resource
 import spack.spec
-import spack.stage
 import spack.util.crypto
 import spack.util.lock
+import spack.util.parallel
 import spack.util.path as sup
 import spack.util.pattern as pattern
 import spack.util.url as url_util
+from spack import fetch_strategy as fs  # breaks a cycle
 from spack.util.crypto import bit_length, prefix_bits
 from spack.util.editor import editor, executable
 from spack.version import StandardVersion, VersionList
@@ -354,8 +353,8 @@ class Stage(LockableStagingDir):
         url_or_fetch_strategy,
         *,
         name=None,
-        mirror_paths: Optional[spack.mirror.MirrorLayout] = None,
-        mirrors: Optional[Iterable[spack.mirror.Mirror]] = None,
+        mirror_paths: Optional["spack.mirrors.layout.MirrorLayout"] = None,
+        mirrors: Optional[Iterable["spack.mirrors.mirror.Mirror"]] = None,
         keep=False,
         path=None,
         lock=True,
@@ -466,7 +465,7 @@ class Stage(LockableStagingDir):
         """Returns the well-known source directory path."""
         return os.path.join(self.path, _source_path_subdir)
 
-    def _generate_fetchers(self, mirror_only=False) -> Generator[fs.FetchStrategy, None, None]:
+    def _generate_fetchers(self, mirror_only=False) -> Generator["fs.FetchStrategy", None, None]:
         fetchers: List[fs.FetchStrategy] = []
         if not mirror_only:
             fetchers.append(self.default_fetcher)
@@ -489,7 +488,7 @@ class Stage(LockableStagingDir):
             # Insert fetchers in the order that the URLs are provided.
             fetchers[:0] = (
                 fs.from_url_scheme(
-                    url_util.join(mirror.fetch_url, self.mirror_layout.path),
+                    url_util.join(mirror.fetch_url, *self.mirror_layout.path.split(os.sep)),
                     checksum=digest,
                     expand=expand,
                     extension=extension,
@@ -602,7 +601,7 @@ class Stage(LockableStagingDir):
         spack.caches.FETCH_CACHE.store(self.fetcher, self.mirror_layout.path)
 
     def cache_mirror(
-        self, mirror: spack.caches.MirrorCache, stats: spack.mirror.MirrorStats
+        self, mirror: "spack.caches.MirrorCache", stats: "spack.mirrors.utils.MirrorStats"
     ) -> None:
         """Perform a fetch if the resource is not already cached
 
@@ -670,7 +669,7 @@ class Stage(LockableStagingDir):
 class ResourceStage(Stage):
     def __init__(
         self,
-        fetch_strategy: fs.FetchStrategy,
+        fetch_strategy: "fs.FetchStrategy",
         root: Stage,
         resource: spack.resource.Resource,
         **kwargs,
@@ -981,8 +980,8 @@ def interactive_version_filter(
             data = buffer.getvalue().encode("utf-8")
 
             short_hash = hashlib.sha1(data).hexdigest()[:7]
-            filename = f"{spack.stage.stage_prefix}versions-{short_hash}.txt"
-            filepath = os.path.join(spack.stage.get_stage_root(), filename)
+            filename = f"{stage_prefix}versions-{short_hash}.txt"
+            filepath = os.path.join(get_stage_root(), filename)
 
             # Write contents
             with open(filepath, "wb") as f:
@@ -992,7 +991,7 @@ def interactive_version_filter(
             editor(filepath, exec_fn=executable)
 
             # Read back in
-            with open(filepath, "r") as f:
+            with open(filepath, "r", encoding="utf-8") as f:
                 orig_url_dict, url_dict = url_dict, {}
                 for line in f:
                     line = line.strip()
@@ -1134,7 +1133,7 @@ def get_checksums_for_versions(
         if checksum is not None:
             version_hashes[version] = checksum
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=concurrency) as executor:
+    with spack.util.parallel.make_concurrent_executor(concurrency, require_fork=False) as executor:
         results = []
         for url, version in search_arguments:
             future = executor.submit(_fetch_and_checksum, url, fetch_options, keep_stage)

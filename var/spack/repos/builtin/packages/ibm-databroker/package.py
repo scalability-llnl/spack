@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -47,6 +46,6 @@ class IbmDatabroker(CMakePackage, PythonExtension):
     def cmake_args(self):
         args = []
         args.append("-DDEFAULT_BE=redis")
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             args.append("-DPYDBR=1")
         return args

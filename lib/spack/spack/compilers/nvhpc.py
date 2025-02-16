@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,18 +8,6 @@ from spack.compiler import Compiler
 
 
 class Nvhpc(Compiler):
-    # Subclasses use possible names of C compiler
-    cc_names = ["nvc"]
-
-    # Subclasses use possible names of C++ compiler
-    cxx_names = ["nvc++"]
-
-    # Subclasses use possible names of Fortran 77 compiler
-    f77_names = ["nvfortran"]
-
-    # Subclasses use possible names of Fortran 90 compiler
-    fc_names = ["nvfortran"]
-
     # Named wrapper links within build_env_path
     link_paths = {
         "cc": os.path.join("nvhpc", "nvc"),

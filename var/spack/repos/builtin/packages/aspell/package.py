@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,3 +26,12 @@ class Aspell(AutotoolsPackage, GNUMirrorPackage):
 
     patch("fix_cpp.patch")
     patch("issue-519.patch", when="@:0.60.6.1")
+
+    # workaround due to https://github.com/GNUAspell/aspell/issues/591
+    @run_after("configure", when="@0.60.8:")
+    def make_missing_files(self):
+        make("gen/dirs.h")
+        make("gen/static_filters.src.cpp")
+
+    def setup_run_environment(self, env):
+        env.set("ASPELL_CONF", f"prefix {self.prefix}")

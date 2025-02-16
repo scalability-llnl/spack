@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -33,7 +32,7 @@ class Pflotran(AutotoolsPackage):
     depends_on("mpi")
     depends_on("hdf5@1.8.12:+mpi+fortran+hl")
     depends_on("petsc@main:+hdf5+metis", when="@develop")
-    depends_on("petsc@3.20:+hdf5+metis", when="@5.0.0")
+    depends_on("petsc@3.20:3.21+hdf5+metis", when="@5.0.0")
     depends_on("petsc@3.18:+hdf5+metis", when="@4.0.1")
     depends_on("petsc@3.16:+hdf5+metis", when="@3.0.2")
 

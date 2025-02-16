@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -32,7 +31,7 @@ class Libcroco(AutotoolsPackage):
 
     def configure_args(self):
         config_args = []
-        if "+doc" in self.spec:
+        if self.spec.satisfies("+doc"):
             config_args.extend(
                 [
                     "--enable-gtk-doc",

@@ -1,21 +1,25 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import io
 import os
 import subprocess
+from urllib.error import HTTPError
 
 import pytest
 
 import llnl.util.filesystem as fs
 
 import spack.ci as ci
-import spack.config
+import spack.concretize
 import spack.environment as ev
 import spack.error
 import spack.paths as spack_paths
+import spack.repo as repo
 import spack.util.git
-import spack.util.gpg
+from spack.test.conftest import MockHTTPResponse
+
+pytestmark = [pytest.mark.usefixtures("mock_packages")]
 
 
 @pytest.fixture
@@ -26,53 +30,143 @@ def repro_dir(tmp_path):
         yield result
 
 
-def test_urlencode_string():
-    assert ci._url_encode_string("Spack Test Project") == "Spack+Test+Project"
+def test_pipeline_dag(config, tmpdir):
+    r"""Test creation, pruning, and traversal of PipelineDAG using the
+    following package dependency graph:
+
+        a                           a
+       /|                          /|
+      c b                         c b
+        |\        prune 'd'        /|\
+        e d        =====>         e | g
+        | |\                      | |
+        h | g                     h |
+         \|                        \|
+          f                         f
+
+    """
+    builder = repo.MockRepositoryBuilder(tmpdir)
+    builder.add_package("pkg-h", dependencies=[("pkg-f", None, None)])
+    builder.add_package("pkg-g")
+    builder.add_package("pkg-f")
+    builder.add_package("pkg-e", dependencies=[("pkg-h", None, None)])
+    builder.add_package("pkg-d", dependencies=[("pkg-f", None, None), ("pkg-g", None, None)])
+    builder.add_package("pkg-c")
+    builder.add_package("pkg-b", dependencies=[("pkg-d", None, None), ("pkg-e", None, None)])
+    builder.add_package("pkg-a", dependencies=[("pkg-b", None, None), ("pkg-c", None, None)])
+
+    with repo.use_repositories(builder.root):
+        spec_a = spack.concretize.concretize_one("pkg-a")
+
+        key_a = ci.common.PipelineDag.key(spec_a)
+        key_b = ci.common.PipelineDag.key(spec_a["pkg-b"])
+        key_c = ci.common.PipelineDag.key(spec_a["pkg-c"])
+        key_d = ci.common.PipelineDag.key(spec_a["pkg-d"])
+        key_e = ci.common.PipelineDag.key(spec_a["pkg-e"])
+        key_f = ci.common.PipelineDag.key(spec_a["pkg-f"])
+        key_g = ci.common.PipelineDag.key(spec_a["pkg-g"])
+        key_h = ci.common.PipelineDag.key(spec_a["pkg-h"])
+
+        pipeline = ci.common.PipelineDag([spec_a])
+
+        expected_bottom_up_traversal = {
+            key_a: 4,
+            key_b: 3,
+            key_c: 0,
+            key_d: 1,
+            key_e: 2,
+            key_f: 0,
+            key_g: 0,
+            key_h: 1,
+        }
+
+        visited = []
+        for stage, node in pipeline.traverse_nodes(direction="parents"):
+            assert expected_bottom_up_traversal[node.key] == stage
+            visited.append(node.key)
+
+        assert len(visited) == len(expected_bottom_up_traversal)
+        assert all(k in visited for k in expected_bottom_up_traversal.keys())
+
+        expected_top_down_traversal = {
+            key_a: 0,
+            key_b: 1,
+            key_c: 1,
+            key_d: 2,
+            key_e: 2,
+            key_f: 4,
+            key_g: 3,
+            key_h: 3,
+        }
+
+        visited = []
+        for stage, node in pipeline.traverse_nodes(direction="children"):
+            assert expected_top_down_traversal[node.key] == stage
+            visited.append(node.key)
+
+        assert len(visited) == len(expected_top_down_traversal)
+        assert all(k in visited for k in expected_top_down_traversal.keys())
+
+        pipeline.prune(key_d)
+        b_children = pipeline.nodes[key_b].children
+        assert len(b_children) == 3
+        assert all([k in b_children for k in [key_e, key_f, key_g]])
+
+        # check another bottom-up traversal after pruning pkg-d
+        expected_bottom_up_traversal = {
+            key_a: 4,
+            key_b: 3,
+            key_c: 0,
+            key_e: 2,
+            key_f: 0,
+            key_g: 0,
+            key_h: 1,
+        }
+
+        visited = []
+        for stage, node in pipeline.traverse_nodes(direction="parents"):
+            assert expected_bottom_up_traversal[node.key] == stage
+            visited.append(node.key)
+
+        assert len(visited) == len(expected_bottom_up_traversal)
+        assert all(k in visited for k in expected_bottom_up_traversal.keys())
+
+        # check top-down traversal after pruning pkg-d
+        expected_top_down_traversal = {
+            key_a: 0,
+            key_b: 1,
+            key_c: 1,
+            key_e: 2,
+            key_f: 4,
+            key_g: 2,
+            key_h: 3,
+        }
+
+        visited = []
+        for stage, node in pipeline.traverse_nodes(direction="children"):
+            assert expected_top_down_traversal[node.key] == stage
+            visited.append(node.key)
+
+        assert len(visited) == len(expected_top_down_traversal)
+        assert all(k in visited for k in expected_top_down_traversal.keys())
+
+        a_deps_direct = [n.spec for n in pipeline.get_dependencies(pipeline.nodes[key_a])]
+        assert all([s in a_deps_direct for s in [spec_a["pkg-b"], spec_a["pkg-c"]]])
 
 
 @pytest.mark.not_on_windows("Not supported on Windows (yet)")
 def test_import_signing_key(mock_gnupghome):
     signing_key_dir = spack_paths.mock_gpg_keys_path
     signing_key_path = os.path.join(signing_key_dir, "package-signing-key")
-    with open(signing_key_path) as fd:
+    with open(signing_key_path, encoding="utf-8") as fd:
         signing_key = fd.read()
 
     # Just make sure this does not raise any exceptions
     ci.import_signing_key(signing_key)
 
 
-class FakeWebResponder:
-    def __init__(self, response_code=200, content_to_read=[]):
-        self._resp_code = response_code
-        self._content = content_to_read
-        self._read = [False for c in content_to_read]
-
-    def open(self, request, data=None, timeout=object()):
-        return self
-
-    def getcode(self):
-        return self._resp_code
-
-    def read(self, length=None):
-        if len(self._content) <= 0:
-            return None
-
-        if not self._read[-1]:
-            return_content = self._content[-1]
-            if length:
-                self._read[-1] = True
-            else:
-                self._read.pop()
-                self._content.pop()
-            return return_content
-
-        self._read.pop()
-        self._content.pop()
-        return None
-
-
-def test_download_and_extract_artifacts(tmpdir, monkeypatch, working_env):
-    os.environ.update({"GITLAB_PRIVATE_TOKEN": "faketoken"})
+def test_download_and_extract_artifacts(tmpdir, monkeypatch):
+    monkeypatch.setenv("GITLAB_PRIVATE_TOKEN", "faketoken")
 
     url = "https://www.nosuchurlexists.itsfake/artifacts.zip"
     working_dir = os.path.join(tmpdir.strpath, "repro")
@@ -80,10 +174,13 @@ def test_download_and_extract_artifacts(tmpdir, monkeypatch, working_env):
         spack_paths.test_path, "data", "ci", "gitlab", "artifacts.zip"
     )
 
-    with open(test_artifacts_path, "rb") as fd:
-        fake_responder = FakeWebResponder(content_to_read=[fd.read()])
+    def _urlopen_OK(*args, **kwargs):
+        with open(test_artifacts_path, "rb") as f:
+            return MockHTTPResponse(
+                "200", "OK", {"Content-Type": "application/zip"}, io.BytesIO(f.read())
+            )
 
-    monkeypatch.setattr(ci, "build_opener", lambda handler: fake_responder)
+    monkeypatch.setattr(ci, "urlopen", _urlopen_OK)
 
     ci.download_and_extract_artifacts(url, working_dir)
 
@@ -93,7 +190,11 @@ def test_download_and_extract_artifacts(tmpdir, monkeypatch, working_env):
     found_install = fs.find(working_dir, "install.sh")
     assert len(found_install) == 1
 
-    fake_responder._resp_code = 400
+    def _urlopen_500(*args, **kwargs):
+        raise HTTPError(url, 500, "Internal Server Error", {}, None)
+
+    monkeypatch.setattr(ci, "urlopen", _urlopen_500)
+
     with pytest.raises(spack.error.SpackError):
         ci.download_and_extract_artifacts(url, working_dir)
 
@@ -207,16 +308,14 @@ def test_get_spec_filter_list(mutable_mock_env_path, mutable_mock_repo):
     e1.add("hypre")
     e1.concretize()
 
-    """
-    Concretizing the above environment results in the following graphs:
+    # Concretizing the above environment results in the following graphs:
 
-    mpileaks -> mpich (provides mpi virtual dep of mpileaks)
-             -> callpath -> dyninst -> libelf
-                                    -> libdwarf -> libelf
-                         -> mpich (provides mpi dep of callpath)
+    # mpileaks -> mpich (provides mpi virtual dep of mpileaks)
+    #          -> callpath -> dyninst -> libelf
+    #                                 -> libdwarf -> libelf
+    #                      -> mpich (provides mpi dep of callpath)
 
-    hypre -> openblas-with-lapack (provides lapack and blas virtual deps of hypre)
-    """
+    # hypre -> openblas-with-lapack (provides lapack and blas virtual deps of hypre)
 
     touched = ["libdwarf"]
 
@@ -327,7 +426,7 @@ def test_ci_run_standalone_tests_not_installed_junit(
     log_file = tmp_path / "junit.xml"
     args = {
         "log_file": str(log_file),
-        "job_spec": spack.spec.Spec("printing-package").concretized(),
+        "job_spec": spack.concretize.concretize_one("printing-package"),
         "repro_dir": str(repro_dir),
         "fail_fast": True,
     }
@@ -346,7 +445,7 @@ def test_ci_run_standalone_tests_not_installed_cdash(
     log_file = tmp_path / "junit.xml"
     args = {
         "log_file": str(log_file),
-        "job_spec": spack.spec.Spec("printing-package").concretized(),
+        "job_spec": spack.concretize.concretize_one("printing-package"),
         "repro_dir": str(repro_dir),
     }
 
@@ -379,7 +478,7 @@ def test_ci_run_standalone_tests_not_installed_cdash(
 def test_ci_skipped_report(tmpdir, mock_packages, config):
     """Test explicit skipping of report as well as CI's 'package' arg."""
     pkg = "trivial-smoke-test"
-    spec = spack.spec.Spec(pkg).concretized()
+    spec = spack.concretize.concretize_one(pkg)
     ci_cdash = {
         "url": "file://fake",
         "build-group": "fake-group",
@@ -396,7 +495,7 @@ def test_ci_skipped_report(tmpdir, mock_packages, config):
     reports = [name for name in tmpdir.listdir() if str(name).endswith("Testing.xml")]
     assert len(reports) == 1
     expected = f"Skipped {pkg} package"
-    with open(reports[0], "r") as f:
+    with open(reports[0], "r", encoding="utf-8") as f:
         have = [0, 0]
         for line in f:
             if expected in line:

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -8,6 +7,7 @@ import os
 
 import pytest
 
+import spack.concretize
 import spack.directives
 import spack.directives_meta
 import spack.paths
@@ -92,8 +92,8 @@ def test_all_same_but_install(mock_packages, config):
 
 
 def test_content_hash_all_same_but_patch_contents(mock_packages, config):
-    spec1 = Spec("hash-test1@1.1").concretized()
-    spec2 = Spec("hash-test2@1.1").concretized()
+    spec1 = spack.concretize.concretize_one("hash-test1@1.1")
+    spec2 = spack.concretize.concretize_one("hash-test2@1.1")
     compare_hash_sans_name(False, spec1, spec2)
 
 
@@ -118,8 +118,8 @@ def test_content_hash_not_concretized(mock_packages, config):
 
 
 def test_content_hash_different_variants(mock_packages, config):
-    spec1 = Spec("hash-test1@1.2 +variantx").concretized()
-    spec2 = Spec("hash-test2@1.2 ~variantx").concretized()
+    spec1 = spack.concretize.concretize_one("hash-test1@1.2 +variantx")
+    spec2 = spack.concretize.concretize_one("hash-test2@1.2 ~variantx")
     compare_hash_sans_name(True, spec1, spec2)
 
 
@@ -133,19 +133,19 @@ def test_content_hash_cannot_get_details_from_ast(mock_packages, config):
     differ where Spack includes a phase on account of AST-examination
     failure.
     """
-    spec3 = Spec("hash-test1@1.7").concretized()
-    spec4 = Spec("hash-test3@1.7").concretized()
+    spec3 = spack.concretize.concretize_one("hash-test1@1.7")
+    spec4 = spack.concretize.concretize_one("hash-test3@1.7")
     compare_hash_sans_name(False, spec3, spec4)
 
 
 def test_content_hash_all_same_but_archive_hash(mock_packages, config):
-    spec1 = Spec("hash-test1@1.3").concretized()
-    spec2 = Spec("hash-test2@1.3").concretized()
+    spec1 = spack.concretize.concretize_one("hash-test1@1.3")
+    spec2 = spack.concretize.concretize_one("hash-test2@1.3")
     compare_hash_sans_name(False, spec1, spec2)
 
 
 def test_content_hash_parse_dynamic_function_call(mock_packages, config):
-    spec = Spec("hash-test4").concretized()
+    spec = spack.concretize.concretize_one("hash-test4")
     spec.package.content_hash()
 
 
@@ -338,15 +338,15 @@ def test_remove_complex_package_logic_filtered():
         ("grads", "rrlmwml3f2frdnqavmro3ias66h5b2ce"),
         ("llvm", "nufffum5dabmaf4l5tpfcblnbfjknvd3"),
         # has @when("@4.1.0") and raw unicode literals
-        ("mfem", "lbhr43gm5zdye2yhqznucxb4sg6vhryl"),
-        ("mfem@4.0.0", "lbhr43gm5zdye2yhqznucxb4sg6vhryl"),
-        ("mfem@4.1.0", "vjdjdgjt6nyo7ited2seki5epggw5gza"),
+        ("mfem", "whwftpqbjvzncmb52oz6izkanbha2uji"),
+        ("mfem@4.0.0", "whwftpqbjvzncmb52oz6izkanbha2uji"),
+        ("mfem@4.1.0", "bpi7of3xelo7fr3ta2lm6bmiruijnxcg"),
         # has @when("@1.5.0:")
         ("py-torch", "qs7djgqn7dy7r3ps4g7hv2pjvjk4qkhd"),
         ("py-torch@1.0", "qs7djgqn7dy7r3ps4g7hv2pjvjk4qkhd"),
         ("py-torch@1.6", "p4ine4hc6f2ik2f2wyuwieslqbozll5w"),
         # has a print with multiple arguments
-        ("legion", "efpfd2c4pzhsbyc3o7plqcmtwm6b57yh"),
+        ("legion", "bq2etsik5l6pbryxmbhfhzynci56ruy4"),
         # has nested `with when()` blocks and loops
         ("trilinos", "vqrgscjrla4hi7bllink7v6v6dwxgc2p"),
     ],
@@ -365,7 +365,7 @@ def test_package_hash_consistency(package_spec, expected_hash):
     """
     spec = Spec(package_spec)
     filename = os.path.join(datadir, "%s.txt" % spec.name)
-    with open(filename) as f:
+    with open(filename, "rb") as f:
         source = f.read()
     h = ph.package_hash(spec, source=source)
     assert expected_hash == h

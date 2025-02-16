@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,7 @@ class Etcd(Package):
     version("3.4.23", sha256="055c608c4898d25f23aefbc845ff074bf5e8a07e61ed41dbd5cc4d4f59c93093")
 
     depends_on("go@1.19:")
+    depends_on("gmake", type="build")
 
     def setup_build_environment(self, env):
         # Point GOPATH at the top of the staging dir for the build step.

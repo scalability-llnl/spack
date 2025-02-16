@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,11 +14,12 @@ class PyFlashAttn(PythonPackage):
     pypi = "flash-attn/flash_attn-0.0.0.tar.gz"
     git = "https://github.com/Dao-AILab/flash-attention.git"
 
-    maintainers("aurianer")
+    maintainers("aurianer", "thomas-bouvier")
 
     license("BSD")
 
     version("main", branch="main")
+    version("2.6.3", sha256="5bfae9500ad8e7d2937ebccb4906f3bc464d1bf66eedd0e4adabd520811c7b52")
     version(
         "2.5.9.post1", sha256="a92db1683a5b141a0f4371d251ae9f73e9aef629b3a58a50d0ef430266c68782"
     )
@@ -33,18 +33,22 @@ class PyFlashAttn(PythonPackage):
     depends_on("cxx", type="build")  # generated
 
     with default_args(type="build"):
-        depends_on("py-ninja")
         depends_on("py-packaging")
         depends_on("py-psutil")
         depends_on("py-setuptools")
+        depends_on("ninja")
 
     with default_args(type=("build", "run")):
         depends_on("py-torch+cuda")
-        depends_on("ninja")
         depends_on("py-einops")
-        depends_on("py-packaging")
+        depends_on("py-triton")
 
     with default_args(type=("build", "link", "run")):
         depends_on("py-pybind11")
 
-    depends_on("python@3.7:", type=("build", "run"))
+    depends_on("python@3.7:", type=("build", "run"), when="@:2.5")
+    depends_on("python@3.8:", type=("build", "run"), when="@2.6:")
+
+    def setup_build_environment(self, env):
+        # If oom error, try lowering the number of jobs with `spack install -j`
+        env.set("MAX_JOBS", make_jobs)

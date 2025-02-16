@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -80,6 +79,9 @@ class Gmsh(CMakePackage):
 
     # https://gmsh.info/doc/texinfo/gmsh.html#Compiling-the-source-code
     # We make changes to the GMSH default, such as external blas.
+    depends_on("libpng", when="+fltk")
+    depends_on("libjpeg-turbo", when="+fltk")
+    depends_on("zlib-api")
     depends_on("blas", when="~eigen")
     depends_on("lapack", when="~eigen")
     depends_on("eigen@3:", when="+eigen+external")

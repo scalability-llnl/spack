@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,8 +8,6 @@ import shutil
 import socket
 import sys
 from os import environ as env
-
-import llnl.util.tty as tty
 
 from spack.package import *
 
@@ -151,6 +148,14 @@ class Ascent(CMakePackage, CudaPackage):
     # https://github.com/Alpine-DAV/ascent/pull/1123
     patch("ascent-find-raja-pr1123.patch", when="@0.9.0")
 
+    # patch for fix typo in coord_type
+    # https://github.com/Alpine-DAV/ascent/pull/1408
+    patch(
+        "https://github.com/Alpine-DAV/ascent/pull/1408.patch?full_index=1",
+        when="@0.9.3 %oneapi@2025:",
+        sha256="7de7f51e57f3d743c39ad80d8783a4eb482be1def51eb2d3f9259246c661f164",
+    )
+
     ##########################################################################
     # package dependencies
     ###########################################################################
@@ -196,14 +201,14 @@ class Ascent(CMakePackage, CudaPackage):
     #######################
     with when("+raja"):
         depends_on("raja")
-        depends_on("raja@2024.02.1:", when="@0.9.3:")
+        depends_on("raja@2024.02.1:2024.02.99", when="@0.9.3:")
         depends_on("raja+openmp", when="+openmp")
         depends_on("raja~openmp", when="~openmp")
 
     with when("+umpire"):
         depends_on("umpire")
         depends_on("umpire@:2023.06.0", when="@:0.9.2")
-        depends_on("umpire@2024.02.1:", when="@0.9.3:")
+        depends_on("umpire@2024.02.1:2024.02.99", when="@0.9.3:")
 
     #######################
     # BabelFlow
@@ -216,6 +221,7 @@ class Ascent(CMakePackage, CudaPackage):
     #######################
     with when("+vtkh"):
         depends_on("vtk-m +doubleprecision ~64bitids")
+        depends_on("vtk-m@2.1:", when="@0.9.3:")
         depends_on("vtk-m@2.0:", when="@0.9.2:")
         # 2.1 support needs commit e52b7bb8c9fd131f2fd49edf58037cc5ef77a166
         depends_on("vtk-m@:2.0", when="@:0.9.2")
@@ -470,6 +476,9 @@ class Ascent(CMakePackage, CudaPackage):
         if cflags:
             cfg.write(cmake_cache_entry("CMAKE_C_FLAGS", cflags))
         cxxflags = cppflags + " ".join(spec.compiler_flags["cxxflags"])
+        if spec.satisfies("%oneapi@2025:"):
+            cxxflags += "-Wno-error=missing-template-arg-list-after-template-kw "
+            cxxflags += "-Wno-missing-template-arg-list-after-template-kw"
         if cxxflags:
             cfg.write(cmake_cache_entry("CMAKE_CXX_FLAGS", cxxflags))
         fflags = " ".join(spec.compiler_flags["fflags"])

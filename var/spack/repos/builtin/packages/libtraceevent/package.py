@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -38,13 +37,13 @@ class Libtraceevent(MakefilePackage):
     @property
     def build_targets(self):
         result = self.common_targets + ["all"]
-        if "+doc" in self.spec:
+        if self.spec.satisfies("+doc"):
             result.append("doc")
         return result
 
     @property
     def install_targets(self):
         result = self.common_targets + ["install"]
-        if "+doc" in self.spec:
+        if self.spec.satisfies("+doc"):
             result.append("doc-install")
         return result

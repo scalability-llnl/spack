@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -141,13 +140,14 @@ class Amber(Package, CudaPackage):
     depends_on("cuda@:11.1", when="@20:+cuda")  # when='AmberTools@21:'
     depends_on("cuda@:10.2.89", when="@18+cuda")
     depends_on("cuda@7.5.18", when="@:16+cuda")
+    depends_on("gmake", type="build")
 
     # conflicts
+    conflicts("+x11", when="platform=cray", msg="x11 amber applications not available for cray")
     conflicts("+openmp", when="%clang", msg="OpenMP not available for the clang compiler")
     conflicts(
         "+openmp", when="%apple-clang", msg="OpenMP not available for the Apple clang compiler"
     )
-    conflicts("+openmp", when="%pgi", msg="OpenMP not available for the pgi compiler")
 
     def url_for_version(self, version):
         url = "file://{0}/Amber{1}.tar.bz2".format(os.getcwd(), version)
@@ -181,8 +181,6 @@ class Amber(Package, CudaPackage):
             compiler = "gnu"
         elif self.spec.satisfies("%intel"):
             compiler = "intel"
-        elif self.spec.satisfies("%pgi"):
-            compiler = "pgi"
         elif self.spec.satisfies("%nvhpc"):
             compiler = "pgi"
         elif self.spec.satisfies("%clang"):

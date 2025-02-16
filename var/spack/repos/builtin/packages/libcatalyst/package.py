@@ -1,11 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import subprocess
-
-import llnl.util.tty as tty
 
 from spack.package import *
 
@@ -27,6 +24,7 @@ class Libcatalyst(CMakePackage):
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
     depends_on("fortran", type="build")  # generated
+    depends_on("pkgconfig", type="build")
 
     variant("mpi", default=False, description="Enable MPI support")
     variant("conduit", default=False, description="Use external Conduit for Catalyst")

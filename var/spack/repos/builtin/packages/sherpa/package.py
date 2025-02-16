@@ -1,8 +1,9 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import spack.build_systems.autotools
+import spack.build_systems.cmake
 from spack.package import *
 
 
@@ -22,6 +23,7 @@ class Sherpa(CMakePackage, AutotoolsPackage):
 
     license("GPL-3.0-only")
 
+    version("3.0.1", sha256="ff5f43e79a9a10919391242307a771eca0c57b0462c11bfb99ee4a0fe8c48c58")
     version("3.0.0", sha256="e460d8798b323c4ef663293a2c918b1463e9641b35703a54d70d25c852c67d36")
     version("2.2.15", sha256="0300fd719bf6a089b7dc5441f720e669ac1cb030045d87034a4733bee98e7bbc")
     version("2.2.14", sha256="f17d88d7f3bc4234a9db3872e8a3c1f3ef99e1e2dc881ada5ddf848715dc82da")
@@ -37,7 +39,7 @@ class Sherpa(CMakePackage, AutotoolsPackage):
     depends_on("cxx", type="build")  # generated
     depends_on("fortran", type="build")  # generated
 
-    _cxxstd_values = ("11", "14", "17")
+    _cxxstd_values = (conditional("11", "14", "17", when="@:"), conditional("20", when="@3:"))
     variant(
         "cxxstd",
         default="11",
@@ -51,7 +53,12 @@ class Sherpa(CMakePackage, AutotoolsPackage):
     variant("python", default=False, description="Enable Python API")
     variant("hepmc2", default=True, when="@:2", description="Enable HepMC (version 2.x) support")
     variant("hepmc3", default=True, description="Enable HepMC (version 3.x) support")
-    variant("hepmc3root", default=False, description="Enable HepMC (version 3.1+) ROOT support")
+    variant(
+        "hepmc3root",
+        default=False,
+        description="Enable HepMC (version 3.1+) ROOT support",
+        when="+root",
+    )
     variant("rivet", default=False, description="Enable Rivet support")
     variant("fastjet", default=True, when="@:2", description="Enable FASTJET")
     variant("openloops", default=False, description="Enable OpenLoops")
@@ -112,7 +119,8 @@ class Sherpa(CMakePackage, AutotoolsPackage):
     filter_compiler_wrappers("share/SHERPA-MC/makelibs")
 
     for std in _cxxstd_values:
-        depends_on("root cxxstd=" + std, when="+root cxxstd=" + std)
+        for v in std:
+            depends_on(f"root cxxstd={v.value}", when=f"+root cxxstd={v.value}")
 
     def patch(self):
         filter_file(
@@ -205,11 +213,11 @@ class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
 
         return args
 
-    def install(self, spec, prefix):
+    def install(self, pkg, spec, prefix):
         # Make sure the path to the provided libtool is used instead of the system one
         filter_file(
             r"autoreconf -fi",
-            f"autoreconf -fi -I {self.spec['libtool'].prefix.share.aclocal}",
+            f"autoreconf -fi -I {pkg.spec['libtool'].prefix.share.aclocal}",
             "AMEGIC++/Main/makelibs",
         )
         make("install")

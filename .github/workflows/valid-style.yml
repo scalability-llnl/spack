@@ -13,15 +13,14 @@ concurrency:
 
 
 jobs:
-  # Validate that the code can be run on all the Python versions
-  # supported by Spack
+  # Validate that the code can be run on all the Python versions supported by Spack
   validate:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
-    - uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+    - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
       with:
-        python-version: '3.11'
+        python-version: '3.13'
         cache: 'pip'
     - name: Install Python Packages
       run: |
@@ -35,12 +34,12 @@ jobs:
   style:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       with:
         fetch-depth: 0
-    - uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3
+    - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
       with:
-        python-version: '3.11'
+        python-version: '3.13'
         cache: 'pip'
     - name: Install Python packages
       run: |
@@ -59,7 +58,7 @@ jobs:
     secrets: inherit
     with:
       with_coverage: ${{ inputs.with_coverage }}
-      python_version: '3.11'
+      python_version: '3.13'
   # Check that spack can bootstrap the development environment on Python 3.6 - RHEL8
   bootstrap-dev-rhel8:
     runs-on: ubuntu-latest
@@ -70,11 +69,11 @@ jobs:
           dnf install -y \
               bzip2 curl file gcc-c++ gcc gcc-gfortran git gnupg2 gzip \
               make patch tcl unzip which xz
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: Setup repo and non-root user
         run: |
           git --version
-          git config --global --add safe.directory /__w/spack/spack
+          git config --global --add safe.directory '*'
           git fetch --unshallow
           . .github/workflows/bin/setup_git.sh
           useradd spack-test
@@ -85,5 +84,23 @@ jobs:
           source share/spack/setup-env.sh
           spack debug report
           spack -d bootstrap now --dev
-          spack style -t black
+          spack -d style -t black
           spack unit-test -V
+
+  # Further style checks from pylint
+  pylint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+      - name: Install Python packages
+        run: |
+          pip install --upgrade pip setuptools pylint
+      - name: Pylint (Spack Core)
+        run: |
+          pylint -j 4 --disable=all --enable=unspecified-encoding --ignore-paths=lib/spack/external lib

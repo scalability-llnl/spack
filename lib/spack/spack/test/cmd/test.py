@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,14 +10,11 @@ import pytest
 from llnl.util.filesystem import copy_tree
 
 import spack.cmd.common.arguments
-import spack.cmd.install
 import spack.cmd.test
+import spack.concretize
 import spack.config
 import spack.install_test
-import spack.package_base
 import spack.paths
-import spack.spec
-import spack.store
 from spack.install_test import TestStatus
 from spack.main import SpackCommand
 
@@ -83,7 +79,7 @@ def test_test_output(mock_test_stage, mock_packages, mock_archive, mock_fetch, i
 
     # Grab the output from the test log to confirm expected result
     outfile = os.path.join(testdir, testlogs[0])
-    with open(outfile, "r") as f:
+    with open(outfile, "r", encoding="utf-8") as f:
         output = f.read()
     assert "test_print" in output
     assert "PASSED" in output
@@ -197,6 +193,9 @@ def test_test_list_all(mock_packages):
     assert set(pkgs) == set(
         [
             "fail-test-audit",
+            "fail-test-audit-deprecated",
+            "fail-test-audit-docstring",
+            "fail-test-audit-impl",
             "mpich",
             "perl-extension",
             "printing-package",
@@ -241,7 +240,7 @@ def test_read_old_results(mock_packages, mock_test_stage):
 
 def test_test_results_none(mock_packages, mock_test_stage):
     name = "trivial"
-    spec = spack.spec.Spec("trivial-smoke-test").concretized()
+    spec = spack.concretize.concretize_one("trivial-smoke-test")
     suite = spack.install_test.TestSuite([spec], name)
     suite.ensure_stage()
     spack.install_test.write_test_suite_file(suite)
@@ -256,7 +255,7 @@ def test_test_results_none(mock_packages, mock_test_stage):
 def test_test_results_status(mock_packages, mock_test_stage, status):
     """Confirm 'spack test results' returns expected status."""
     name = "trivial"
-    spec = spack.spec.Spec("trivial-smoke-test").concretized()
+    spec = spack.concretize.concretize_one("trivial-smoke-test")
     suite = spack.install_test.TestSuite([spec], name)
     suite.ensure_stage()
     spack.install_test.write_test_suite_file(suite)
@@ -279,7 +278,7 @@ def test_test_results_status(mock_packages, mock_test_stage, status):
 def test_report_filename_for_cdash(install_mockery, mock_fetch):
     """Test that the temporary file used to write Testing.xml for CDash is not the upload URL"""
     name = "trivial"
-    spec = spack.spec.Spec("trivial-smoke-test").concretized()
+    spec = spack.concretize.concretize_one("trivial-smoke-test")
     suite = spack.install_test.TestSuite([spec], name)
     suite.ensure_stage()
 

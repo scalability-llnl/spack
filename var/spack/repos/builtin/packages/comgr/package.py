@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,12 +23,18 @@ class Comgr(CMakePackage):
 
     tags = ["rocm"]
 
-    maintainers("srekolam", "renjithravindrankannath", "haampie")
+    maintainers("srekolam", "renjithravindrankannath", "haampie", "afzpatel")
     libraries = ["libamd_comgr"]
 
     license("NCSA")
 
     version("master", branch="amd-stg-open")
+    version("6.3.2", sha256="1f52e45660ea508d3fe717a9903fe27020cee96de95a3541434838e0193a4827")
+    version("6.3.1", sha256="e9c2481cccacdea72c1f8d3970956c447cec47e18dfb9712cbbba76a2820552c")
+    version("6.3.0", sha256="79580508b039ca6c50dfdfd7c4f6fbcf489fe1931037ca51324818851eea0c1c")
+    version("6.2.4", sha256="7af782bf5835fcd0928047dbf558f5000e7f0207ca39cf04570969343e789528")
+    version("6.2.1", sha256="4840f109d8f267c28597e936c869c358de56b8ad6c3ed4881387cf531846e5a7")
+    version("6.2.0", sha256="12ce17dc920ec6dac0c5484159b3eec00276e4a5b301ab1250488db3b2852200")
     version("6.1.2", sha256="300e9d6a137dcd91b18d5809a316fddb615e0e7f982dc7ef1bb56876dff6e097")
     version("6.1.1", sha256="f1a67efb49f76a9b262e9735d3f75ad21e3bd6a05338c9b15c01e6c625c4460d")
     version("6.1.0", sha256="6bd9912441de6caf6b26d1323e1c899ecd14ff2431874a2f5883d3bc5212db34")
@@ -63,8 +68,6 @@ class Comgr(CMakePackage):
     depends_on("z3", type="link")
     depends_on("ncurses", type="link")
 
-    depends_on("rocm-cmake@3.5.0:", type="build")
-
     for ver in [
         "5.3.0",
         "5.3.3",
@@ -81,6 +84,12 @@ class Comgr(CMakePackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
+        "6.3.2",
         "master",
     ]:
         # llvm libs are linked statically, so this *could* be a build dep
@@ -89,6 +98,7 @@ class Comgr(CMakePackage):
         # aomp may not build rocm-device-libs as part of llvm-amdgpu, so make
         # that a conditional dependency
         depends_on(f"rocm-device-libs@{ver}", when=f"@{ver} ^llvm-amdgpu ~rocm-device-libs")
+        depends_on(f"rocm-cmake@{ver}", when=f"@{ver}", type="build")
 
     for ver in [
         "5.5.0",
@@ -102,6 +112,12 @@ class Comgr(CMakePackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
+        "6.3.2",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 

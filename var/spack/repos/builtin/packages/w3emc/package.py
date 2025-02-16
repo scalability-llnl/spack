@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -56,7 +55,6 @@ class W3emc(CMakePackage):
     )
 
     conflicts("+shared +extradeps", msg="Shared library cannot be built with unknown dependencies")
-    conflicts("+shared ~pic", msg="Shared library requires PIC")
 
     depends_on("bufr", when="@2.10: +bufr")
     depends_on("bacio", when="@2.9.2:")
@@ -96,5 +94,5 @@ class W3emc(CMakePackage):
         return args
 
     def check(self):
-        with working_dir(self.builder.build_directory):
+        with working_dir(self.build_directory):
             make("test")

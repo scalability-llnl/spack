@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -112,7 +111,7 @@ class NetcdfFortran(AutotoolsPackage):
             return libs
 
         msg = "Unable to recursively locate {0} {1} libraries in {2}"
-        raise spack.error.NoLibrariesError(
+        raise NoLibrariesError(
             msg.format("shared" if shared else "static", self.spec.name, self.spec.prefix)
         )
 
@@ -156,7 +155,7 @@ class NetcdfFortran(AutotoolsPackage):
         # To avoid warning messages when compiler user applications in both
         # cases, we create copies of all '*.mod' files in the prefix/include
         # with names in upper- and lowercase.
-        if self.spec.compiler.name != "cce":
+        if not self.spec.satisfies("%cce"):
             return
 
         with working_dir(self.spec.prefix.include):

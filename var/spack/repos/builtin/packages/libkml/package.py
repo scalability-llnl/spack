@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -52,12 +51,12 @@ class Libkml(CMakePackage):
 
         args = []
 
-        if "+java" in spec:
+        if spec.satisfies("+java"):
             args.append("-DWITH_JAVA:BOOL=ON")
         else:
             args.append("-DWITH_JAVA:BOOL=OFF")
 
-        if "+python" in spec:
+        if spec.satisfies("+python"):
             args.append("-DWITH_PYTHON:BOOL=ON")
         else:
             args.append("-DWITH_PYTHON:BOOL=OFF")

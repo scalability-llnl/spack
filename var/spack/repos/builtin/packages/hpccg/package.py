@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -31,7 +30,7 @@ class Hpccg(MakefilePackage):
     def build_targets(self):
         targets = []
 
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             targets.append("CXX={0}".format(self.spec["mpi"].mpicxx))
             targets.append("LINKER={0}".format(self.spec["mpi"].mpicxx))
             targets.append("USE_MPI=-DUSING_MPI")
@@ -39,7 +38,7 @@ class Hpccg(MakefilePackage):
             targets.append("CXX=c++")
             targets.append("LINKER=c++")
 
-        if "+openmp" in self.spec:
+        if self.spec.satisfies("+openmp"):
             targets.append("USE_OMP=-DUSING_OMP")
             targets.append("OMP_FLAGS={0}".format(self.compiler.openmp_flag))
 

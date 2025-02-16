@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,7 @@ class Meshtool(MakefilePackage):
     # Version to use with openCARP releases
     # It is possible that different openCARP releases rely on the same
     # meshtool version
+    version("oc16.0", commit="867431d6bde35ad41104f611aa57130ef58cfb79")
     version("oc15.0", commit="867431d6bde35ad41104f611aa57130ef58cfb79")
     version("oc13.0", commit="867431d6bde35ad41104f611aa57130ef58cfb79")
     version("oc12.0", commit="867431d6bde35ad41104f611aa57130ef58cfb79")

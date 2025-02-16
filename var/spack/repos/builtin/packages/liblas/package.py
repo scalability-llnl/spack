@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -37,22 +36,22 @@ class Liblas(CMakePackage):
 
     def cmake_args(self):
         args = []
-        if "+endian" in self.spec:
+        if self.spec.satisfies("+endian"):
             args.append("-DWITH_ENDIANAWARE=ON")
         else:
             args.append("-DWITH_ENDIANAWARE=OFF")
 
-        if "+gdal" in self.spec:
+        if self.spec.satisfies("+gdal"):
             args.append("-DWITH_GDAL=ON")
         else:
             args.append("-DWITH_GDAL=OFF")
 
-        if "+geotiff" in self.spec:
+        if self.spec.satisfies("+geotiff"):
             args.append("-DWITH_GEOTIFF=ON")
         else:
             args.append("-DWITH_GEOTIFF=OFF")
 
-        if "+laszip" in self.spec:
+        if self.spec.satisfies("+laszip"):
             args.append("-DWITH_LASZIP=ON")
         else:
             args.append("-DWITH_LASZIP=OFF")

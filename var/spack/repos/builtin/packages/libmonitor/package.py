@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -64,10 +63,10 @@ class Libmonitor(AutotoolsPackage):
     def configure_args(self):
         args = []
 
-        if "+hpctoolkit" in self.spec:
+        if self.spec.satisfies("+hpctoolkit"):
             args.append("--enable-client-signals=%s" % self.signals)
 
-        if "+dlopen" in self.spec:
+        if self.spec.satisfies("+dlopen"):
             args.append("--enable-dlfcn")
         else:
             args.append("--disable-dlfcn")

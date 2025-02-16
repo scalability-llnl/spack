@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,7 @@ class Edm4hep(CMakePackage):
     license("Apache-2.0")
 
     version("main", branch="main")
+    version("0.99.1", sha256="84d990f09dbd0ad2198596c0c51238a4b15391f51febfb15dd3d191dc7aae9f4")
     version("0.99", sha256="3636e8c14474237029bf1a8be11c53b57ad3ed438fd70a7e9b87c5d08f1f2ea6")
     version("0.10.5", sha256="003c8e0c8e1d1844592d43d41384f4320586fbfa51d4d728ae0870b9c4f78d81")
     version(
@@ -51,13 +51,20 @@ class Edm4hep(CMakePackage):
 
     depends_on("cxx", type="build")  # generated
 
-    _cxxstd_values = ("17", "20")
+    _cxxstd_values = (conditional("17", when="@:0.99.0"), conditional("20", when="@0.10:"))
     variant(
         "cxxstd",
-        default="17",
+        default="20",
         values=_cxxstd_values,
         multi=False,
         description="Use the specified C++ standard when building.",
+    )
+
+    variant(
+        "json",
+        default=True,
+        description="Build edm4hep with JSON support and edm4hep2json",
+        when="@0.99.2:",
     )
 
     depends_on("cmake@3.3:", type="build")
@@ -65,11 +72,14 @@ class Edm4hep(CMakePackage):
     depends_on("python", type="build")
 
     depends_on("root@6.08:")
-    depends_on("nlohmann-json@3.10.5:")
+    depends_on("nlohmann-json@3.10.5:", when="@0.99.2: +json")
+    depends_on("nlohmann-json@3.10.5:", when="@:0.99.1")
     depends_on("podio@1:", when="@0.99:")
     depends_on("podio@0.15:", when="@:0.10.5")
+    depends_on("podio@:1.1", when="@:0.99.0")
     for _std in _cxxstd_values:
-        depends_on("podio cxxstd=" + _std, when="cxxstd=" + _std)
+        for _v in _std:
+            depends_on(f"podio cxxstd={_v.value}", when=f"cxxstd={_v.value}")
 
     depends_on("py-jinja2", type="build")
     depends_on("py-pyyaml", type="build")
@@ -81,11 +91,14 @@ class Edm4hep(CMakePackage):
     # Corresponding changes in EDM4hep landed with https://github.com/key4hep/EDM4hep/pull/314
     extends("python", when="@0.10.6:")
 
+    conflicts("%clang@:16", when="@0.99.1:", msg="Incomplete consteval support in clang")
+
     def cmake_args(self):
-        args = []
-        # C++ Standard
-        args.append(self.define("CMAKE_CXX_STANDARD", self.spec.variants["cxxstd"].value))
-        args.append(self.define("BUILD_TESTING", self.run_tests))
+        args = [
+            self.define_from_variant("CMAKE_CXX_STANDARD", "cxxstd"),
+            self.define("BUILD_TESTING", self.run_tests),
+            self.define_from_variant("EDM4HEP_WITH_JSON", "json"),
+        ]
         return args
 
     def setup_run_environment(self, env):

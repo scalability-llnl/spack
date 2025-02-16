@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import argparse
@@ -17,20 +16,16 @@ from llnl.util.lang import elide_list, stable_partition
 
 import spack.binary_distribution as bindist
 import spack.cmd
+import spack.concretize
 import spack.config
 import spack.deptypes as dt
 import spack.environment as ev
 import spack.error
-import spack.mirror
+import spack.mirrors.mirror
 import spack.oci.oci
-import spack.oci.opener
-import spack.relocate
-import spack.repo
 import spack.spec
 import spack.stage
 import spack.store
-import spack.user_environment
-import spack.util.crypto
 import spack.util.parallel
 import spack.util.url as url_util
 import spack.util.web as web_util
@@ -38,6 +33,8 @@ from spack import traverse
 from spack.cmd import display_specs
 from spack.cmd.common import arguments
 from spack.spec import Spec, save_dependency_specfiles
+
+from ..enums import InstallRecordStatus
 
 description = "create, download and install binary packages"
 section = "packaging"
@@ -313,7 +310,10 @@ def setup_parser(subparser: argparse.ArgumentParser):
 
 def _matching_specs(specs: List[Spec]) -> List[Spec]:
     """Disambiguate specs and return a list of matching specs"""
-    return [spack.cmd.disambiguate_spec(s, ev.active_environment(), installed=any) for s in specs]
+    return [
+        spack.cmd.disambiguate_spec(s, ev.active_environment(), installed=InstallRecordStatus.ANY)
+        for s in specs
+    ]
 
 
 def _format_spec(spec: Spec) -> str:
@@ -392,7 +392,7 @@ def push_fn(args):
         roots = spack.cmd.require_active_env(cmd_name="buildcache push").concrete_roots()
 
     mirror = args.mirror
-    assert isinstance(mirror, spack.mirror.Mirror)
+    assert isinstance(mirror, spack.mirrors.mirror.Mirror)
 
     push_url = mirror.push_url
 
@@ -555,8 +555,7 @@ def check_fn(args: argparse.Namespace):
         tty.msg("No specs provided, exiting.")
         return
 
-    for spec in specs:
-        spec.concretize()
+    specs = [spack.concretize.concretize_one(s) for s in specs]
 
     # Next see if there are any configured binary mirrors
     configured_mirrors = spack.config.get("mirrors", scope=args.scope)
@@ -624,7 +623,7 @@ def save_specfile_fn(args):
     root = specs[0]
 
     if not root.concrete:
-        root.concretize()
+        root = spack.concretize.concretize_one(root)
 
     save_dependency_specfiles(
         root, args.specfile_dir, dependencies=spack.cmd.parse_specs(args.specs)
@@ -731,7 +730,7 @@ def manifest_copy(manifest_file_list, dest_mirror=None):
     deduped_manifest = {}
 
     for manifest_path in manifest_file_list:
-        with open(manifest_path) as fd:
+        with open(manifest_path, encoding="utf-8") as fd:
             manifest = json.loads(fd.read())
             for spec_hash, copy_list in manifest.items():
                 # Last duplicate hash wins
@@ -750,7 +749,7 @@ def manifest_copy(manifest_file_list, dest_mirror=None):
             copy_buildcache_file(copy_file["src"], dest)
 
 
-def update_index(mirror: spack.mirror.Mirror, update_keys=False):
+def update_index(mirror: spack.mirrors.mirror.Mirror, update_keys=False):
     # Special case OCI images for now.
     try:
         image_ref = spack.oci.oci.image_from_mirror(mirror)

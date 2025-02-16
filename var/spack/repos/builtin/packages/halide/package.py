@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -118,7 +117,7 @@ class Halide(CMakePackage, PythonExtension):
         for target in llvm_targets:
             args += [self.define("TARGET_{0}".format(target[0]), target[1])]
 
-        if "+python" in spec:
+        if spec.satisfies("+python"):
             args += [
                 self.define("PYBIND11_USE_FETCHCONTENT", False),
                 self.define("Halide_INSTALL_PYTHONDIR", python_platlib),

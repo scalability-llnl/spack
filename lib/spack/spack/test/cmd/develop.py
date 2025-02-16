@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -9,9 +8,14 @@ import pytest
 
 import llnl.util.filesystem as fs
 
+import spack.concretize
 import spack.config
 import spack.environment as ev
+import spack.package_base
 import spack.spec
+import spack.stage
+import spack.util.git
+import spack.util.path
 from spack.main import SpackCommand
 
 add = SpackCommand("add")
@@ -60,6 +64,12 @@ class TestDevelop:
         with ev.read("test") as e:
             develop("--no-clone", "-p", str(tmpdir), "mpich@1.0")
             self.check_develop(e, spack.spec.Spec("mpich@=1.0"), str(tmpdir))
+
+    def test_develop_no_version(self, tmpdir):
+        env("create", "test")
+        with ev.read("test") as e:
+            develop("--no-clone", "-p", str(tmpdir), "mpich")
+            self.check_develop(e, spack.spec.Spec("mpich@=main"), str(tmpdir))
 
     def test_develop(self):
         env("create", "test")
@@ -129,7 +139,8 @@ class TestDevelop:
             self.check_develop(e, spack.spec.Spec("mpich@=1.0"), path)
 
             # Check modifications actually worked
-            assert spack.spec.Spec("mpich@1.0").concretized().satisfies("dev_path=%s" % abspath)
+            result = spack.concretize.concretize_one("mpich@1.0")
+            assert result.satisfies("dev_path=%s" % abspath)
 
     def test_develop_canonicalize_path_no_args(self, monkeypatch):
         env("create", "test")
@@ -156,7 +167,8 @@ class TestDevelop:
             self.check_develop(e, spack.spec.Spec("mpich@=1.0"), path)
 
             # Check modifications actually worked
-            assert spack.spec.Spec("mpich@1.0").concretized().satisfies("dev_path=%s" % abspath)
+            result = spack.concretize.concretize_one("mpich@1.0")
+            assert result.satisfies("dev_path=%s" % abspath)
 
 
 def _git_commit_list(git_repo_dir):
@@ -181,7 +193,7 @@ def test_develop_full_git_repo(
         spack.package_base.PackageBase, "git", "file://%s" % repo_path, raising=False
     )
 
-    spec = spack.spec.Spec("git-test-commit@1.2").concretized()
+    spec = spack.concretize.concretize_one("git-test-commit@1.2")
     try:
         spec.package.do_stage()
         commits = _git_commit_list(spec.package.stage[0].source_path)
@@ -204,3 +216,22 @@ def test_develop_full_git_repo(
         develop_dir = spec.variants["dev_path"].value
         commits = _git_commit_list(develop_dir)
         assert len(commits) > 1
+
+
+def test_concretize_dev_path_with_at_symbol_in_env(mutable_mock_env_path, tmpdir, mock_packages):
+    spec_like = "develop-test@develop"
+
+    develop_dir = tmpdir.mkdir("build@location")
+    env("create", "test_at_sym")
+
+    with ev.read("test_at_sym") as e:
+        add(spec_like)
+        develop(f"--path={develop_dir}", spec_like)
+        e.concretize()
+        result = e.concrete_roots()
+
+        assert len(result) == 1
+        cspec = result[0]
+        assert cspec.satisfies(spec_like), cspec
+        assert cspec.is_develop, cspec
+        assert develop_dir in cspec.variants["dev_path"], cspec

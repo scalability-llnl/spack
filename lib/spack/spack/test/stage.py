@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,9 +16,9 @@ import pytest
 from llnl.util.filesystem import getuid, mkdirp, partition_path, touch, working_dir
 from llnl.util.symlink import readlink
 
+import spack.config
 import spack.error
 import spack.fetch_strategy
-import spack.paths
 import spack.stage
 import spack.util.executable
 import spack.util.url as url_util
@@ -125,8 +124,8 @@ def check_expand_archive(stage, stage_name, expected_file_list):
             assert False
 
         assert os.path.isfile(fn)
-        with open(fn) as _file:
-            _file.read() == contents
+        with open(fn, encoding="utf-8") as _file:
+            assert _file.read() == contents
 
 
 def check_fetch(stage, stage_name):
@@ -581,7 +580,7 @@ class TestStage:
                 check_expand_archive(stage, self.stage_name, [_include_readme])
 
                 # Try to make a file in the old archive dir
-                with open("foobar", "w") as file:
+                with open("foobar", "w", encoding="utf-8") as file:
                     file.write("this file is to be destroyed.")
 
             assert "foobar" in os.listdir(stage.source_path)
@@ -804,7 +803,7 @@ def _create_files_from_tree(base, tree):
             _create_files_from_tree(sub_base, content)
         else:
             assert (content is None) or (isinstance(content, str))
-            with open(sub_base, "w") as f:
+            with open(sub_base, "w", encoding="utf-8") as f:
                 if content:
                     f.write(content)
 
@@ -819,7 +818,7 @@ def _create_tree_from_dir_recursive(path):
             tree[name] = _create_tree_from_dir_recursive(sub_path)
         return tree
     else:
-        with open(path, "r") as f:
+        with open(path, "r", encoding="utf-8") as f:
             content = f.read() or None
         return content
 
@@ -836,7 +835,7 @@ def develop_path(tmpdir):
 class TestDevelopStage:
     def test_sanity_check_develop_path(self, develop_path):
         _, srcdir = develop_path
-        with open(os.path.join(srcdir, "a1", "b2")) as f:
+        with open(os.path.join(srcdir, "a1", "b2"), encoding="utf-8") as f:
             assert f.read() == "b1content"
 
         assert os.path.exists(os.path.join(srcdir, "a2"))

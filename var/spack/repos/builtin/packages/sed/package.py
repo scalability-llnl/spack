@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -44,8 +43,7 @@ class Sed(AutotoolsPackage, GNUMirrorPackage):
         return match.group(1) if match else None
 
     def flag_handler(self, name, flags):
-        iflags = []
         if name == "cflags":
             if self.spec.satisfies("%oneapi@2023.0.0:"):
-                iflags.append("-Wno-error=incompatible-function-pointer-types")
-        return (iflags, None, None)
+                flags.append("-Wno-error=incompatible-function-pointer-types")
+        return (flags, None, None)

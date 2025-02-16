@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -76,7 +75,7 @@ class Mptensor(CMakePackage):
             print("Skipping copy of stand-alone test files: requires +mpi build")
             return
 
-        self.cache_extra_test_sources(".")
+        cache_extra_test_sources(self, ".")
 
         # Clean cached makefiles now so only done once
         print("Converting cached Makefile for stand-alone test use")

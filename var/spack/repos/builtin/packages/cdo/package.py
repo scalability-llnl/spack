@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,16 @@ class Cdo(AutotoolsPackage):
 
     maintainers("skosukhin", "Try2Code")
 
+    version(
+        "2.5.0",
+        sha256="e865c05c1b52fd76b80e33421554db81b38b75210820bdc40e8690f4552f68e2",
+        url="https://code.mpimet.mpg.de/attachments/download/29786/cdo-2.5.0.tar.gz",
+    )
+    version(
+        "2.4.4",
+        sha256="49f50bd18dacd585e9518cfd4f55548f692426edfb3b27ddcd1c653eab53d063",
+        url="https://code.mpimet.mpg.de/attachments/download/29649/cdo-2.4.4.tar.gz",
+    )
     version(
         "2.4.3",
         sha256="4a608b70ee1907b45e149ad44033bb47d35b7da96096553193bd362ca9d445eb",
@@ -169,6 +178,20 @@ class Cdo(AutotoolsPackage):
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
     depends_on("fortran", type="build")  # generated
+
+    # patches
+    # see https://code.mpimet.mpg.de/boards/1/topics/15594
+    patch(
+        "add_algorithm_header.patch",
+        when="@2.4.0:2.4.2 %gcc@14:",
+        sha256="0bc20d2fcb14d8e4010d4222297f259eb7b4220effd97555ed3f027e63cf8b30",
+    )
+    patch(
+        "add_algorithm_header_222.patch",
+        when="@2.2.2:2.3.0 %gcc@14:",
+        sha256="db0d9bd32bbee01d914c1dbebd751403e9c918fafd540fd6ecc6a2f27e0900cf",
+    )
+    conflicts("%gcc@14:", when="@:2.2.0", msg="Compilation with gcc@14: requires cdo@2.2.2:")
 
     variant("netcdf", default=True, description="Enable NetCDF support")
     variant(

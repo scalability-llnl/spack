@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 # adapted from official quantum espresso package
@@ -58,8 +57,6 @@ class QESirius(CMakePackage):
     depends_on("lapack")
     depends_on("git", type="build")
     depends_on("pkgconfig", type="build")
-
-    conflicts("~scalapack", when="+elpa", msg="ELPA requires SCALAPACK support")
 
     variant("scalapack", default=True, description="Enables scalapack support")
 

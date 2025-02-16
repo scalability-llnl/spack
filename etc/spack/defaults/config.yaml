@@ -115,12 +115,6 @@ config:
   suppress_gpg_warnings: false
 
 
-  # If set to true, Spack will attempt to build any compiler on the spec
-  # that is not already available. If set to False, Spack will only use
-  # compilers already configured in compilers.yaml
-  install_missing_compilers: false
-
-
   # If set to true, Spack will always check checksums after downloading
   # archives. If false, Spack skips the checksum step.
   checksum: true
@@ -199,6 +193,12 @@ config:
     # binaries to avoid runtime search. This can improve startup time of
     # executables with many dependencies, in particular on slow filesystems.
     bind: false
+
+    # Controls the handling of missing dynamic libraries after installation.
+    # Options are ignore (default), warn, or error. If set to error, the
+    # installation fails if installed binaries reference dynamic libraries that
+    # are not found in their specified rpaths.
+    missing_library_policy: ignore
 
 
   # Set to 'false' to allow installation on filesystems that doesn't allow setgid bit

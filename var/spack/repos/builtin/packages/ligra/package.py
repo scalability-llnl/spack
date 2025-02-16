@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -30,7 +29,7 @@ class Ligra(MakefilePackage):
     depends_on("mkl", when="+mkl")
 
     def setup_build_environment(self, env):
-        if "+openmp" in self.spec:
+        if self.spec.satisfies("+openmp"):
             env.set("OPENMP", "1")
         # when +mkl, MKLROOT will be defined by intel-mkl package,
         # triggering a build with mkl support

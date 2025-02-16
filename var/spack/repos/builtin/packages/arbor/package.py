@@ -1,8 +1,7 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
+from spack.build_environment import optimization_flags
 from spack.package import *
 
 
@@ -110,21 +109,23 @@ class Arbor(CMakePackage, CudaPackage):
         return ["all", "html"] if "+doc" in self.spec else ["all"]
 
     def cmake_args(self):
+        spec = self.spec
         args = [
             self.define_from_variant("ARB_WITH_ASSERTIONS", "assertions"),
             self.define_from_variant("ARB_WITH_MPI", "mpi"),
             self.define_from_variant("ARB_WITH_PYTHON", "python"),
             self.define_from_variant("ARB_VECTORIZE", "vectorize"),
+            self.define("ARB_ARCH", "none"),
+            self.define("ARB_CXX_FLAGS_TARGET", optimization_flags(self.compiler, spec.target)),
         ]
 
         if self.spec.satisfies("+cuda"):
-            args.append("-DARB_GPU=cuda")
-            args.append(self.define_from_variant("ARB_USE_GPU_RNG", "gpu_rng"))
-
-        # query spack for the architecture-specific compiler flags set by its wrapper
-        args.append("-DARB_ARCH=none")
-        opt_flags = self.spec.architecture.target.optimization_flags(self.spec.compiler)
-        args.append("-DARB_CXX_FLAGS_TARGET=" + opt_flags)
+            args.extend(
+                [
+                    self.define("ARB_GPU", "cuda"),
+                    self.define_from_variant("ARB_USE_GPU_RNG", "gpu_rng"),
+                ]
+            )
 
         return args
 

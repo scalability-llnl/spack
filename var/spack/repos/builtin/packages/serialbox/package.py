@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,7 @@ class Serialbox(CMakePackage):
 
     license("BSD-2-Clause")
 
+    version("2.6.2", sha256="d1b4c79078e3b1d4a45b7b024eb647d21873498ac666e41a5ee8b8e13c95a7ac")
     version("2.6.1", sha256="b795ce576e8c4fd137e48e502b07b136079c595c82c660cfa2e284b0ef873342")
     version("2.6.0", sha256="9199f8637afbd7f2b3c5ba932d1c63e9e14d553a0cafe6c29107df0e04ee9fae")
     version("2.5.4", sha256="f4aee8ef284f58e6847968fe4620e222ac7019d805bbbb26c199e4b6a5094fee")
@@ -45,9 +45,6 @@ class Serialbox(CMakePackage):
     )
 
     depends_on("cmake@3.12:", type="build")
-    # We might be provided with an external vanilla cmake, and we need one with
-    # with https://gitlab.kitware.com/cmake/cmake/-/merge_requests/5025
-    depends_on("cmake@3.19:", when="%pgi", type="build")
 
     depends_on("boost@1.54:", type="build")
     depends_on("boost+filesystem+system", when="~std-filesystem", type=("build", "link"))
@@ -134,7 +131,7 @@ class Serialbox(CMakePackage):
             return libs
 
         msg = "Unable to recursively locate {0} libraries in {1}"
-        raise spack.error.NoLibrariesError(msg.format(self.spec.name, self.spec.prefix))
+        raise NoLibrariesError(msg.format(self.spec.name, self.spec.prefix))
 
     def flag_handler(self, name, flags):
         cmake_flags = []
@@ -147,10 +144,7 @@ class Serialbox(CMakePackage):
             # undefined reference to
             #     `std::experimental::filesystem::v1::__cxx11::path::
             #         _M_find_extension[abi:cxx11]() const'
-            if any(
-                self.spec.satisfies("{0}+std-filesystem".format(x))
-                for x in ["%intel@:19.0.1", "%pgi@:19.9"]
-            ):
+            if self.spec.satisfies("%intel@:19.0.1+std-filesystem"):
                 cmake_flags.append("-D_GLIBCXX_USE_CXX11_ABI=0")
 
         return flags, None, (cmake_flags or None)

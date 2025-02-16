@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,8 @@ class Random123(Package):
 
     homepage = "https://www.deshawresearch.com/resources_random123.html"
     url = "https://github.com/DEShawResearch/random123/archive/refs/tags/v1.14.0.tar.gz"
+
+    maintainers("KineticTheory")
 
     version("1.14.0", sha256="effafd8656b18030b2a5b995cd3650c51a7c45052e6e1c21e48b9fa7a59d926e")
     version(
@@ -39,6 +40,7 @@ class Random123(Package):
     patch("ibmxl.patch", when="@1.09")
     patch("arm-gcc.patch", when="@1.09")
     patch("v1132-xl161.patch", when="@1.13.2")
+    patch("v1140-hip.patch", when="@1.14.0")
 
     def install(self, spec, prefix):
         # Random123 doesn't have a build system.

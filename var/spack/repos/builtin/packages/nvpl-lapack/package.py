@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,7 @@ class NvplLapack(Package):
 
     license("UNKNOWN")
 
+    version("0.3.0", sha256="41cc18fc52f6869747b4185a96e34de93a53eb9d6aa95aab07082958055161b0")
     version("0.2.3.1", sha256="25927df133c5486fd71d5976c93917c96e62275a78dffc354bcaf1b022f56f8e")
     version("0.2.2.1", sha256="cdfbf69517a044e99e3e6231c8b2f4e845fd0de57775ccad6b4b0b4fe7e91e84")
     version("0.2.0.1", sha256="7054f775b18916ee662c94ad7682ace53debbe8ee36fa926000fe412961edb0b")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,13 +26,6 @@ class SlurmDrmaa(AutotoolsPackage):
     version("1.1.2", sha256="5bfe25d501de83729df3c8c8f28535b9da3e99aea7738e259903abd6f1f5c836")
 
     depends_on("c", type="build")  # generated
-
-    # Remove this patch when it is merged into main:
-    patch(
-        "https://github.com/natefoo/slurm-drmaa/pull/62.patch?full_index=1",
-        sha256="ec8d2963c731f7054f7d3c130232e731bc92366280100e108d93a3685fddfca7",
-        when="@main",
-    )
 
     depends_on("autoconf", type="build", when="@main")
     depends_on("automake", type="build", when="@main")

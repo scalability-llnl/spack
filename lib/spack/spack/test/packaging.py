@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,25 +20,19 @@ from llnl.util.symlink import readlink, symlink
 
 import spack.binary_distribution as bindist
 import spack.cmd.buildcache as buildcache
+import spack.concretize
+import spack.config
 import spack.error
 import spack.fetch_strategy
+import spack.mirrors.utils
 import spack.package_base
-import spack.repo
-import spack.store
+import spack.stage
 import spack.util.gpg
 import spack.util.url as url_util
 from spack.fetch_strategy import URLFetchStrategy
+from spack.installer import PackageInstaller
 from spack.paths import mock_gpg_keys_path
-from spack.relocate import (
-    macho_find_paths,
-    macho_make_paths_normal,
-    macho_make_paths_relative,
-    needs_binary_relocation,
-    needs_text_relocation,
-    relocate_links,
-    relocate_text,
-)
-from spack.spec import Spec
+from spack.relocate import _macho_find_paths, relocate_links, relocate_text
 
 pytestmark = pytest.mark.not_on_windows("does not run on windows")
 
@@ -47,9 +40,9 @@ pytestmark = pytest.mark.not_on_windows("does not run on windows")
 @pytest.mark.usefixtures("install_mockery", "mock_gnupghome")
 def test_buildcache(mock_archive, tmp_path, monkeypatch, mutable_config):
     # Install a test package
-    spec = Spec("trivial-install-test-package").concretized()
+    spec = spack.concretize.concretize_one("trivial-install-test-package")
     monkeypatch.setattr(spec.package, "fetcher", URLFetchStrategy(url=mock_archive.url))
-    spec.package.do_install()
+    PackageInstaller([spec.package], explicit=True).install()
     pkghash = "/" + str(spec.dag_hash(7))
 
     # Put some non-relocatable file in there
@@ -62,7 +55,7 @@ def test_buildcache(mock_archive, tmp_path, monkeypatch, mutable_config):
 
     # Create the build cache and put it directly into the mirror
     mirror_path = str(tmp_path / "test-mirror")
-    spack.mirror.create(mirror_path, specs=[])
+    spack.mirrors.utils.create(mirror_path, specs=[])
 
     # register mirror with spack config
     mirrors = {"spack-mirror-test": url_util.path_to_file_url(mirror_path)}
@@ -191,16 +184,6 @@ def test_relocate_links(tmpdir):
         assert readlink("to_self_but_relative") == "relative"
 
 
-def test_needs_relocation():
-    assert needs_binary_relocation("application", "x-sharedlib")
-    assert needs_binary_relocation("application", "x-executable")
-    assert not needs_binary_relocation("application", "x-octet-stream")
-    assert not needs_binary_relocation("text", "x-")
-    assert needs_text_relocation("text", "x-")
-    assert not needs_text_relocation("symbolic link to", "x-")
-    assert needs_binary_relocation("application", "x-mach-binary")
-
-
 def test_replace_paths(tmpdir):
     with tmpdir.as_cwd():
         suffix = "dylib" if platform.system().lower() == "darwin" else "so"
@@ -254,7 +237,7 @@ def test_replace_paths(tmpdir):
         ]
 
         for old_libname in old_libnames:
-            with open(old_libname, "a"):
+            with open(old_libname, "a", encoding="utf-8"):
                 os.utime(old_libname, None)
 
         hash2prefix = dict()
@@ -297,14 +280,14 @@ def test_replace_paths(tmpdir):
         ]
 
         for new_libname in new_libnames:
-            with open(new_libname, "a"):
+            with open(new_libname, "a", encoding="utf-8"):
                 os.utime(new_libname, None)
 
         prefix2prefix = dict()
         for prefix, hash in prefix2hash.items():
             prefix2prefix[prefix] = hash2prefix[hash]
 
-        out_dict = macho_find_paths(
+        out_dict = _macho_find_paths(
             [oldlibdir_a, oldlibdir_b, oldlibdir_c, oldlibdir_cc, oldlibdir_local],
             [
                 os.path.join(oldlibdir_a, libfile_a),
@@ -312,7 +295,6 @@ def test_replace_paths(tmpdir):
                 os.path.join(oldlibdir_local, libfile_loco),
             ],
             os.path.join(oldlibdir_cc, libfile_c),
-            old_spack_dir,
             prefix2prefix,
         )
         assert out_dict == {
@@ -327,7 +309,7 @@ def test_replace_paths(tmpdir):
             os.path.join(oldlibdir_cc, libfile_c): os.path.join(libdir_cc, libfile_c),
         }
 
-        out_dict = macho_find_paths(
+        out_dict = _macho_find_paths(
             [oldlibdir_a, oldlibdir_b, oldlibdir_c, oldlibdir_cc, oldlibdir_local],
             [
                 os.path.join(oldlibdir_a, libfile_a),
@@ -336,7 +318,6 @@ def test_replace_paths(tmpdir):
                 os.path.join(oldlibdir_local, libfile_loco),
             ],
             None,
-            old_spack_dir,
             prefix2prefix,
         )
         assert out_dict == {
@@ -351,7 +332,7 @@ def test_replace_paths(tmpdir):
             os.path.join(oldlibdir_cc, libfile_c): os.path.join(libdir_cc, libfile_c),
         }
 
-        out_dict = macho_find_paths(
+        out_dict = _macho_find_paths(
             [oldlibdir_a, oldlibdir_b, oldlibdir_c, oldlibdir_cc, oldlibdir_local],
             [
                 f"@rpath/{libfile_a}",
@@ -360,7 +341,6 @@ def test_replace_paths(tmpdir):
                 f"@rpath/{libfile_loco}",
             ],
             None,
-            old_spack_dir,
             prefix2prefix,
         )
 
@@ -376,11 +356,10 @@ def test_replace_paths(tmpdir):
             libdir_local: libdir_local,
         }
 
-        out_dict = macho_find_paths(
+        out_dict = _macho_find_paths(
             [oldlibdir_a, oldlibdir_b, oldlibdir_d, oldlibdir_local],
             [f"@rpath/{libfile_a}", f"@rpath/{libfile_b}", f"@rpath/{libfile_loco}"],
             None,
-            old_spack_dir,
             prefix2prefix,
         )
         assert out_dict == {
@@ -392,91 +371,6 @@ def test_replace_paths(tmpdir):
             oldlibdir_d: libdir_d,
             libdir_local: libdir_local,
         }
-
-
-def test_macho_make_paths():
-    out = macho_make_paths_relative(
-        "/Users/Shared/spack/pkgC/lib/libC.dylib",
-        "/Users/Shared/spack",
-        ("/Users/Shared/spack/pkgA/lib", "/Users/Shared/spack/pkgB/lib", "/usr/local/lib"),
-        (
-            "/Users/Shared/spack/pkgA/libA.dylib",
-            "/Users/Shared/spack/pkgB/libB.dylib",
-            "/usr/local/lib/libloco.dylib",
-        ),
-        "/Users/Shared/spack/pkgC/lib/libC.dylib",
-    )
-    assert out == {
-        "/Users/Shared/spack/pkgA/lib": "@loader_path/../../pkgA/lib",
-        "/Users/Shared/spack/pkgB/lib": "@loader_path/../../pkgB/lib",
-        "/usr/local/lib": "/usr/local/lib",
-        "/Users/Shared/spack/pkgA/libA.dylib": "@loader_path/../../pkgA/libA.dylib",
-        "/Users/Shared/spack/pkgB/libB.dylib": "@loader_path/../../pkgB/libB.dylib",
-        "/usr/local/lib/libloco.dylib": "/usr/local/lib/libloco.dylib",
-        "/Users/Shared/spack/pkgC/lib/libC.dylib": "@rpath/libC.dylib",
-    }
-
-    out = macho_make_paths_normal(
-        "/Users/Shared/spack/pkgC/lib/libC.dylib",
-        ("@loader_path/../../pkgA/lib", "@loader_path/../../pkgB/lib", "/usr/local/lib"),
-        (
-            "@loader_path/../../pkgA/libA.dylib",
-            "@loader_path/../../pkgB/libB.dylib",
-            "/usr/local/lib/libloco.dylib",
-        ),
-        "@rpath/libC.dylib",
-    )
-
-    assert out == {
-        "@rpath/libC.dylib": "/Users/Shared/spack/pkgC/lib/libC.dylib",
-        "@loader_path/../../pkgA/lib": "/Users/Shared/spack/pkgA/lib",
-        "@loader_path/../../pkgB/lib": "/Users/Shared/spack/pkgB/lib",
-        "/usr/local/lib": "/usr/local/lib",
-        "@loader_path/../../pkgA/libA.dylib": "/Users/Shared/spack/pkgA/libA.dylib",
-        "@loader_path/../../pkgB/libB.dylib": "/Users/Shared/spack/pkgB/libB.dylib",
-        "/usr/local/lib/libloco.dylib": "/usr/local/lib/libloco.dylib",
-    }
-
-    out = macho_make_paths_relative(
-        "/Users/Shared/spack/pkgC/bin/exeC",
-        "/Users/Shared/spack",
-        ("/Users/Shared/spack/pkgA/lib", "/Users/Shared/spack/pkgB/lib", "/usr/local/lib"),
-        (
-            "/Users/Shared/spack/pkgA/libA.dylib",
-            "/Users/Shared/spack/pkgB/libB.dylib",
-            "/usr/local/lib/libloco.dylib",
-        ),
-        None,
-    )
-
-    assert out == {
-        "/Users/Shared/spack/pkgA/lib": "@loader_path/../../pkgA/lib",
-        "/Users/Shared/spack/pkgB/lib": "@loader_path/../../pkgB/lib",
-        "/usr/local/lib": "/usr/local/lib",
-        "/Users/Shared/spack/pkgA/libA.dylib": "@loader_path/../../pkgA/libA.dylib",
-        "/Users/Shared/spack/pkgB/libB.dylib": "@loader_path/../../pkgB/libB.dylib",
-        "/usr/local/lib/libloco.dylib": "/usr/local/lib/libloco.dylib",
-    }
-
-    out = macho_make_paths_normal(
-        "/Users/Shared/spack/pkgC/bin/exeC",
-        ("@loader_path/../../pkgA/lib", "@loader_path/../../pkgB/lib", "/usr/local/lib"),
-        (
-            "@loader_path/../../pkgA/libA.dylib",
-            "@loader_path/../../pkgB/libB.dylib",
-            "/usr/local/lib/libloco.dylib",
-        ),
-        None,
-    )
-
-    assert out == {
-        "@loader_path/../../pkgA/lib": "/Users/Shared/spack/pkgA/lib",
-        "@loader_path/../../pkgB/lib": "/Users/Shared/spack/pkgB/lib",
-        "/usr/local/lib": "/usr/local/lib",
-        "@loader_path/../../pkgA/libA.dylib": "/Users/Shared/spack/pkgA/libA.dylib",
-        "@loader_path/../../pkgB/libB.dylib": "/Users/Shared/spack/pkgB/libB.dylib",
-        "/usr/local/lib/libloco.dylib": "/usr/local/lib/libloco.dylib",
-    }
 
 
 @pytest.fixture()
@@ -547,3 +441,31 @@ def test_fetch_external_package_is_noop(default_mock_concretization, fetching_no
     spec.external_path = "/some/where"
     assert spec.external
     spec.package.do_fetch()
+
+
+@pytest.mark.parametrize(
+    "relocation_dict",
+    [
+        {"/foo/bar/baz": "/a/b/c", "/foo/bar": "/a/b"},
+        # Ensure correctness does not depend on the ordering of the dict
+        {"/foo/bar": "/a/b", "/foo/bar/baz": "/a/b/c"},
+    ],
+)
+def test_macho_relocation_with_changing_projection(relocation_dict):
+    """Tests that prefix relocation is computed correctly when the prefixes to be relocated
+    contain a directory and its subdirectories.
+
+    This happens when relocating to a new place AND changing the store projection. In that case we
+    might have a relocation dict like:
+
+    /foo/bar/baz/ -> /a/b/c
+    /foo/bar -> /a/b
+
+    What we need to check is that we don't end up in situations where we relocate to a mixture of
+    the two schemes, like /a/b/baz.
+    """
+    original_rpath = "/foo/bar/baz/abcdef"
+    result = _macho_find_paths(
+        [original_rpath], deps=[], idpath=None, prefix_to_prefix=relocation_dict
+    )
+    assert result[original_rpath] == "/a/b/c/abcdef"

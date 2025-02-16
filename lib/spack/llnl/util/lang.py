@@ -1,18 +1,20 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import collections.abc
 import contextlib
+import fnmatch
 import functools
 import itertools
 import os
 import re
 import sys
 import traceback
+import typing
+import warnings
 from datetime import datetime, timedelta
-from typing import Any, Callable, Iterable, List, Tuple
+from typing import Callable, Dict, Iterable, List, Tuple, TypeVar
 
 # Ignore emacs backups when listing modules
 ignore_modules = r"^\.#|~$"
@@ -858,6 +860,21 @@ def elide_list(line_list: List[str], max_num: int = 10) -> List[str]:
     return line_list
 
 
+if sys.version_info >= (3, 9):
+    PatternStr = re.Pattern[str]
+    PatternBytes = re.Pattern[bytes]
+else:
+    PatternStr = typing.Pattern[str]
+    PatternBytes = typing.Pattern[bytes]
+
+
+def fnmatch_translate_multiple(named_patterns: Dict[str, str]) -> str:
+    """Similar to ``fnmatch.translate``, but takes an ordered dictionary where keys are pattern
+    names, and values are filename patterns. The output is a regex that matches any of the
+    patterns in order, and named capture groups are used to identify which pattern matched."""
+    return "|".join(f"(?P<{n}>{fnmatch.translate(p)})" for n, p in named_patterns.items())
+
+
 @contextlib.contextmanager
 def nullcontext(*args, **kwargs):
     """Empty context manager.
@@ -870,18 +887,12 @@ class UnhashableArguments(TypeError):
     """Raise when an @memoized function receives unhashable arg or kwarg values."""
 
 
-def enum(**kwargs):
-    """Return an enum-like class.
-
-    Args:
-        **kwargs: explicit dictionary of enums
-    """
-    return type("Enum", (object,), kwargs)
+T = TypeVar("T")
 
 
 def stable_partition(
-    input_iterable: Iterable, predicate_fn: Callable[[Any], bool]
-) -> Tuple[List[Any], List[Any]]:
+    input_iterable: Iterable[T], predicate_fn: Callable[[T], bool]
+) -> Tuple[List[T], List[T]]:
     """Partition the input iterable according to a custom predicate.
 
     Args:
@@ -893,12 +904,13 @@ def stable_partition(
         Tuple of the list of elements evaluating to True, and
         list of elements evaluating to False.
     """
-    true_items, false_items = [], []
+    true_items: List[T] = []
+    false_items: List[T] = []
     for item in input_iterable:
         if predicate_fn(item):
             true_items.append(item)
-            continue
-        false_items.append(item)
+        else:
+            false_items.append(item)
     return true_items, false_items
 
 
@@ -908,6 +920,21 @@ def ensure_last(lst, *elements):
     Raises ``ValueError`` if any ``elements`` are not already in ``lst``."""
     for elt in elements:
         lst.append(lst.pop(lst.index(elt)))
+
+
+class Const:
+    """Class level constant, raises when trying to set the attribute"""
+
+    __slots__ = ["value"]
+
+    def __init__(self, value):
+        self.value = value
+
+    def __get__(self, instance, owner):
+        return self.value
+
+    def __set__(self, instance, value):
+        raise TypeError(f"Const value does not support assignment [value={self.value}]")
 
 
 class TypedMutableSequence(collections.abc.MutableSequence):
@@ -1014,3 +1041,42 @@ class classproperty:
 
     def __get__(self, instance, owner):
         return self.callback(owner)
+
+
+class DeprecatedProperty:
+    """Data descriptor to error or warn when a deprecated property is accessed.
+
+    Derived classes must define a factory method to return an adaptor for the deprecated
+    property, if the descriptor is not set to error.
+    """
+
+    __slots__ = ["name"]
+
+    #: 0 - Nothing
+    #: 1 - Warning
+    #: 2 - Error
+    error_lvl = 0
+
+    def __init__(self, name: str) -> None:
+        self.name = name
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+
+        if self.error_lvl == 1:
+            warnings.warn(
+                f"accessing the '{self.name}' property of '{instance}', which is deprecated"
+            )
+        elif self.error_lvl == 2:
+            raise AttributeError(f"cannot access the '{self.name}' attribute of '{instance}'")
+
+        return self.factory(instance, owner)
+
+    def __set__(self, instance, value):
+        raise TypeError(
+            f"the deprecated property '{self.name}' of '{instance}' does not support assignment"
+        )
+
+    def factory(self, instance, owner):
+        raise NotImplementedError("must be implemented by derived classes")

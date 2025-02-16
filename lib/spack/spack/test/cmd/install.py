@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import argparse
@@ -17,19 +16,21 @@ import pytest
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
 
+import spack.build_environment
 import spack.cmd.common.arguments
 import spack.cmd.install
-import spack.compilers as compilers
+import spack.concretize
 import spack.config
 import spack.environment as ev
+import spack.error
 import spack.hash_types as ht
+import spack.installer
 import spack.package_base
 import spack.store
-import spack.util.executable
-from spack.error import SpackError
+from spack.error import SpackError, SpecSyntaxError
+from spack.installer import PackageInstaller
 from spack.main import SpackCommand
-from spack.parser import SpecSyntaxError
-from spack.spec import CompilerSpec, Spec
+from spack.spec import Spec
 
 install = SpackCommand("install")
 env = SpackCommand("env")
@@ -134,9 +135,9 @@ def test_package_output(tmpdir, capsys, install_mockery, mock_fetch):
     # we can't use output capture here because it interferes with Spack's
     # logging. TODO: see whether we can get multiple log_outputs to work
     # when nested AND in pytest
-    spec = Spec("printing-package").concretized()
+    spec = spack.concretize.concretize_one("printing-package")
     pkg = spec.package
-    pkg.do_install(verbose=True)
+    PackageInstaller([pkg], explicit=True, verbose=True).install()
 
     with gzip.open(pkg.install_log_path, "rt") as f:
         out = f.read()
@@ -174,7 +175,7 @@ def test_install_output_on_python_error(mock_packages, mock_archive, mock_fetch,
 def test_install_with_source(mock_packages, mock_archive, mock_fetch, install_mockery):
     """Verify that source has been copied into place."""
     install("--source", "--keep-stage", "trivial-install-test-package")
-    spec = Spec("trivial-install-test-package").concretized()
+    spec = spack.concretize.concretize_one("trivial-install-test-package")
     src = os.path.join(spec.prefix.share, "trivial-install-test-package", "src")
     assert filecmp.cmp(
         os.path.join(mock_archive.path, "configure"), os.path.join(src, "configure")
@@ -182,8 +183,7 @@ def test_install_with_source(mock_packages, mock_archive, mock_fetch, install_mo
 
 
 def test_install_env_variables(mock_packages, mock_archive, mock_fetch, install_mockery):
-    spec = Spec("libdwarf")
-    spec.concretize()
+    spec = spack.concretize.concretize_one("libdwarf")
     install("libdwarf")
     assert os.path.isfile(spec.package.install_env_path)
 
@@ -204,8 +204,7 @@ def test_show_log_on_error(mock_packages, mock_archive, mock_fetch, install_mock
 
 def test_install_overwrite(mock_packages, mock_archive, mock_fetch, install_mockery):
     # Try to install a spec and then to reinstall it.
-    spec = Spec("libdwarf")
-    spec.concretize()
+    spec = spack.concretize.concretize_one("libdwarf")
 
     install("libdwarf")
 
@@ -222,7 +221,7 @@ def test_install_overwrite(mock_packages, mock_archive, mock_fetch, install_mock
 
     # Modify the first installation to be sure the content is not the same
     # as the one after we reinstalled
-    with open(os.path.join(spec.prefix, "only_in_old"), "w") as f:
+    with open(os.path.join(spec.prefix, "only_in_old"), "w", encoding="utf-8") as f:
         f.write("This content is here to differentiate installations.")
 
     bad_md5 = fs.hash_directory(spec.prefix, ignore=ignores)
@@ -238,8 +237,7 @@ def test_install_overwrite(mock_packages, mock_archive, mock_fetch, install_mock
 
 def test_install_overwrite_not_installed(mock_packages, mock_archive, mock_fetch, install_mockery):
     # Try to install a spec and then to reinstall it.
-    spec = Spec("libdwarf")
-    spec.concretize()
+    spec = spack.concretize.concretize_one("libdwarf")
 
     assert not os.path.exists(spec.prefix)
 
@@ -260,26 +258,24 @@ def test_install_commit(mock_git_version_info, install_mockery, mock_packages, m
     monkeypatch.setattr(spack.package_base.PackageBase, "git", file_url, raising=False)
 
     # Use the earliest commit in the respository
-    spec = Spec(f"git-test-commit@{commits[-1]}").concretized()
-    spec.package.do_install()
+    spec = spack.concretize.concretize_one(f"git-test-commit@{commits[-1]}")
+    PackageInstaller([spec.package], explicit=True).install()
 
     # Ensure first commit file contents were written
     installed = os.listdir(spec.prefix.bin)
     assert filename in installed
-    with open(spec.prefix.bin.join(filename), "r") as f:
+    with open(spec.prefix.bin.join(filename), "r", encoding="utf-8") as f:
         content = f.read().strip()
     assert content == "[0]"  # contents are weird for another test
 
 
 def test_install_overwrite_multiple(mock_packages, mock_archive, mock_fetch, install_mockery):
     # Try to install a spec and then to reinstall it.
-    libdwarf = Spec("libdwarf")
-    libdwarf.concretize()
+    libdwarf = spack.concretize.concretize_one("libdwarf")
 
     install("libdwarf")
 
-    cmake = Spec("cmake")
-    cmake.concretize()
+    cmake = spack.concretize.concretize_one("cmake")
 
     install("cmake")
 
@@ -306,9 +302,9 @@ def test_install_overwrite_multiple(mock_packages, mock_archive, mock_fetch, ins
 
     # Modify the first installation to be sure the content is not the same
     # as the one after we reinstalled
-    with open(os.path.join(libdwarf.prefix, "only_in_old"), "w") as f:
+    with open(os.path.join(libdwarf.prefix, "only_in_old"), "w", encoding="utf-8") as f:
         f.write("This content is here to differentiate installations.")
-    with open(os.path.join(cmake.prefix, "only_in_old"), "w") as f:
+    with open(os.path.join(cmake.prefix, "only_in_old"), "w", encoding="utf-8") as f:
         f.write("This content is here to differentiate installations.")
 
     bad_libdwarf_md5 = fs.hash_directory(libdwarf.prefix, ignore=ld_ignores)
@@ -337,10 +333,10 @@ def test_install_conflicts(conflict_spec):
 
 
 @pytest.mark.usefixtures("mock_packages", "mock_archive", "mock_fetch", "install_mockery")
-def test_install_invalid_spec(invalid_spec):
+def test_install_invalid_spec():
     # Make sure that invalid specs raise a SpackError
-    with pytest.raises(SpecSyntaxError, match="unexpected tokens"):
-        install(invalid_spec)
+    with pytest.raises(SpecSyntaxError, match="unexpected characters"):
+        install("conflict%~")
 
 
 @pytest.mark.usefixtures("noop_install", "mock_packages", "config")
@@ -355,7 +351,7 @@ def test_install_invalid_spec(invalid_spec):
 )
 def test_install_from_file(spec, concretize, error_code, tmpdir):
     if concretize:
-        spec.concretize()
+        spec = spack.concretize.concretize_one(spec)
 
     specfile = tmpdir.join("spec.yaml")
 
@@ -422,7 +418,7 @@ def test_junit_output_with_failures(tmpdir, exc_typename, msg):
 @pytest.mark.parametrize(
     "exc_typename,expected_exc,msg",
     [
-        ("RuntimeError", spack.installer.InstallError, "something weird happened"),
+        ("RuntimeError", spack.error.InstallError, "something weird happened"),
         ("KeyboardInterrupt", KeyboardInterrupt, "Ctrl-C strikes again"),
     ],
 )
@@ -485,8 +481,7 @@ def test_install_mix_cli_and_files(clispecs, filespecs, tmpdir):
     for spec in filespecs:
         filepath = tmpdir.join(spec + ".yaml")
         args = ["-f", str(filepath)] + args
-        s = Spec(spec)
-        s.concretize()
+        s = spack.concretize.concretize_one(spec)
         with filepath.open("w") as f:
             s.to_yaml(f)
 
@@ -495,8 +490,7 @@ def test_install_mix_cli_and_files(clispecs, filespecs, tmpdir):
 
 
 def test_extra_files_are_archived(mock_packages, mock_archive, mock_fetch, install_mockery):
-    s = Spec("archive-files")
-    s.concretize()
+    s = spack.concretize.concretize_one("archive-files")
 
     install("archive-files")
 
@@ -615,10 +609,9 @@ def test_cdash_install_from_spec_json(
     with capfd.disabled(), tmpdir.as_cwd():
         spec_json_path = str(tmpdir.join("spec.json"))
 
-        pkg_spec = Spec("pkg-a")
-        pkg_spec.concretize()
+        pkg_spec = spack.concretize.concretize_one("pkg-a")
 
-        with open(spec_json_path, "w") as fd:
+        with open(spec_json_path, "w", encoding="utf-8") as fd:
             fd.write(pkg_spec.to_json(hash=ht.dag_hash))
 
         install(
@@ -692,8 +685,8 @@ def test_cache_only_fails(tmpdir, mock_fetch, install_mockery, capfd):
 
 
 def test_install_only_dependencies(tmpdir, mock_fetch, install_mockery):
-    dep = Spec("dependency-install").concretized()
-    root = Spec("dependent-install").concretized()
+    dep = spack.concretize.concretize_one("dependency-install")
+    root = spack.concretize.concretize_one("dependent-install")
 
     install("--only", "dependencies", "dependent-install")
 
@@ -706,7 +699,7 @@ def test_install_only_package(tmpdir, mock_fetch, install_mockery, capfd):
     with capfd.disabled():
         try:
             install("--only", "package", "dependent-install")
-        except spack.installer.InstallError as e:
+        except spack.error.InstallError as e:
             msg = str(e)
 
     assert "Cannot proceed with dependent-install" in msg
@@ -714,8 +707,8 @@ def test_install_only_package(tmpdir, mock_fetch, install_mockery, capfd):
 
 
 def test_install_deps_then_package(tmpdir, mock_fetch, install_mockery):
-    dep = Spec("dependency-install").concretized()
-    root = Spec("dependent-install").concretized()
+    dep = spack.concretize.concretize_one("dependency-install")
+    root = spack.concretize.concretize_one("dependent-install")
 
     install("--only", "dependencies", "dependent-install")
     assert os.path.exists(dep.prefix)
@@ -733,8 +726,8 @@ def test_install_only_dependencies_in_env(
     env("create", "test")
 
     with ev.read("test"):
-        dep = Spec("dependency-install").concretized()
-        root = Spec("dependent-install").concretized()
+        dep = spack.concretize.concretize_one("dependency-install")
+        root = spack.concretize.concretize_one("dependent-install")
 
         install("-v", "--only", "dependencies", "--add", "dependent-install")
 
@@ -750,8 +743,8 @@ def test_install_only_dependencies_of_all_in_env(
 
     with ev.read("test"):
         roots = [
-            Spec("dependent-install@1.0").concretized(),
-            Spec("dependent-install@2.0").concretized(),
+            spack.concretize.concretize_one("dependent-install@1.0"),
+            spack.concretize.concretize_one("dependent-install@2.0"),
         ]
 
         add("dependent-install@1.0")
@@ -838,7 +831,7 @@ def test_install_no_add_in_env(tmpdir, mock_fetch, install_mockery, mutable_mock
         # Make sure we can install a concrete dependency spec from a spec.json
         # file on disk, and the spec is installed but not added as a root
         mpi_spec_json_path = tmpdir.join("{0}.json".format(mpi_spec.name))
-        with open(mpi_spec_json_path.strpath, "w") as fd:
+        with open(mpi_spec_json_path.strpath, "w", encoding="utf-8") as fd:
             fd.write(mpi_spec.to_json(hash=ht.dag_hash))
 
         install("-f", mpi_spec_json_path.strpath)
@@ -900,12 +893,12 @@ def test_cdash_configure_warning(tmpdir, mock_fetch, install_mockery, capfd):
 
         # Ensure that even on non-x86_64 architectures, there are no
         # dependencies installed
-        spec = Spec("configure-warning").concretized()
+        spec = spack.concretize.concretize_one("configure-warning")
         spec.clear_dependencies()
         specfile = "./spec.json"
-        with open(specfile, "w") as f:
+        with open(specfile, "w", encoding="utf-8") as f:
             f.write(spec.to_json())
-
+        print(spec.to_json())
         install("--log-file=cdash_reports", "--log-format=cdash", specfile)
         # Verify Configure.xml exists with expected contents.
         report_dir = tmpdir.join("cdash_reports")
@@ -914,68 +907,6 @@ def test_cdash_configure_warning(tmpdir, mock_fetch, install_mockery, capfd):
         assert report_file in report_dir.listdir()
         content = report_file.open().read()
         assert "foo: No such file or directory" in content
-
-
-@pytest.mark.not_on_windows("ArchSpec gives test platform debian rather than windows")
-def test_compiler_bootstrap(
-    install_mockery, mock_packages, mock_fetch, mock_archive, mutable_config, monkeypatch
-):
-    monkeypatch.setattr(spack.concretize.Concretizer, "check_for_compiler_existence", False)
-    spack.config.set("config:install_missing_compilers", True)
-    assert CompilerSpec("gcc@=12.0") not in compilers.all_compiler_specs()
-
-    # Test succeeds if it does not raise an error
-    install("pkg-a%gcc@=12.0")
-
-
-@pytest.mark.not_on_windows("Binary mirrors not supported on windows")
-def test_compiler_bootstrap_from_binary_mirror(
-    install_mockery, mock_packages, mock_fetch, mock_archive, mutable_config, monkeypatch, tmpdir
-):
-    """
-    Make sure installing compiler from buildcache registers compiler
-    """
-
-    # Create a temp mirror directory for buildcache usage
-    mirror_dir = tmpdir.join("mirror_dir")
-    mirror_url = "file://{0}".format(mirror_dir.strpath)
-
-    # Install a compiler, because we want to put it in a buildcache
-    install("gcc@=10.2.0")
-
-    # Put installed compiler in the buildcache
-    buildcache("push", "-u", "-f", mirror_dir.strpath, "gcc@10.2.0")
-
-    # Now uninstall the compiler
-    uninstall("-y", "gcc@10.2.0")
-
-    monkeypatch.setattr(spack.concretize.Concretizer, "check_for_compiler_existence", False)
-    spack.config.set("config:install_missing_compilers", True)
-    assert CompilerSpec("gcc@=10.2.0") not in compilers.all_compiler_specs()
-
-    # Configure the mirror where we put that buildcache w/ the compiler
-    mirror("add", "test-mirror", mirror_url)
-
-    # Now make sure that when the compiler is installed from binary mirror,
-    # it also gets configured as a compiler.  Test succeeds if it does not
-    # raise an error
-    install("--no-check-signature", "--cache-only", "--only", "dependencies", "pkg-b%gcc@=10.2.0")
-    install("--no-cache", "--only", "package", "pkg-b%gcc@10.2.0")
-
-
-@pytest.mark.not_on_windows("ArchSpec gives test platform debian rather than windows")
-@pytest.mark.regression("16221")
-def test_compiler_bootstrap_already_installed(
-    install_mockery, mock_packages, mock_fetch, mock_archive, mutable_config, monkeypatch
-):
-    monkeypatch.setattr(spack.concretize.Concretizer, "check_for_compiler_existence", False)
-    spack.config.set("config:install_missing_compilers", True)
-
-    assert CompilerSpec("gcc@=12.0") not in compilers.all_compiler_specs()
-
-    # Test succeeds if it does not raise an error
-    install("gcc@=12.0")
-    install("pkg-a%gcc@=12.0")
 
 
 def test_install_fails_no_args(tmpdir):
@@ -1008,7 +939,7 @@ def test_install_env_with_tests_all(
 ):
     env("create", "test")
     with ev.read("test"):
-        test_dep = Spec("test-dependency").concretized()
+        test_dep = spack.concretize.concretize_one("test-dependency")
         add("depb")
         install("--test", "all")
         assert os.path.exists(test_dep.prefix)
@@ -1020,7 +951,7 @@ def test_install_env_with_tests_root(
 ):
     env("create", "test")
     with ev.read("test"):
-        test_dep = Spec("test-dependency").concretized()
+        test_dep = spack.concretize.concretize_one("test-dependency")
         add("depb")
         install("--test", "root")
         assert not os.path.exists(test_dep.prefix)

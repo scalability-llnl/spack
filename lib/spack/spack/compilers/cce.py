@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -18,18 +17,6 @@ class Cce(Compiler):
         # as the new value is used in classmethods for path-based detection
         if not self.is_clang_based:
             self.version_argument = "-V"
-
-    # Subclasses use possible names of C compiler
-    cc_names = ["craycc"]
-
-    # Subclasses use possible names of C++ compiler
-    cxx_names = ["crayCC"]
-
-    # Subclasses use possible names of Fortran 77 compiler
-    f77_names = ["crayftn"]
-
-    # Subclasses use possible names of Fortran 90 compiler
-    fc_names = ["crayftn"]
 
     # MacPorts builds gcc versions with prefixes and -mp-X.Y suffixes.
     suffixes = [r"-mp-\d\.\d"]

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -63,6 +62,12 @@ class Tmux(AutotoolsPackage):
     depends_on("yacc", type="build", when="@3:")
 
     conflicts("+static", when="platform=darwin", msg="Static build not supported on MacOS")
+
+    patch(
+        "https://github.com/tmux/tmux/commit/775789fbd5c4f3aa93061480cd64e61daf7fb689.patch?full_index=1",
+        sha256="c1b61a1244f758480578888d3f89cac470271c376ea0879996b81e10b397cad0",
+        when="@2.4:",
+    )
 
     @run_before("autoreconf")
     def autogen(self):

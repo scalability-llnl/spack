@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,6 +26,7 @@ class E2fsprogs(AutotoolsPackage):
 
     depends_on("texinfo", type="build")
     depends_on("fuse", when="+fuse2fs")
+    depends_on("pkgconfig", when="+fuse2fs")
 
     # fuse3 support is in the yet unreleased 1.47.1
     patch(

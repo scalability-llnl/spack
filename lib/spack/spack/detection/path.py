@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Detection of software installed in the system, based on paths inspections
@@ -8,9 +7,9 @@ and running executables.
 import collections
 import concurrent.futures
 import os
-import os.path
 import re
 import sys
+import traceback
 import warnings
 from typing import Dict, Iterable, List, Optional, Set, Tuple, Type
 
@@ -18,10 +17,13 @@ import llnl.util.filesystem
 import llnl.util.lang
 import llnl.util.tty
 
+import spack.error
+import spack.spec
 import spack.util.elf as elf_utils
 import spack.util.environment
 import spack.util.environment as environment
 import spack.util.ld_so_conf
+import spack.util.parallel
 
 from .common import (
     WindowsCompilerExternalPaths,
@@ -64,6 +66,21 @@ def file_identifier(path):
     return s.st_dev, s.st_ino
 
 
+def dedupe_paths(paths: List[str]) -> List[str]:
+    """Deduplicate paths based on inode and device number. In case the list contains first a
+    symlink and then the directory it points to, the symlink is replaced with the directory path.
+    This ensures that we pick for example ``/usr/bin`` over ``/bin`` if the latter is a symlink to
+    the former`."""
+    seen: Dict[Tuple[int, int], str] = {}
+    for path in paths:
+        identifier = file_identifier(path)
+        if identifier not in seen:
+            seen[identifier] = path
+        elif not os.path.islink(path):
+            seen[identifier] = path
+    return list(seen.values())
+
+
 def executables_in_path(path_hints: List[str]) -> Dict[str, str]:
     """Get the paths of all executables available from the current PATH.
 
@@ -80,8 +97,7 @@ def executables_in_path(path_hints: List[str]) -> Dict[str, str]:
     """
     search_paths = llnl.util.filesystem.search_paths_for_executables(*path_hints)
     # Make use we don't doubly list /usr/lib and /lib etc
-    search_paths = list(llnl.util.lang.dedupe(search_paths, key=file_identifier))
-    return path_to_dict(search_paths)
+    return path_to_dict(dedupe_paths(search_paths))
 
 
 def accept_elf(path, host_compat):
@@ -142,7 +158,7 @@ def libraries_in_ld_and_system_library_path(
         search_paths = list(filter(os.path.isdir, search_paths))
 
     # Make use we don't doubly list /usr/lib and /lib etc
-    search_paths = list(llnl.util.lang.dedupe(search_paths, key=file_identifier))
+    search_paths = dedupe_paths(search_paths)
 
     try:
         host_compat = elf_utils.get_elf_compat(sys.executable)
@@ -243,6 +259,8 @@ class Finder:
             )
             return []
 
+        from spack.repo import PATH as repo_path
+
         result = []
         for candidate_path, items_in_prefix in _group_by_prefix(
             llnl.util.lang.dedupe(paths)
@@ -258,8 +276,12 @@ class Finder:
                 )
             except Exception as e:
                 specs = []
+                if spack.error.SHOW_BACKTRACE:
+                    details = traceback.format_exc()
+                else:
+                    details = f"[{e.__class__.__name__}: {e}]"
                 warnings.warn(
-                    f'error detecting "{pkg.name}" from prefix {candidate_path} [{str(e)}]'
+                    f'error detecting "{pkg.name}" from prefix {candidate_path}: {details}'
                 )
 
             if not specs:
@@ -285,7 +307,10 @@ class Finder:
 
                 resolved_specs[spec] = candidate_path
                 try:
-                    spec.validate_detection()
+                    # Validate the spec calling a package specific method
+                    pkg_cls = repo_path.get_pkg_class(spec.name)
+                    validate_fn = getattr(pkg_cls, "validate_detected_spec", lambda x, y: None)
+                    validate_fn(spec, spec.extra_attributes)
                 except Exception as e:
                     msg = (
                         f'"{spec}" has been detected on the system but will '
@@ -406,7 +431,7 @@ def by_path(
 
     result = collections.defaultdict(list)
     repository = spack.repo.PATH.ensure_unwrapped()
-    with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+    with spack.util.parallel.make_concurrent_executor(max_workers, require_fork=False) as executor:
         for pkg in packages_to_search:
             executable_future = executor.submit(
                 executables_finder.find,
@@ -433,9 +458,9 @@ def by_path(
                     llnl.util.tty.debug(
                         f"[EXTERNAL DETECTION] Skipping {pkg_name}: timeout reached"
                     )
-                except Exception as e:
+                except Exception:
                     llnl.util.tty.debug(
-                        f"[EXTERNAL DETECTION] Skipping {pkg_name}: exception occured {e}"
+                        f"[EXTERNAL DETECTION] Skipping {pkg_name}: {traceback.format_exc()}"
                     )
 
     return result

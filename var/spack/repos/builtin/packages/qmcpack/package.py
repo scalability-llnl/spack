@@ -1,9 +1,7 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import llnl.util.tty as tty
 
 from spack.package import *
 
@@ -18,13 +16,14 @@ class Qmcpack(CMakePackage, CudaPackage):
     maintainers("ye-luo")
     tags = ["ecp", "ecp-apps"]
 
-    license("CC0-1.0")
+    license("NCSA", checked_by="prckent")
 
     # This download method is untrusted, and is not recommended by the
     # Spack manual. However, it is easier to maintain because github hashes
     # can occasionally change.
     # NOTE: 12/19/2017 QMCPACK 3.0.0 does not build properly with Spack.
     version("develop")
+    version("4.0.0", tag="v4.0.0", commit="0199944fb644b4798446fdfc0549c81666a4a943")
     version("3.17.1", tag="v3.17.1", commit="9d0d968139fc33f71dbf9159f526dd7b47f10a3b")
     version("3.17.0", tag="v3.17.0", commit="9049a90626d1fe3c431f55c56a7197f8a13d5fc6")
     version("3.16.0", tag="v3.16.0", commit="5b7544c40be105b0aafa1602601ccb0cf23ea547")
@@ -145,7 +144,6 @@ class Qmcpack(CMakePackage, CudaPackage):
     cpp14_warning = "QMCPACK v3.6.0 or later requires a " "compiler with support for C++14"
     conflicts("%gcc@:4", when="@3.6.0:", msg=cpp14_warning)
     conflicts("%intel@:17", when="@3.6.0:", msg=cpp14_warning)
-    conflicts("%pgi@:17", when="@3.6.0:", msg=cpp14_warning)
     conflicts("%clang@:3.4", when="@3.6.0:", msg=cpp14_warning)
 
     conflicts("+afqmc", when="@:3.6.0", msg="AFQMC not recommended before v3.7")
@@ -167,7 +165,6 @@ class Qmcpack(CMakePackage, CudaPackage):
         "Intel compiler when linking against Intel MKL"
     )
     conflicts("%gcc", when="@:3.4.0 ^intel-mkl", msg=mkl_warning)
-    conflicts("%pgi", when="@:3.4.0 ^intel-mkl", msg=mkl_warning)
     conflicts("%llvm", when="@:3.4.0 ^intel-mkl", msg=mkl_warning)
 
     # Dependencies match those in the QMCPACK manual.
