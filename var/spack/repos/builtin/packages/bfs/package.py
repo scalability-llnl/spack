@@ -12,8 +12,6 @@ class Bfs(MakefilePackage):
     homepage = "https://github.com/tavianator/bfs"
     url = "https://github.com/tavianator/bfs/archive/refs/tags/3.0.1.tar.gz"
     git = "https://github.com/tavianator/bfs.git"
-    list_url = "https://github.com/tavianator/bfs/releases"
-    list_depth = 0
 
     maintainers("alecbcs")
 
