@@ -42,9 +42,6 @@ class Cairo(AutotoolsPackage, MesonPackage):
         default="meson",
     )
 
-    requires("build_system=meson", when="@1.18.0:")
-    requires("build_system=autotools", when="@:1.17.4")
-
     variant("X", default=False, description="Build with X11 support")
     variant("gobject", default=False, description="Enable cairo's gobject functions feature")
 
