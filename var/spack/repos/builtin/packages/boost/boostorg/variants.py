@@ -328,6 +328,10 @@ def load():
         "math",
         when="@1.23.0:",
         buildable="@1.23.0:",
+        conflicts=[
+            {"when": "@1.76.0: cxxstd=98", "msg": "Boost.Math requires at least c++11"},
+            {"when": "@1.76.0: cxxstd=03", "msg": "Boost.Math requires at least c++11"},
+        ],
         requires=[
             {"spec": "+octonions", "msg": "Boost.Math requires Boost.Octonions"},
             {"spec": "+quaternions", "msg": "Boost.Math requires Boost.Quaternions"},
@@ -340,12 +344,20 @@ def load():
     _boost_variant(
         "octonions",
         when="@1.23.0:",
-        description="Octonions.",
+        conflicts=[
+            {"when": "@1.76.0: cxxstd=98", "msg": "Boost.math_octonion requires cxxstd >= 11"},
+            {"when": "@1.76.0: cxxstd=03", "msg": "Boost.math_octonion requires cxxstd >= 11"},
+        ],
+        description="Octonions",
     )
     _boost_variant(
         "quaternions",
         when="@1.23.0:",
-        description="Quaternions.",
+        conflicts=[
+            {"when": "@1.76.0: cxxstd=98", "msg": "Boost.math_quaternion requires cxxstd >= 11"},
+            {"when": "@1.76.0: cxxstd=03", "msg": "Boost.math_quaternion requires cxxstd >= 11"},
+        ],
+        description="Quaternions",
     )
     _boost_variant(
         "smart_ptr",
@@ -737,7 +749,6 @@ def load():
         conflicts=[
             {"when": "@1.76.0: cxxstd=98", "msg": "Boost.Multiprecision requires cxxstd >= 11"},
             {"when": "@1.76.0: cxxstd=03", "msg": "Boost.Multiprecision requires cxxstd >= 11"},
-            {"when": "@1.82.0: cxxstd=11", "msg": "Boost.Multiprecision requires cxxstd >= 14"},
         ],
         description=(
             "Extended precision arithmetic for floating point, integer, and rational types"
