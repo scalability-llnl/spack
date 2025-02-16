@@ -118,6 +118,15 @@ def load():
         description="Build in debug mode",
     )
     _boost_variant(
+        "icu",
+        default=False,
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "ICU requires at least c++11"},
+            {"when": "cxxstd=03", "msg": "ICU requires at least c++11"},
+        ],
+        description="Build with Unicode and ICU suport",
+    )
+    _boost_variant(
         "pic",
         description="Build Boost libraries with position-independent code (PIC)",
     )

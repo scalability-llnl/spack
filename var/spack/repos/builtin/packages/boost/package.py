@@ -189,16 +189,16 @@ class Boost(Package):
         when="@1.65.0: +context",
     )
 
-    variant("icu", default=False, description="Build with Unicode and ICU suport")
     variant("numpy", default=False, description="Build the Boost NumPy library (requires +python)")
 
-    # Unicode support
-    depends_on("icu4c", when="+icu")
-    depends_on("icu4c cxxstd=11", when="+icu cxxstd=11")
-    depends_on("icu4c cxxstd=14", when="+icu cxxstd=14")
-    depends_on("icu4c cxxstd=17", when="+icu cxxstd=17")
-    conflicts("cxxstd=98", when="+icu")  # Requires c++11 at least
-    conflicts("+locale ~icu")  # Boost.Locale "strongly recommends" icu, so enforce it
+    with when("+icu"):
+        depends_on("icu4c")
+
+        # icu4c currently only supports c++11,14,17
+        #   when cxxstd > 17, icu4c defaults to c++11.
+        #   This is not ideal, but nothing we can do about it here.
+        for std in ["11", "14", "17"]:
+            depends_on(f"icu4c cxxstd={std}", when=f"cxxstd={std}")
 
     depends_on("python", when="+python")
     # https://github.com/boostorg/python/commit/cbd2d9f033c61d29d0a1df14951f4ec91e7d05cd
