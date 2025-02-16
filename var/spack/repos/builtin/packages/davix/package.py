@@ -70,6 +70,8 @@ class Davix(CMakePackage):
     depends_on("curl", when="@0.8.1:")
     depends_on("rapidjson", when="@0.8.7:")
 
+    depends_on("googletest", type="test", when="@0.8.8:")
+
     variant("thirdparty", default=False, description="Build vendored libraries")
     depends_on("gsoap", when="+thirdparty")
 
