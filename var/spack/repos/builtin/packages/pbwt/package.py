@@ -13,8 +13,7 @@ class Pbwt(MakefilePackage):
 
     maintainers("teaguesterling")
 
-    # No license provided in the GitHub repo
-    license("UNKNOWN", checked_by="teaguesterling")
+    license("APACHE-2.0", checked_by="teaguesterling")  # License in pbwtCore.c
 
     version("2.1", sha256="d48ff12a0a84b1eb8ba5081fd900b5d003cfacc44b5a3d35a1423c69cc3f3e90")
     version("2.0", sha256="3750e355989fdc4e646d68dfe2dd7262ac3da46a2bff66c8563443fb44ecaf96")
