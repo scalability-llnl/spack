@@ -214,6 +214,9 @@ def load():
             {"when": "@1.85.0: cxxstd=03", "msg": "Boost.Graph requires at least c++14"},
             {"when": "@1.85.0: cxxstd=11", "msg": "Boost.Graph requires at least c++14"},
         ],
+        requires=[
+            {"when": "@:1.86.0", "spec": "+regex", "msg": "Boost.Graph requires Boost.Regex"}
+        ],
         description=(
             "Generic components for mathematical graphs (collections of nodes and edges)."
         ),
@@ -255,6 +258,15 @@ def load():
             "Support for simple program testing, full unit testing, and for program execution"
             " monitoring."
         ),
+    )
+    _boost_variant(
+        "crc",
+        when="@1.22.0:",
+        conflicts=[
+            {"when": "@1.86.0: cxxstd=98", "msg": "Boost.CRC requires cxxstd >= 11"},
+            {"when": "@1.86.0: cxxstd=03", "msg": "Boost.CRC requires cxxstd >= 11"},
+        ],
+        description=("Cyclic Redundancy Code generation for confirming data integrity"),
     )
     _boost_variant(
         "math",
@@ -308,6 +320,15 @@ def load():
         description="A set of date-time libraries based on generic programming concepts.",
     )
     # fmt: off
+    _boost_variant(
+        "format",
+        when="@1.29.0:",
+        conflicts=[
+            {"when": "@1.86.0: cxxstd=98", "msg": "Boost.format requires cxxstd >= 11"},
+            {"when": "@1.86.0: cxxstd=03", "msg": "Boost.format requires cxxstd >= 11"},
+        ],
+        description="Type-safe formatting using printf-like format-strings",
+    )
     _boost_variant(
         "signals",
         default=False,
@@ -459,6 +480,15 @@ def load():
             "The PBGL graph interface and graph components are generic, in the same sense as"
             " the Standard Template Library (STL)."
         ),
+    )
+    _boost_variant(
+        "uuid",
+        when="@1.42.0:",
+        conflicts=[
+            {"when": "@1.86.0: cxxstd=98", "msg": "Boost.uuid requires cxxstd >= 11"},
+            {"when": "@1.86.0: cxxstd=03", "msg": "Boost.uuid requires cxxstd >= 11"},
+        ],
+        description="A universally unique identifier",
     )
     _boost_variant(
         "chrono",
