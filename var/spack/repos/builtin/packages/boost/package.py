@@ -189,28 +189,6 @@ class Boost(Package):
         when="@1.65.0: +context",
     )
 
-    variant(
-        "cxxstd",
-        default="11",
-        values=(
-            "98",
-            "11",
-            "14",
-            # C++17 is not supported by Boost < 1.63.0.
-            conditional("17", when="@1.63.0:"),
-            # C++20/2a is not supported by Boost < 1.73.0
-            conditional("2a", when="@1.73.0:"),
-            conditional("20", when="@1.77.0:"),
-            conditional("23", when="@1.79.0:"),
-            conditional("26", when="@1.79.0:"),
-        ),
-        multi=False,
-        description="Use the specified C++ standard when building.",
-    )
-
-    # 1.84.0 dropped support for 98/03
-    conflicts("cxxstd=98", when="@1.84.0:")
-
     variant("debug", default=False, description="Switch to the debug version of Boost")
     variant("shared", default=True, description="Additionally build shared libraries")
     variant(
