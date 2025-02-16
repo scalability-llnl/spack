@@ -122,6 +122,13 @@ def load():
         description="Build Boost libraries with position-independent code (PIC)",
     )
     _boost_variant(
+        "shared",
+        requires=[
+            {"spec": "+pic", "msg": "Cannot build non-PIC shared libraries."},
+        ],
+        description="Build Boost libraries as shared libraries (DSO, DLL, etc.)",
+    )
+    _boost_variant(
         "multithreaded",
         description="Enable use of multiple threads in the Boost libraries",
     )
