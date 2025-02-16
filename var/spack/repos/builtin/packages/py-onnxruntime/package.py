@@ -54,10 +54,8 @@ class PyOnnxruntime(CMakePackage, PythonExtension, ROCmPackage):
     # requirements.txt
     depends_on("py-coloredlogs", when="@1.17:", type=("build", "run"))
     depends_on("py-flatbuffers", type=("build", "run"))
-    depends_on("py-numpy@1.21.6:", when="@1.19:",
-               type=("build", "run"))
-    depends_on("py-numpy@1.21.6:1", when="@1.18.1:1.18.2",
-               type=("build", "run"))
+    depends_on("py-numpy@1.21.6:", when="@1.19:", type=("build", "run"))
+    depends_on("py-numpy@1.21.6:1", when="@1.18.1:1.18.2", type=("build", "run"))
     depends_on("py-numpy@1.16.6:", type=("build", "run"))
     depends_on("py-numpy@1.21.6:", when="@1.18:", type=("build", "run"))
     depends_on("py-numpy@:1", when="@:1.18", type=("build", "run"))
