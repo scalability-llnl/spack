@@ -252,6 +252,9 @@ def load():
             {"when": "@1.85.0: cxxstd=03", "msg": "Boost.Graph requires at least c++14"},
             {"when": "@1.85.0: cxxstd=11", "msg": "Boost.Graph requires at least c++14"},
         ],
+        requires=[
+            {"when": "@:1.86.0", "spec": "+regex", "msg": "Boost.Graph requires Boost.Regex"}
+        ],
         description=(
             "Generic components for mathematical graphs (collections of nodes and edges)."
         ),
@@ -423,6 +426,15 @@ def load():
         description="Calculate, format, and convert dates and times",
     )
     # fmt: off
+    _boost_variant(
+        "format",
+        when="@1.29.0:",
+        conflicts=[
+            {"when": "@1.86.0: cxxstd=98", "msg": "Boost.format requires cxxstd >= 11"},
+            {"when": "@1.86.0: cxxstd=03", "msg": "Boost.format requires cxxstd >= 11"},
+        ],
+        description="Type-safe formatting using printf-like format-strings",
+    )
     _boost_variant(
         "signals",
         default=False,
@@ -667,6 +679,15 @@ def load():
         description="Interval sets and maps",
     )
     # fmt: on
+    _boost_variant(
+        "uuid",
+        when="@1.42.0:",
+        conflicts=[
+            {"when": "@1.86.0: cxxstd=98", "msg": "Boost.uuid requires cxxstd >= 11"},
+            {"when": "@1.86.0: cxxstd=03", "msg": "Boost.uuid requires cxxstd >= 11"},
+        ],
+        description="A universally unique identifier",
+    )
     _boost_variant(
         "chrono",
         when="@1.47.0:",
