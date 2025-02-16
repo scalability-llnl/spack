@@ -42,7 +42,8 @@ class LuaBuilder(spack.build_systems.lua.LuaBuilder):
     # * replaces `-bundle` from the default flags with `-shared`
     @when("platform=darwin")
     def generate_luarocks_config(self, pkg, spec, prefix):
-        path = super().generate_luarocks_config(pkg, spec, prefix)
+        super().generate_luarocks_config(pkg, spec, prefix)
+        path = self._luarocks_config_path()
 
         with open(path, "a") as cfg:
             cfg.write(
