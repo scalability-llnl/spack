@@ -19,6 +19,7 @@ class Onnx(CMakePackage):
     license("Apache-2.0", checked_by="wdconinc")
 
     version("master", branch="master")
+    version("1.17.0", sha256="8d5e983c36037003615e5a02d36b18fc286541bf52de1a78f6cf9f32005a820e")
     version("1.16.2", sha256="84fc1c3d6133417f8a13af6643ed50983c91dacde5ffba16cc8bb39b22c2acbb")
     version("1.16.1", sha256="0e6aa2c0a59bb2d90858ad0040ea1807117cc2f05b97702170f18e6cd6b66fb3")
     version("1.16.0", sha256="0ce153e26ce2c00afca01c331a447d86fbf21b166b640551fe04258b4acfc6a4")
