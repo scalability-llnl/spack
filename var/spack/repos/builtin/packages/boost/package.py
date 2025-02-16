@@ -189,7 +189,6 @@ class Boost(Package):
         when="@1.65.0: +context",
     )
 
-    variant("shared", default=True, description="Additionally build shared libraries")
     variant("icu", default=False, description="Build with Unicode and ICU suport")
     variant("numpy", default=False, description="Build the Boost NumPy library (requires +python)")
 
