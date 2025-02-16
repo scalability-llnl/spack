@@ -253,6 +253,14 @@ def load():
     )
     # fmt: off
     _boost_variant(
+        "property_map",
+        when="@1.19.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.PropertyMap requires at least c++03"},
+        ],
+        description="Concepts defining interfaces which map key objects to value objects.",
+    )
+    _boost_variant(
         "python",
         default=False,
         sticky=False,
@@ -1219,6 +1227,9 @@ def load():
         "property_map_parallel",
         default=False,
         when="@1.77.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.PropertyMapParallel requires cxxstd >= 03"}
+        ],
         # fmt: off
         requires=[
             {
@@ -1231,7 +1242,7 @@ def load():
             }
         ],
         # fmt: on
-        description="Parallel extensions to Property Map for use with Parallel Graph.",
+        description="Parallel extensions to Property Map for use with Parallel Graph",
     )
     _boost_variant(
         "url",
