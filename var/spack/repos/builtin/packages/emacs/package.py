@@ -67,6 +67,7 @@ class Emacs(AutotoolsPackage, GNUMirrorPackage):
     depends_on("pkgconfig", type="build")
     depends_on("gzip", type="build")
     depends_on("texinfo", type="build", when="@29.4:")
+
     depends_on("m4", type="build", when="@master:")
     depends_on("autoconf", type="build", when="@master:")
     depends_on("automake", type="build", when="@master:")
@@ -80,10 +81,10 @@ class Emacs(AutotoolsPackage, GNUMirrorPackage):
     depends_on("jpeg")
 
     # Optional dependencies
-    depends_on("gnutls", type="link", when="+tls")
-    depends_on("tree-sitter", type="link", when="+treesitter")
-    depends_on("gcc@11: +strip languages=jit", type="link", when="+native")
-    depends_on("jansson@2.7:", type="link", when="+json")
+    depends_on("gnutls", when="+tls")
+    depends_on("tree-sitter", when="+treesitter")
+    depends_on("gcc@11: +strip languages=jit", when="+native")
+    depends_on("jansson@2.7:", when="+json")
 
     # GUI dependencies
     with when("gui=x11"):
