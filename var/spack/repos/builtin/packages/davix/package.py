@@ -82,6 +82,7 @@ class Davix(CMakePackage):
         return [
             self.define_from_variant("CMAKE_CXX_STANDARD", variant="cxxstd"),
             self.define_from_variant("ENABLE_THIRD_PARTY_COPY", variant="thirdparty"),
+            self.define("DAVIX_TESTS", self.run_tests),
             # Disable the use of embedded packages; use Spack to fetch them instead
             self.define("EMBEDDED_LIBCURL", False),
             self.define("EMBEDDED_RAPIDJSON", False),
