@@ -29,8 +29,8 @@ class Openloops(Package):
     depends_on("cxx", type="build")
     depends_on("fortran", type="build")
 
-    # conflicts because there is a scons 3.5 in 2.1.2
-    conflicts("^python@:3.11", when="@:2.1.2")
+    # conflicts because there is a scons 3.0.5 in 2.1.2
+    conflicts("^python@3.12:", when="@:2.1.2")
 
     all_processes = [
         "tbln",
