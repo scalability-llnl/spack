@@ -194,6 +194,16 @@ def load():
     #  dependencies and/or because there is a great deal of customization
     #  possible (and it would be difficult to choose sensible defaults).
     # ----------------------------------------------------------------------
+    # fmt: off
+    _boost_variant(
+        "integer",
+        when="@1.9.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.integer requires cxxstd >= 03"},
+        ],
+        description="Type traits and math functions for integral values",
+    )
+    # fmt: on
     _boost_variant(
         "timer",
         when="@1.9.0:",
@@ -229,6 +239,7 @@ def load():
             "Generic components for mathematical graphs (collections of nodes and edges)."
         ),
     )
+    # fmt: off
     _boost_variant(
         "python",
         default=False,
@@ -242,6 +253,27 @@ def load():
     )
     # fmt: off
     _boost_variant(
+        "conversion",
+        when="@1.20.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.conversion requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.conversion requires cxxstd >= 11"},
+        ],
+        description="Extensions to standard casting operators",
+    )
+    _boost_variant(
+        "lexical_cast",
+        when="@1.20.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.LexicalCast requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.LexicalCast requires cxxstd >= 11"},
+        ],
+        requires=[
+            {"spec": "+math", "when": "@:1.76.0", "msg": "Boost.LexicalCast requires Boost.Math"}
+        ],
+        description="Type-safe text <-> value conversions",
+    )
+    _boost_variant(
         "test",
         when="@1.21.0:",
         buildable="@1.21.0:",
@@ -252,6 +284,33 @@ def load():
         description=(
             "Simple program testing, full unit testing, and program execution monitoring"
         ),
+    )
+    _boost_variant(
+        "crc",
+        when="@1.22.0:",
+        conflicts=[
+            {"when": "@1.86.0: cxxstd=98", "msg": "Boost.CRC requires cxxstd >= 11"},
+            {"when": "@1.86.0: cxxstd=03", "msg": "Boost.CRC requires cxxstd >= 11"},
+        ],
+        description=("Cyclic Redundancy Code generation for confirming data integrity"),
+    )
+    _boost_variant(
+        "any",
+        when="@1.23.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.any requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.any requires cxxstd >= 11"},
+        ],
+        description="Safe, generic container for single values of different value types",
+    )
+    _boost_variant(
+        "function",
+        when="@1.23.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.function requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.function requires cxxstd >= 11"},
+        ],
+        description="Function object wrappers for deferred calls or callbacks",
     )
     _boost_variant(
         "math",
@@ -277,9 +336,40 @@ def load():
         description="Quaternions.",
     )
     _boost_variant(
+        "smart_ptr",
+        when="@1.23.0:",
+        conflicts=[
+            {"when": "@1.87.0: cxxstd=98", "msg": "Boost.SmartPtr requires cxxstd >= 11"},
+            {"when": "@1.87.0: cxxstd=03", "msg": "Boost.SmartPtr requires cxxstd >= 11"},
+        ],
+        description="Smart pointers.",
+    )
+    _boost_variant(
+        "bind",
+        when="@1.25.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.bind requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.bind requires cxxstd >= 11"},
+        ],
+        description="Generalizations of the std::bind and std::mem_fn family",
+    )
+    _boost_variant(
         "thread",
         when="@1.25.0:",
         buildable="@1.25.0:",
+        description="Portable C++ multi-threading",
+    )
+    _boost_variant(
+        "math_common_factor",
+        when="@1.26.0:1.65.0",
+        conflicts=[
+            {"when": "@1.65.0:", "msg": "Boost.Math/CommonFactor moved to Boost.Integer"},
+        ],
+        description="Greatest common divisor and least common multiple",
+    )
+    _boost_variant(
+        "preprocessor",
+        when="@1.26.0:",
         conflicts=[
             {"when": "cxxstd=98", "msg": "Boost.thread requires cxxstd >= 11"},
             {"when": "cxxstd=03", "msg": "Boost.thread requires cxxstd >= 11"},
@@ -292,6 +382,7 @@ def load():
         buildable="@1.29.0:",
         description="Calculate, format, and convert dates and times",
     )
+    # fmt: off
     _boost_variant(
         "signals",
         default=False,
@@ -307,20 +398,21 @@ def load():
         "filesystem",
         when="@1.30.0:",
         buildable="@1.30.0:",
+        description="Portable facilities to query and manipulate paths, files, and directories.",
+    )
+    _boost_variant(
+        "spirit",
+        when="@1.30.0:",
+        conflicts=[{"when": "cxxstd=98", "msg": "Boost.Spirit requires cxxstd >= 03"}],
         description=(
-            "The Boost Filesystem Library provides portable facilities to query and manipulate"
-            " paths, files, and directories."
+            "LL parser framework represents parsers directly as EBNF grammars in inlined C++."
         ),
     )
     _boost_variant(
         "program_options",
         when="@1.32.0:",
         buildable="@1.32.0:",
-        description=(
-            "The program_options library allows program developers to obtain program options,"
-            " that is (name, value) pairs from the user, via conventional methods such as"
-            " command line and config file."
-        ),
+        description="Parse command-line options similar to POSIX getops or from config files.",
     )
     _boost_variant(
         "serialization",
@@ -329,16 +421,70 @@ def load():
         description="Serialization for persistence and marshalling.",
     )
     _boost_variant(
+        "container_hash",
+        when="@1.33.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.container_hash requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.container_hash requires cxxstd >= 11"},
+        ],
+        description="Hash function objects for user-defined types",
+    )
+    _boost_variant(
         "iostreams",
         when="@1.33.0:",
         buildable="@1.33.0:",
         description=("Streams, stream buffers, and i/o filters"),
     )
+    # fmt: off
+    _boost_variant(
+        "parameter",
+        when="@1.33.0:",
+        buildable="@1.33.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Parameter requires at least c++03"},
+        ],
+        description="Write functions that accept arguments by name.",
+    )
+    # fmt: on
     _boost_variant(
         "wave",
         when="@1.33.0:",
         buildable="@1.33.0:",
         description="Highly configurable implementation of the mandatory C99/C++ preprocessor.",
+    )
+    _boost_variant(
+        "typeof",
+        when="@1.34.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.typeof requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.typeof requires cxxstd >= 11"},
+        ],
+        description="Typeof operator emulation",
+    )
+    # fmt: off
+    _boost_variant(
+        "asio",
+        when="@1.35.0:",
+        conflicts=[
+            {"when": "@1.80.0: cxxstd=98", "msg": "Boost.asio requires cxxstd >= 11"},
+            {"when": "@1.80.0: cxxstd=03", "msg": "Boost.asio requires cxxstd >= 11"},
+        ],
+        requires=[
+            {"spec": "+context", "when": "@1.80.0:", "msg": "Boost.Asio requires Boost.Context"},
+        ],
+        description="Portable networking and other low-level I/O.",
+    )
+    # fmt: on
+    _boost_variant(
+        "gil",
+        when="@1.35.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.GIL requires at least c++11"},
+            {"when": "cxxstd=03", "msg": "Boost.GIL requires at least c++11"},
+            {"when": "cxxstd=11 @1.80.0:", "msg": "Boost.GIL requires at least c++14"},
+            {"when": "%gcc@:6 @1.80.0:", "msg": "Boost.GIL requires gcc-6 or newer"},
+        ],
+        description="Generic Image Library",
     )
     _boost_variant(
         "mpi",
@@ -375,6 +521,15 @@ def load():
     )
     # fmt: on
     _boost_variant(
+        "unordered",
+        when="@1.36.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.unordered requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.unordered requires cxxstd >= 11"},
+        ],
+        description="Unordered associative containers",
+    )
+    _boost_variant(
         "signals2",
         when="@1.39.0:",
         description="Thread-safe managed signals & slots callback implementation",
@@ -389,11 +544,51 @@ def load():
             {"spec": "+mpi", "msg": "Boost.GraphParallel requires Boost.MPI"},
             {"spec": "+graph", "msg": "Boost.GraphParallel requires Boost.Graph"},
         ],
-        description=(
-            "The PBGL graph interface and graph components are generic, in the same sense as"
-            " the Standard Template Library (STL)."
-        ),
+        description="Scalable parallel version of Boost.Graph using MPI multiprocessing",
     )
+    # fmt: off
+    _boost_variant(
+        "property_tree",
+        when="@1.41.0:",
+        description="Structured storage of configuration data",
+    )
+    # fmt: on
+    _boost_variant(
+        "uuid",
+        when="@1.42.0:",
+        conflicts=[
+            {"when": "@1.86.0: cxxstd=98", "msg": "Boost.uuid requires cxxstd >= 11"},
+            {"when": "@1.86.0: cxxstd=03", "msg": "Boost.uuid requires cxxstd >= 11"},
+        ],
+        description="Universally unique identifier",
+    )
+    _boost_variant(
+        "functional_factory",
+        when="@1.43.0:",
+        description="Dynamic and static creation of function objects",
+    )
+    _boost_variant(
+        "functional_forward",
+        when="@1.43.0:",
+        description="Allow arbitrary arguments in function objects",
+    )
+    # fmt: off
+    _boost_variant(
+        "meta_state_machine",
+        when="@1.44.0:",
+        description="Expressive UML2 finite state machines",
+    )
+    _boost_variant(
+        "polygon",
+        when="@1.44.0:",
+        description="Voronoi diagram manipulations for planar polygons",
+    )
+    _boost_variant(
+        "icl",
+        when="@1.46.0:",
+        description="Interval sets and maps",
+    )
+    # fmt: on
     _boost_variant(
         "chrono",
         when="@1.47.0:",
@@ -404,6 +599,32 @@ def load():
         ],
         description="Extended version of C++11 time utilities",
     )
+    _boost_variant(
+        "geometry",
+        when="@1.47.0:",
+        conflicts=[
+            {"when": "@1.75.0: cxxstd=98", "msg": "Boost.Geometry requires cxxstd >= 14"},
+            {"when": "@1.75.0: cxxstd=03", "msg": "Boost.Geometry requires cxxstd >= 14"},
+            {"when": "@1.75.0: cxxstd=11", "msg": "Boost.Geometry requires cxxstd >= 14"},
+        ],
+        description="Geometric algorithms, primitives, and spatial indices.",
+    )
+    # fmt: off
+    _boost_variant(
+        "phoenix",
+        when="@1.47.0:",
+        description="Functional programming for C++",
+    )
+    _boost_variant(
+        "ratio",
+        when="@1.47.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Ratio requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.Ratio requires cxxstd >= 11"},
+        ],
+        description="Compile-time rational arithmetic",
+    )
+    # fmt: on
     _boost_variant(
         "container",
         # Can be both header-only and compiled. '+container' indicates the
@@ -423,6 +644,39 @@ def load():
             {"spec": "+icu", "msg": "Boost.Locale requires Unicode support"}
         ],
         description="Localization and Unicode facilities",
+    )
+    _boost_variant(
+        "move",
+        when="@1.48.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Move requires cxxstd >= 03"},
+        ],
+        description="Portable move semantics for C++03",
+    )
+    _boost_variant(
+        "heap",
+        when="@1.49.0:",
+        description="Priority queue data structures",
+    )
+    _boost_variant(
+        "algorithm",
+        when="@1.50.0:",
+        description="A collection of useful generic algorithms",
+    )
+    _boost_variant(
+        "functional_overloaded_function",
+        when="@1.50.0:",
+        description="Overload different functions into a single function object",
+    )
+    _boost_variant(
+        "identity_type",
+        when="@1.50.0:",
+        description="Safely pass user-defined types as macro parameters",
+    )
+    _boost_variant(
+        "local_function",
+        when="@1.50.0:",
+        description="Declare and use functions in a local scope",
     )
     # fmt: on
     _boost_variant(
@@ -453,19 +707,202 @@ def load():
         requires=[
             {"spec": "+context", "msg": "Boost.Coroutine requires Boost.Context"}
         ],
-        description="Coroutine library",
+        description="DEPRECATED use coroutine2",
+    )
+    _boost_variant(
+        "lockfree",
+        when="@1.53.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.LockFree requires cxxstd >= 03"}
+        ],
+        description="Lockfree queue, stack, and SP/SC queue",
+    )
+    # fmt: on
+    _boost_variant(
+        "multiprecision",
+        when="@1.53.0:",
+        conflicts=[
+            {"when": "@1.76.0: cxxstd=98", "msg": "Boost.Multiprecision requires cxxstd >= 11"},
+            {"when": "@1.76.0: cxxstd=03", "msg": "Boost.Multiprecision requires cxxstd >= 11"},
+            {"when": "@1.82.0: cxxstd=11", "msg": "Boost.Multiprecision requires cxxstd >= 14"},
+        ],
+        description=(
+            "Extended precision arithmetic for floating point, integer, and rational types"
+        ),
+    )
+    # fmt: off
+    _boost_variant(
+        "odeint",
+        when="@1.53.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Odeint requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.Odeint requires cxxstd >= 11"},
+        ],
+        requires=[
+            {"spec": "+math", "msg": "Boost.Odeint requires Boost.Math"}
+        ],
+        description="Solver for ordinary differential equations",
     )
     _boost_variant(
         "log",
         when="@1.54.0:",
         buildable="@1.54.0:",
-        description="Logging library.",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Log requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.Log requires cxxstd >= 11"},
+        ],
+        requires=[
+            {"spec": "+regex", "when": "@1.84.0:", "msg": "Boost.Log requires Boost.Regex"},
+        ],
+        description="Simple, extensible, and fast logging",
+    )
+    _boost_variant(
+        "tti",
+        when="@1.54.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.tti requires cxxstd >= 03"}
+        ],
+        description="Type Traits Introspection",
     )
     _boost_variant(
         "type_erasure",
         when="@1.54.0:",
         buildable="@1.60.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.TypeErasure requires cxxstd >= 03"}
+        ],
         description="Runtime polymorphism based on concepts.",
+    )
+    _boost_variant(
+        "predef",
+        when="@1.55.0:",
+        description="Macros to identify compilers and their versions",
+    )
+    # fmt: off
+    _boost_variant(
+        "align",
+        when="@1.56.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Align requires cxxstd >= 03"}
+        ],
+        description="Memory alignment facilities",
+    )
+    _boost_variant(
+        "core",
+        when="@1.56.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.core requires cxxstd >= 03"},
+        ],
+        description="Simple core utilities with minimal dependencies",
+    )
+    _boost_variant(
+        "throw_exception",
+        when="@1.56.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.ThrowException requires cxxstd >= 03"}
+        ],
+        description="Enhanced exception handling, including source locations",
+    )
+    # fmt: on
+    _boost_variant(
+        "type_index",
+        when="@1.56.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.TypeIndex requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.TypeIndex requires cxxstd >= 11"},
+        ],
+        description="Runtime/compile-time copyable type info",
+    )
+    # fmt: off
+    _boost_variant(
+        "endian",
+        when="@1.58.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Endian requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.Endian requires cxxstd >= 11"},
+        ],
+        description="Manipulate the endianness of integers and user-defined types"
+    )
+    _boost_variant(
+        "sort",
+        when="@1.58.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Sort requires cxxstd >= 03"}
+        ],
+        description="High-performance sorting routines",
+    )
+    _boost_variant(
+        "convert",
+        when="@1.59.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Convert requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.Convert requires cxxstd >= 11"},
+        ],
+        description="An extendible and configurable type-conversion framework.",
+    )
+    _boost_variant(
+        "coroutine2",
+        when="@1.59.0:",
+        buildable="@1.59.0:1.64.0",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Coroutine2 requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.Coroutine2 requires cxxstd >= 11"},
+        ],
+        requires=[
+            {"spec": "+context", "msg": "Boost.Coroutine2 requires Boost.Context"}
+        ],
+        description=(
+            "Subroutines that allow suspending and resuming execution at certain locations"
+        ),
+    )
+    _boost_variant(
+        "vmd",
+        when="@1.60.0:",
+        requires=[
+            {"spec": "+preprocessor", "msg": "Boost.VMD requires Boost.Preprocessor"}
+        ],
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.VMD requires cxxstd >= 03"}
+        ],
+        description="Variadic macros for Boost.Preprocessor",
+    )
+    _boost_variant(
+        "compute",
+        when="@1.61.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Compute requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.Compute requires cxxstd >= 11"},
+        ],
+        description="Multi-core CPU and GPGPU computing based on OpenCL",
+    )
+    _boost_variant(
+        "dll",
+        when="@1.61.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.dll requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.dll requires cxxstd >= 11"},
+        ],
+        description="Load plugins from DLLs or DSOs",
+    )
+    # fmt: on
+    _boost_variant(
+        "hana",
+        when="@1.61.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Hana requires cxxstd >= 14"},
+            {"when": "cxxstd=03", "msg": "Boost.Hana requires cxxstd >= 14"},
+            {"when": "cxxstd=11", "msg": "Boost.Hana requires cxxstd >= 14"},
+        ],
+        description="Modern metaprogramming suited for computations on both types and values",
+    )
+    # fmt: off
+    _boost_variant(
+        "metaparse",
+        when="@1.61.0:1.65.1",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.MetaParse requires cxxstd >= 03"}
+        ],
+        description="Generate compile-time parsers for embedded DSL code",
     )
     _boost_variant(
         "fiber",
@@ -480,6 +917,25 @@ def load():
         ],
         description="Lightweight userland threads",
     )
+    # fmt: off
+    _boost_variant(
+        "qvm",
+        when="@1.62.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.QVM requires cxxstd >= 03"},
+        ],
+        description="Generic operations for Quaternions, Vectors, and Matrices",
+    )
+    _boost_variant(
+        "process",
+        when="@1.64.0:",
+        buildable="@1.64.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Process requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.Process requires cxxstd >= 11"},
+        ],
+        description="Portable process creation and management",
+    )
     _boost_variant(
         "context-impl",
         when="@1.65.0:",
@@ -488,6 +944,16 @@ def load():
         multi=False,
         description="The backend for Boost.Context",
     )
+    # fmt: off
+    _boost_variant(
+        "poly_collection",
+        when="@1.65.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.PolyCollection requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.PolyCollection requires cxxstd >= 11"},
+        ],
+        description="Fast containers of polymorphic objects",
+    )
     # fmt: on
     _boost_variant(
         "stacktrace",
@@ -495,6 +961,40 @@ def load():
         buildable="@1.65.0:",
         description="Gather, store, copy, and print backtraces",
     )
+    # fmt: off
+    _boost_variant(
+        "beast",
+        when="@1.66.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Beast requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.Beast requires cxxstd >= 11"},
+        ],
+        requires=[
+            {"spec": "+asio", "msg": "Boost.Beast requires Boost.Asio"}
+        ],
+        description="Portable HTTP, WebSocket, and network operations using Boost.Asio",
+    )
+    # fmt: on
+    _boost_variant(
+        "callable_traits",
+        when="@1.66.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.CallableTraits requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.CallableTraits requires cxxstd >= 11"},
+        ],
+        description="Compile-time inspection and manipulation of callable types",
+    )
+    # fmt: off
+    _boost_variant(
+        "mp11",
+        when="@1.66.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.MP11 requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.MP11 requires cxxstd >= 11"},
+        ],
+        description="C++11 metaprogramming",
+    )
+    # fmt: on
     _boost_variant(
         "contract",
         when="@1.67.0:",
@@ -507,6 +1007,107 @@ def load():
             "Contract programming with subcontracting, class invariants, and pre/postconditions."
         ),
     )
+    # fmt: off
+    _boost_variant(
+        "hof",
+        when="@1.67.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.HoF requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.HoF requires cxxstd >= 11"},
+        ],
+        description="Higher-order functions",
+    )
+    # fmt: on
+    _boost_variant(
+        "yap",
+        when="@1.68.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.YAP requires cxxstd >= 14"},
+            {"when": "cxxstd=03", "msg": "Boost.YAP requires cxxstd >= 14"},
+            {"when": "cxxstd=11", "msg": "Boost.YAP requires cxxstd >= 14"},
+        ],
+        description="An expression template library for C++14 and later.",
+    )
+    # fmt: off
+    _boost_variant(
+        "parameter_python",
+        default=False,
+        when="@1.69.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Parameter python bindings require cxxstd >= 03"}
+        ],
+        requires=[
+            {"spec": "+python", "msg": "Parameter Python bindings require python support"},
+            {"spec": "+parameter", "msg": "Parameter Python bindings require Boost.Parameter"}
+        ],
+        description="Python bindings for Boost.Parameter",
+    )
+    _boost_variant(
+        "safe_numerics",
+        when="@1.69.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.SafeNumerics requires cxxstd >= 14"},
+            {"when": "cxxstd=03", "msg": "Boost.SafeNumerics requires cxxstd >= 14"},
+            {"when": "cxxstd=11", "msg": "Boost.SafeNumerics requires cxxstd >= 14"},
+        ],
+        description="Guaranteed correct integer arithmetic",
+    )
+    _boost_variant(
+        "spirit_repository",
+        when="@1.69.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.SpiritRepository requires cxxstd >= 03"}
+        ],
+        description="Reusable components for Qi parsers and Karma generators",
+    )
+    _boost_variant(
+        "histogram",
+        when="@1.70.0:",
+        requires=[
+            {
+                "spec": "+variant2",
+                "when": "@1.71.0:",
+                "msg": "Boost.Histogram requires Boost.Variant2"
+            },
+        ],
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Histogram requires cxxstd >= 14"},
+            {"when": "cxxstd=03", "msg": "Boost.Histogram requires cxxstd >= 14"},
+            {"when": "cxxstd=11", "msg": "Boost.Histogram requires cxxstd >= 14"},
+        ],
+        description="Fast multi-dimensional histogram",
+    )
+    _boost_variant(
+        "outcome",
+        when="@1.70.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Outcome requires cxxstd >= 14"},
+            {"when": "cxxstd=03", "msg": "Boost.Outcome requires cxxstd >= 14"},
+            {"when": "cxxstd=11", "msg": "Boost.Outcome requires cxxstd >= 14"},
+        ],
+        description=(
+            "Deterministic failure handling, partially simulating lightweight exceptions."
+        ),
+    )
+    # fmt: off
+    _boost_variant(
+        "string_ref",
+        when="@1.71.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.StringRef requires cxxstd >= 03"},
+        ],
+        description="Non-owning reference to a string",
+    )
+    _boost_variant(
+        "variant2",
+        when="@1.71.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Variant2 requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.Variant2 requires cxxstd >= 11"},
+        ],
+        description="A never-valueless, strong-guarantee tagged union",
+    )
+    # fmt: on
     _boost_variant(
         "nowide",
         default=False,
@@ -516,7 +1117,28 @@ def load():
             {"when": "cxxstd=98", "msg": "Boost.Nowide requires cxxstd >= 11"},
             {"when": "cxxstd=03", "msg": "Boost.Nowide requires cxxstd >= 11"},
         ],
-        description="Standard library functions with UTF-8 API on Windows.",
+        description="Standard library functions with UTF-8 API on Windows",
+    )
+    # fmt: off
+    _boost_variant(
+        "static_string",
+        when="@1.73.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.StaticString requires cxxstd >= 11"},
+            {"when": "cxxstd=03", "msg": "Boost.StaticString requires cxxstd >= 11"},
+        ],
+        description="A fixed-capacity, dynamically-sized string",
+    )
+    # fmt: on
+    _boost_variant(
+        "stl_interfaces",
+        when="@1.74.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.STLInterfaces requires cxxstd >= 14"},
+            {"when": "cxxstd=03", "msg": "Boost.STLInterfaces requires cxxstd >= 14"},
+            {"when": "cxxstd=11", "msg": "Boost.STLInterfaces requires cxxstd >= 14"},
+        ],
+        description="Simplifies writing STL-compliant containers and ranges",
     )
     _boost_variant(
         "json",
@@ -536,6 +1158,56 @@ def load():
             {"when": "cxxstd=03", "msg": "Boost.LEAF requires cxxstd >= 11"},
         ],
         description="Lightweight error-handling",
+    )
+    # fmt: off
+    _boost_variant(
+        "pfr",
+        when="@1.75.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.PFR requires cxxstd >= 14"},
+            {"when": "cxxstd=03", "msg": "Boost.PFR requires cxxstd >= 14"},
+            {"when": "cxxstd=11", "msg": "Boost.PFR requires cxxstd >= 14"},
+        ],
+        description="Basic reflection for user-defined types",
+    )
+    # fmt: on
+    _boost_variant(
+        "describe",
+        when="@1.77.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Describe requires cxxstd >= 14"},
+            {"when": "cxxstd=03", "msg": "Boost.Describe requires cxxstd >= 14"},
+            {"when": "cxxstd=11", "msg": "Boost.Describe requires cxxstd >= 14"},
+        ],
+        description="Advanced reflection for user-defined types",
+    )
+    _boost_variant(
+        "lambda2",
+        when="@1.77.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.lambda2 requires cxxstd >= 14"},
+            {"when": "cxxstd=03", "msg": "Boost.lambda2 requires cxxstd >= 14"},
+            {"when": "cxxstd=11", "msg": "Boost.lambda2 requires cxxstd >= 14"},
+        ],
+        description="A C++14 lambda library.",
+    )
+    _boost_variant(
+        "property_map_parallel",
+        default=False,
+        when="@1.77.0:",
+        # fmt: off
+        requires=[
+            {
+                "spec": "+graph_parallel",
+                "msg": "Boost.PropertyMap (Parallel) requires Boost.GraphParallel"
+            },
+            {
+                "spec": "+property_map",
+                "msg": "Boost.PropertyMap (Parallel) requires Boost.PropertyMap"
+            }
+        ],
+        # fmt: on
+        description="Parallel extensions to Property Map for use with Parallel Graph.",
     )
     _boost_variant(
         "url",
