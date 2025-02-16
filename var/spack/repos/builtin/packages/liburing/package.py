@@ -41,9 +41,9 @@ class Liburing(AutotoolsPackage):
     conflicts("platform=darwin", msg="liburing is only supported on Linux.")
     conflicts("platform=windows", msg="liburing is only supported on Linux.")
 
-    # Define targets
+    # Define build targets
     @property
-    def install_target(self):
+    def build_target(self):
         if self.spec.satisfies("@2.7:"):
             # avoid examples and test
             return ["library"]
