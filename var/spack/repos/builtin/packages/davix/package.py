@@ -73,6 +73,9 @@ class Davix(CMakePackage):
     variant("thirdparty", default=False, description="Build vendored libraries")
     depends_on("gsoap", when="+thirdparty")
 
+    def url_for_version(self, v):
+        return f"https://github.com/cern-fts/davix/releases/download/R_{v.underscored}/davix-{v}.tar.gz"
+
     def cmake_args(self):
         return [
             self.define_from_variant("CMAKE_CXX_STANDARD", variant="cxxstd"),
