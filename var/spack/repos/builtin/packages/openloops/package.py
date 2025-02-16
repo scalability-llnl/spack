@@ -20,6 +20,7 @@ class Openloops(Package):
     tags = ["hep"]
 
     license("GPL-3.0-only")
+    version("2.1.4", sha256="3423688d016ffcda3b738de89418338e95249276ac634e77f356a20deb57daaa")
     version("2.1.3", sha256="b26ee805d63b781244a5bab4db09f4a7a5a5c9ed371ead0d5260f00a0a94b233")
     version("2.1.2", sha256="4d62dc969eedef7861ccb3ecdb6de4646f0ec585c2d0436c2011e3dc9de78e54")
     version("2.1.1", sha256="be79921a66ef070ceb1daa164baa5687ff0d29d02b6b0e5d212e14c6f65f00ab")
@@ -250,6 +251,11 @@ class Openloops(Package):
     depends_on("python", type=("build", "run"))
 
     phases = ["configure", "build", "build_processes", "install"]
+
+    def url_for_version(self, v):
+        if self.satisfies("@:2.1.2"):
+            return f"https://openloops.hepforge.org/downloads?f=OpenLoops-{v}.tar.gz"
+        return f"https://gitlab.com/openloops/OpenLoops/-/archive/OpenLoops-{v}/OpenLoops-OpenLoops-{v}.tar.gz"        
 
     def configure(self, spec, prefix):
         spack_env = (
