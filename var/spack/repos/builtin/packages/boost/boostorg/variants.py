@@ -211,6 +211,7 @@ def load():
             "Generic components for mathematical graphs (collections of nodes and edges)."
         ),
     )
+    # fmt: off
     _boost_variant(
         "python",
         default=False,
@@ -266,6 +267,7 @@ def load():
         buildable="@1.29.0:",
         description="A set of date-time libraries based on generic programming concepts.",
     )
+    # fmt: off
     _boost_variant(
         "signals",
         default=False,
@@ -281,9 +283,14 @@ def load():
         "filesystem",
         when="@1.30.0:",
         buildable="@1.30.0:",
+        description="Portable facilities to query and manipulate paths, files, and directories.",
+    )
+    _boost_variant(
+        "spirit",
+        when="@1.30.0:",
+        conflicts=[{"when": "cxxstd=98", "msg": "Boost.Spirit requires cxxstd >= 03"}],
         description=(
-            "The Boost Filesystem Library provides portable facilities to query and manipulate"
-            " paths, files, and directories."
+            "LL parser framework represents parsers directly as EBNF grammars in inlined C++."
         ),
     )
     _boost_variant(
@@ -291,11 +298,7 @@ def load():
         default=False,
         when="@1.32.0:",
         buildable="@1.32.0:",
-        description=(
-            "The program_options library allows program developers to obtain program options,"
-            " that is (name, value) pairs from the user, via conventional methods such as"
-            " command line and config file."
-        ),
+        description="Parse command-line options similar to POSIX getops or from config files.",
     )
     _boost_variant(
         "serialization",
@@ -309,6 +312,17 @@ def load():
         buildable="@1.33.0:",
         description=("Streams, stream buffers, and i/o filters"),
     )
+    # fmt: off
+    _boost_variant(
+        "parameter",
+        when="@1.33.0:",
+        buildable="@1.33.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Parameter requires at least c++03"},
+        ],
+        description="Write functions that accept arguments by name.",
+    )
+    # fmt: on
     _boost_variant(
         "wave",
         when="@1.33.0:",
@@ -434,6 +448,16 @@ def load():
         description="Coroutine library.",
     )
     _boost_variant(
+        "lockfree",
+        when="@1.53.0:",
+        description="Lockfree queue, stack, and SP/SC queue.",
+    )
+    _boost_variant(
+        "odeint",
+        when="@1.53.0:",
+        description="Solver for ordinary differential equations.",
+    )
+    _boost_variant(
         "log",
         when="@1.54.0:",
         buildable="@1.54.0:",
@@ -490,6 +514,85 @@ def load():
             "Contract programming with subcontracting, class invariants, and pre/postconditions."
         ),
     )
+    # fmt: off
+    _boost_variant(
+        "hof",
+        when="@1.67.0:",
+        description="Higher-order functions for C++",
+    )
+    # fmt: on
+    _boost_variant(
+        "yap",
+        when="@1.68.0:",
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.YAP requires cxxstd >= 14"},
+            {"when": "cxxstd=03", "msg": "Boost.YAP requires cxxstd >= 14"},
+            {"when": "cxxstd=11", "msg": "Boost.YAP requires cxxstd >= 14"},
+        ],
+        description="An expression template library for C++14 and later.",
+    )
+    _boost_variant(
+        "parameter_python",
+        default=False,
+        when="@1.69.0:",
+        # fmt: off
+        requires=[
+            {"spec": "+python", "msg": "Parameter Python bindings requires python support"},
+            {"spec": "+parameter", "msg": "Parameter Python bindings requires Boost.Parameter"}
+        ],
+        # fmt: on
+        description="Python bindings for Boost.Parameter.",
+    )
+    # fmt: off
+    _boost_variant(
+        "safe_numerics",
+        when="@1.69.0:",
+        description="Guaranteed Correct Integer Arithmetic",
+    )
+    # fmt: on
+    _boost_variant(
+        "spirit_repository",
+        when="@1.69.0:",
+        description="A collection of reusable components for Qi parsers and Karma generators.",
+    )
+    _boost_variant(
+        "histogram",
+        when="@1.70.0:",
+        # fmt: off
+        requires=[
+            {
+                "spec": "+variant2",
+                "when": "@1.71.0:",
+                "msg": "Boost.Histogram requires Boost.Variant2"
+            },
+        ],
+        # fmt: on
+        conflicts=[
+            {"when": "cxxstd=98", "msg": "Boost.Histogram requires cxxstd >= 14"},
+            {"when": "cxxstd=03", "msg": "Boost.Histogram requires cxxstd >= 14"},
+            {"when": "cxxstd=11", "msg": "Boost.Histogram requires cxxstd >= 14"},
+        ],
+        description="Fast multi-dimensional histogram with convenient interface.",
+    )
+    _boost_variant(
+        "outcome",
+        when="@1.70.0:",
+        description=(
+            "Deterministic failure handling, partially simulating lightweight exceptions."
+        ),
+    )
+    # fmt: off
+    _boost_variant(
+        "string_ref",
+        when="@1.71.0:",
+        description="String view templates.",
+    )
+    _boost_variant(
+        "variant2",
+        when="@1.71.0:",
+        description="A never-valueless, strong guarantee implementation of std::variant.",
+    )
+    # fmt: on
     _boost_variant(
         "nowide",
         default=False,
