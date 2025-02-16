@@ -142,15 +142,6 @@ class Boost(Package):
     with when("+numpy"):
         depends_on("py-numpy", type=("build", "run"))
 
-        # Support for numpy >= 2
-        sp.patch(
-            "python_PR432.patch",
-            when="@:1.87.0",
-            working_dir="libs/python",
-            level=0,
-            sha256="41d0e85c8f29d2b13e259d43f7fa9e44d3ab402a9b8c3d351334feb958c9199e",
-        )
-
         # https://github.com/boostorg/python/issues/431
         depends_on("py-numpy@:1", when="@:1.85", type=("build", "run"))
 

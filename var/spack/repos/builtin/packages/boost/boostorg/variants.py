@@ -382,10 +382,9 @@ def load():
         "smart_ptr",
         when="@1.23.0:",
         conflicts=[
-            {"when": "@1.87.0: cxxstd=98", "msg": "Boost.SmartPtr requires cxxstd >= 11"},
-            {"when": "@1.87.0: cxxstd=03", "msg": "Boost.SmartPtr requires cxxstd >= 11"},
+            {"when": "@:1.87.0 cxxstd=98", "msg": "Boost.smart_ptr requires cxxstd >= 03"},
         ],
-        description="Smart pointers.",
+        description="Smart pointers",
     )
     _boost_variant(
         "bind",
@@ -395,6 +394,15 @@ def load():
             {"when": "cxxstd=03", "msg": "Boost.bind requires cxxstd >= 11"},
         ],
         description="Generalizations of the std::bind and std::mem_fn family",
+    )
+    _boost_variant(
+        "smart_ptr",
+        when="@1.23.0:",
+        conflicts=[
+            {"when": "@1.87.0: cxxstd=98", "msg": "Boost.SmartPtr requires cxxstd >= 11"},
+            {"when": "@1.87.0: cxxstd=03", "msg": "Boost.SmartPtr requires cxxstd >= 11"},
+        ],
+        description="Smart pointers.",
     )
     _boost_variant(
         "thread",
@@ -1411,5 +1419,14 @@ def load():
         description="Scope guards and a unique_resource wrapper",
     )
     # fmt: on
-
+    _boost_variant(
+        "parser",
+        when="@1.87.0:",
+        default=False,
+        conflicts=[
+            {"when": "cxxstd=11", "msg": "Boost.Parser requires cxxstd >= 17"},
+            {"when": "cxxstd=14", "msg": "Boost.Parser requires cxxstd >= 17"},
+        ],
+        description="A parser combinator library for building complex parsers",
+    )
     return library_names

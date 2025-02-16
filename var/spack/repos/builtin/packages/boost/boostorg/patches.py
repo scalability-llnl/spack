@@ -116,22 +116,32 @@ def load():
     #
     # ----- Python ---------
     #
-    with sp.when("^python@3:"):
+    with sp.when("+python"):
+        # Support for numpy >= 2
         sp.patch(
-            "patches/python_jam-1_77.patch",
-            when="@1.77:",
-            sha256="b8569d7d4c3ef0501a39857126a2b0a88519bf256c29f3252a6958916ce82255",
+            "patches/python_PR432.patch",
+            when="@:1.87.0",
+            working_dir="libs/python",
+            level=0,
+            sha256="41d0e85c8f29d2b13e259d43f7fa9e44d3ab402a9b8c3d351334feb958c9199e",
         )
-        sp.patch(
-            "patches/python_jam.patch",
-            when="@1.56:1.76",
-            sha256="2ab6c72d03dec6a4ae20220a9dfd5c8c572c5294252155b85c6874d97c323199",
-        )
-        sp.patch(
-            "patches/python_jam_pre156.patch",
-            when="@:1.55.0",
-            sha256="f994ac84634f2f833a7a4d3179c5bf9a06f14349ef67aacba39d08837ffab004",
-        )
+
+        with sp.when("^python@3:"):
+            sp.patch(
+                "patches/python_jam-1_77.patch",
+                when="@1.77:",
+                sha256="b8569d7d4c3ef0501a39857126a2b0a88519bf256c29f3252a6958916ce82255",
+            )
+            sp.patch(
+                "patches/python_jam.patch",
+                when="@1.56:1.76",
+                sha256="2ab6c72d03dec6a4ae20220a9dfd5c8c572c5294252155b85c6874d97c323199",
+            )
+            sp.patch(
+                "patches/python_jam_pre156.patch",
+                when="@:1.55.0",
+                sha256="f994ac84634f2f833a7a4d3179c5bf9a06f14349ef67aacba39d08837ffab004",
+            )
 
     #
     # --------------------------------------------------------------------------------------
@@ -376,3 +386,12 @@ def load():
                 level=0,
                 sha256="28118307582c3ce716d010fc89c3cd749066b333f3859c6b533613f59394df81",
             )
+
+    with sp.when("@1.87.0"):
+        # https://github.com/boostorg/context/pull/280
+        sp.patch(
+            "patches/context_impl_module.patch",
+            sha256="e2d37f9e35e8e238977de9af32604a8e1c2648d153df1d568935a20216b5c67f",
+            when="@1.87.0",
+            working_dir="libs/context",
+        )
