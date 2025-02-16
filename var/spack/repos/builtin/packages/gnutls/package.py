@@ -17,8 +17,8 @@ class Gnutls(AutotoolsPackage):
 
     homepage = "https://www.gnutls.org"
     url = "https://www.gnupg.org/ftp/gcrypt/gnutls/v3.5/gnutls-3.5.19.tar.xz"
-    list_depth = 2
     git = "https://gitlab.com/gnutls/gnutls/"
+    list_depth = 2
 
     maintainers("alecbcs")
 
