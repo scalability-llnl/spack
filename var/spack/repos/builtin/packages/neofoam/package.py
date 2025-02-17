@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,13 +9,15 @@ class Neofoam(CMakePackage):
     """NeoFOAM is a WIP prototype of a modern CFD core."""
 
     homepage = "https://github.com/exasim-project/NeoFOAM"
-    git = homepage
+    git = "https://github.com/exasim-project/NeoFOAM.git"
 
-    # maintainers("greole", "HenningScheufler")
+    maintainers("greole", "HenningScheufler")
 
     license("MIT", checked_by="greole")
 
-    version("develop", branch="main")
+    version("main", branch="main")
 
+    depends_on("c")
+    depends_on("cxx")
     depends_on("mpi")
     depends_on("kokkos@4.3.0")
