@@ -415,3 +415,18 @@ class Visit(CMakePackage):
 
     # see https://github.com/visit-dav/visit/issues/20055
     unresolved_libraries = ["*"]
+
+    def test_smoke_test(self):
+        """Test visit -cli"""
+        spec = self.spec
+
+        if "~python" in spec:
+            raise SkipTest("Package must be installed with +python")
+
+        visit_cmd = Executable(spec["visit"].prefix.bin.visit)
+        visit_cmd("-cli", "-nowin", "import visit; visit.Launch(nowin=1)")
+
+    @run_after("install")
+    @on_package_attributes(run_tests=True)
+    def build_test(self):
+        self.test_smoke_test()
