@@ -9,11 +9,14 @@ class G4vg(CMakePackage):
     """Generate VecGeom geometry representations from in-memory Geant4 geometry."""
 
     homepage = "https://github.com/celeritas-project/g4vg"
+    git = "https://github.com/celeritas-project/g4vg.git"
     url = "https://github.com/celeritas-project/g4vg/releases/download/v1.0.1/g4vg-1.0.1.tar.gz"
 
     maintainers("sethrj", "drbenmorgan")
 
     license("Apache-2.0", checked_by="sethrj")
+
+    version("develop", branch="main", get_full_repo=True)
 
     version("1.0.1", sha256="add7ce4bc37889cac2101323a997cea8574b18da6cbeffdab44a2b714d134e99")
 

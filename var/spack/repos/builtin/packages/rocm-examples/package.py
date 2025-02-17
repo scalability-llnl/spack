@@ -18,6 +18,7 @@ class RocmExamples(CMakePackage):
 
     license("MIT")
 
+    version("6.3.2", sha256="7a71dcfec782338af1d838f86b692974368e362de8ad85d5ec26c23b0afbab9e")
     version("6.3.1", sha256="c5093cd6641de478b940d2e36d6723f7ef1ccad3f4f96caf0394def2e6c7e325")
     version("6.3.0", sha256="809b5212d86d182586d676752b192967aee3bde6df8bbbe67558b221d63f5c7c")
     version("6.2.4", sha256="510931103e4a40b272123b5c731d2ea795215c6171810beb1d5335d73bcc9b03")
@@ -28,7 +29,7 @@ class RocmExamples(CMakePackage):
 
     depends_on("glfw", type="build")
 
-    for ver in ["6.3.1", "6.3.0", "6.2.4", "6.2.1", "6.2.0"]:
+    for ver in ["6.3.2", "6.3.1", "6.3.0", "6.2.4", "6.2.1", "6.2.0"]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"hipify-clang@{ver}", when=f"@{ver}")
         depends_on(f"hipcub@{ver}", when=f"@{ver}")

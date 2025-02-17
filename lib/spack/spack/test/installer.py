@@ -557,7 +557,7 @@ def test_combine_phase_logs(tmpdir):
 
 def test_combine_phase_logs_does_not_care_about_encoding(tmpdir):
     # this is invalid utf-8 at a minimum
-    data = b"\x00\xF4\xBF\x00\xBF\xBF"
+    data = b"\x00\xf4\xbf\x00\xbf\xbf"
     input = [str(tmpdir.join("a")), str(tmpdir.join("b"))]
     output = str(tmpdir.join("c"))
 

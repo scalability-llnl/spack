@@ -19,6 +19,7 @@ class Amdsmi(CMakePackage):
     libraries = ["libamd_smi"]
 
     license("MIT")
+    version("6.3.2", sha256="1ed452eedfe51ac6e615d7bfe0bd7a0614f21113874ae3cbea7df72343cc2d13")
     version("6.3.1", sha256="a3a5a711052e813b9be9304d5e818351d3797f668ec2a455e61253a73429c355")
     version("6.3.0", sha256="7234c46648938239385cd5db57516ed53985b8c09d2f0828ae8f446386d8bd1e")
     version("6.2.4", sha256="5ebe8d0f176bf4a73b0e7000d9c47cb7f65ecca47011d3f9b08b93047dcf7ac5")

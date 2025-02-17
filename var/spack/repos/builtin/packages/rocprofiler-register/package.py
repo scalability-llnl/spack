@@ -19,6 +19,7 @@ class RocprofilerRegister(CMakePackage):
     maintainers("afzpatel", "srekolam", "renjithravindrankannath")
 
     license("MIT")
+    version("6.3.2", sha256="2e973dd10af220cd37838c13f3c7d52671f5cf846a3f06311b138770b62f51f4")
     version("6.3.1", sha256="82e2fbd2da058503398848c3e662f518e99f9bccb7b98880aa321c1f6511fca9")
     version("6.3.0", sha256="51aae00e7a8bb44a369de9626fca360c80879034ab43092eb6e4ccfa1b51ca47")
     version("6.2.4", sha256="e7c31d5e1100c1e8ae0a2c6de3bfea75341abc4a68d02b58089421e2a54bba54")

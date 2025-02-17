@@ -209,7 +209,7 @@ class LmodConfiguration(BaseConfiguration):
         # All the other tokens in the hierarchy must be virtual dependencies
         for x in self.hierarchy_tokens:
             if self.spec.package.provides(x):
-                provides[x] = self.spec[x]
+                provides[x] = self.spec
         return provides
 
     @property
