@@ -33,5 +33,5 @@ class LibpressioNvcomp(CMakePackage, CudaPackage):
 
     def cmake_args(self):
         cuda_arch = self.spec.variants["cuda_arch"].value
-        args = [("-DCMAKE_CUDA_ARCHITECTURES=%s" % cuda_arch)]
+        args = ["-DCMAKE_CUDA_ARCHITECTURES=%s" % cuda_arch]
         return args
