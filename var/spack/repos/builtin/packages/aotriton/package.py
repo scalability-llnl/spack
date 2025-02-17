@@ -10,6 +10,7 @@ class Aotriton(CMakePackage):
     """Ahead of Time (AOT) Triton Math Library."""
 
     homepage = "https://github.com/ROCm/aotriton"
+    git = "https://github.com/ROCm/aotriton.git"
     url = "https://github.com/ROCm/aotriton/archive/refs/tags/0.8.2b.tar.gz"
 
     maintainers("afzpatel", "srekolam", "renjithravindrankannath")
@@ -18,21 +19,18 @@ class Aotriton(CMakePackage):
 
     version(
         "0.8.2b",
-        git="https://github.com/ROCm/aotriton",
         tag="0.8.2b",
         commit="b24f43a9771622faa157155568b9a200c3b49e41",
         submodules=True,
     )
     version(
         "0.8.1b",
-        git="https://github.com/ROCm/aotriton",
         tag="0.8.1b",
         commit="3a80554a88ae3b1bcf4b27bc74ad9d7b913b58f6",
         submodules=True,
     )
     version(
         "0.8b",
-        git="https://github.com/ROCm/aotriton",
         tag="0.8b",
         commit="6f8cbcac8a92775291bb1ba8f514d4beb350baf4",
         submodules=True,
@@ -51,7 +49,6 @@ class Aotriton(CMakePackage):
     depends_on("zlib-api", type="link")
     depends_on("xz", type="link")
     depends_on("pkgconfig", type="build")
-    depends_on("py-pybind11", type="build")
     conflicts("^openssl@3.3.0")
 
     # ROCm dependencies
@@ -76,5 +73,5 @@ class Aotriton(CMakePackage):
 
     def cmake_args(self):
         args = []
-        args.append("-DAOTRITON_GPU_BUILD_TIMEOUT=0")
+        args.append(self.define("AOTRITON_GPU_BUILD_TIMEOUT", 0))
         return args
