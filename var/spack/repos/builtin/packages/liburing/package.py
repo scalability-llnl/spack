@@ -43,7 +43,7 @@ class Liburing(AutotoolsPackage):
 
     # Define build targets
     @property
-    def build_target(self):
+    def build_targets(self):
         if self.spec.satisfies("@2.7:"):
             # avoid examples and test
             return ["library"]
