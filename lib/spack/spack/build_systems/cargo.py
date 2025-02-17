@@ -94,7 +94,9 @@ class CargoBuilder(BuilderWithDefaults):
     ) -> None:
         """Runs ``cargo install`` in the source directory"""
         with fs.working_dir(self.build_directory):
-            pkg.module.cargo("install", "--root", "out", "--path", ".", *self.std_build_args, *self.build_args)
+            pkg.module.cargo(
+                "install", "--root", "out", "--path", ".", *self.std_build_args, *self.build_args
+            )
 
     def install(
         self, pkg: CargoPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
