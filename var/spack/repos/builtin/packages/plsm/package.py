@@ -5,7 +5,7 @@
 from spack.package import *
 
 
-class Plsm(CMakePackage):
+class Plsm(CMakePackage, CudaPackage):
     """plsm is a generic library for spatial subdivision within an N-dimensional lattice."""
 
     homepage = "https://github.com/ORNL-Fusion/plsm"
@@ -25,19 +25,22 @@ class Plsm(CMakePackage):
     depends_on("cxx", type="build")
 
     variant("int64", default=True, description="Use 64-bit indices")
-    variant("cuda", default=False, description="Activates CUDA backend")
     variant("openmp", default=False, description="Activates OpenMP backend")
+
+    conflicts("+cuda", when="cuda_arch=none")
     conflicts("+openmp", when="+cuda", msg="Can't use both OpenMP and CUDA")
 
     depends_on("kokkos")
-    depends_on("kokkos +cuda", when="+cuda")
     depends_on("kokkos +openmp", when="+openmp")
+    for cuda_arch in CudaPackage.cuda_arch_values:
+        depends_on(
+            f"kokkos+cmake_lang+cuda+cuda_lambda cuda_arch={cuda_arch}",
+            when=f"+cuda cuda_arch={cuda_arch}",
+        )
 
     def cmake_args(self):
-        args = [self.define("BUILD_TESTING", self.run_tests)]
-
-        spec = self.spec
-        if "+int64" in spec:
-            args.append("-DPLSM_USE_64BIT_INDEX_TYPE=ON")
-
+        args = [
+            self.define("BUILD_TESTING", self.run_tests),
+            self.define_from_variant("PLSM_USE_64BIT_INDEX_TYPE", "int64")
+        ]
         return args
