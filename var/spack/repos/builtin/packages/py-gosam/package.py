@@ -30,6 +30,7 @@ class PyGosam(Package):
         sha256="4a2b9160d51e3532025b9579a4d17d0e0f8a755b8481aeb8271c1f58eb97ab01",
     )
 
+    patch("setuptools.patch", when="^python@3.12:")
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
     depends_on("fortran", type="build")  # generated
@@ -38,6 +39,7 @@ class PyGosam(Package):
     depends_on("qgraf", type="run")
     depends_on("gosam-contrib", type="link")
     depends_on("python@3:", type=("build", "run"))
+    depends_on("py-setuptools")
 
     def setup_run_environment(self, env):
         gosam_contrib_lib_dir = self.spec["gosam-contrib"].prefix.lib
