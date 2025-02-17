@@ -933,6 +933,11 @@ def test_indexing_prefers_direct_or_transitive_link_deps():
     with pytest.raises(KeyError):
         root["a2"]
 
+    # Check consistency of __contains__ with __getitem__
+    assert "z3 +through_z1" in root
+    assert "z3 +through_a1" in a1
+    assert "a2" not in root
+
 
 def test_getitem_sticks_to_subdag():
     """Test that indexing on Spec by virtual does not traverse outside the dag, which happens in
