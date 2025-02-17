@@ -16,7 +16,6 @@ spack:
     all:
       require:
       - target=x86_64_v3
-      prefer:
       - "%cce"
       providers:
         blas: [cray-libsci]
