@@ -135,7 +135,7 @@ class Nim(Package):
         if self.spec.satisfies("^[virtuals=libc] musl"):
             if self.spec.satisfies("@devel,1.9.3:"):
                 pthreadModule = "lib/std/private/threadtypes.nim"
-            elif self.spec.satisfies("@=0.19.6"):
+            elif self.spec.satisfies("@:0.19.6"):
                 pthreadModule = "lib/system/threads.nim"
             else:
                 pthreadModule = "lib/system/threadlocalstorage.nim"
