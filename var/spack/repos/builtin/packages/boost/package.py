@@ -88,8 +88,6 @@ class Boost(Package):
     depends_on("c", type="build")
     depends_on("cxx", type="build")
 
-    with_default_variants = "boost"
-
     _buildable_libraries = boostvariants.load()
     boostpatches.load()
 
