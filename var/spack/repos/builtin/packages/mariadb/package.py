@@ -151,12 +151,7 @@ class Mariadb(CMakePackage):
     )
 
     # libxml 2.12 build issue with older mariaDB: https://jira.mariadb.org/browse/MDEV-33439
-    conflicts("libxml2@2.12:", when="@5.5")
-    conflicts("libxml2@2.12:", when="@10.1")
-    conflicts("libxml2@2.12:", when="@10.2")
-    conflicts("libxml2@2.12:", when="@10.4.0:10.4.33")
-    conflicts("libxml2@2.12:", when="@10.5.0:10.5.24")
-    conflicts("libxml2@2.12:", when="@11.3")
+    conflicts("libxml2@2.12:", when="@:10.5.24,11:11.3")
 
     def cmake_args(self):
         args = []
