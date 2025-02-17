@@ -55,5 +55,4 @@ class Libgpiod(AutotoolsPackage):
     depends_on("libtool", type="build")
 
     def autoreconf(self, spec, prefix):
-        bash = which("bash")
-        bash("./autogen.sh")
+        Executable("./autogen.sh")()
