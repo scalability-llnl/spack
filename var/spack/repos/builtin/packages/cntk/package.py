@@ -5,7 +5,6 @@
 import os
 
 from spack.package import *
-from spack.pkg.builtin.boost import Boost
 
 
 class Cntk(Package):
@@ -33,10 +32,7 @@ class Cntk(Package):
     depends_on("libzip")
     depends_on("openblas")
     depends_on("mpi")
-    # TODO: replace this with an explicit list of components of Boost,
-    # for instance depends_on('boost +filesystem')
-    # See https://github.com/spack/spack/pull/22303 for reference
-    depends_on(Boost.with_default_variants)
+    depends_on("boost")
     depends_on("protobuf@3.10")
     # CNTK depends on kaldi@c02e8.
     # See https://github.com/Microsoft/CNTK/blob/master/Tools/docker/CNTK-CPUOnly-Image/Dockerfile#L105-L125
