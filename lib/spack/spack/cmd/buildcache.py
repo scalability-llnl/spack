@@ -786,8 +786,8 @@ def update_index_fn(args):
     active_env = ev.active_environment()
 
     if mirror.push_view and not (args.specfile or args.envfile or active_env):
-        raise SpackError(
-            "Pushing to a mirror with a view is without specifying an "
+        raise spack.error.SpackError(
+            "Updating a view package index in a binary mirror without specifying an "
             "environment or specfile is reduntant to the top level mirror index"
         )
 

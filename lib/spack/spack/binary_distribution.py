@@ -924,7 +924,7 @@ def _url_generate_view_package_index(
 
         spec_list = _read_specs_from_list(file_list, read_fn, spec_filter)
     except ListMirrorSpecsError as e:
-        raise GenerateIndexError(f"Unable to generate package index: {e}") from e
+        raise GenerateIndexError(f"Unable to generate view package index: {e}") from e
 
     tty.debug(f"Retrieving spec descriptor files from {url} to build index")
 
