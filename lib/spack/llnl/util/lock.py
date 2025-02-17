@@ -269,7 +269,7 @@ class Lock:
 
     @staticmethod
     def _poll_interval_generator(
-        _wait_times: Optional[Tuple[float, float, float]] = None
+        _wait_times: Optional[Tuple[float, float, float]] = None,
     ) -> Generator[float, None, None]:
         """This implements a backoff scheme for polling a contended resource
         by suggesting a succession of wait times between polls.
