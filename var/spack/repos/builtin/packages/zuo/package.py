@@ -16,4 +16,12 @@ class Zuo(AutotoolsPackage):
 
     version("1.11", sha256="8404bea8ecae4576f44dece7efcab69d94c8a30ec10ea186f86823d37e74694b")
 
+    variant("big", default=False, description="Enable hygienic macro support")
+
     depends_on("c", type="build")
+
+    def setup_build_environment(self, env):
+        env.set("ZUO_JOBS", make_jobs)
+
+    def configure_args(self):
+        return [*self.enable_or_disable("big")]
