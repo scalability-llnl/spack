@@ -21,6 +21,12 @@ class Rccl(CMakePackage):
     maintainers("srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["librccl"]
     version(
+        "6.3.2",
+        tag="rocm-6.3.2",
+        commit="9a0e6a114c8f7371fa3050b413a350d6945fb7db",
+        submodules=True,
+    )
+    version(
         "6.3.1",
         tag="rocm-6.3.1",
         commit="4ab67f5a5946d851a963b281cd9aa7b86eee752a",
@@ -93,6 +99,7 @@ class Rccl(CMakePackage):
         "6.2.4",
         "6.3.0",
         "6.3.1",
+        "6.3.2",
     ]:
         depends_on(f"rocm-cmake@{ver}:", type="build", when=f"@{ver}")
         depends_on(f"hip@{ver}", when=f"@{ver}")
@@ -116,6 +123,7 @@ class Rccl(CMakePackage):
         "6.2.4",
         "6.3.0",
         "6.3.1",
+        "6.3.2",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 

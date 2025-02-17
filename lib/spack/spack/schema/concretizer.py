@@ -84,9 +84,14 @@ properties: Dict[str, Any] = {
             "duplicates": {
                 "type": "object",
                 "properties": {
-                    "strategy": {"type": "string", "enum": ["none", "minimal", "full"]}
+                    "strategy": {"type": "string", "enum": ["none", "minimal", "full"]},
+                    "max_dupes": {
+                        "type": "object",
+                        "additional_properties": {"type": "integer", "minimum": 1},
+                    },
                 },
             },
+            "static_analysis": {"type": "boolean"},
             "timeout": {"type": "integer", "minimum": 0},
             "error_on_timeout": {"type": "boolean"},
             "os_compatible": {"type": "object", "additionalProperties": {"type": "array"}},

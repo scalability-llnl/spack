@@ -408,11 +408,12 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
             if option:
                 spack_options.append(option)
 
-    def setup_dependent_package(self, module, dependent_spec):
-        try:
-            self.spec.kokkos_cxx = self.spec["kokkos-nvcc-wrapper"].kokkos_cxx
-        except Exception:
-            self.spec.kokkos_cxx = spack_cxx
+    @property
+    def kokkos_cxx(self) -> str:
+        if self.spec.satisfies("+wrapper"):
+            return self["kokkos-nvcc-wrapper"].kokkos_cxx
+        # Assumes build-time globals have been set already
+        return spack_cxx
 
     def cmake_args(self):
         spec = self.spec
@@ -474,9 +475,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
                 options.append(self.define(tpl + "_DIR", spec[tpl].prefix))
 
         if self.spec.satisfies("+wrapper"):
-            options.append(
-                self.define("CMAKE_CXX_COMPILER", self.spec["kokkos-nvcc-wrapper"].kokkos_cxx)
-            )
+            options.append(self.define("CMAKE_CXX_COMPILER", self.kokkos_cxx))
         elif "+rocm" in self.spec:
             if "+cmake_lang" in self.spec:
                 options.append(

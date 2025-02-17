@@ -700,9 +700,9 @@ class TestSpecSemantics:
     def test_copy_satisfies_transitive(self):
         spec = spack.concretize.concretize_one("dttop")
         copy = spec.copy()
-        for s in spec.traverse():
-            assert s.satisfies(copy[s.name])
-            assert copy[s.name].satisfies(s)
+        for s, t in zip(spec.traverse(), copy.traverse()):
+            assert s.satisfies(t)
+            assert t.satisfies(s)
 
     def test_intersects_virtual(self):
         assert Spec("mpich").intersects(Spec("mpi"))

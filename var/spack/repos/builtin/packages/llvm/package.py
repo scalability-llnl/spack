@@ -753,19 +753,21 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
             string=True,
         )
 
+    clang_and_friends = "(?:clang|flang|flang-new)"
+
     compiler_version_regex = (
         # Normal clang compiler versions are left as-is
-        r"clang version ([^ )\n]+)-svn[~.\w\d-]*|"
+        rf"{clang_and_friends} version ([^ )\n]+)-svn[~.\w\d-]*|"
         # Don't include hyphenated patch numbers in the version
         # (see https://github.com/spack/spack/pull/14365 for details)
-        r"clang version ([^ )\n]+?)-[~.\w\d-]*|"
-        r"clang version ([^ )\n]+)|"
+        rf"{clang_and_friends} version ([^ )\n]+?)-[~.\w\d-]*|"
+        rf"{clang_and_friends} version ([^ )\n]+)|"
         # LLDB
         r"lldb version ([^ )\n]+)|"
         # LLD
         r"LLD ([^ )\n]+) \(compatible with GNU linkers\)"
     )
-    fortran_names = ["flang"]
+    fortran_names = ["flang", "flang-new"]
 
     @property
     def supported_languages(self):
