@@ -80,20 +80,22 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
         "cuda_arch=none", when="+cuda", msg="magma: Please indicate a CUDA arch value or values"
     )
 
-    # currently not compatible with CUDA-11
+    # Versions before 2.5.3 were not compatible with CUDA-11
     # https://bitbucket.org/icl/magma/issues/22/cuda-11-changes-issue
     # https://bitbucket.org/icl/magma/issues/25/error-cusparsesolveanalysisinfo_t-does-not
     conflicts("^cuda@11:", when="@:2.5.3")
 
-    # currently not compatible with CUDA-12.6
+    # 2.8.0 release not compatible with CUDA-12.6
     # https://github.com/icl-utk-edu/magma/issues/7
     conflicts("^cuda@12.6:", when="@:2.8.0")
 
-    # Many cuda_arch values were not yet recognized by MAGMA's CMakeLists.txt
-    with when("@:2.9.0"):
-        # All cuda_arch values are supported in latest 2.9.0 release
+    # Many cuda_arch values were not recognized by MAGMA's CMakeLists.txt
+    with when("@:2.8"):
+        # All cuda_arch values are supported in 2.9.0 release
         for target in [10, 11, 12, 13, 21, 32, 52, 53, 61, 62, 72, 86]:
-            conflicts(f"cuda_arch={target}")
+            conflicts(
+                f"cuda_arch={target}", msg=f"magma: cuda_arch={target} needs a version > 2.8.0"
+            )
 
     # Some cuda_arch values had support added recently
     conflicts("cuda_arch=37", when="@:2.5", msg="magma: cuda_arch=37 needs a version > 2.5")
