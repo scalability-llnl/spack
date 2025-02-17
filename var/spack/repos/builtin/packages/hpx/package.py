@@ -6,7 +6,6 @@
 import sys
 
 from spack.package import *
-from spack.pkg.builtin.boost import Boost
 
 
 class Hpx(CMakePackage, CudaPackage, ROCmPackage):
@@ -103,7 +102,6 @@ class Hpx(CMakePackage, CudaPackage, ROCmPackage):
 
     # Other dependecies
     depends_on("hwloc")
-    depends_on(Boost.with_default_variants)
     depends_on("boost +context", when="+generic_coroutines")
     for cxxstd in cxxstds:
         depends_on("boost cxxstd={0}".format(map_cxxstd(cxxstd)), when="cxxstd={0}".format(cxxstd))

@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
-from spack.pkg.builtin.boost import Boost
 
 
 class Helics(CMakePackage):
@@ -94,10 +93,6 @@ class Helics(CMakePackage):
     depends_on("boost@1.70:", type="build", when="@:3.5.3 +boost")
     depends_on("boost@1.75:", type="build", when="@3.6.0: +boost")
 
-    # TODO: replace this with an explicit list of components of Boost,
-    # for instance depends_on('boost +filesystem')
-    # See https://github.com/spack/spack/pull/22303 for reference
-    depends_on(Boost.with_default_variants, type="build", when="+boost")
     depends_on("swig@3.0:", type="build", when="+swig")
 
     depends_on("libzmq@4.3:", when="+zmq")
