@@ -53,4 +53,4 @@ class Sysbench(AutotoolsPackage):
         return args
 
     def autoreconf(self, spec, prefix):
-        which("bash")("./autogen.sh")
+        Executable("./autogen.sh")()
