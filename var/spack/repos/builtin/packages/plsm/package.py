@@ -41,6 +41,6 @@ class Plsm(CMakePackage, CudaPackage):
     def cmake_args(self):
         args = [
             self.define("BUILD_TESTING", self.run_tests),
-            self.define_from_variant("PLSM_USE_64BIT_INDEX_TYPE", "int64")
+            self.define_from_variant("PLSM_USE_64BIT_INDEX_TYPE", "int64"),
         ]
         return args
