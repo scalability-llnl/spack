@@ -57,6 +57,9 @@ class Davix(CMakePackage):
         description="Use the specified C++ standard when building.",
     )
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     depends_on("pkgconfig", type="build")
     depends_on("libxml2")
     depends_on("uuid")
@@ -68,14 +71,10 @@ class Davix(CMakePackage):
     depends_on("gsoap", when="+thirdparty")
 
     def cmake_args(self):
-        cmake_args = [
+        return [
             self.define_from_variant("CMAKE_CXX_STANDARD", variant="cxxstd"),
             self.define_from_variant("ENABLE_THIRD_PARTY_COPY", variant="thirdparty"),
+            # Disable the use of embedded packages; use Spack to fetch them instead
+            self.define("EMBEDDED_LIBCURL", False),
+            self.define("CMAKE_MACOSX_RPATH", self.spec.satisfies("platform=darwin")),
         ]
-
-        # Disable the use of embedded packages; use Spack to fetch them instead.
-        cmake_args.append("-DEMBEDDED_LIBCURL=OFF")
-
-        if "darwin" in self.spec.architecture:
-            cmake_args.append("-DCMAKE_MACOSX_RPATH=ON")
-        return cmake_args
