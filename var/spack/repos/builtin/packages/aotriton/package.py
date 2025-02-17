@@ -18,23 +18,12 @@ class Aotriton(CMakePackage):
     license("MIT")
 
     version(
-        "0.8.2b",
-        tag="0.8.2b",
-        commit="b24f43a9771622faa157155568b9a200c3b49e41",
-        submodules=True,
+        "0.8.2b", tag="0.8.2b", commit="b24f43a9771622faa157155568b9a200c3b49e41", submodules=True
     )
     version(
-        "0.8.1b",
-        tag="0.8.1b",
-        commit="3a80554a88ae3b1bcf4b27bc74ad9d7b913b58f6",
-        submodules=True,
+        "0.8.1b", tag="0.8.1b", commit="3a80554a88ae3b1bcf4b27bc74ad9d7b913b58f6", submodules=True
     )
-    version(
-        "0.8b",
-        tag="0.8b",
-        commit="6f8cbcac8a92775291bb1ba8f514d4beb350baf4",
-        submodules=True,
-    )
+    version("0.8b", tag="0.8b", commit="6f8cbcac8a92775291bb1ba8f514d4beb350baf4", submodules=True)
 
     generator("ninja")
     depends_on("c", type="build")  # generated
