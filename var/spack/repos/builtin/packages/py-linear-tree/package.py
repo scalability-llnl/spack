@@ -13,8 +13,6 @@ class PyLinearTree(PythonPackage):
     pypi = "linear-tree/linear-tree-0.3.5.tar.gz"
     git = "https://github.com/cerlymarco/linear-tree.git"
 
-    maintainers("")
-
     version("0.3.5", sha256="2db9fc976bcd693a66d8d92fdd7f97314125b3330eea4778885bfe62190d586c")
 
     depends_on("python@3.8:", type=("build", "run"))
