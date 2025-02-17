@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -50,7 +49,7 @@ class PyAnuga(PythonPackage):
         if self.run_tests:
             env.prepend_path("PATH", self.spec["mpi"].prefix.bin)
 
-    install_time_test_callbacks = ["test", "installtest"]
+    install_time_test_callbacks = ["test_imports", "installtest"]
 
     def installtest(self):
         python("runtests.py", "--no-build")

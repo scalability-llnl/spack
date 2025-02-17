@@ -43,6 +43,22 @@ concretizer:
     # (e.g. py-setuptools, cmake etc.)
     # "full" (experimental): allows separation of the entire build-tool stack (e.g. the entire "cmake" subDAG)
     strategy: minimal
+    # Maximum number of duplicates in a DAG, when using a strategy that allows duplicates. "default" is the
+    # number used if there isn't a more specific alternative
+    max_dupes:
+      default: 1
+      # Virtuals
+      c: 2
+      cxx: 2
+      fortran: 1
+      # Regular packages
+      cmake: 2
+      gmake: 2
+      py-cython: 2
+      py-flit-core: 2
+      py-setuptools: 2
+      gcc: 2
+      llvm: 2
   # Option to specify compatibility between operating systems for reuse of compilers and packages
   # Specified as a key: [list] where the key is the os that is being targeted, and the list contains the OS's
   # it can reuse. Note this is a directional compatibility so mutual compatibility between two OS's
@@ -63,3 +79,7 @@ concretizer:
   # Setting this to false yields unreproducible results, so we advise to use that value only
   # for debugging purposes (e.g. check which constraints can help Spack concretize faster).
   error_on_timeout: true
+
+  # Static analysis may reduce the concretization time by generating smaller ASP problems, in
+  # cases where there are requirements that prevent part of the search space to be explored.
+  static_analysis: false

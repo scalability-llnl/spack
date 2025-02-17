@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -407,23 +406,29 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
     # ###################### Dependencies ##########################
 
     # External Kokkos
-    depends_on("kokkos@4.4.01", when="@master: +kokkos")
-    depends_on("kokkos@4.3.01", when="@16.0.0 +kokkos")
-    depends_on("kokkos@4.2.01", when="@15.1.0:15.1.1 +kokkos")
-    depends_on("kokkos@4.1.00", when="@14.4.0:15.0.0 +kokkos")
+    with when("@14.4: +kokkos"):
+        depends_on("kokkos+wrapper", when="+wrapper")
+        depends_on("kokkos~wrapper", when="~wrapper")
+        depends_on("kokkos+cuda_relocatable_device_code~shared", when="+cuda_rdc")
+        depends_on("kokkos+hip_relocatable_device_code~shared", when="+rocm_rdc")
+        depends_on("kokkos-kernels~shared", when="+cuda_rdc")
+        depends_on("kokkos-kernels~shared", when="+rocm_rdc")
+        depends_on("kokkos~complex_align")
+        depends_on("kokkos@4.5.01", when="@master:")
+        depends_on("kokkos@4.3.01", when="@16")
+        depends_on("kokkos@4.2.01", when="@15.1:15")
+        depends_on("kokkos@4.1.00", when="@14.4:15.0")
+        depends_on("kokkos-kernels@4.5.01", when="@master:")
+        depends_on("kokkos-kernels@4.3.01", when="@16")
+        depends_on("kokkos-kernels@4.2.01", when="@15.1:15")
+        depends_on("kokkos+openmp", when="+openmp")
 
-    depends_on("kokkos +wrapper", when="trilinos@14.4.0: +kokkos +wrapper")
-    depends_on("kokkos ~wrapper", when="trilinos@14.4.0: +kokkos ~wrapper")
-
-    for a in CudaPackage.cuda_arch_values:
-        arch_str = "+cuda cuda_arch={0}".format(a)
-        kokkos_spec = "kokkos {0}".format(arch_str)
-        depends_on(kokkos_spec, when="@14.4.0: +kokkos {0}".format(arch_str))
-
-    for a in ROCmPackage.amdgpu_targets:
-        arch_str = "+rocm amdgpu_target={0}".format(a)
-        kokkos_spec = "kokkos {0}".format(arch_str)
-        depends_on(kokkos_spec, when="@14.4.0: +kokkos {0}".format(arch_str))
+        for a in CudaPackage.cuda_arch_values:
+            arch_str = f"+cuda cuda_arch={a}"
+            depends_on(f"kokkos{arch_str}", when=arch_str)
+        for a in ROCmPackage.amdgpu_targets:
+            arch_str = f"+rocm amdgpu_target={a}"
+            depends_on(f"kokkos{arch_str}", when=arch_str)
 
     depends_on("adios2", when="+adios2")
     depends_on("binder@1.3:", when="@15: +python", type="build")
@@ -584,21 +589,22 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
             # in case the dependent app also run a CUDA backend via Trilinos
             env.set("CUDA_LAUNCH_BLOCKING", "1")
 
-    def setup_dependent_package(self, module, dependent_spec):
-        if "+wrapper" in self.spec:
-            self.spec.kokkos_cxx = self.spec["kokkos-nvcc-wrapper"].kokkos_cxx
-        else:
-            self.spec.kokkos_cxx = spack_cxx
+    @property
+    def kokkos_cxx(self) -> str:
+        if self.spec.satisfies("+wrapper"):
+            return self["kokkos-nvcc-wrapper"].kokkos_cxx
+        # Assumes build-time globals have been set already
+        return spack_cxx
 
     def setup_build_environment(self, env):
         spec = self.spec
         if "+cuda" in spec and "+wrapper" in spec:
             if "+mpi" in spec:
-                env.set("OMPI_CXX", spec["kokkos-nvcc-wrapper"].kokkos_cxx)
-                env.set("MPICH_CXX", spec["kokkos-nvcc-wrapper"].kokkos_cxx)
-                env.set("MPICXX_CXX", spec["kokkos-nvcc-wrapper"].kokkos_cxx)
+                env.set("OMPI_CXX", self["kokkos-nvcc-wrapper"].kokkos_cxx)
+                env.set("MPICH_CXX", self["kokkos-nvcc-wrapper"].kokkos_cxx)
+                env.set("MPICXX_CXX", self["kokkos-nvcc-wrapper"].kokkos_cxx)
             else:
-                env.set("CXX", spec["kokkos-nvcc-wrapper"].kokkos_cxx)
+                env.set("CXX", self["kokkos-nvcc-wrapper"].kokkos_cxx)
 
         if "+rocm" in spec:
             if "+mpi" in spec:
@@ -899,8 +905,10 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
             define_tpl(tpl_name, dep_name, dep_name in spec)
 
         # External Kokkos
-        if spec.satisfies("@14.4.0 +kokkos"):
+        if spec.satisfies("@14.4.0: +kokkos"):
             options.append(define_tpl_enable("Kokkos"))
+        if spec.satisfies("@15.1: +kokkos"):
+            options.append(define_tpl_enable("KokkosKernels", True))
 
         # MPI settings
         options.append(define_tpl_enable("MPI"))

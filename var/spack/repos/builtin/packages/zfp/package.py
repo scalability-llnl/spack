@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -163,3 +162,42 @@ class Zfp(CMakePackage, CudaPackage):
                 args.append("-DCMAKE_CUDA_FLAGS=-arch sm_{0}".format(cuda_arch[0]))
 
         return args
+
+    def test_smoke_test(self, source_dir=None):
+        """Build and run ctests"""
+        if source_dir is None:
+            source_dir = self.test_suite.current_test_cache_dir
+        spec = self.spec
+        with working_dir(source_dir):
+            with open("CMakeLists.txt", "w") as f:
+                f.write(
+                    """
+                        cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
+                        project(ZfpSmokeTest CXX)
+                        include(CTest)
+                        find_package(ZFP REQUIRED)
+                        add_executable(smoke_test tests/testzfp.cpp)
+                        target_link_libraries(smoke_test zfp::zfp)
+                        add_test(NAME SmokeTest COMMAND ${CMAKE_BINARY_DIR}/smoke_test)
+                        """
+                )
+
+            cmake = Executable(spec["cmake"].prefix.bin.cmake)
+            ctest = Executable(spec["cmake"].prefix.bin.ctest)
+
+            cmake(*([".", "-DZFP_ROOT=" + spec["zfp"].prefix]))
+            cmake(*(["--build", "."]))
+            ctest(*(["--verbose"]))
+
+    @run_after("install")
+    def copy_test_files(self):
+        cache_extra_test_sources(self, "tests/testzfp.cpp")
+
+    @run_after("install")
+    @on_package_attributes(run_tests=True)
+    def build_tests(self):
+        testdir = join_path(self.stage.path, "smoke_test_dir")
+        mkdirp(testdir)
+        with working_dir(testdir):
+            install_tree(join_path(self.stage.source_path, "tests"), "tests")
+        self.test_smoke_test(testdir)

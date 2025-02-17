@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -54,10 +53,6 @@ spec expression syntax:
       @m{os=operating_system}           specific <operating_system>
       @m{target=target}                 specific <target> processor
       @m{arch=platform-os-target}       shortcut for all three above
-
-    cross-compiling:
-      @m{os=backend} or @m{os=be}           build for compute node (backend)
-      @m{os=frontend} or @m{os=fe}          build for login node (frontend)
 
     dependencies:
       ^dependency [constraints]     specify constraints on dependencies

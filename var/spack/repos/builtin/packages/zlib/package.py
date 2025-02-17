@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -85,7 +84,12 @@ class Zlib(MakefilePackage, Package):
     @property
     def libs(self):
         shared = "+shared" in self.spec
-        return find_libraries(["libz"], root=self.prefix, recursive=True, shared=shared)
+        libnames = ["libz"]
+        if self.spec.satisfies("platform=windows"):
+            libnames.append("zdll" if shared else "zlib")
+        return find_libraries(
+            libnames, root=self.prefix, recursive=True, shared=shared, runtime=False
+        )
 
 
 class SetupEnvironment:

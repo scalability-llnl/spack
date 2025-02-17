@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -90,8 +89,8 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
         deprecated=True,
     )
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("plugins", default=True, description="enable plugins, needed for gold linker")
     # When you build ld.gold you automatically get ld, even when you add the
@@ -125,6 +124,12 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
         description="Enable debug section compression by default in ld, gas, gold.",
         when="@2.26:",
     )
+    variant(
+        "debuginfod",
+        default=False,
+        description="Enable debuginfod HTTP server support for readelf and objdump",
+        when="@2.34:",
+    )
 
     patch("cr16.patch", when="@:2.29.1")
     patch("update_symbol-2.26.patch", when="@2.26")
@@ -135,12 +140,15 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
     patch("gold-gcc4.patch", when="@2.42 %gcc@:4.8.5")
 
     # compression libs for debug symbols.
-    # pkg-config is used to find zstd in gas/configure
-    depends_on("pkgconfig", type="build")
     depends_on("zstd@1.4.0:", when="@2.40:")
     depends_on("zlib-api")
 
+    depends_on("elfutils+debuginfod", when="+debuginfod")
+
+    # pkg-config is used to locate zstd, libdebuginfod
+    depends_on("pkgconfig", type="build")
     depends_on("diffutils", type="build")
+
     depends_on("gettext", when="+nls")
 
     # PGO runs tests, which requires `runtest` from dejagnu
@@ -161,8 +169,11 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
 
     with when("platform=darwin"):
         conflicts("+gold", msg="Binutils cannot build linkers on macOS")
+        # 2.41 doesn't seem to have any problems.
         conflicts(
-            "libs=shared", when="@2.37:2.40", msg="https://github.com/spack/spack/issues/35817"
+            "libs=shared",
+            when="@2.37:2.40,2.42:",
+            msg="https://github.com/spack/spack/issues/35817",
         )
 
     conflicts(
@@ -278,17 +289,18 @@ class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
             "--enable-targets={}".format(targets),
             "--with-sysroot=/",
             "--with-system-zlib",
+            *self.enable_or_disable("gas"),
+            *self.enable_or_disable("gold"),
+            *self.enable_or_disable("gprofng"),
+            *self.enable_or_disable("install-libiberty", variant="libiberty"),
+            *self.enable_or_disable("interwork"),
+            *self.enable_or_disable("ld"),
+            *self.enable_or_disable("libs"),
+            *self.enable_or_disable("lto"),
+            *self.enable_or_disable("nls"),
+            *self.enable_or_disable("plugins"),
+            *self.with_or_without("debuginfod"),
         ]
-        args += self.enable_or_disable("gas")
-        args += self.enable_or_disable("gold")
-        args += self.enable_or_disable("gprofng")
-        args += self.enable_or_disable("install-libiberty", variant="libiberty")
-        args += self.enable_or_disable("interwork")
-        args += self.enable_or_disable("ld")
-        args += self.enable_or_disable("libs")
-        args += self.enable_or_disable("lto")
-        args += self.enable_or_disable("nls")
-        args += self.enable_or_disable("plugins")
         if self.spec.satisfies("+pgo"):
             args.append("--enable-pgo-build=lto")
         else:

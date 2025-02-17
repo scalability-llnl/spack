@@ -1,10 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-"""Utility classes for logging the output of blocks of code.
-"""
+"""Utility classes for logging the output of blocks of code."""
 import atexit
 import ctypes
 import errno
@@ -345,26 +343,6 @@ class FileWrapper:
             self.file.close()
 
 
-@contextmanager
-def replace_environment(env):
-    """Replace the current environment (`os.environ`) with `env`.
-
-    If `env` is empty (or None), this unsets all current environment
-    variables.
-    """
-    env = env or {}
-    old_env = os.environ.copy()
-    try:
-        os.environ.clear()
-        for name, val in env.items():
-            os.environ[name] = val
-        yield
-    finally:
-        os.environ.clear()
-        for name, val in old_env.items():
-            os.environ[name] = val
-
-
 def log_output(*args, **kwargs):
     """Context manager that logs its output to a file.
 
@@ -448,7 +426,6 @@ class nixlog:
         self.echo = echo
         self.debug = debug
         self.buffer = buffer
-        self.env = env  # the environment to use for _writer_daemon
         self.filter_fn = filter_fn
 
         self._active = False  # used to prevent re-entry
@@ -520,21 +497,20 @@ class nixlog:
                 # just don't forward input if this fails
                 pass
 
-            with replace_environment(self.env):
-                self.process = multiprocessing.Process(
-                    target=_writer_daemon,
-                    args=(
-                        input_fd,
-                        read_fd,
-                        self.write_fd,
-                        self.echo,
-                        self.log_file,
-                        child_pipe,
-                        self.filter_fn,
-                    ),
-                )
-                self.process.daemon = True  # must set before start()
-                self.process.start()
+            self.process = multiprocessing.Process(
+                target=_writer_daemon,
+                args=(
+                    input_fd,
+                    read_fd,
+                    self.write_fd,
+                    self.echo,
+                    self.log_file,
+                    child_pipe,
+                    self.filter_fn,
+                ),
+            )
+            self.process.daemon = True  # must set before start()
+            self.process.start()
 
         finally:
             if input_fd:
@@ -730,10 +706,7 @@ class winlog:
     Does not support the use of 'v' toggling as nixlog does.
     """
 
-    def __init__(
-        self, file_like=None, echo=False, debug=0, buffer=False, env=None, filter_fn=None
-    ):
-        self.env = env
+    def __init__(self, file_like=None, echo=False, debug=0, buffer=False, filter_fn=None):
         self.debug = debug
         self.echo = echo
         self.logfile = file_like
@@ -762,7 +735,7 @@ class winlog:
             self.reader = open(self.logfile, mode="rb+")
 
             # Dup stdout so we can still write to it after redirection
-            self.echo_writer = open(os.dup(sys.stdout.fileno()), "w")
+            self.echo_writer = open(os.dup(sys.stdout.fileno()), "w", encoding=sys.stdout.encoding)
             # Redirect stdout and stderr to write to logfile
             self.stderr.redirect_stream(self.writer.fileno())
             self.stdout.redirect_stream(self.writer.fileno())
@@ -790,11 +763,10 @@ class winlog:
                     reader.close()
 
             self._active = True
-            with replace_environment(self.env):
-                self._thread = Thread(
-                    target=background_reader, args=(self.reader, self.echo_writer, self._kill)
-                )
-                self._thread.start()
+            self._thread = Thread(
+                target=background_reader, args=(self.reader, self.echo_writer, self._kill)
+            )
+            self._thread.start()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -879,10 +851,13 @@ def _writer_daemon(
     write_fd.close()
 
     # 1. Use line buffering (3rd param = 1) since Python 3 has a bug
-    # that prevents unbuffered text I/O.
-    # 2. Python 3.x before 3.7 does not open with UTF-8 encoding by default
+    #    that prevents unbuffered text I/O. [needs citation]
+    # 2. Enforce a UTF-8 interpretation of build process output with errors replaced by '?'.
+    #    The downside is that the log file will not contain the exact output of the build process.
     # 3. closefd=False because Connection has "ownership"
-    read_file = os.fdopen(read_fd.fileno(), "r", 1, encoding="utf-8", closefd=False)
+    read_file = os.fdopen(
+        read_fd.fileno(), "r", 1, encoding="utf-8", errors="replace", closefd=False
+    )
 
     if stdin_fd:
         stdin_file = os.fdopen(stdin_fd.fileno(), closefd=False)
@@ -916,7 +891,7 @@ def _writer_daemon(
                         try:
                             if stdin_file.read(1) == "v":
                                 echo = not echo
-                        except IOError as e:
+                        except OSError as e:
                             # If SIGTTIN is ignored, the system gives EIO
                             # to let the caller know the read failed b/c it
                             # was in the bg. Ignore that too.
@@ -928,11 +903,7 @@ def _writer_daemon(
                     try:
                         while line_count < 100:
                             # Handle output from the calling process.
-                            try:
-                                line = _retry(read_file.readline)()
-                            except UnicodeDecodeError:
-                                # installs like --test=root gpgme produce non-UTF8 logs
-                                line = "<line lost: output was not encoded as UTF-8>\n"
+                            line = _retry(read_file.readline)()
 
                             if not line:
                                 return
@@ -946,6 +917,13 @@ def _writer_daemon(
                                 output_line = clean_line
                                 if filter_fn:
                                     output_line = filter_fn(clean_line)
+                                enc = sys.stdout.encoding
+                                if enc != "utf-8":
+                                    # On Python 3.6 and 3.7-3.14 with non-{utf-8,C} locale stdout
+                                    # may not be able to handle utf-8 output. We do an inefficient
+                                    # dance of re-encoding with errors replaced, so stdout.write
+                                    # does not raise.
+                                    output_line = output_line.encode(enc, "replace").decode(enc)
                                 sys.stdout.write(output_line)
 
                             # Stripped output to log file.
@@ -1008,7 +986,7 @@ def _retry(function):
         while True:
             try:
                 return function(*args, **kwargs)
-            except IOError as e:
+            except OSError as e:
                 if e.errno == errno.EINTR:
                     continue
                 raise

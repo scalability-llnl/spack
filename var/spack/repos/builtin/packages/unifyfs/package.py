@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -113,10 +112,12 @@ class Unifyfs(AutotoolsPackage):
         if self.spec.satisfies("%oneapi"):
             env.append_flags("CFLAGS", "-Wno-unused-function")
 
-    @when("%cce@11.0.3:")
     def patch(self):
-        filter_file("-Werror", "", "client/src/Makefile.in")
-        filter_file("-Werror", "", "client/src/Makefile.am")
+        if self.spec.satisfies("%cce@11.0.3:"):
+            filter_file("-Werror", "", "client/src/Makefile.in")
+            filter_file("-Werror", "", "client/src/Makefile.am")
+        if self.spec.satisfies("@2.0 %oneapi@2025:"):
+            filter_file("static int asprintf", "int asprintf", "examples/src/testutil.c")
 
     @when("@develop")
     def autoreconf(self, spec, prefix):

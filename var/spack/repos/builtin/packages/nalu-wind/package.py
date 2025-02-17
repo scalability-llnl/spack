@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -63,7 +62,8 @@ class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
 
     depends_on("mpi")
     depends_on("yaml-cpp@0.6.0:0.7.0")
-    depends_on("openfast@4.0.0:+cxx+netcdf", when="+fsi")
+    depends_on("openfast@4.0.2:+cxx+netcdf", when="+fsi")
+    depends_on("openfast@4.0.2:+cxx+netcdf", when="+openfast")
     depends_on("trilinos@15.1.1", when="@=2.1.0")
     depends_on("trilinos@13.4.1", when="@=2.0.0")
     depends_on("hypre@2.29.0:", when="@2.0.0:+hypre")
@@ -72,7 +72,6 @@ class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
         "gotype=long cxxstd=17"
     )
     depends_on("trilinos~cuda~wrapper", when="~cuda")
-    depends_on("openfast@2.6.0: +cxx", when="+openfast")
     depends_on("tioga@1.0.0:", when="+tioga")
     depends_on("hypre@2.18.2: ~int64+mpi~superlu-dist", when="+hypre")
     depends_on("trilinos+muelu+belos+amesos2+ifpack2", when="+trilinos-solvers")
@@ -128,6 +127,9 @@ class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
     conflicts("^trilinos+cuda", when="~cuda")
     conflicts("^trilinos+rocm", when="~rocm")
     conflicts("+shared", when="+trilinos-solvers")
+    conflicts(
+        "openfast@4.0.0:4.0.1", msg="OpenFAST 4.0.0:4.0.1 contains a bug. Use OpenFAST >= 4.0.2."
+    )
 
     def setup_dependent_run_environment(self, env, dependent_spec):
         spec = self.spec
@@ -141,9 +143,9 @@ class NaluWind(CMakePackage, CudaPackage, ROCmPackage):
         spec = self.spec
         env.append_flags("CXXFLAGS", "-DUSE_STK_SIMD_NONE")
         if spec.satisfies("+cuda"):
-            env.set("OMPI_CXX", self.spec["kokkos-nvcc-wrapper"].kokkos_cxx)
-            env.set("MPICH_CXX", self.spec["kokkos-nvcc-wrapper"].kokkos_cxx)
-            env.set("MPICXX_CXX", self.spec["kokkos-nvcc-wrapper"].kokkos_cxx)
+            env.set("OMPI_CXX", self["kokkos-nvcc-wrapper"].kokkos_cxx)
+            env.set("MPICH_CXX", self["kokkos-nvcc-wrapper"].kokkos_cxx)
+            env.set("MPICXX_CXX", self["kokkos-nvcc-wrapper"].kokkos_cxx)
         if spec.satisfies("+rocm"):
             env.append_flags("CXXFLAGS", "-fgpu-rdc")
 

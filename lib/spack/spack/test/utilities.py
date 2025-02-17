@@ -1,10 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-"""Non-fixture utilities for test code. Must be imported.
-"""
+"""Non-fixture utilities for test code. Must be imported."""
 from spack.main import make_argument_parser
 
 

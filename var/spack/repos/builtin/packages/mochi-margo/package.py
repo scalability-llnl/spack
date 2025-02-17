@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,14 @@ class MochiMargo(AutotoolsPackage):
     maintainers("carns", "mdorier", "fbudin69500")
 
     version("main", branch="main")
+    version("0.19.0", sha256="269e3b52228fb59a8ab502b8fac4761fc15440817455bb006f311093bd4c02f3")
+    version("0.18.3", sha256="4871af11d3cadc81e6f08a2112782c61324d9cdabc9e9b61c595c95da6d75127")
+    version("0.18.2", sha256="a3a9fde826954be06b9123887533f91e6725faf6f6c682c080b97c2172a22057")
+    version("0.18.1", sha256="06221986deaa5eb20001c49f29d580722a16b5bde66c1333b3b02f677ef973b5")
+    version("0.18.0", sha256="5b3e8b64217490bd8643506699cd06538abaf1bb19eb0429506de62bf0c8402e")
+    version("0.17.3", sha256="286ec8bab62e8f21b1d1acb0afa6699be247504de783897433b5d81ef3b5fe18")
+    version("0.17.2", sha256="2da1a3dbbe7d5eb6bb51cead00c0428f2d699da9fd4c3bae86088c9e36080089")
+    version("0.17.1", sha256="835d2a98ac6f6c647fa0e7e152a802c489d72170c82d3b7ba7af9a26fdd13367")
     version("0.17.0", sha256="5c456cdc2e3156f902e5068468ee6d061eb252dcfdfcb2b570726e9cf84fc2e8")
     version("0.16.0", sha256="5fb7ea3633b5bcc735e605dba27187ea893958bf86b8928184028735a338c61b")
     version("0.15.0", sha256="f962f02ddaae125eaf15bf89126ee47b4f852d366b14248d2d67a0be8f661224")

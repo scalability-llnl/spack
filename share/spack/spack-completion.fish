@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -507,9 +506,9 @@ complete -c spack -n '__fish_spack_using_command arch' -s o -l operating-system 
 complete -c spack -n '__fish_spack_using_command arch' -s t -l target -f -a target
 complete -c spack -n '__fish_spack_using_command arch' -s t -l target -d 'print only the target'
 complete -c spack -n '__fish_spack_using_command arch' -s f -l frontend -f -a frontend
-complete -c spack -n '__fish_spack_using_command arch' -s f -l frontend -d 'print frontend'
+complete -c spack -n '__fish_spack_using_command arch' -s f -l frontend -d 'print frontend (DEPRECATED)'
 complete -c spack -n '__fish_spack_using_command arch' -s b -l backend -f -a backend
-complete -c spack -n '__fish_spack_using_command arch' -s b -l backend -d 'print backend'
+complete -c spack -n '__fish_spack_using_command arch' -s b -l backend -d 'print backend (DEPRECATED)'
 
 # spack audit
 set -g __fish_spack_optspecs_spack_audit h/help
@@ -955,23 +954,33 @@ complete -c spack -n '__fish_spack_using_command ci' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command ci' -s h -l help -d 'show this help message and exit'
 
 # spack ci generate
-set -g __fish_spack_optspecs_spack_ci_generate h/help output-file= optimize dependencies prune-dag no-prune-dag check-index-only artifacts-root=
+set -g __fish_spack_optspecs_spack_ci_generate h/help output-file= prune-dag no-prune-dag prune-externals no-prune-externals check-index-only artifacts-root= U/fresh reuse fresh-roots deprecated j/jobs=
 complete -c spack -n '__fish_spack_using_command ci generate' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command ci generate' -s h -l help -d 'show this help message and exit'
 complete -c spack -n '__fish_spack_using_command ci generate' -l output-file -r -f -a output_file
 complete -c spack -n '__fish_spack_using_command ci generate' -l output-file -r -d 'pathname for the generated gitlab ci yaml file'
-complete -c spack -n '__fish_spack_using_command ci generate' -l optimize -f -a optimize
-complete -c spack -n '__fish_spack_using_command ci generate' -l optimize -d '(DEPRECATED) optimize the gitlab yaml file for size'
-complete -c spack -n '__fish_spack_using_command ci generate' -l dependencies -f -a dependencies
-complete -c spack -n '__fish_spack_using_command ci generate' -l dependencies -d '(DEPRECATED) disable DAG scheduling (use '"'"'plain'"'"' dependencies)'
 complete -c spack -n '__fish_spack_using_command ci generate' -l prune-dag -f -a prune_dag
 complete -c spack -n '__fish_spack_using_command ci generate' -l prune-dag -d 'skip up-to-date specs'
 complete -c spack -n '__fish_spack_using_command ci generate' -l no-prune-dag -f -a prune_dag
 complete -c spack -n '__fish_spack_using_command ci generate' -l no-prune-dag -d 'process up-to-date specs'
+complete -c spack -n '__fish_spack_using_command ci generate' -l prune-externals -f -a prune_externals
+complete -c spack -n '__fish_spack_using_command ci generate' -l prune-externals -d 'skip external specs'
+complete -c spack -n '__fish_spack_using_command ci generate' -l no-prune-externals -f -a prune_externals
+complete -c spack -n '__fish_spack_using_command ci generate' -l no-prune-externals -d 'process external specs'
 complete -c spack -n '__fish_spack_using_command ci generate' -l check-index-only -f -a index_only
 complete -c spack -n '__fish_spack_using_command ci generate' -l check-index-only -d 'only check spec state from buildcache indices'
 complete -c spack -n '__fish_spack_using_command ci generate' -l artifacts-root -r -f -a artifacts_root
 complete -c spack -n '__fish_spack_using_command ci generate' -l artifacts-root -r -d 'path to the root of the artifacts directory'
+complete -c spack -n '__fish_spack_using_command ci generate' -s U -l fresh -f -a concretizer_reuse
+complete -c spack -n '__fish_spack_using_command ci generate' -s U -l fresh -d 'do not reuse installed deps; build newest configuration'
+complete -c spack -n '__fish_spack_using_command ci generate' -l reuse -f -a concretizer_reuse
+complete -c spack -n '__fish_spack_using_command ci generate' -l reuse -d 'reuse installed packages/buildcaches when possible'
+complete -c spack -n '__fish_spack_using_command ci generate' -l fresh-roots -l reuse-deps -f -a concretizer_reuse
+complete -c spack -n '__fish_spack_using_command ci generate' -l fresh-roots -l reuse-deps -d 'concretize with fresh roots and reused dependencies'
+complete -c spack -n '__fish_spack_using_command ci generate' -l deprecated -f -a config_deprecated
+complete -c spack -n '__fish_spack_using_command ci generate' -l deprecated -d 'allow concretizer to select deprecated versions'
+complete -c spack -n '__fish_spack_using_command ci generate' -s j -l jobs -r -f -a jobs
+complete -c spack -n '__fish_spack_using_command ci generate' -s j -l jobs -r -d 'explicitly set number of parallel jobs'
 
 # spack ci rebuild-index
 set -g __fish_spack_optspecs_spack_ci_rebuild_index h/help
@@ -979,13 +988,15 @@ complete -c spack -n '__fish_spack_using_command ci rebuild-index' -s h -l help 
 complete -c spack -n '__fish_spack_using_command ci rebuild-index' -s h -l help -d 'show this help message and exit'
 
 # spack ci rebuild
-set -g __fish_spack_optspecs_spack_ci_rebuild h/help t/tests fail-fast
+set -g __fish_spack_optspecs_spack_ci_rebuild h/help t/tests fail-fast j/jobs=
 complete -c spack -n '__fish_spack_using_command ci rebuild' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command ci rebuild' -s h -l help -d 'show this help message and exit'
 complete -c spack -n '__fish_spack_using_command ci rebuild' -s t -l tests -f -a tests
 complete -c spack -n '__fish_spack_using_command ci rebuild' -s t -l tests -d 'run stand-alone tests after the build'
 complete -c spack -n '__fish_spack_using_command ci rebuild' -l fail-fast -f -a fail_fast
 complete -c spack -n '__fish_spack_using_command ci rebuild' -l fail-fast -d 'stop stand-alone tests after the first failure'
+complete -c spack -n '__fish_spack_using_command ci rebuild' -s j -l jobs -r -f -a jobs
+complete -c spack -n '__fish_spack_using_command ci rebuild' -s j -l jobs -r -d 'explicitly set number of parallel jobs'
 
 # spack ci reproduce-build
 set -g __fish_spack_optspecs_spack_ci_reproduce_build h/help runtime= working-dir= s/autostart gpg-file= gpg-url=
@@ -1190,19 +1201,19 @@ complete -c spack -n '__fish_spack_using_command config' -l scope -r -d 'configu
 
 # spack config get
 set -g __fish_spack_optspecs_spack_config_get h/help
-complete -c spack -n '__fish_spack_using_command_pos 0 config get' -f -a 'bootstrap cdash ci compilers concretizer config definitions develop mirrors modules packages repos upstreams view'
+complete -c spack -n '__fish_spack_using_command_pos 0 config get' -f -a 'bootstrap cdash ci compilers concretizer config definitions develop env_vars mirrors modules packages repos upstreams view'
 complete -c spack -n '__fish_spack_using_command config get' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command config get' -s h -l help -d 'show this help message and exit'
 
 # spack config blame
 set -g __fish_spack_optspecs_spack_config_blame h/help
-complete -c spack -n '__fish_spack_using_command_pos 0 config blame' -f -a 'bootstrap cdash ci compilers concretizer config definitions develop mirrors modules packages repos upstreams view'
+complete -c spack -n '__fish_spack_using_command_pos 0 config blame' -f -a 'bootstrap cdash ci compilers concretizer config definitions develop env_vars mirrors modules packages repos upstreams view'
 complete -c spack -n '__fish_spack_using_command config blame' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command config blame' -s h -l help -d 'show this help message and exit'
 
 # spack config edit
 set -g __fish_spack_optspecs_spack_config_edit h/help print-file
-complete -c spack -n '__fish_spack_using_command_pos 0 config edit' -f -a 'bootstrap cdash ci compilers concretizer config definitions develop mirrors modules packages repos upstreams view'
+complete -c spack -n '__fish_spack_using_command_pos 0 config edit' -f -a 'bootstrap cdash ci compilers concretizer config definitions develop env_vars mirrors modules packages repos upstreams view'
 complete -c spack -n '__fish_spack_using_command config edit' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command config edit' -s h -l help -d 'show this help message and exit'
 complete -c spack -n '__fish_spack_using_command config edit' -l print-file -f -a print_file
@@ -1306,15 +1317,9 @@ complete -c spack -n '__fish_spack_using_command create' -s b -l batch -d 'don'"
 
 # spack debug
 set -g __fish_spack_optspecs_spack_debug h/help
-complete -c spack -n '__fish_spack_using_command_pos 0 debug' -f -a create-db-tarball -d 'create a tarball of Spack'"'"'s installation metadata'
 complete -c spack -n '__fish_spack_using_command_pos 0 debug' -f -a report -d 'print information useful for bug reports'
 complete -c spack -n '__fish_spack_using_command debug' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command debug' -s h -l help -d 'show this help message and exit'
-
-# spack debug create-db-tarball
-set -g __fish_spack_optspecs_spack_debug_create_db_tarball h/help
-complete -c spack -n '__fish_spack_using_command debug create-db-tarball' -s h -l help -f -a help
-complete -c spack -n '__fish_spack_using_command debug create-db-tarball' -s h -l help -d 'show this help message and exit'
 
 # spack debug report
 set -g __fish_spack_optspecs_spack_debug_report h/help
@@ -2089,7 +2094,6 @@ complete -c spack -n '__fish_spack_using_command install' -l deprecated -d 'allo
 set -g __fish_spack_optspecs_spack_license h/help root=
 complete -c spack -n '__fish_spack_using_command_pos 0 license' -f -a list-files -d 'list files in spack that should have license headers'
 complete -c spack -n '__fish_spack_using_command_pos 0 license' -f -a verify -d 'verify that files in spack have the right license header'
-complete -c spack -n '__fish_spack_using_command_pos 0 license' -f -a update-copyright-year -d 'update copyright for the current year in all licensed files'
 complete -c spack -n '__fish_spack_using_command license' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command license' -s h -l help -d 'show this help message and exit'
 complete -c spack -n '__fish_spack_using_command license' -l root -r -f -a root
@@ -2104,11 +2108,6 @@ complete -c spack -n '__fish_spack_using_command license list-files' -s h -l hel
 set -g __fish_spack_optspecs_spack_license_verify h/help
 complete -c spack -n '__fish_spack_using_command license verify' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command license verify' -s h -l help -d 'show this help message and exit'
-
-# spack license update-copyright-year
-set -g __fish_spack_optspecs_spack_license_update_copyright_year h/help
-complete -c spack -n '__fish_spack_using_command license update-copyright-year' -s h -l help -f -a help
-complete -c spack -n '__fish_spack_using_command license update-copyright-year' -s h -l help -d 'show this help message and exit'
 
 # spack list
 set -g __fish_spack_optspecs_spack_list h/help r/repo= d/search-description format= v/virtuals t/tag= count update=
@@ -2873,7 +2872,7 @@ complete -c spack -n '__fish_spack_using_command spec' -l deprecated -f -a confi
 complete -c spack -n '__fish_spack_using_command spec' -l deprecated -d 'allow concretizer to select deprecated versions'
 
 # spack stage
-set -g __fish_spack_optspecs_spack_stage h/help n/no-checksum p/path= U/fresh reuse fresh-roots deprecated
+set -g __fish_spack_optspecs_spack_stage h/help n/no-checksum p/path= e/exclude= s/skip-installed U/fresh reuse fresh-roots deprecated
 complete -c spack -n '__fish_spack_using_command_pos_remainder 0 stage' -f -k -a '(__fish_spack_specs_or_id)'
 complete -c spack -n '__fish_spack_using_command stage' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command stage' -s h -l help -d 'show this help message and exit'
@@ -2881,6 +2880,10 @@ complete -c spack -n '__fish_spack_using_command stage' -s n -l no-checksum -f -
 complete -c spack -n '__fish_spack_using_command stage' -s n -l no-checksum -d 'do not use checksums to verify downloaded files (unsafe)'
 complete -c spack -n '__fish_spack_using_command stage' -s p -l path -r -f -a path
 complete -c spack -n '__fish_spack_using_command stage' -s p -l path -r -d 'path to stage package, does not add to spack tree'
+complete -c spack -n '__fish_spack_using_command stage' -s e -l exclude -r -f -a exclude
+complete -c spack -n '__fish_spack_using_command stage' -s e -l exclude -r -d 'exclude packages that satisfy the specified specs'
+complete -c spack -n '__fish_spack_using_command stage' -s s -l skip-installed -f -a skip_installed
+complete -c spack -n '__fish_spack_using_command stage' -s s -l skip-installed -d 'dont restage already installed specs'
 complete -c spack -n '__fish_spack_using_command stage' -s U -l fresh -f -a concretizer_reuse
 complete -c spack -n '__fish_spack_using_command stage' -s U -l fresh -d 'do not reuse installed deps; build newest configuration'
 complete -c spack -n '__fish_spack_using_command stage' -l reuse -f -a concretizer_reuse

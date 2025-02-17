@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,7 +15,10 @@ class Rocal(CMakePackage):
     maintainers("afzpatel", "srekolam", "renjithravindrankannath")
 
     license("MIT")
-
+    version("6.3.2", sha256="ceae8a86770c1f5d8cb56f4c38d6b354e16bda6b877cf93417d6a3e4e33354c6")
+    version("6.3.1", sha256="e332c9c2b2eb4081d7dd8a66a141f95fe8c7fccbbfdd0fea7572a62a28a62bbb")
+    version("6.3.0", sha256="162a0c15e6e7e09c0e13a9d01a493ba3199b77919addf396cd5d273ebf44d759")
+    version("6.2.4", sha256="630813669e75a8ee179b89f489101931a26f7a7ee486fcbe1b0e3cb1803c582c")
     version("6.2.1", sha256="77d3e63e02afaee6f1ee1d877d88b48c6ea66a0afca96a1313d0f1c4f8e86b2a")
     version("6.2.0", sha256="c7c265375a40d4478a628258378726c252caac424f974456d488fce43890e157")
 
@@ -24,8 +26,9 @@ class Rocal(CMakePackage):
     depends_on("libjpeg-turbo@3.0.2:", when="@6.2.1:")
     depends_on("rapidjson")
     depends_on("ffmpeg@4.4:")
+    depends_on("abseil-cpp", when="@6.3:")
 
-    for ver in ["6.2.0", "6.2.1"]:
+    for ver in ["6.2.0", "6.2.1", "6.2.4", "6.3.0", "6.3.1", "6.3.2"]:
         depends_on(f"mivisionx@{ver}", when=f"@{ver}")
         depends_on(f"llvm-amdgpu@{ver}", when=f"@{ver}")
         depends_on(f"rpp@{ver}", when=f"@{ver}")
@@ -33,6 +36,12 @@ class Rocal(CMakePackage):
     def patch(self):
         filter_file(
             r"${ROCM_PATH}/llvm/bin/clang++",
+            "{0}/bin/clang++".format(self.spec["llvm-amdgpu"].prefix),
+            "rocAL/rocAL_hip/CMakeLists.txt",
+            string=True,
+        )
+        filter_file(
+            r"${ROCM_PATH}/lib/llvm/bin/clang++",
             "{0}/bin/clang++".format(self.spec["llvm-amdgpu"].prefix),
             "rocAL/rocAL_hip/CMakeLists.txt",
             string=True,
@@ -89,12 +98,18 @@ class Rocal(CMakePackage):
         )
 
     def cmake_args(self):
+        abspath = self.spec["abseil-cpp"].prefix.include
+        rapidjsonpath = self.spec["rapidjson"].prefix.include
         args = [
             self.define("AMDRPP_PATH", self.spec["rpp"].prefix),
             self.define("TURBO_JPEG_PATH", self.spec["libjpeg-turbo"].prefix),
             self.define("MIVisionX_PATH", self.spec["mivisionx"].prefix),
             self.define("CMAKE_INSTALL_PREFIX_PYTHON", self.spec.prefix),
         ]
+        if "@6.3.0:" in self.spec:
+            args.append(
+                self.define("CMAKE_CXX_FLAGS", "-I{0} -I{1}".format(abspath, rapidjsonpath))
+            )
         return args
 
     def check(self):

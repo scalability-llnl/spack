@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,6 +27,8 @@ class Dealii(CMakePackage, CudaPackage):
     generator("make")
 
     version("master", branch="master")
+    version("9.6.2", sha256="1051e332de3822488e91c2b0460681052a3c4c5ac261cdd7a6af784869a25523")
+    version("9.6.1", sha256="9fcaa3968ac2eab41573b3614756a898a3ea91afcd9f3477ab2f30bb19aa669a")
     version("9.6.0", sha256="675323f0eb8eed2cfc93e2ced07a0ec5727c6a566ff9e7786c01a2ddcde17bed")
     version("9.5.2", sha256="7930e5218a9807d60cc05c300a3b70f36f4af22c3551a2cd1141fbab013bbaf1")
     version("9.5.1", sha256="a818b535e6488d3aef7853311657c7b4fadc29a9abe91b7b202b131aad630f5e")
@@ -257,7 +258,7 @@ class Dealii(CMakePackage, CudaPackage):
         arch_str = f"+cuda cuda_arch={_arch}"
         trilinos_spec = f"trilinos +wrapper {arch_str}"
         depends_on(trilinos_spec, when=f"@9.5:+trilinos {arch_str}")
-    depends_on("vtk", when="@9.6:+vtk")
+    depends_on("vtk@9:", when="@9.6:+vtk")
 
     # Explicitly provide a destructor in BlockVector,
     # otherwise deal.II may fail to build with Intel compilers.
@@ -551,7 +552,7 @@ class Dealii(CMakePackage, CudaPackage):
                 )
             # Make sure we use the same compiler that Trilinos uses
             if spec.satisfies("+trilinos"):
-                options.extend([self.define("CMAKE_CXX_COMPILER", spec["trilinos"].kokkos_cxx)])
+                options.extend([self.define("CMAKE_CXX_COMPILER", self["trilinos"].kokkos_cxx)])
 
         # Complex support
         options.append(self.define_from_variant("DEAL_II_WITH_COMPLEX_VALUES", "complex"))

@@ -1,10 +1,9 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import glob
-import os.path
+import os
 
 from spack.package import *
 from spack.util.environment import is_system_path
@@ -27,6 +26,7 @@ class Elfutils(AutotoolsPackage, SourcewarePackage):
 
     license("GPL-3.0-or-later AND ( GPL-2.0-or-later OR LGPL-3.0-or-later )")
 
+    version("0.192", sha256="616099beae24aba11f9b63d86ca6cc8d566d968b802391334c91df54eab416b4")
     version("0.191", sha256="df76db71366d1d708365fc7a6c60ca48398f14367eb2b8954efc8897147ad871")
     version("0.190", sha256="8e00a3a9b5f04bc1dc273ae86281d2d26ed412020b391ffcc23198f10231d692")
     version("0.189", sha256="39bd8f1a338e2b7cd4abc3ff11a0eddc6e690f69578a57478d8179b4148708c8")
@@ -50,8 +50,8 @@ class Elfutils(AutotoolsPackage, SourcewarePackage):
     version("0.168", sha256="b88d07893ba1373c7dd69a7855974706d05377766568a7d9002706d5de72c276")
     version("0.163", sha256="7c774f1eef329309f3b05e730bdac50013155d437518a2ec0e24871d312f2e23")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     # Native language support from libintl.
     variant("nls", default=True, description="Enable Native Language Support.")
@@ -82,13 +82,19 @@ class Elfutils(AutotoolsPackage, SourcewarePackage):
     depends_on("pkgconfig@0.9.0:", type=("build", "link"))
 
     # debuginfod has extra dependencies
-    # NB: Waiting on an elfutils patch before we can use libmicrohttpd@0.9.51
-    depends_on("libmicrohttpd@0.9.33:0.9.50", type="link", when="+debuginfod")
-    depends_on("libarchive@3.1.2:", type="link", when="+debuginfod")
-    depends_on("sqlite@3.7.17:", type="link", when="+debuginfod")
-    depends_on("curl@7.29.0:", type="link", when="+debuginfod")
+    with when("+debuginfod"), default_args(type="link"):
+        depends_on("libmicrohttpd@0.9.33:")
+        depends_on("libarchive@3.1.2:")
+        depends_on("sqlite@3.7.17:")
+        depends_on("curl@7.29.0:")
+        depends_on("json-c@0.11:", when="@0.192:")
 
     conflicts("%gcc@7.2.0:", when="@0.163")
+
+    # https://sourceware.org/bugzilla/show_bug.cgi?id=32684 elfutils on aarch64 requires
+    # linux-headers 5.0 or higher, which is a dependency of glibc we don't model. So this is a more
+    # strict constraint than necessary.
+    conflicts("@0.192 arch=aarch64:")
 
     provides("elf@1")
 
@@ -155,6 +161,10 @@ class Elfutils(AutotoolsPackage, SourcewarePackage):
             args.append("--disable-debuginfod")
             if spec.satisfies("@0.181:"):
                 args.append("--disable-libdebuginfod")
+
+        if spec.satisfies("@0.192:"):
+            # only relevant for rhel/fedora, disabled cause it requires a dependency on rpm.
+            args.append("--disable-debuginfod-ima-verification")
 
         return args
 

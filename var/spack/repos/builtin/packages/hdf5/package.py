@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,7 +8,6 @@ import shutil
 import sys
 
 import llnl.util.lang
-import llnl.util.tty as tty
 
 from spack.package import *
 
@@ -33,6 +31,7 @@ class Hdf5(CMakePackage):
 
     license("custom")
 
+    depends_on("c", type="build")
     depends_on("cxx", type="build", when="+cxx")
     depends_on("fortran", type="build", when="+fortran")
 
@@ -108,10 +107,6 @@ class Hdf5(CMakePackage):
     version("1.8.13", sha256="82f6b38eec103b4fccfbf14892786e0c27a8135d3252d8601cf5bf20066d38c1")
     version("1.8.12", sha256="b5cccea850096962b5fd9e96f22c4f47d2379224bb41130d9bc038bb6c37dfcb")
     version("1.8.10", sha256="4813b79c5fb8701a625b9924b8203bc7154a77f9b826ad4e034144b4056a160a")
-
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
 
     variant("shared", default=True, description="Builds a shared version of the library")
 

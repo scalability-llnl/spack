@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,7 +25,9 @@ class Cprnc(CMakePackage):
     depends_on("netcdf-fortran")
     depends_on("cmake@3:", type="build")
 
+    # Still need a patch for 1.0.8 ...
     patch("install_rpath.patch", when="@:1.0.7")
+    patch("install_rpath_108.patch", when="@1.0.8")
 
     resource(
         name="genf90",
