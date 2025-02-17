@@ -19,6 +19,8 @@ spack:
       variants: +mpi
     gl:
       require: osmesa
+    fortran:
+      require: intel-oneapi-compilers
     elfutils:
       variants: ~nls
     hdf5:
