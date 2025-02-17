@@ -16,13 +16,10 @@ class Quda(CMakePackage, CudaPackage, ROCmPackage):
     license("MIT OR BSD-3-Clause", checked_by="chaoos")
 
     version("develop", branch="develop")
-    version(
-        "experimental",
-        branch="feature/openqxd",
-        git="https://github.com/chaoos/quda.git",
-        get_full_repo=True,
-    )  # todo: change to release
-    version("2025-01-23", preferred=True, commit="18bf43ed40c75ae276e55bb8ddf2f64aa5510c37")
+
+    # git describe --tags 18bf43ed40c75ae276e55bb8ddf2f64aa5510c37
+    version("devel-pre-merge-1-25-22-3325-g18bf43ed4", preferred=True, commit="18bf43ed40c75ae276e55bb8ddf2f64aa5510c37")
+
     version("1.1.0", sha256="b4f635c993275010780ea09d8e593e0713a6ca1af1db6cc86c64518714fcc745")
     version(
         "1.0.0",
@@ -42,14 +39,13 @@ class Quda(CMakePackage, CudaPackage, ROCmPackage):
 
     # build dependencies
     generator("ninja")
-    depends_on("cmake@3.24", type="build")
+    depends_on("cmake@3.18:", type="build")
     depends_on("ninja", type="build")
     depends_on("c", type="build")
     depends_on("cxx", type="build")
-    depends_on("fortran", type="build")
+    depends_on("fortran", type="build", when="+tifr")
+    depends_on("fortran", type="build", when="+bqcd")
 
-    variant("cuda", default=True, description="Build with CUDA")
-    variant("rocm", default=False, description="Build with ROCm")
     variant("mpi", default=False, description="Enable MPI support")
     variant("qmp", default=False, description="Enable QMP")
     variant("qio", default=False, description="Enable QIO")
@@ -61,7 +57,7 @@ class Quda(CMakePackage, CudaPackage, ROCmPackage):
     variant("qdpjit", default=False, description="Enable QDPJIT interface")
     variant("tifr", default=False, description="Enable TIFR interface")
     variant("multigrid", default=False, description="Enable multigrid")
-    variant("nvshmem", default=False, description="Enable NVSHMEM")
+    variant("nvshmem", default=False, description="Enable NVSHMEM", when="+cuda")
 
     variant("clover", default=False, description="Build clover Dirac operators")
     variant(
@@ -102,6 +98,7 @@ class Quda(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("mpi", when="+mpi")
     depends_on("cuda", when="+cuda")
     depends_on("nvshmem", when="+nvshmem")
+    depends_on("gdrcopy", when="+nvshmem")
     with when("+rocm"):
         depends_on("hip")
         depends_on("hipblas")
@@ -109,17 +106,19 @@ class Quda(CMakePackage, CudaPackage, ROCmPackage):
         depends_on("hiprand")
         depends_on("hipcub")
 
+    conflicts("+qmp +mpi", msg="Specifying both QMP and MPI might result in undefined behavior")
     conflicts("+cuda +rocm", msg="CUDA and ROCm support are mutually exclusive")
     conflicts("~cuda ~rocm", msg="Either CUDA or ROCm support is required")
     conflicts("cuda_arch=none", when="+cuda", msg="Please indicate a cuda_arch value")
-    conflicts("+rocm +nvshmem", msg="NVSHMEM is a CUDA feature")
+    conflicts("+nvshmem", when="~mpi ~qmp", msg="NVSHMEM requires either +mpi or +qmp to be enabled")
 
     # CMAKE_BUILD_TYPE
+    # No support for RelWithDebInfo and MinSizeRel
     variant(
         "build_type",
         default="STRICT",
         description="The build type to build",
-        values=("STRICT", "RELEASE", "DEVEL", "DEBUG", "HOSTDEBUG", "SANITIZE"),
+        values=("STRICT", "RELEASE", "Release", "DEVEL", "DEBUG", "Debug", "HOSTDEBUG", "SANITIZE")
     )
 
     def cmake_args(self):
@@ -137,7 +136,7 @@ class Quda(CMakePackage, CudaPackage, ROCmPackage):
             self.define("QUDA_GPU_ARCH", arch),
             self.define("QUDA_PRECISION", 14),
             self.define("QUDA_RECONSTRUCT", 7),
-            # self.define("QUDA_DIRAC_DEFAULT_OFF", False),  # build all Dirac operators
+            self.define("QUDA_DOWNLOAD_USQCD", False),
             self.define("QUDA_DIRAC_DEFAULT_OFF", True),
             self.define_from_variant("QUDA_DIRAC_CLOVER", "clover"),
             self.define_from_variant("QUDA_DIRAC_CLOVER_HASENBUSCH", "clover_hasenbusch"),
@@ -149,7 +148,6 @@ class Quda(CMakePackage, CudaPackage, ROCmPackage):
             self.define_from_variant("QUDA_DIRAC_TWISTED_CLOVER", "twisted_clover"),
             self.define_from_variant("QUDA_DIRAC_TWISTED_MASS", "twisted_mass"),
             self.define_from_variant("QUDA_DIRAC_WILSON", "wilson"),
-            self.define("QUDA_DOWNLOAD_USQCD", False),
             self.define_from_variant("QUDA_MPI", "mpi"),
             self.define_from_variant("QUDA_QMP", "qmp"),
             self.define_from_variant("QUDA_QIO", "qio"),
@@ -177,6 +175,7 @@ class Quda(CMakePackage, CudaPackage, ROCmPackage):
 
         if self.spec.satisfies("+nvshmem"):
             args.append(self.define("QUDA_NVSHMEM_HOME", self.spec["nvshmem"].prefix))
+            args.append(self.define("QUDA_GDRCOPY_HOME", self.spec["gdrcopy"].prefix))
 
         if self.spec.satisfies("+cuda"):
             args.append(self.define("QUDA_GPU_ARCH_SUFFIX", "real"))  # real or virtual
