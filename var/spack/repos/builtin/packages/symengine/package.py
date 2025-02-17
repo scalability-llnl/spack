@@ -5,7 +5,6 @@
 import sys
 
 from spack.package import *
-from spack.pkg.builtin.boost import Boost
 
 
 class Symengine(CMakePackage):
@@ -54,10 +53,6 @@ class Symengine(CMakePackage):
     # NOTE: [mpc,mpfr,flint,piranha] could also be built against mpir
     depends_on("boost", when="+boostmp")
 
-    # TODO: replace this with an explicit list of components of Boost,
-    # for instance depends_on('boost +filesystem')
-    # See https://github.com/spack/spack/pull/22303 for reference
-    depends_on(Boost.with_default_variants, when="+boostmp")
     depends_on("cereal", when="@0.9:")
     depends_on("gmp", when="~boostmp")
     depends_on("llvm", when="+llvm")

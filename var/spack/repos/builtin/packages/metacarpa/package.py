@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
-from spack.pkg.builtin.boost import Boost
 
 
 class Metacarpa(MakefilePackage):
@@ -22,7 +21,6 @@ class Metacarpa(MakefilePackage):
     depends_on("cxx", type="build")  # generated
 
     depends_on("boost@1.60.0")
-    depends_on(Boost.with_default_variants)
     depends_on("cmake")
     build_system = "Makefile"
     build_directory = "src"
