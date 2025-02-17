@@ -65,8 +65,10 @@ class MochiThallium(CMakePackage):
         description="Use the cereal library for serialization",
         when="@0.4.1:",
     )
+    conflicts("~cereal", when="@0.14.0:", msg="Thallium 0.14.0 and above requires Cereal")
 
     depends_on("pkgconfig", type=("build"))
+    depends_on("mochi-margo@0.18.0:", when="@0.14.0:")
     depends_on("mochi-margo@0.12.0:", when="@0.11.2:")
     depends_on("mochi-margo@0.9.8:", when="@0.10.0:")
     depends_on("mochi-margo@0.7:", when="@0.7:")
@@ -78,7 +80,6 @@ class MochiThallium(CMakePackage):
         depends_on("cereal@1.3.1:", when="@0.10.1:")
     # thallium relies on std::decay_t
     conflicts("%gcc@:4.9.0")
-    conflicts("~cereal", when="@0.14.0:", msg="Thallium 0.14.0 and above requires Cereal")
 
     def cmake_args(self):
         args = []
