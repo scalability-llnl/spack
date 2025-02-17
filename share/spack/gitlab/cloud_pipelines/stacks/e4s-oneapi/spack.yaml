@@ -62,9 +62,6 @@ spack:
     krb5:
       require:
       - '%gcc target=x86_64_v3'
-    papi:
-      require:
-      - '%gcc target=x86_64_v3'
     openssh:
       require:
       - '%gcc target=x86_64_v3'
