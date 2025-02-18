@@ -40,7 +40,7 @@ class HpcBeeflow(PythonPackage):
     depends_on("py-requests@:2.28", type=("build", "run"))
     depends_on("py-requests-unixsocket@0.3.0:", type=("build", "run"))
     depends_on("py-python-daemon@2.3.1:", type=("build", "run"))
-    depends_on("py-gunicorn@20.1.0:23.0", type=("build", "run"))
+    depends_on("py-gunicorn@20.1.0:22", type=("build", "run"))
     depends_on("py-typer@0.5.0:", type=("build", "run"))
     depends_on("py-cffi@1.15.1:", type=("build", "run"))
     depends_on("py-celery+redis+sqlalchemy@5.3.4:", type=("build", "run"))
