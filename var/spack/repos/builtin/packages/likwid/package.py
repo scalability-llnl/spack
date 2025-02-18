@@ -262,8 +262,8 @@ class Likwid(Package):
     @run_after("install")
     def caveats(self):
         if self.spec.satisfies("accessmode=accessdaemon"):
-            perm_script = "spack_perms_fix.sh"
-            perm_script_path = join_path(self.spec.prefix, perm_script)
+            perm_script = "spack_likwid_fix_perms.sh.j2"
+            perm_script_path = join_path(self.spec.prefix.bin, perm_script)
             daemons = glob.glob(join_path(self.spec.prefix, "sbin", "*"))
             with open(perm_script_path, "w") as f:
                 env = spack.tengine.make_environment(dirs=self.package_dir)
