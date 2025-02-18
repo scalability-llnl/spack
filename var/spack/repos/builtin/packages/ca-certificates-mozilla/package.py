@@ -14,6 +14,41 @@ class CaCertificatesMozilla(Package):
     maintainers("haampie")
 
     version(
+        "2024-12-31",
+        sha256="a3f328c21e39ddd1f2be1cea43ac0dec819eaa20a90425d7da901a11531b3aa5",
+        expand=False,
+    )
+    version(
+        "2024-11-26",
+        sha256="bb1782d281fe60d4a2dcf41bc229abe3e46c280212597d4abcc25bddf667739b",
+        expand=False,
+    )
+    version(
+        "2024-09-24",
+        sha256="189d3cf6d103185fba06d76c1af915263c6d42225481a1759e853b33ac857540",
+        expand=False,
+    )
+    version(
+        "2024-07-02",
+        sha256="1bf458412568e134a4514f5e170a328d11091e071c7110955c9884ed87972ac9",
+        expand=False,
+    )
+    version(
+        "2024-03-11",
+        sha256="1794c1d4f7055b7d02c2170337b61b48a2ef6c90d77e95444fd2596f4cac609f",
+        expand=False,
+    )
+    version(
+        "2023-12-12",
+        sha256="ccbdfc2fe1a0d7bbbb9cc15710271acf1bb1afe4c8f1725fe95c4c7733fcbe5a",
+        expand=False,
+    )
+    version(
+        "2023-08-22",
+        sha256="23c2469e2a568362a62eecf1b49ed90a15621e6fa30e29947ded3436422de9b9",
+        expand=False,
+    )
+    version(
         "2023-05-30",
         sha256="5fadcae90aa4ae041150f8e2d26c37d980522cdb49f923fc1e1b5eb8d74e71ad",
         expand=False,
