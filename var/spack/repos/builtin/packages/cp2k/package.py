@@ -122,7 +122,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     variant(
         "pw_gpu",
         default=True,
-        description="Enable FFT calculations on GPU (off by default for now)",
+        description="Enable FFT calculations on GPU",
         when="@2025.2: +cuda",
     )
     variant("grid_gpu", default=True, description="Enable grid GPU backend", when="@2025.2:")
