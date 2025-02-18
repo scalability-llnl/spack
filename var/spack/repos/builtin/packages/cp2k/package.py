@@ -1061,7 +1061,7 @@ class CMakeBuilder(cmake.CMakeBuilder):
         ]
 
         if spec.satisfies("+hip_backend"):
-            args += [self.define_from_variant("-DCMAKE_HIP_PLATFORM=nvidia")]
+            args += [self.define("CMAKE_HIP_PLATFORM", "nvidia")]
 
         if "spla" in spec and (spec.satisfies("+cuda") or spec.satisfies("+rocm")):
             args += ["-DCP2K_USE_SPLA_GEMM_OFFLOADING=ON"]
