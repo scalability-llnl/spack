@@ -36,7 +36,7 @@ class FluidnumericsSelf(CMakePackage):
         default="4",
         description="Sets the number of threads for do concurrent loops",
         values=("2", "4", "6", "8"),
-        multi=False
+        multi=False,
     )
     variant("examples", default=True, description="Enables build and installation of examples")
     variant("tests", default=False, description="Enables build and installation of unit tests")
