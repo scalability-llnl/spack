@@ -2258,8 +2258,6 @@ class Spec:
 
         self._dup(self.lookup_hash())
 
-    # TODO/RepoSplit: Replace the docstring namespace to new package repo to
-    # TODO/RepoSplit:   avoid confusion since no longer "built in".
     def to_node_dict(self, hash=ht.dag_hash):
         """Create a dictionary representing the state of this Spec.
 
