@@ -721,7 +721,9 @@ def test_install_deps_then_package(tmpdir, mock_fetch, install_mockery):
 # Unit tests should not be affected by the user's managed environments
 @pytest.mark.not_on_windows("Environment views not supported on windows. Revisit after #34701")
 @pytest.mark.regression("12002")
-def test_install_only_dependencies_in_env(tmpdir, mutable_mock_env_path, mock_fetch, install_mockery):
+def test_install_only_dependencies_in_env(
+    tmpdir, mutable_mock_env_path, mock_fetch, install_mockery
+):
     env("create", "test")
 
     with ev.read("test"):
@@ -736,7 +738,9 @@ def test_install_only_dependencies_in_env(tmpdir, mutable_mock_env_path, mock_fe
 
 # Unit tests should not be affected by the user's managed environments
 @pytest.mark.regression("12002")
-def test_install_only_dependencies_of_all_in_env(tmpdir, mutable_mock_env_path, mock_fetch, install_mockery):
+def test_install_only_dependencies_of_all_in_env(
+    tmpdir, mutable_mock_env_path, mock_fetch, install_mockery
+):
     env("create", "--without-view", "test")
 
     with ev.read("test"):
@@ -934,7 +938,9 @@ def test_install_fails_no_args_suggests_env_activation(tmpdir):
 
 # Unit tests should not be affected by the user's managed environments
 @pytest.mark.not_on_windows("Environment views not supported on windows. Revisit after #34701")
-def test_install_env_with_tests_all(tmpdir, mutable_mock_env_path, mock_packages, mock_fetch, install_mockery):
+def test_install_env_with_tests_all(
+    tmpdir, mutable_mock_env_path, mock_packages, mock_fetch, install_mockery
+):
     env("create", "test")
     with ev.read("test"):
         test_dep = spack.concretize.concretize_one("test-dependency")
@@ -945,7 +951,9 @@ def test_install_env_with_tests_all(tmpdir, mutable_mock_env_path, mock_packages
 
 # Unit tests should not be affected by the user's managed environments
 @pytest.mark.not_on_windows("Environment views not supported on windows. Revisit after #34701")
-def test_install_env_with_tests_root(tmpdir, mutable_mock_env_path, mock_packages, mock_fetch, install_mockery):
+def test_install_env_with_tests_root(
+    tmpdir, mutable_mock_env_path, mock_packages, mock_fetch, install_mockery
+):
     env("create", "test")
     with ev.read("test"):
         test_dep = spack.concretize.concretize_one("test-dependency")
