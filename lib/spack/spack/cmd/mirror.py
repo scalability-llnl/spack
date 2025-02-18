@@ -683,9 +683,9 @@ def create_mirror_for_all_specs(mirror_specs, path, skip_unstable_versions, thre
             executor.submit(create_mirror_for_one_spec, candidate, mirror_cache, mirror_stats)
             for candidate in mirror_specs
         ]
-    for mirror_future in futures:
-        pkg_obj = mirror_future.result()
-        mirror_stats.next_spec(pkg_obj.spec)
+        for mirror_future in futures:
+            pkg_obj = mirror_future.result()
+            mirror_stats.next_spec(pkg_obj.spec)
 
     process_mirror_stats(*mirror_stats.stats())
 
