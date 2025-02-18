@@ -23,25 +23,19 @@ class Liburing(AutotoolsPackage):
 
     license("LGPL-2.1-or-later OR MIT")
 
-    # Sanity checks
     sanity_check_is_file = ["include/liburing.h", "lib/liburing.so"]
     sanity_check_is_dir = ["include", "lib"]
 
-    # Versions
     version("master", branch="master")
     version("2.9", sha256="897b1153b55543e8b92a5a3eb9b906537a5fedcf8afaf241f8b8787940c79f8d")
     version("2.4", sha256="2398ec82d967a6f903f3ae1fd4541c754472d3a85a584dc78c5da2fabc90706b")
     version("2.3", sha256="60b367dbdc6f2b0418a6e0cd203ee0049d9d629a36706fcf91dfb9428bae23c8")
 
-    # Build dependencies
     depends_on("c", type="build")
-    depends_on("cxx", type="build")
+    depends_on("cxx", type="build")  # only for tests
 
-    # Platform conflicts
-    conflicts("platform=darwin", msg="liburing is only supported on Linux.")
-    conflicts("platform=windows", msg="liburing is only supported on Linux.")
+    requires("platform=linux")
 
-    # Define build targets
     @property
     def build_targets(self):
         if self.spec.satisfies("@2.7:"):
