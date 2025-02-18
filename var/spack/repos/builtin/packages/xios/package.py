@@ -14,19 +14,26 @@ class Xios(Package):
     homepage = "https://forge.ipsl.jussieu.fr/ioserver/wiki"
     version(
         "2.6",
-        revision=2703,
+        revision=2714,
         svn="https://forge.ipsl.jussieu.fr/ioserver/svn/XIOS2/branches/xios-2.6",
     )
     version(
         "2.5",
         revision=1860,
         svn="https://forge.ipsl.jussieu.fr/ioserver/svn/XIOS2/branches/xios-2.5",
+        deprecated=True,
     )
     version(
-        "2.0", revision=1627, svn="http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-2.0"
+        "2.0",
+        revision=1627,
+        svn="https://forge.ipsl.jussieu.fr/ioserver/svn/XIOS2/branches/xios-2.0",
+        deprecated=True,
     )
     version(
-        "1.0", revision=910, svn="http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-1.0"
+        "1.0",
+        revision=910,
+        svn="http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-1.0",
+        deprecated=True,
     )
 
     variant(
@@ -42,9 +49,12 @@ class Xios(Package):
     patch("bld_extern_1.0.patch", when="@:1.0")
 
     # Workaround bug #17782 in llvm, where reading a double
-    # followed by a character is broken (e.g. duration '1d'):
+    # followed by a character is broken (e.g. duration '1d')
+    # https://bugs.llvm.org/show_bug.cgi?id=17782
+    # Verified and still needed 2025-02-18
     patch("llvm_bug_17782.patch", when="@1.1: %apple-clang")
     patch("llvm_bug_17782.patch", when="@1.1: %clang")
+
     patch("earcut_missing_include_2.6.patch", when="@2.6:")
 
     depends_on("netcdf-c+mpi")
