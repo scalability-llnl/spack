@@ -470,7 +470,7 @@ def test_dump_packages_deps_errs(install_mockery, tmpdir, monkeypatch, capsys):
 
     # The call to install_tree will raise the exception since not mocking
     # creation of dependency package files within *install* directories.
-    with pytest.raises(IOError, match=path if sys.platform != "win32" else ""):
+    with pytest.raises(OSError, match=path if sys.platform != "win32" else ""):
         inst.dump_packages(spec, path)
 
     # Now try the error path, which requires the mock directory structure
@@ -557,7 +557,7 @@ def test_combine_phase_logs(tmpdir):
 
 def test_combine_phase_logs_does_not_care_about_encoding(tmpdir):
     # this is invalid utf-8 at a minimum
-    data = b"\x00\xF4\xBF\x00\xBF\xBF"
+    data = b"\x00\xf4\xbf\x00\xbf\xbf"
     input = [str(tmpdir.join("a")), str(tmpdir.join("b"))]
     output = str(tmpdir.join("c"))
 

@@ -14,7 +14,6 @@ import inspect
 import io
 import operator
 import os
-import os.path
 import pstats
 import re
 import shlex
@@ -164,7 +163,7 @@ class SpackArgumentParser(argparse.ArgumentParser):
         # lazily add all commands to the parser when needed.
         add_all_commands(self)
 
-        """Print help on subcommands in neatly formatted sections."""
+        # Print help on subcommands in neatly formatted sections.
         formatter = self._get_formatter()
 
         # Create a list of subcommand actions. Argparse internals are nasty!
@@ -729,7 +728,7 @@ def _compatible_sys_types():
     with the current host.
     """
     host_platform = spack.platforms.host()
-    host_os = str(host_platform.operating_system("default_os"))
+    host_os = str(host_platform.default_operating_system())
     host_target = archspec.cpu.host()
     compatible_targets = [host_target] + host_target.ancestors
 

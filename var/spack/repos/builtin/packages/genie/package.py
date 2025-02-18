@@ -6,7 +6,6 @@
 import os
 
 from spack.package import *
-from spack.version import Version
 
 
 class Genie(Package):

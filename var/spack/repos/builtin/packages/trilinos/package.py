@@ -421,7 +421,7 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
         depends_on("kokkos-kernels@4.5.01", when="@master:")
         depends_on("kokkos-kernels@4.3.01", when="@16")
         depends_on("kokkos-kernels@4.2.01", when="@15.1:15")
-        depends_on("kokkos-kernels@4.1.00", when="@15.0")
+        depends_on("kokkos+openmp", when="+openmp")
 
         for a in CudaPackage.cuda_arch_values:
             arch_str = f"+cuda cuda_arch={a}"
@@ -589,21 +589,22 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
             # in case the dependent app also run a CUDA backend via Trilinos
             env.set("CUDA_LAUNCH_BLOCKING", "1")
 
-    def setup_dependent_package(self, module, dependent_spec):
-        if "+wrapper" in self.spec:
-            self.spec.kokkos_cxx = self.spec["kokkos-nvcc-wrapper"].kokkos_cxx
-        else:
-            self.spec.kokkos_cxx = spack_cxx
+    @property
+    def kokkos_cxx(self) -> str:
+        if self.spec.satisfies("+wrapper"):
+            return self["kokkos-nvcc-wrapper"].kokkos_cxx
+        # Assumes build-time globals have been set already
+        return spack_cxx
 
     def setup_build_environment(self, env):
         spec = self.spec
         if "+cuda" in spec and "+wrapper" in spec:
             if "+mpi" in spec:
-                env.set("OMPI_CXX", spec["kokkos-nvcc-wrapper"].kokkos_cxx)
-                env.set("MPICH_CXX", spec["kokkos-nvcc-wrapper"].kokkos_cxx)
-                env.set("MPICXX_CXX", spec["kokkos-nvcc-wrapper"].kokkos_cxx)
+                env.set("OMPI_CXX", self["kokkos-nvcc-wrapper"].kokkos_cxx)
+                env.set("MPICH_CXX", self["kokkos-nvcc-wrapper"].kokkos_cxx)
+                env.set("MPICXX_CXX", self["kokkos-nvcc-wrapper"].kokkos_cxx)
             else:
-                env.set("CXX", spec["kokkos-nvcc-wrapper"].kokkos_cxx)
+                env.set("CXX", self["kokkos-nvcc-wrapper"].kokkos_cxx)
 
         if "+rocm" in spec:
             if "+mpi" in spec:
@@ -906,7 +907,7 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
         # External Kokkos
         if spec.satisfies("@14.4.0: +kokkos"):
             options.append(define_tpl_enable("Kokkos"))
-        if spec.satisfies("@15.0: +kokkos"):
+        if spec.satisfies("@15.1: +kokkos"):
             options.append(define_tpl_enable("KokkosKernels", True))
 
         # MPI settings

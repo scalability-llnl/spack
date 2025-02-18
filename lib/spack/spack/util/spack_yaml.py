@@ -11,8 +11,6 @@
   default unorderd dict.
 
 """
-import collections
-import collections.abc
 import ctypes
 import enum
 import functools
@@ -32,23 +30,20 @@ __all__ = ["load", "dump", "SpackYAMLError"]
 
 
 # Make new classes so we can add custom attributes.
-# Also, use OrderedDict instead of just dict.
-class syaml_dict(collections.OrderedDict):
-    def __repr__(self):
-        mappings = (f"{k!r}: {v!r}" for k, v in self.items())
-        return "{%s}" % ", ".join(mappings)
+class syaml_dict(dict):
+    pass
 
 
 class syaml_list(list):
-    __repr__ = list.__repr__
+    pass
 
 
 class syaml_str(str):
-    __repr__ = str.__repr__
+    pass
 
 
 class syaml_int(int):
-    __repr__ = int.__repr__
+    pass
 
 
 #: mapping from syaml type -> primitive type
@@ -441,8 +436,8 @@ def _dump_annotated(handler, data, stream=None):
     width = max(clen(a) for a in _ANNOTATIONS)
     formats = ["%%-%ds  %%s\n" % (width + cextra(a)) for a in _ANNOTATIONS]
 
-    for f, a, l in zip(formats, _ANNOTATIONS, lines):
-        stream.write(f % (a, l))
+    for fmt, annotation, line in zip(formats, _ANNOTATIONS, lines):
+        stream.write(fmt % (annotation, line))
 
     if getvalue:
         return getvalue()

@@ -32,8 +32,6 @@ import glob
 import os
 import re
 
-import llnl.util.tty as tty
-
 from spack.package import *
 from spack.pkg.builtin.openfoam import (
     OpenfoamArch,
@@ -41,7 +39,6 @@ from spack.pkg.builtin.openfoam import (
     rewrite_environ_files,
     write_environ,
 )
-from spack.util.environment import EnvironmentModifications
 
 
 class FoamExtend(Package):
@@ -173,7 +170,7 @@ class FoamExtend(Package):
         if minimal:
             # pre-build or minimal environment
             tty.info("foam-extend minimal env {0}".format(self.prefix))
-            env.set("FOAM_INST_DIR", os.path.dirname(self.projectdir)),
+            env.set("FOAM_INST_DIR", os.path.dirname(self.projectdir))
             env.set("FOAM_PROJECT_DIR", self.projectdir)
             env.set("WM_PROJECT_DIR", self.projectdir)
             for d in ["wmake", self.archbin]:  # bin added automatically

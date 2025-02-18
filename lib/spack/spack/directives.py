@@ -32,7 +32,7 @@ The available directives are:
 """
 import collections
 import collections.abc
-import os.path
+import os
 import re
 from typing import Any, Callable, List, Optional, Tuple, Type, Union
 
@@ -568,7 +568,7 @@ def patch(
     """
 
     def _execute_patch(
-        pkg_or_dep: Union[Type[spack.package_base.PackageBase], Dependency]
+        pkg_or_dep: Union[Type[spack.package_base.PackageBase], Dependency],
     ) -> None:
         pkg = pkg_or_dep.pkg if isinstance(pkg_or_dep, Dependency) else pkg_or_dep
 
