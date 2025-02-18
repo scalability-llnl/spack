@@ -40,6 +40,7 @@ class Acts(CMakePackage, CudaPackage):
     # Supported Acts versions
     version("main", branch="main")
     version("master", branch="main", deprecated=True)  # For compatibility
+    version("39.1.0", commit="09225b0d0bba24d57a696e347e3027b39404bb75", submodules=True)
     version("39.0.0", commit="b055202e2fbdd509bc186eb4782714bc46f38f3f", submodules=True)
     version("38.2.0", commit="9cb8f4494656553fd9b85955938b79b2fac4c9b0", submodules=True)
     version("38.1.0", commit="8a20c88808f10bf4fcdfd7c6e077f23614c3ab90", submodules=True)
@@ -434,6 +435,8 @@ class Acts(CMakePackage, CudaPackage):
     conflicts("%gcc@:7", when="@0.23:")
     # When using C++20, disable gcc 9 and lower.
     conflicts("%gcc@:9", when="cxxstd=20")
+    # See https://github.com/acts-project/acts/pull/3362
+    conflicts("^geant4@11.3:", when="@:35")
     # See https://github.com/acts-project/acts/pull/3512
     conflicts("^boost@1.85.0")
     # See https://github.com/acts-project/acts/pull/3921

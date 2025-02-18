@@ -295,6 +295,9 @@ class Seacas(CMakePackage):
     )
     conflicts("+shared", when="platform=windows")
     conflicts("+x11", when="platform=windows")
+
+    conflicts("@2024-06-27 platform=windows")
+
     # Remove use of variable in array assignment (triggers c2057 on MSVC)
     # See https://github.com/sandialabs/seacas/issues/438
     patch(
