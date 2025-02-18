@@ -137,7 +137,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
         "hip_backend",
         default=False,
         description="Enable HIP backend on Nvidia GPU",
-        when="@2025.2:+cuda",
+        when="@2025.2: +cuda",
     )
     variant(
         "enable_regtests",
