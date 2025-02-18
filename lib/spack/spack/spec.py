@@ -2706,7 +2706,7 @@ class Spec:
                 return name, depflag
 
             def spec_and_dependency_types(
-                s: Union[Spec, Tuple[Spec, str]]
+                s: Union[Spec, Tuple[Spec, str]],
             ) -> Tuple[Spec, dt.DepFlag]:
                 """Given a non-string key in the literal, extracts the spec
                 and its dependency types.
@@ -3409,12 +3409,20 @@ class Spec:
         # These two loops handle cases where there is an overly restrictive
         # vpkg in one spec for a provider in the other (e.g., mpi@3: is not
         # compatible with mpich2)
-        for spec in self.virtual_dependencies():
-            if spec.name in other_index and not other_index.providers_for(spec):
+        for spec in self.traverse():
+            if (
+                spack.repo.PATH.is_virtual(spec.name)
+                and spec.name in other_index
+                and not other_index.providers_for(spec)
+            ):
                 return False
 
-        for spec in other.virtual_dependencies():
-            if spec.name in self_index and not self_index.providers_for(spec):
+        for spec in other.traverse():
+            if (
+                spack.repo.PATH.is_virtual(spec.name)
+                and spec.name in self_index
+                and not self_index.providers_for(spec)
+            ):
                 return False
 
         return True
@@ -3557,10 +3565,6 @@ class Spec:
             any(lhs.satisfies(rhs, deps=False) for lhs in self.traverse(root=False))
             for rhs in other.traverse(root=False)
         )
-
-    def virtual_dependencies(self):
-        """Return list of any virtual deps in this spec."""
-        return [spec for spec in self.traverse() if spack.repo.PATH.is_virtual(spec.name)]
 
     @property  # type: ignore[misc] # decorated prop not supported in mypy
     def patches(self):
@@ -3783,8 +3787,11 @@ class Spec:
         # if anonymous or same name, we only have to look at the root
         if not spec.name or spec.name == self.name:
             return self.satisfies(spec)
-        else:
-            return any(s.satisfies(spec) for s in self.traverse(root=False))
+        try:
+            dep = self[spec.name]
+        except KeyError:
+            return False
+        return dep.satisfies(spec)
 
     def eq_dag(self, other, deptypes=True, vs=None, vo=None):
         """True if the full dependency DAGs of specs are equal."""

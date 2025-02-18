@@ -65,12 +65,21 @@ def test_repo_unknown_pkg(mutable_mock_repo):
         mutable_mock_repo.get_pkg_class("builtin.mock.nonexistentpackage")
 
 
-@pytest.mark.not_on_windows("mtime granularity issues on windows")
 def test_repo_last_mtime(mock_packages):
-    latest_mtime = max(
-        os.path.getmtime(p.module.__file__) for p in spack.repo.PATH.all_package_classes()
-    )
-    assert spack.repo.PATH.last_mtime() == latest_mtime
+    mtime_with_package_py = [
+        (os.path.getmtime(p.module.__file__), p.module.__file__)
+        for p in spack.repo.PATH.all_package_classes()
+    ]
+    repo_mtime = spack.repo.PATH.last_mtime()
+    max_mtime, max_file = max(mtime_with_package_py)
+    if max_mtime > repo_mtime:
+        modified_after = "\n    ".join(
+            f"{path} ({mtime})" for mtime, path in mtime_with_package_py if mtime > repo_mtime
+        )
+        assert (
+            max_mtime <= repo_mtime
+        ), f"the following files were modified while running tests:\n    {modified_after}"
+    assert max_mtime == repo_mtime, f"last_mtime incorrect for {max_file}"
 
 
 def test_repo_invisibles(mutable_mock_repo, extra_repo):
