@@ -141,8 +141,8 @@ class Comgr(CMakePackage):
             env.set("CC", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang")
             env.set("CXX", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang++")
             env.set("ASAN_OPTIONS", "detect_leaks=0")
-            env.set("CFLAGS", f"-fsanitize=address -shared-libasan")
-            env.set("CXXFLAGS", f"-fsanitize=address -shared-libasan")
+            env.set("CFLAGS", "-fsanitize=address -shared-libasan")
+            env.set("CXXFLAGS", "-fsanitize=address -shared-libasan")
             env.set("LDFLAGS", "-fuse-ld=lld")
 
     @classmethod
