@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 #: PEP440 canonical <major>.<minor>.<micro>.<devN> string
-__version__ = "0.22.3"
+__version__ = "0.22.4.dev0"
 spack_version = __version__
 
 
