@@ -687,7 +687,12 @@ def test_install_spliced_build_spec_installed(install_mockery, capfd, mock_fetch
     "root_str", ["splice-t^splice-h~foo", "splice-h~foo", "splice-vt^splice-a"]
 )
 def test_install_splice_root_from_binary(
-    mutable_mock_env_path, install_mockery, mock_fetch, mutable_temporary_mirror, transitive, root_str
+    mutable_mock_env_path,
+    install_mockery,
+    mock_fetch,
+    mutable_temporary_mirror,
+    transitive,
+    root_str,
 ):
     """Test installing a spliced spec with the root available in binary cache"""
     # Test splicing and rewiring a spec with the same name, different hash.
