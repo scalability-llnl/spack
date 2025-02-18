@@ -52,12 +52,11 @@ class Pdi(CMakePackage):
         # not yet instantiated and PYTHON_EXECUTABLE is not yet large enough to
         # trigger the replacement via filter_shebang.
 
-        if self.spec.satisfies("@1.8"):
-            filter_file(
-                r"#!@PYTHON_EXECUTABLE@ -B",
-                sbang_shebang_line() + "\n#!@PYTHON_EXECUTABLE@ -B",
-                "vendor/zpp-1.0.16/bin/zpp.in",
-            )
+        filter_file(
+            r"#!@PYTHON_EXECUTABLE@ -B",
+            sbang_shebang_line() + "\n#!@PYTHON_EXECUTABLE@ -B",
+            "vendor/zpp-1.0.16/bin/zpp.in",
+        )
 
     def cmake_args(self):
         args = [
