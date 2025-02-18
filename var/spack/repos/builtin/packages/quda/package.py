@@ -20,9 +20,9 @@ class Quda(CMakePackage, CudaPackage, ROCmPackage):
 
     version("develop", branch="develop")
 
-    # git describe --tags 18bf43ed40c75ae276e55bb8ddf2f64aa5510c37
+    # git describe --tags --match 'v*' 18bf43ed40c75ae276e55bb8ddf2f64aa5510c37
     version(
-        "devel-pre-merge-1-25-22-3325-g18bf43ed4",
+        "1.1.0-4597-g18bf43ed4",
         preferred=True,
         commit="18bf43ed40c75ae276e55bb8ddf2f64aa5510c37",
     )
