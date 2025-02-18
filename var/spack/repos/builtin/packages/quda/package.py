@@ -12,13 +12,20 @@ class Quda(CMakePackage, CudaPackage, ROCmPackage):
     url = "https://github.com/lattice/quda/archive/refs/tags/v1.1.0.tar.gz"
     git = "https://github.com/lattice/quda.git"
 
+    tags = ["hep", "lattice"]
+
     maintainers("chaoos")
+
     license("MIT OR BSD-3-Clause", checked_by="chaoos")
 
     version("develop", branch="develop")
 
     # git describe --tags 18bf43ed40c75ae276e55bb8ddf2f64aa5510c37
-    version("devel-pre-merge-1-25-22-3325-g18bf43ed4", preferred=True, commit="18bf43ed40c75ae276e55bb8ddf2f64aa5510c37")
+    version(
+        "devel-pre-merge-1-25-22-3325-g18bf43ed4",
+        preferred=True,
+        commit="18bf43ed40c75ae276e55bb8ddf2f64aa5510c37"
+    )
 
     version("1.1.0", sha256="b4f635c993275010780ea09d8e593e0713a6ca1af1db6cc86c64518714fcc745")
     version(
@@ -110,15 +117,16 @@ class Quda(CMakePackage, CudaPackage, ROCmPackage):
     conflicts("+cuda +rocm", msg="CUDA and ROCm support are mutually exclusive")
     conflicts("~cuda ~rocm", msg="Either CUDA or ROCm support is required")
     conflicts("cuda_arch=none", when="+cuda", msg="Please indicate a cuda_arch value")
-    conflicts("+nvshmem", when="~mpi ~qmp", msg="NVSHMEM requires either +mpi or +qmp to be enabled")
+    conflicts(
+        "+nvshmem", when="~mpi ~qmp", msg="NVSHMEM requires either +mpi or +qmp to be enabled"
+    )
 
     # CMAKE_BUILD_TYPE
-    # No support for RelWithDebInfo and MinSizeRel
     variant(
         "build_type",
         default="STRICT",
         description="The build type to build",
-        values=("STRICT", "RELEASE", "Release", "DEVEL", "DEBUG", "Debug", "HOSTDEBUG", "SANITIZE")
+        values=("STRICT", "RELEASE", "DEVEL", "DEBUG", "HOSTDEBUG", "SANITIZE")
     )
 
     def cmake_args(self):
