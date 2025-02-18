@@ -126,7 +126,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
         when="@2025.2: +cuda",
     )
     variant("grid_gpu", default=True, description="Enable grid GPU backend", when="@2025.2:")
-    variant("dbm_gpu", default=True, description="Eanble DBM gpu backend", when="@2025.2:")
+    variant("dbm_gpu", default=True, description="Enable DBM GPU backend", when="@2025.2:")
     variant(
         "pw_gpu",
         default=False,
