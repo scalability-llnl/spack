@@ -82,6 +82,9 @@ class Wgrib2(MakefilePackage, CMakePackage):
         extension="tar.gz",
     )
 
+    depends_on("c", type="build")
+    depends_on("fortran", type="build")
+
     def url_for_version(self, version):
         if version >= Version("3.2.0"):
             url_fmt = "https://github.com/NOAA-EMC/wgrib2/archive/refs/tags/v{0}.tar.gz"
