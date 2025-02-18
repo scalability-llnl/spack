@@ -45,8 +45,8 @@ class Wgrib2(MakefilePackage, CMakePackage):
     """Utility for interacting with GRIB2 files"""
 
     homepage = "https://www.cpc.ncep.noaa.gov/products/wesley/wgrib2"
-    url = "https://www.ftp.cpc.ncep.noaa.gov/wd51we/wgrib2/wgrib2.tgz.v2.0.8"
-    git = "https://github.com/NOAA-EMC/wgrib2"
+    url = "https://github.com/NOAA-EMC/wgrib2/archive/refs/tags/v3.5.0.tar.gz"
+    git = "https://github.com/NOAA-EMC/wgrib2.git"
 
     maintainers(
         "AlysonStahl-NOAA", "t-brown", "AlexanderRichert-NOAA", "Hang-Lei-NOAA", "edwardhartnett"
