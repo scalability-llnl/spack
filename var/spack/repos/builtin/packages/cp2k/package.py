@@ -120,10 +120,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     variant("mpi_f08", default=False, description="Use MPI F08 module")
     variant("smeagol", default=False, description="Enable libsmeagol support", when="@2025.2:")
     variant(
-        "pw_gpu",
-        default=True,
-        description="Enable FFT calculations on GPU",
-        when="@2025.2: +cuda",
+        "pw_gpu", default=True, description="Enable FFT calculations on GPU", when="@2025.2: +cuda"
     )
     variant("grid_gpu", default=True, description="Enable grid GPU backend", when="@2025.2:")
     variant("dbm_gpu", default=True, description="Enable DBM GPU backend", when="@2025.2:")
@@ -134,7 +131,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
         when="@2025.2: +rocm",
     )
     variant(
-        "hip_backend",
+        "hip_backend_cuda",
         default=False,
         description="Enable HIP backend on Nvidia GPU",
         when="@2025.2: +cuda",
@@ -167,7 +164,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
             description="Use CUBLAS for general matrix operations in DBCSR",
         )
 
-    with when("+hip_backend+cuda"):
+    with when("+hip_backend_cuda"):
         depends_on("hipcc")
         depends_on("hip+cuda")
         depends_on("hipfft+cuda")
@@ -1008,7 +1005,7 @@ class CMakeBuilder(cmake.CMakeBuilder):
                 raise InstallError("CP2K supports only one cuda_arch at a time.")
             else:
                 gpu_ver = GPU_MAP[spec.variants["cuda_arch"].value[0]]
-                if spec.satisfies("+hip_backend"):
+                if spec.satisfies("+hip_backend_cuda"):
                     args += [
                         self.define("CP2K_USE_ACCEL", "HIP"),
                         self.define("CMAKE_HIP_PLATFORM", "nvidia"),
@@ -1060,9 +1057,6 @@ class CMakeBuilder(cmake.CMakeBuilder):
                 ("+elpa +openmp" in spec) or ("^elpa +openmp" in spec),
             )
         ]
-
-        if spec.satisfies("+hip_backend"):
-            args += [self.define("CMAKE_HIP_PLATFORM", "nvidia")]
 
         if "spla" in spec and (spec.satisfies("+cuda") or spec.satisfies("+rocm")):
             args += ["-DCP2K_USE_SPLA_GEMM_OFFLOADING=ON"]
