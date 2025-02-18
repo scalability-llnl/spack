@@ -340,8 +340,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
 
     conflicts("~openmp", when="@8:", msg="Building without OpenMP is not supported in CP2K 8+")
 
-    if (not when("+cuda")) or (not when("+rocm")):
-        conflicts("spla_gemm_offloading")
+    conflicts("+spla_gemm_offloading", "~rocm ~cuda")
 
     # We only support specific cuda_archs for which we have parameter files
     # for optimal kernels. Note that we don't override the cuda_archs property
