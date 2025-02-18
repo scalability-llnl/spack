@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import argparse
+import pathlib
 
 import pytest
 
@@ -37,6 +38,10 @@ def can_fetch_versions(monkeypatch):
     def url_exists(url, curl=None):
         return True
 
+    def add_versions_to_pkg(pkg, version_lines, open_in_editor):
+        raise AssertionError("Should not be called")
+
+    monkeypatch.setattr(spack.cmd.checksum, "add_versions_to_pkg", add_versions_to_pkg)
     monkeypatch.setattr(
         spack.package_base.PackageBase, "fetch_remote_versions", fetch_remote_versions
     )
@@ -88,7 +93,6 @@ def test_checksum_args(arguments, expected):
         (["--batch", "preferred-test"], "version of preferred-test"),
         (["--latest", "preferred-test"], "Found 1 version"),
         (["--preferred", "preferred-test"], "Found 1 version"),
-        (["--add-to-package", "preferred-test"], "Added 0 new versions to"),
         (["--verify", "preferred-test"], "Verified 1 of 1"),
         (["--verify", "zlib", "1.2.13"], "1.2.13  [-] No previous checksum"),
     ],
@@ -271,34 +275,35 @@ def test_checksum_interactive_unrecognized_command():
     assert interactive_version_filter(v.copy(), input=input) == v
 
 
-def test_checksum_versions(mock_packages, can_fetch_versions):
+def test_checksum_versions(mock_packages, can_fetch_versions, monkeypatch):
     pkg_cls = spack.repo.PATH.get_pkg_class("zlib")
     versions = [str(v) for v in pkg_cls.versions]
     output = spack_checksum("zlib", *versions)
     assert "Found 3 versions" in output
     assert "version(" in output
-    output = spack_checksum("--add-to-package", "zlib", *versions)
-    assert "Found 3 versions" in output
-    assert "Added 0 new versions to" in output
 
 
-def test_checksum_missing_version(mock_packages, cannot_fetch_versions):
+def test_checksum_missing_version(mock_packages, cannot_fetch_versions, monkeypatch):
+    def add_versions_to_pkg(pkg, version_lines, open_in_editor):
+        raise AssertionError("Should not be called")
+
+    monkeypatch.setattr(spack.cmd.checksum, "add_versions_to_pkg", add_versions_to_pkg)
     output = spack_checksum("preferred-test", "99.99.99", fail_on_error=False)
     assert "Could not find any remote versions" in output
     output = spack_checksum("--add-to-package", "preferred-test", "99.99.99", fail_on_error=False)
     assert "Could not find any remote versions" in output
-    assert "Added 1 new versions to" not in output
 
 
 def test_checksum_deprecated_version(mock_packages, can_fetch_versions):
+    def add_versions_to_pkg(pkg, version_lines, open_in_editor):
+        raise AssertionError("Should not be called")
+
     output = spack_checksum("deprecated-versions", "1.1.0", fail_on_error=False)
     assert "Version 1.1.0 is deprecated" in output
     output = spack_checksum(
         "--add-to-package", "deprecated-versions", "1.1.0", fail_on_error=False
     )
     assert "Version 1.1.0 is deprecated" in output
-    # TODO alecbcs: broken assertion.
-    # assert "Added 0 new versions to" not in output
 
 
 def test_checksum_url(mock_packages, config):
@@ -337,3 +342,52 @@ def test_checksum_manual_download_fails(mock_packages, monkeypatch):
     monkeypatch.setattr(spack.package_base.PackageBase, "download_instr", error)
     with pytest.raises(ManualDownloadRequiredError, match=error):
         spack_checksum(name, *versions)
+
+
+def test_upate_package_contents(tmp_path: pathlib.Path):
+    """Test that the package.py file is updated with the new versions."""
+    pkg_path = tmp_path / "package.py"
+    pkg_path.write_text(
+        """\
+from spack.package import *
+
+class Zlib(Package):
+    homepage = "http://zlib.net"
+    url = "http://zlib.net/fossils/zlib-1.2.11.tar.gz"
+
+    version("1.2.11", sha256="c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1")
+    version("1.2.8", sha256="36658cb768a54c1d4dec43c3116c27ed893e88b02ecfcb44f2166f9c0b7f2a0d")
+    version("1.2.3", sha256="1795c7d067a43174113fdf03447532f373e1c6c57c08d61d9e4e9be5e244b05e")
+    variant("pic", default=True, description="test")
+
+    def install(self, spec, prefix):
+        make("install")
+"""
+    )
+    version_lines = """\
+    version("1.2.13", sha256="abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890")
+    version("1.2.5", sha256="abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890")
+    version("1.2.3", sha256="1795c7d067a43174113fdf03447532f373e1c6c57c08d61d9e4e9be5e244b05e")
+"""
+    # two new versions are added
+    assert spack.cmd.checksum.add_versions_to_pkg(str(pkg_path), version_lines) == 2
+    assert (
+        pkg_path.read_text()
+        == """\
+from spack.package import *
+
+class Zlib(Package):
+    homepage = "http://zlib.net"
+    url = "http://zlib.net/fossils/zlib-1.2.11.tar.gz"
+
+    version("1.2.13", sha256="abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890")  # FIXME
+    version("1.2.11", sha256="c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1")
+    version("1.2.8", sha256="36658cb768a54c1d4dec43c3116c27ed893e88b02ecfcb44f2166f9c0b7f2a0d")
+    version("1.2.5", sha256="abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890")  # FIXME
+    version("1.2.3", sha256="1795c7d067a43174113fdf03447532f373e1c6c57c08d61d9e4e9be5e244b05e")
+    variant("pic", default=True, description="test")
+
+    def install(self, spec, prefix):
+        make("install")
+"""
+    )
