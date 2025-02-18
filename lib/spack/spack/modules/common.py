@@ -51,6 +51,7 @@ import spack.schema
 import spack.schema.environment
 import spack.spec
 import spack.store
+import spack.tag
 import spack.tengine as tengine
 import spack.user_environment
 import spack.util.environment
@@ -896,6 +897,14 @@ class BaseModuleFileWriter:
         # Context key in modules.yaml
         conf_update = self.conf.context
         context.update(conf_update)
+
+        # add tags to context
+        all_tags = spack.tag.packages_with_tags(None, True, True)
+        related_tags = list()
+        for tag in all_tags:
+            if self.spec.name in all_tags[tag]:
+                related_tags.append(tag)
+        context["tags"] = related_tags
 
         # Render the template
         text = template.render(context)
