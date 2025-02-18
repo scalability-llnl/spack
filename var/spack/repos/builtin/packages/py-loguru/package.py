@@ -22,7 +22,7 @@ class PyLoguru(PythonPackage):
     version("0.2.5", sha256="68297d9f23064c2f4764bb5d0c5c767f3ed7f9fc1218244841878f5fc7c94add")
 
     depends_on("python@3.5:", type=("build", "run"))
-    depends_on("py-setuptools", type="build")
+    depends_on("py-setuptools", when="@:0.7.2", type="build")
     depends_on("py-flit-core@3", when="@0.7.3:", type="build")
     depends_on("py-aiocontextvars@0.2.0:", when="^python@3.6:", type=("build", "run"))
     depends_on("py-colorama@0.3.4:", when="platform=windows", type=("build", "run"))
