@@ -4,16 +4,32 @@ spack:
   concretizer:
     reuse: false
     unify: false
+    static_analysis: true
 
   packages:
     all:
-      require: '%gcc target=x86_64_v3'
-      providers:
-        blas: [openblas]
-        mpi: [mpich]
+      require:
+      - '%gcc target=x86_64_v3'
       variants: +mpi
+    mpi:
+      require:
+      - mpich
+    blas:
+      require:
+      - openblas
+    lapack:
+      require:
+      - openblas
     binutils:
       variants: +ld +gold +headers +libiberty ~nls
+    cmake:
+      require:
+      - "~qtgui"
+      - '%gcc target=x86_64_v3'
+    gmake:
+      require:
+      - "~guile"
+      - '%gcc target=x86_64_v3'
     hdf5:
       variants: +fortran +hl +shared
     libfabric:
@@ -27,19 +43,25 @@ spack:
         +ifpack +ifpack2 +intrepid +intrepid2 +isorropia +kokkos +ml +minitensor +muelu
         +nox +piro +phalanx +rol +rythmos +sacado +stk +shards +shylu +stokhos +stratimikos
         +teko +tempus +tpetra +trilinoscouplings +zoltan +zoltan2 +superlu-dist gotype=long_long
-    mpi:
-      require: mpich
     mpich:
-      require: '~wrapperrpath ~hwloc target=x86_64_v3'
+      require:
+      - '~wrapperrpath ~hwloc'
+      - '%gcc target=x86_64_v3'
     tbb:
-      require: intel-tbb
+      require:
+      - intel-tbb
     vtk-m:
-      require: "+examples target=x86_64_v3"
+      require:
+      - "+examples"
+      - '%gcc target=x86_64_v3'
     visit:
-      require: "~gui target=x86_64_v3"
+      require:
+      - "~gui target=x86_64_v3"
     paraview:
       # Don't build GUI support or GLX rendering for HPC/container deployments
-      require: "+examples ~qt ^[virtuals=gl] osmesa target=x86_64_v3"
+      require:
+      - "+examples ~qt ^[virtuals=gl] osmesa target=x86_64_v3"
+      - '%gcc target=x86_64_v3'
 
   specs:
   # CPU

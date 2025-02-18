@@ -730,6 +730,19 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
 
     patch("sanitizer-platform-limits-posix-xdr-macos.patch", when="@10:14 platform=darwin")
 
+    # https://github.com/spack/spack/issues/48865
+    patch(
+        "https://github.com/llvm/llvm-project/commit/f4be5ed6a3fef0b2b0c60b29e1c0638926638d28.patch?full_index=1",
+        sha256="51740996bbc01a5049fa859134ad44ffc9514da212cc7d9a445c8d16d6cc867e",
+        when="@15",
+    )
+    # https://github.com/spack/spack/issues/48865
+    patch(
+        "https://github.com/llvm/llvm-project/commit/73e15b5edb4fa4a77e68c299a6e3b21e610d351f.patch?full_index=1",
+        sha256="b540ef6e3728d7881d95775a163314fac6e2f9207f5d5e8b79c8c73c73ba4dc3",
+        when="@15:16",
+    )
+
     @when("@14:17")
     def patch(self):
         # https://github.com/llvm/llvm-project/pull/69458
@@ -740,19 +753,21 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
             string=True,
         )
 
+    clang_and_friends = "(?:clang|flang|flang-new)"
+
     compiler_version_regex = (
         # Normal clang compiler versions are left as-is
-        r"clang version ([^ )\n]+)-svn[~.\w\d-]*|"
+        rf"{clang_and_friends} version ([^ )\n]+)-svn[~.\w\d-]*|"
         # Don't include hyphenated patch numbers in the version
         # (see https://github.com/spack/spack/pull/14365 for details)
-        r"clang version ([^ )\n]+?)-[~.\w\d-]*|"
-        r"clang version ([^ )\n]+)|"
+        rf"{clang_and_friends} version ([^ )\n]+?)-[~.\w\d-]*|"
+        rf"{clang_and_friends} version ([^ )\n]+)|"
         # LLDB
         r"lldb version ([^ )\n]+)|"
         # LLD
         r"LLD ([^ )\n]+) \(compatible with GNU linkers\)"
     )
-    fortran_names = ["flang"]
+    fortran_names = ["flang", "flang-new"]
 
     @property
     def supported_languages(self):

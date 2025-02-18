@@ -23,6 +23,7 @@ class RocmSmiLib(CMakePackage):
     libraries = ["librocm_smi64"]
 
     version("master", branch="master")
+    version("6.3.2", sha256="29a9190143dfcbafeac93d8064b00c9320dbca57a3344adb009ec17d9b09d036")
     version("6.3.1", sha256="0f45e4823e361a1c6ac560eabf6000c3b59e08bcd96e87150149149e861c6a63")
     version("6.3.0", sha256="573cfb759f8c7700fdcb0c28d045aed0f2d950692bb66a10bd589b89b8f48d0f")
     version("6.2.4", sha256="eb8986dd571f5862c2db693398c0dbec28e2754f764f6bd3cfb21be7699e4452")
@@ -71,6 +72,7 @@ class RocmSmiLib(CMakePackage):
         "6.2.4",
         "6.3.0",
         "6.3.1",
+        "6.3.2",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 

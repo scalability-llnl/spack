@@ -1,0 +1,11 @@
+--- a/extern/remap/src/earcut.hpp 2025-01-22 11:42:31.097755822 -0500
++++ b/extern/remap/src/earcut.hpp 2025-01-22 11:44:00.022637783 -0500
+@@ -7,7 +7,7 @@
+ #include <vector>
+ #include <limits>
+ //#include <tuple>
+-//#include <cstdint> 
++#include <cstdint>
+ //#include <cstddef>
+
+ namespace mapbox {
