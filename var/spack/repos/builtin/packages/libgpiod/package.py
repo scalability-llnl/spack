@@ -11,9 +11,6 @@ class Libgpiod(AutotoolsPackage):
     (gpiod stands for GPIO device)"""
 
     homepage = "https://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git/about/"
-    url = (
-        "https://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git/snapshot/libgpiod-2.1.3.tar.gz"
-    )
     git = "https://git.kernel.org/pub/scm/libs/libgpiod/libgpiod"
 
     maintainers("davekeeshan")
