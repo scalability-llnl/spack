@@ -42,90 +42,70 @@ class Git(AutotoolsPackage):
     # Deprecated versions (https://groups.google.com/g/git-packagers/c/zxdH4LPix3U)
     with default_args(deprecated=True):
         version(
-            "2.47.0",
-            sha256="a84a7917e0ab608312834413f01fc01edc7844f9f9002ba69f3b4f4bcb8d937a",
+            "2.47.0", sha256="a84a7917e0ab608312834413f01fc01edc7844f9f9002ba69f3b4f4bcb8d937a"
         )
         version(
-            "2.46.2",
-            sha256="65c5689fd44f1d09de7fd8c44de7fef074ddd69dda8b8503d44afb91495ecbce",
+            "2.46.2", sha256="65c5689fd44f1d09de7fd8c44de7fef074ddd69dda8b8503d44afb91495ecbce"
         )
         version(
-            "2.45.2",
-            sha256="98b26090ed667099a3691b93698d1e213e1ded73d36a2fde7e9125fce28ba234",
+            "2.45.2", sha256="98b26090ed667099a3691b93698d1e213e1ded73d36a2fde7e9125fce28ba234"
         )
         version(
-            "2.44.2",
-            sha256="f0655e81c5ecfeef7440aa4fcffa1c1a77eaccf764d6fe29579e9a06eac2cd04",
+            "2.44.2", sha256="f0655e81c5ecfeef7440aa4fcffa1c1a77eaccf764d6fe29579e9a06eac2cd04"
         )
         version(
-            "2.43.5",
-            sha256="324c3b85d668e6afe571b3502035848e4b349dead35188e2b8ab1b96c0cd45ff",
+            "2.43.5", sha256="324c3b85d668e6afe571b3502035848e4b349dead35188e2b8ab1b96c0cd45ff"
         )
         version(
-            "2.42.3",
-            sha256="f42a8e8f6c0add4516f9e4607554c8ad698161b7d721b82073fe315a59621961",
+            "2.42.3", sha256="f42a8e8f6c0add4516f9e4607554c8ad698161b7d721b82073fe315a59621961"
         )
         version(
-            "2.41.2",
-            sha256="481aa0a15aa37802880a6245b96c1570d7337c44700d5d888344cd6d43d85306",
+            "2.41.2", sha256="481aa0a15aa37802880a6245b96c1570d7337c44700d5d888344cd6d43d85306"
         )
         version(
-            "2.40.3",
-            sha256="b3dc96b20edcdbe6bea7736ea55bb80babf683d126cc7f353ed4e3bc304cd7da",
+            "2.40.3", sha256="b3dc96b20edcdbe6bea7736ea55bb80babf683d126cc7f353ed4e3bc304cd7da"
         )
         version(
-            "2.39.5",
-            sha256="ca0ec03fb2696f552f37135a56a0242fa062bd350cb243dc4a15c86f1cafbc99",
+            "2.39.5", sha256="ca0ec03fb2696f552f37135a56a0242fa062bd350cb243dc4a15c86f1cafbc99"
         )
 
     # Deprecated versions (https://groups.google.com/g/git-packagers/c/x6-nKLV20aE)
     with default_args(deprecated=True):
         version(
-            "2.45.1",
-            sha256="10acb581993061e616be9c5674469335922025a666318e0748cb8306079fef24",
+            "2.45.1", sha256="10acb581993061e616be9c5674469335922025a666318e0748cb8306079fef24"
         )
         version(
-            "2.44.1",
-            sha256="118214bb8d7ba971a62741416e757562b8f5451cefc087a407e91857897c92cc",
+            "2.44.1", sha256="118214bb8d7ba971a62741416e757562b8f5451cefc087a407e91857897c92cc"
         )
         version(
-            "2.43.4",
-            sha256="bfd717dc31922f718232a25a929d199e26146df5e876fdf0ff90a7cc95fa06e2",
+            "2.43.4", sha256="bfd717dc31922f718232a25a929d199e26146df5e876fdf0ff90a7cc95fa06e2"
         )
         version(
-            "2.42.2",
-            sha256="3b24b712fa6e9a3da5b7d3e68b1854466905aadb93a43088a38816bcc3b9d043",
+            "2.42.2", sha256="3b24b712fa6e9a3da5b7d3e68b1854466905aadb93a43088a38816bcc3b9d043"
         )
         version(
-            "2.41.1",
-            sha256="06d2a681aa7f1bdb6e7f7101631407e7412faa534e1fa0eb6fdcb9975d867d31",
+            "2.41.1", sha256="06d2a681aa7f1bdb6e7f7101631407e7412faa534e1fa0eb6fdcb9975d867d31"
         )
         version(
-            "2.40.2",
-            sha256="1dcdfbb4eeb3ef2c2d9154f888d4a6f0cf19f19acad76f0d32e725e7bc147753",
+            "2.40.2", sha256="1dcdfbb4eeb3ef2c2d9154f888d4a6f0cf19f19acad76f0d32e725e7bc147753"
         )
         version(
-            "2.39.4",
-            sha256="b895ed2b5d98fd3dcfde5807f16d5fb17c4f83044e7d08e597ae13de222f0d26",
+            "2.39.4", sha256="b895ed2b5d98fd3dcfde5807f16d5fb17c4f83044e7d08e597ae13de222f0d26"
         )
 
     # Deprecated versions (see https://github.blog/2024-05-14-securing-git-addressing-5-new-vulnerabilities/).
     with default_args(deprecated=True):
         version(
-            "2.42.0",
-            sha256="34aedd54210d7216a55d642bbb4cfb22695b7610719a106bf0ddef4c82a8beed",
+            "2.42.0", sha256="34aedd54210d7216a55d642bbb4cfb22695b7610719a106bf0ddef4c82a8beed"
         )
         version(
-            "2.41.0",
-            sha256="c4a6a3dd1827895a80cbd824e14d94811796ae54037549e0da93f7b84cb45b9f",
+            "2.41.0", sha256="c4a6a3dd1827895a80cbd824e14d94811796ae54037549e0da93f7b84cb45b9f"
         )
         version(
-            "2.40.1",
-            sha256="55511f10f3b1cdf5db4e0e3dea61819dfb67661b0507a5a2b061c70e4f87e14c",
+            "2.40.1", sha256="55511f10f3b1cdf5db4e0e3dea61819dfb67661b0507a5a2b061c70e4f87e14c"
         )
         version(
-            "2.39.3",
-            sha256="2f9aa93c548941cc5aff641cedc24add15b912ad8c9b36ff5a41b1a9dcad783e",
+            "2.39.3", sha256="2f9aa93c548941cc5aff641cedc24add15b912ad8c9b36ff5a41b1a9dcad783e"
         )
 
     depends_on("c", type="build")  # generated
