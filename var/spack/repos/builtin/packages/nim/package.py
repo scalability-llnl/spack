@@ -105,9 +105,7 @@ class Nim(Package):
     phases = ["build", "install"]
 
     def patch(self):
-        """Hardcode dependency dynamic library paths into
-        wrapper modules using rpath."""
-
+        # Hardcode dependency dynamic library paths into wrapper modules using rpath
         def append_rpath(path, libdirs):
             """Add a pragma at the end of the file which passes
             rpath with libdirs to the linker when the module is used."""
@@ -132,6 +130,22 @@ class Nim(Package):
         append_rpath("lib/wrappers/openssl.nim", spec["openssl"].libs.directories)
         if spec.satisfies("+sqlite"):
             append_rpath("lib/wrappers/sqlite3.nim", spec["sqlite"].libs.directories)
+
+        # Musl defines SysThread as a struct *pthread_t rather than an unsigned long as glibc does.
+        if self.spec.satisfies("^[virtuals=libc] musl"):
+            if self.spec.satisfies("@devel,1.9.3:"):
+                pthreadModule = "lib/std/private/threadtypes.nim"
+            elif self.spec.satisfies("@:0.19.6"):
+                pthreadModule = "lib/system/threads.nim"
+            else:
+                pthreadModule = "lib/system/threadlocalstorage.nim"
+
+            filter_file(
+                'header: "<sys/types.h>" .} = distinct culong',
+                'header: "<sys/types.h>" .} = pointer',
+                pthreadModule,
+                string=True,
+            )
 
     def build(self, spec, prefix):
         if spec.satisfies("@devel"):
