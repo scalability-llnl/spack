@@ -17,7 +17,7 @@ class Neofoam(CMakePackage):
 
     version("main", branch="main")
 
-    depends_on("c")
-    depends_on("cxx")
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
     depends_on("mpi")
     depends_on("kokkos@4.3.0")
