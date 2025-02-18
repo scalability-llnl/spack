@@ -134,6 +134,12 @@ class CompilerWrapper(Package):
             (bin_dir / subdir).mkdir(exist_ok=True)
             (bin_dir / subdir / name).symlink_to(installed_script)
 
+        # Extra symlinks for Cray
+        cray_dir = bin_dir / "cce" / "case-insensitive"
+        cray_dir.mkdir(exist_ok=True)
+        (cray_dir / "crayCC").symlink_to(installed_script)
+        (cray_dir / "CC").symlink_to(installed_script)
+
     def setup_dependent_build_environment(self, env, dependent_spec):
         if sys.platform == "win32":
             return
