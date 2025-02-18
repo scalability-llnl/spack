@@ -24,7 +24,7 @@ class Quda(CMakePackage, CudaPackage, ROCmPackage):
     version(
         "devel-pre-merge-1-25-22-3325-g18bf43ed4",
         preferred=True,
-        commit="18bf43ed40c75ae276e55bb8ddf2f64aa5510c37"
+        commit="18bf43ed40c75ae276e55bb8ddf2f64aa5510c37",
     )
 
     version("1.1.0", sha256="b4f635c993275010780ea09d8e593e0713a6ca1af1db6cc86c64518714fcc745")
@@ -126,7 +126,7 @@ class Quda(CMakePackage, CudaPackage, ROCmPackage):
         "build_type",
         default="STRICT",
         description="The build type to build",
-        values=("STRICT", "RELEASE", "DEVEL", "DEBUG", "HOSTDEBUG", "SANITIZE")
+        values=("STRICT", "RELEASE", "DEVEL", "DEBUG", "HOSTDEBUG", "SANITIZE"),
     )
 
     def cmake_args(self):
