@@ -35,8 +35,10 @@ from llnl.util.filesystem import working_dir
 import spack.caches
 import spack.config
 import spack.error
+import spack.package_base
 import spack.patch
 import spack.provider_index
+import spack.repo_utils
 import spack.spec
 import spack.tag
 import spack.tengine
@@ -45,39 +47,6 @@ import spack.util.git
 import spack.util.naming as nm
 import spack.util.path
 import spack.util.spack_yaml as syaml
-
-#: Package modules are imported as spack.pkg.<repo-namespace>.<pkg-name>
-ROOT_PYTHON_NAMESPACE = "spack.pkg"
-
-
-def python_package_for_repo(namespace):
-    """Returns the full namespace of a repository, given its relative one
-
-    For instance:
-
-        python_package_for_repo('builtin') == 'spack.pkg.builtin'
-
-    Args:
-        namespace (str): repo namespace
-    """
-    return "{0}.{1}".format(ROOT_PYTHON_NAMESPACE, namespace)
-
-
-def namespace_from_fullname(fullname):
-    """Return the repository namespace only for the full module name.
-
-    For instance:
-
-        namespace_from_fullname('spack.pkg.builtin.hdf5') == 'builtin'
-
-    Args:
-        fullname (str): full name for the Python module
-    """
-    namespace, dot, module = fullname.rpartition(".")
-    prefix_and_dot = "{0}.".format(ROOT_PYTHON_NAMESPACE)
-    if namespace.startswith(prefix_and_dot):
-        namespace = namespace[len(prefix_and_dot) :]
-    return namespace
 
 
 class SpackNamespaceLoader:
@@ -124,7 +93,7 @@ class ReposFinder:
             raise RuntimeError('cannot reload module "{0}"'.format(fullname))
 
         # Preferred API from https://peps.python.org/pep-0451/
-        if not fullname.startswith(ROOT_PYTHON_NAMESPACE):
+        if not fullname.startswith(spack.repo_utils.ROOT_PYTHON_NAMESPACE):
             return None
 
         loader = self.compute_loader(fullname)
@@ -303,7 +272,6 @@ def is_package_file(filename):
     # Package files are named `package.py` and are not in lib/spack/spack
     # We have to remove the file extension because it can be .py and can be
     # .pyc depending on context, and can differ between the files
-    import spack.package_base  # break cycle
 
     filename_noext = os.path.splitext(filename)[0]
     packagebase_filename_noext = os.path.splitext(inspect.getfile(spack.package_base.PackageBase))[
@@ -663,7 +631,7 @@ class RepoPath:
                     repo = Repo(repo, cache=cache, overrides=overrides)
                 repo.finder(self)
                 self.put_last(repo)
-            except RepoError as e:
+            except spack.error.RepoError as e:
                 tty.warn(
                     f"Failed to initialize repository: '{repo}'.",
                     e.message,
@@ -705,7 +673,7 @@ class RepoPath:
 
     def get_repo(self, namespace: str) -> "Repo":
         """Get a repository by namespace."""
-        full_namespace = python_package_for_repo(namespace)
+        full_namespace = spack.repo_utils.python_package_for_repo(namespace)
         if full_namespace not in self.by_namespace:
             raise UnknownNamespaceError(namespace)
         return self.by_namespace[full_namespace]
@@ -816,7 +784,7 @@ class RepoPath:
         # If the spec already has a namespace, then return the
         # corresponding repo if we know about it.
         if namespace:
-            fullspace = python_package_for_repo(namespace)
+            fullspace = spack.repo_utils.python_package_for_repo(namespace)
             if fullspace not in self.by_namespace:
                 raise UnknownNamespaceError(namespace, name=name)
             return self.by_namespace[fullspace]
@@ -966,7 +934,7 @@ class Repo:
         )
 
         # Set up 'full_namespace' to include the super-namespace
-        self.full_namespace = python_package_for_repo(self.namespace)
+        self.full_namespace = spack.repo_utils.python_package_for_repo(self.namespace)
 
         # Keep name components around for checking prefixes.
         self._names = self.full_namespace.split(".")
@@ -1241,7 +1209,7 @@ class Repo:
             raise UnknownPackageError(fullname)
         except Exception as e:
             msg = f"cannot load package '{pkg_name}' from the '{self.namespace}' repository: {e}"
-            raise RepoError(msg) from e
+            raise spack.error.RepoError(msg) from e
 
         cls = getattr(module, class_name)
         if not isinstance(cls, type):
@@ -1501,27 +1469,19 @@ class MockRepositoryBuilder:
         return os.path.join(self.root, "packages", name, "package.py")
 
 
-class RepoError(spack.error.SpackError):
-    """Superclass for repository-related errors."""
-
-
-class NoRepoConfiguredError(RepoError):
+class NoRepoConfiguredError(spack.error.RepoError):
     """Raised when there are no repositories configured."""
 
 
-class InvalidNamespaceError(RepoError):
+class InvalidNamespaceError(spack.error.RepoError):
     """Raised when an invalid namespace is encountered."""
 
 
-class BadRepoError(RepoError):
+class BadRepoError(spack.error.RepoError):
     """Raised when repo layout is invalid."""
 
 
-class UnknownEntityError(RepoError):
-    """Raised when we encounter a package spack doesn't have."""
-
-
-class UnknownPackageError(UnknownEntityError):
+class UnknownPackageError(spack.error.UnknownEntityError):
     """Raised when we encounter a package spack doesn't have."""
 
     def __init__(self, name, repo=None):
@@ -1558,7 +1518,7 @@ class UnknownPackageError(UnknownEntityError):
         self.name = name
 
 
-class UnknownNamespaceError(UnknownEntityError):
+class UnknownNamespaceError(spack.error.UnknownEntityError):
     """Raised when we encounter an unknown namespace"""
 
     def __init__(self, namespace, name=None):
@@ -1568,7 +1528,7 @@ class UnknownNamespaceError(UnknownEntityError):
         super().__init__(msg, long_msg)
 
 
-class FailedConstructorError(RepoError):
+class FailedConstructorError(spack.error.RepoError):
     """Raised when a package's class constructor fails."""
 
     def __init__(self, name, exc_type, exc_obj, exc_tb):
