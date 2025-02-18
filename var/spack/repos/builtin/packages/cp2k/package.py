@@ -167,10 +167,11 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
             description="Use CUBLAS for general matrix operations in DBCSR",
         )
 
-    depends_on("hipcc", when="+hip_backend+cuda")
-    depends_on("hip+cuda", when="+hip_backend+cuda")
-    depends_on("hipfft+cuda", when="+hip_backend+cuda")
-    depends_on("hipblas+cuda", when="+hip_backend+cuda")
+    with when("+hip_backend+cuda"):
+        depends_on("hipcc")
+        depends_on("hip+cuda")
+        depends_on("hipfft+cuda")
+        depends_on("hipblas+cuda")
 
     HFX_LMAX_RANGE = range(4, 8)
 
