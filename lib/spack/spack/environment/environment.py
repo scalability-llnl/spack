@@ -387,6 +387,7 @@ def create_in_dir(
                 # dev paths in this environment to refer to their original
                 # locations.
                 _rewrite_relative_dev_paths_on_relocation(env, init_file_dir)
+                _rewrite_relative_repos_paths_on_relocation(env, init_file_dir)
 
     return env
 
@@ -403,8 +404,8 @@ def _rewrite_relative_dev_paths_on_relocation(env, init_file_dir):
             dev_path = substitute_path_variables(entry["path"])
             expanded_path = spack.util.path.canonicalize_path(dev_path, default_wd=init_file_dir)
 
-            # Skip if the expanded path is the same (e.g. when absolute)
-            if dev_path == expanded_path:
+            # Skip if the substituted and expanded path is the same (e.g. when absolute)
+            if entry["path"] == expanded_path:
                 continue
 
             tty.debug("Expanding develop path for {0} to {1}".format(name, expanded_path))
@@ -414,6 +415,34 @@ def _rewrite_relative_dev_paths_on_relocation(env, init_file_dir):
         spack.config.set("develop", dev_specs, scope=env.scope_name)
 
         env._dev_specs = None
+        # If we changed the environment's spack.yaml scope, that will not be reflected
+        # in the manifest that we read
+        env._re_read()
+
+
+def _rewrite_relative_repos_paths_on_relocation(env, init_file_dir):
+    """When initializing the environment from a manifest file and we plan
+    to store the environment in a different directory, we have to rewrite
+    relative repo paths to absolute ones and expand environment variables."""
+    with env:
+        repos_specs = spack.config.get("repos", default={}, scope=env.scope_name)
+        if not repos_specs:
+            return
+        for i, entry in enumerate(repos_specs):
+            repo_path = substitute_path_variables(entry)
+            expanded_path = spack.util.path.canonicalize_path(repo_path, default_wd=init_file_dir)
+
+            # Skip if the substituted and expanded path is the same (e.g. when absolute)
+            if entry == expanded_path:
+                continue
+
+            tty.debug("Expanding repo path for {0} to {1}".format(entry, expanded_path))
+
+            repos_specs[i] = expanded_path
+
+        spack.config.set("repos", repos_specs, scope=env.scope_name)
+
+        env.repos_specs = None
         # If we changed the environment's spack.yaml scope, that will not be reflected
         # in the manifest that we read
         env._re_read()
