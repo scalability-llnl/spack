@@ -26,6 +26,18 @@ class FluidnumericsSelf(CMakePackage):
     variant(
         "fp64", default=True, description="Enables double precision floating point arithmetic."
     )
+    variant(
+        "multithreading",
+        default=False,
+        description="Enables multithreading of do concurrent loops",
+    )
+    variant(
+        "nthreads",
+        default="4",
+        description="Sets the number of threads for do concurrent loops",
+        values=("2", "4", "6", "8"),
+        multi=False
+    )
     variant("examples", default=True, description="Enables build and installation of examples")
     variant("tests", default=False, description="Enables build and installation of unit tests")
 
@@ -44,7 +56,8 @@ class FluidnumericsSelf(CMakePackage):
             self.define_from_variant("SELF_ENABLE_EXAMPLES", "examples"),
             self.define_from_variant("SELF_ENABLE_TESTING", "tests"),
             self.define_from_variant("SELF_ENABLE_DOUBLE_PRECISION", "fp64"),
-            self.define("SELF_MULITHREADING_NTHREADS", 4),
+            self.define_from_variant("SELF_ENABLE_MULTITHREADING", "multithreading"),
+            self.define_from_variant("SELF_MULTITHREADING_NTHREADS", "nthreads"),
         ]
 
         return args
