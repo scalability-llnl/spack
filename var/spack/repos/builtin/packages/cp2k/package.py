@@ -1010,7 +1010,7 @@ class CMakeBuilder(cmake.CMakeBuilder):
                 if spec.satisfies("+hip_backend"):
                     args += [
                         self.define("CP2K_USE_ACCEL", "HIP"),
-                        self.define("CMAKE_HIP_PLATFORM=nvidia"),
+                        self.define("CMAKE_HIP_PLATFORM", "nvidia"),
                     ]
                 else:
                     args += [self.define("CP2K_USE_ACCEL", "CUDA")]
