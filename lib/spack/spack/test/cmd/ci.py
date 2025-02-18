@@ -312,6 +312,7 @@ spack:
             "spack -d ci rebuild",
             "cd ENV",
             "spack env activate --without-view .",
+            "spack spec /$SPACK_JOB_SPEC_DAG_HASH",
             "spack ci rebuild",
         ]
         assert ci_obj["after_script"] == ["rm -rf /some/path/spack"]
