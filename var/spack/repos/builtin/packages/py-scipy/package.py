@@ -196,6 +196,8 @@ class PyScipy(PythonPackage):
     # Intel OneAPI ifx claims to support -fvisibility, but this does not work.
     # Meson adds this flag for all Python extensions which include Fortran code.
     conflicts("%oneapi@:2023.0", when="@1.9:")
+    # Unknown build error, version ranges may be incorrect
+    conflicts("%oneapi@2024:", when="@:1.8")
 
     # error: expected unqualified-id (exact compiler versions unknown)
     conflicts("%apple-clang@15:", when="@:1.9")
