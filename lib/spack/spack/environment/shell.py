@@ -48,10 +48,23 @@ def activate_header(env, shell, prompt=None, view: Optional[str] = None):
         cmds += 'set "SPACK_ENV=%s"\n' % env.path
         if view:
             cmds += 'set "SPACK_ENV_VIEW=%s"\n' % view
+        if prompt:
+            old_prompt = os.environ.get("SPACK_OLD_PROMPT")
+            if not old_prompt:
+                old_prompt = os.environ.get("PROMPT")
+            cmds += f'set "SPACK_OLD_PROMPT={old_prompt}"\n'
+            cmds += f'set "PROMPT={prompt} $P$G"\n'
     elif shell == "pwsh":
         cmds += "$Env:SPACK_ENV='%s'\n" % env.path
         if view:
             cmds += "$Env:SPACK_ENV_VIEW='%s'\n" % view
+        if prompt:
+            cmds += (
+                "function global:prompt { $pth = $(Convert-Path $(Get-Location))"
+                ' | Split-Path -leaf; if(!"$Env:SPACK_OLD_PROMPT") '
+                '{$Env:SPACK_OLD_PROMPT="[spack] PS $pth>"}; '
+                '"%s PS $pth>"}\n' % prompt
+            )
     else:
         bash_color_prompt = colorize(f"@G{{{prompt}}}", color=True, enclose=True)
         zsh_color_prompt = colorize(f"@G{{{prompt}}}", color=True, enclose=False, zsh=True)
@@ -106,10 +119,19 @@ def deactivate_header(shell):
         cmds += 'set "SPACK_ENV="\n'
         cmds += 'set "SPACK_ENV_VIEW="\n'
         # TODO: despacktivate
-        # TODO: prompt
+        old_prompt = os.environ.get("SPACK_OLD_PROMPT")
+        if old_prompt:
+            cmds += f'set "PROMPT={old_prompt}"\n'
+            cmds += 'set "SPACK_OLD_PROMPT="\n'
     elif shell == "pwsh":
         cmds += "Set-Item -Path Env:SPACK_ENV\n"
         cmds += "Set-Item -Path Env:SPACK_ENV_VIEW\n"
+        cmds += (
+            "function global:prompt { $pth = $(Convert-Path $(Get-Location))"
+            ' | Split-Path -leaf; $spack_prompt = "[spack] $pth >"; '
+            'if("$Env:SPACK_OLD_PROMPT") {$spack_prompt=$Env:SPACK_OLD_PROMPT};'
+            " $spack_prompt}\n"
+        )
     else:
         cmds += "if [ ! -z ${SPACK_ENV+x} ]; then\n"
         cmds += "unset SPACK_ENV; export SPACK_ENV;\n"
