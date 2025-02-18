@@ -37,7 +37,7 @@ class HpcBeeflow(PythonPackage):
     depends_on("py-cwl-utils@0.16:", type=("build", "run"))
     depends_on("py-apscheduler@3.6.3:", type=("build", "run"))
     depends_on("py-jsonpickle@2.2.0:", type=("build", "run"))
-    depends_on("py-requests@:2.29.0", type=("build", "run"))
+    depends_on("py-requests@:2.28", type=("build", "run"))
     depends_on("py-requests-unixsocket@0.3.0:", type=("build", "run"))
     depends_on("py-python-daemon@2.3.1:", type=("build", "run"))
     depends_on("py-gunicorn@20.1.0:23.0", type=("build", "run"))
