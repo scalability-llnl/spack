@@ -6,7 +6,7 @@ import os
 import pathlib
 import re
 import sys
-from typing import Dict, List, Sequence, Tuple, Union
+from typing import Callable, Dict, List, Sequence, Tuple, Union
 
 import llnl.util.tty as tty
 from llnl.util.lang import classproperty
@@ -14,6 +14,7 @@ from llnl.util.lang import classproperty
 import spack.compiler
 import spack.package_base
 import spack.util.executable
+from spack.platforms import Platform
 
 # Local "type" for type hints
 Path = Union[str, pathlib.Path]
@@ -42,6 +43,10 @@ class CompilerPackage(spack.package_base.PackageBase):
 
     #: Static definition of languages supported by this class
     compiler_languages: Sequence[str] = ["c", "cxx", "fortran"]
+
+    #: Callable used to indicate whether a compiler supports a given platform
+    #: by default assume all platforms are supported
+    is_supported_on_platform: Callable[[Platform], bool] = lambda x: True
 
     def __init__(self, spec: "spack.spec.Spec"):
         super().__init__(spec)
