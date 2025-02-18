@@ -50,17 +50,6 @@ class Fckit(CMakePackage):
     depends_on("llvm-openmp", when="+openmp %apple-clang", type=("build", "run"))
     variant("shared", default=True, description="Build shared libraries")
     variant("fismahigh", default=False, description="Apply patching for FISMA-high compliance")
-    variant(
-        "finalize_ddts",
-        default="auto",
-        description="Enable / disable automatic finalization of derived types",
-        values=("auto", "no", "yes"),
-    )
-
-    # fckit fails to auto-detect/switch off finalization
-    # of derived types for latest Intel compilers. If set
-    # to auto, turn off in cmake_args. If set to yes, abort.
-    conflicts("%intel@2021.8:", when="finalize_ddts=yes")
 
     def cmake_args(self):
         args = [
@@ -72,11 +61,10 @@ class Fckit(CMakePackage):
         if self.spec.satisfies("~shared"):
             args.append("-DBUILD_SHARED_LIBS=OFF")
 
-        if "finalize_ddts=auto" not in self.spec:
-            args.append(self.define_from_variant("ENABLE_FINAL", "finalize_ddts"))
-        elif "finalize_ddts=auto" in self.spec and self.spec.satisfies("%intel@2021.8:"):
-            # See comment above (conflicts for finalize_ddts)
-            args.append("-DENABLE_FINAL=OFF")
+        # Turn off finalization of derived data types (DDTs) because it is
+        # flaky and we can't rely on fckit to auto-detect if the compiler
+        # supports the feature or not. TODO ADD LINK TO FCKIT ISSUE HERE
+        args.append("-DENABLE_FINAL=OFF")
 
         if (
             self.spec.satisfies("%intel")
