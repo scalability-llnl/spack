@@ -17,7 +17,7 @@ class Openfast(CMakePackage):
 
     version("develop", branch="dev")
     version("master", branch="main")
-    version("4.0.0", tag="v4.0.0")
+    version("4.0.2", tag="v4.0.2")
     version("3.5.5", tag="v3.5.5")
     version("3.5.4", tag="v3.5.4")
     version("3.5.3", tag="v3.5.3")
@@ -36,6 +36,10 @@ class Openfast(CMakePackage):
     version("2.1.0", tag="v2.1.0")
     version("2.0.0", tag="v2.0.0")
     version("1.0.0", tag="v1.0.0")
+
+    with default_args(deprecated=True):
+        version("4.0.1", tag="v4.0.1")
+        version("4.0.0", tag="v4.0.0")
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated

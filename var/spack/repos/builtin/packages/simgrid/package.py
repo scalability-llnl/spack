@@ -20,6 +20,7 @@ class Simgrid(CMakePackage):
 
     license("LGPL-2.1-or-later")
 
+    version("3.36", sha256="cfdf6b98270c59be5c112457793c540bdd6a10deece91cbdb4793fbda190b95d")
     version("3.35", sha256="b4570d3de18d319cbd2e16c5a669f90760307673c0cc9940d4d11cfc537e69a8")
     version("3.34", sha256="161f1c6c0ebb588c587aea6388114307bb31b3c6d5332fa3dc678151f1d0564d")
     version("3.32", sha256="837764eb81562f04e49dd20fbd8518d9eb1f94df00a4e4555e7ec7fa8aa341f0")

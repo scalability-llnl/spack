@@ -45,6 +45,8 @@ class Rocsolver(CMakePackage):
 
     version("develop", branch="develop")
     version("master", branch="master")
+    version("6.3.2", sha256="834f532c54bdf0e4900e73ffb0544068071976175559c8bf3c50d7a3b7230a3a")
+    version("6.3.1", sha256="ffa70c4dedeb20a33cf79d4ae3e95ade2ae5202f819459b19a0ebf62c380bba0")
     version("6.3.0", sha256="48861f7b86379f2b825c0496d1d9318c6e29426d083b361c10f685b0ddd66274")
     version("6.2.4", sha256="022863df6a9d51bd216e56dd4dc7d437584e48304cfdbc9c5751be1abfd7c73f")
     version("6.2.1", sha256="e1c19cd25f7119c116d1c63e2384e9c47a4ff7ae14bb42dfcef766a4d3a011d5")
@@ -109,6 +111,8 @@ class Rocsolver(CMakePackage):
         "6.2.1",
         "6.2.4",
         "6.3.0",
+        "6.3.1",
+        "6.3.2",
     ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"rocblas@{ver}", when=f"@{ver}")
@@ -141,7 +145,7 @@ class Rocsolver(CMakePackage):
         if self.spec.satisfies("^cmake@3.21.0:3.21.2"):
             args.append(self.define("__skip_rocmclang", "ON"))
 
-        if self.spec.satisfies("@5.2.0:"):
+        if self.spec.satisfies("@5.2.0:6.3.1"):
             args.append(self.define("BUILD_FILE_REORG_BACKWARD_COMPATIBILITY", True))
         if self.spec.satisfies("@5.3.0:"):
             args.append("-DCMAKE_INSTALL_LIBDIR=lib")

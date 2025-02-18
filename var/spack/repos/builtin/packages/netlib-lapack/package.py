@@ -21,6 +21,11 @@ class NetlibLapack(CMakePackage):
     license("BSD-3-Clause-Open-MPI")
 
     version(
+        "3.12.1",
+        sha256="2ca6407a001a474d4d4d35f3a61550156050c48016d949f0da0529c0aa052422",
+        url="https://github.com/Reference-LAPACK/lapack/archive/refs/tags/v3.12.1.tar.gz",
+    )
+    version(
         "3.12.0",
         sha256="eac9570f8e0ad6f30ce4b963f4f033f0f643e7c3912fc9ee6cd99120675ad48b",
         url="https://github.com/Reference-LAPACK/lapack/archive/refs/tags/v3.12.0.tar.gz",
@@ -67,6 +72,7 @@ class NetlibLapack(CMakePackage):
 
     # netlib-lapack is the reference implementation of LAPACK
     for ver in [
+        "3.12.1",
         "3.12.0",
         "3.11.0",
         "3.10.1",
@@ -114,12 +120,30 @@ class NetlibLapack(CMakePackage):
     # https://github.com/Reference-LAPACK/lapack/pull/268
     patch("testing.patch", when="@3.7.0:3.8")
 
+    # renaming with _64 suffixes pushes code beyond fortran column 72
+    patch(
+        "https://github.com/Reference-LAPACK/lapack/pull/1093.patch?full_index=1",
+        sha256="b1af8b6ef2113a59aba006319ded0c1a282533c3815289e1c9e91185f63ee9fe",
+        when="@3.6:3.12.1",
+    )
+    patch(
+        "https://github.com/Reference-LAPACK/lapack/pull/1094.patch?full_index=1",
+        sha256="e318340ec2e10539b756f50a4816242519d9a14134d3966c669ec64d292758c8",
+        when="@3.12:3.12.1",
+    )
+    patch(
+        "https://github.com/Reference-LAPACK/lapack/pull/1099.patch?full_index=1",
+        sha256="3059ebf898cbca5101db77b77c645ab144a3cecbe58dd2bb46d9b84e7debee92",
+        when="@3.12:3.12.1",
+    )
+
     # liblapack links to libblas, so if this package is used as a lapack
     # provider, it must also provide blas.
     provides("lapack", "blas", when="~external-blas")
     provides("lapack")
 
     depends_on("c", type="build")
+    depends_on("cxx", type="build", when="@:3.12.0")
     depends_on("fortran", type="build")
     depends_on("blas", when="+external-blas")
     depends_on("netlib-xblas+fortran+plain_blas", when="+xblas")

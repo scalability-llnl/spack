@@ -319,7 +319,6 @@ class TestSpecDag:
             ("mpich@1.0", "mpileaks ^mpich@2.0"),
             ("mpich%gcc", "mpileaks ^mpich%intel"),
             ("mpich%gcc@4.6", "mpileaks ^mpich%gcc@4.5"),
-            ("mpich platform=test target=be", "mpileaks ^mpich platform=test target=fe"),
         ],
     )
     def test_unsatisfiable_cases(self, set_dependency, constraint_str, spec_str):
@@ -429,31 +428,29 @@ class TestSpecDag:
         c2 = s["mpileaks"]["mpileaks"].copy()
         assert c0 == c1 == c2 == s
 
-    """
-    Here is the graph with deptypes labeled (assume all packages have a 'dt'
-    prefix). Arrows are marked with the deptypes ('b' for 'build', 'l' for
-    'link', 'r' for 'run').
+    # Here is the graph with deptypes labeled (assume all packages have a 'dt'
+    # prefix). Arrows are marked with the deptypes ('b' for 'build', 'l' for
+    # 'link', 'r' for 'run').
 
-        use -bl-> top
+    #     use -bl-> top
 
-        top -b->  build1
-        top -bl-> link1
-        top -r->  run1
+    #     top -b->  build1
+    #     top -bl-> link1
+    #     top -r->  run1
 
-        build1 -b->  build2
-        build1 -bl-> link2
-        build1 -r->  run2
+    #     build1 -b->  build2
+    #     build1 -bl-> link2
+    #     build1 -r->  run2
 
-        link1 -bl-> link3
+    #     link1 -bl-> link3
 
-        run1 -bl-> link5
-        run1 -r->  run3
+    #     run1 -bl-> link5
+    #     run1 -r->  run3
 
-        link3 -b->  build2
-        link3 -bl-> link4
+    #     link3 -b->  build2
+    #     link3 -bl-> link4
 
-        run3 -b-> build3
-    """
+    #     run3 -b-> build3
 
     @pytest.mark.parametrize(
         "spec_str,deptypes,expected",
@@ -588,8 +585,9 @@ class TestSpecDag:
         assert s["b"].edges_to_dependencies(name="c")[0].depflag == dt.BUILD
         assert s["d"].edges_to_dependencies(name="e")[0].depflag == dt.BUILD | dt.LINK
         assert s["e"].edges_to_dependencies(name="f")[0].depflag == dt.RUN
-
-        assert s["c"].edges_from_dependents(name="b")[0].depflag == dt.BUILD
+        # The subscript follows link/run transitive deps or direct build/test deps, therefore
+        # we need an extra step to get to "c"
+        assert s["b"]["c"].edges_from_dependents(name="b")[0].depflag == dt.BUILD
         assert s["e"].edges_from_dependents(name="d")[0].depflag == dt.BUILD | dt.LINK
         assert s["f"].edges_from_dependents(name="e")[0].depflag == dt.RUN
 
@@ -901,8 +899,9 @@ def test_adding_same_deptype_with_the_same_name_raises(
 
 @pytest.mark.regression("33499")
 def test_indexing_prefers_direct_or_transitive_link_deps():
-    # Test whether spec indexing prefers direct/transitive link type deps over deps of
-    # build/run/test deps, and whether it does fall back to a full dag search.
+    """Tests whether spec indexing prefers direct/transitive link/run type deps over deps of
+    build/test deps.
+    """
     root = Spec("root")
 
     # Use a and z to since we typically traverse by edges sorted alphabetically.
@@ -915,7 +914,7 @@ def test_indexing_prefers_direct_or_transitive_link_deps():
     z3_flavor_1 = Spec("z3 +through_a1")
     z3_flavor_2 = Spec("z3 +through_z1")
 
-    root.add_dependency_edge(a1, depflag=dt.BUILD | dt.RUN | dt.TEST, virtuals=())
+    root.add_dependency_edge(a1, depflag=dt.BUILD | dt.TEST, virtuals=())
 
     # unique package as a dep of a build/run/test type dep.
     a1.add_dependency_edge(a2, depflag=dt.ALL, virtuals=())
@@ -930,8 +929,14 @@ def test_indexing_prefers_direct_or_transitive_link_deps():
     assert "through_z1" in root["z3"].variants
     assert "through_a1" in a1["z3"].variants
 
-    # Ensure that the full DAG is still searched
-    assert root["a2"]
+    # Ensure that only the runtime sub-DAG can be searched
+    with pytest.raises(KeyError):
+        root["a2"]
+
+    # Check consistency of __contains__ with __getitem__
+    assert "z3 +through_z1" in root
+    assert "z3 +through_a1" in a1
+    assert "a2" not in root
 
 
 def test_getitem_sticks_to_subdag():

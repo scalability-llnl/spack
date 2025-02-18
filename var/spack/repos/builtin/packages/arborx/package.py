@@ -110,22 +110,15 @@ class Arborx(CMakePackage, CudaPackage, ROCmPackage):
     conflicts("~serial", when="+trilinos")
 
     def cmake_args(self):
-        spec = self.spec
-
-        if "+trilinos" in spec:
-            kokkos_spec = spec["trilinos"]
-        else:
-            kokkos_spec = spec["kokkos"]
-
+        kokkos_pkg = self["trilinos"] if self.spec.satisfies("+trilinos") else self["kokkos"]
         options = [
-            f"-DKokkos_ROOT={kokkos_spec.prefix}",
+            self.define("Kokkos_ROOT", kokkos_pkg.prefix),
             self.define_from_variant("ARBORX_ENABLE_MPI", "mpi"),
         ]
-
-        if spec.satisfies("+cuda"):
-            options.append(f"-DCMAKE_CXX_COMPILER={kokkos_spec.kokkos_cxx}")
-        if spec.satisfies("+rocm"):
-            options.append("-DCMAKE_CXX_COMPILER=%s" % spec["hip"].hipcc)
+        if self.spec.satisfies("+cuda"):
+            options.append(self.define("CMAKE_CXX_COMPILER", kokkos_pkg.kokkos_cxx))
+        if self.spec.satisfies("+rocm"):
+            options.append(self.define("CMAKE_CXX_COMPILER", self.spec["hip"].hipcc))
 
         return options
 

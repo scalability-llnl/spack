@@ -265,6 +265,7 @@ error(100, "Cannot select a single version for virtual '{0}'", Virtual)
 % If we select a deprecated version, mark the package as deprecated
 attr("deprecated", node(ID, Package), Version) :-
      attr("version", node(ID, Package), Version),
+     not external(node(ID, Package)),
      pkg_fact(Package, deprecated_version(Version)).
 
 error(100, "Package '{0}' needs the deprecated version '{1}', and this is not allowed", Package, Version)

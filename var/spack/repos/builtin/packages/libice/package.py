@@ -15,6 +15,7 @@ class Libice(AutotoolsPackage, XorgPackage):
 
     maintainers("wdconinc")
 
+    version("1.1.2", sha256="1da62f732f8679c20045708a29372b82dff9e7eceee543ed488b845002b3b0ff")
     version("1.1.1", sha256="04fbd34a11ba08b9df2e3cdb2055c2e3c1c51b3257f683d7fcf42dabcf8e1210")
     version("1.1.0", sha256="7a735ec530d7a437955747eabac06bbc0b695da77fd1b4d1df3b0a483d823875")
     version("1.0.10", sha256="1116bc64c772fd127a0d0c0ffa2833479905e3d3d8197740b3abd5f292f22d2d")

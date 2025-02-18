@@ -9,6 +9,7 @@ import re
 import shutil
 import stat
 import sys
+import tempfile
 from typing import Callable, Dict, Optional
 
 from typing_extensions import Literal
@@ -89,10 +90,10 @@ def view_copy(
     if stat.S_ISLNK(src_stat.st_mode):
         spack.relocate.relocate_links(links=[dst], prefix_to_prefix=prefix_to_projection)
     elif spack.relocate.is_binary(dst):
-        spack.relocate.relocate_text_bin(binaries=[dst], prefixes=prefix_to_projection)
+        spack.relocate.relocate_text_bin(binaries=[dst], prefix_to_prefix=prefix_to_projection)
     else:
         prefix_to_projection[spack.store.STORE.layout.root] = view._root
-        spack.relocate.relocate_text(files=[dst], prefixes=prefix_to_projection)
+        spack.relocate.relocate_text(files=[dst], prefix_to_prefix=prefix_to_projection)
 
     # The os module on Windows does not have a chown function.
     if sys.platform != "win32":
@@ -427,7 +428,7 @@ class YamlFilesystemView(FilesystemView):
             try:
                 with open(manifest_file, "r", encoding="utf-8") as f:
                     manifest = s_json.load(f)
-            except (OSError, IOError):
+            except OSError:
                 # if we can't load it, assume it doesn't know about the file.
                 manifest = {}
             return test_path in manifest
@@ -708,7 +709,10 @@ class SimpleFilesystemView(FilesystemView):
         def skip_list(file):
             return os.path.basename(file) == spack.store.STORE.layout.metadata_dir
 
-        visitor = SourceMergeVisitor(ignore=skip_list)
+        # Determine if the root is on a case-insensitive filesystem
+        normalize_paths = is_folder_on_case_insensitive_filesystem(self._root)
+
+        visitor = SourceMergeVisitor(ignore=skip_list, normalize_paths=normalize_paths)
 
         # Gather all the directories to be made and files to be linked
         for spec in specs:
@@ -831,7 +835,7 @@ def get_spec_from_file(filename):
     try:
         with open(filename, "r", encoding="utf-8") as f:
             return spack.spec.Spec.from_yaml(f)
-    except IOError:
+    except OSError:
         return None
 
 
@@ -884,3 +888,8 @@ def get_dependencies(specs):
 
 class ConflictingProjectionsError(SpackError):
     """Raised when a view has a projections file and is given one manually."""
+
+
+def is_folder_on_case_insensitive_filesystem(path: str) -> bool:
+    with tempfile.NamedTemporaryFile(dir=path, prefix=".sentinel") as sentinel:
+        return os.path.exists(os.path.join(path, os.path.basename(sentinel.name).upper()))
