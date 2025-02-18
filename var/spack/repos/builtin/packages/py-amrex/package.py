@@ -72,6 +72,7 @@ class PyAmrex(CMakePackage, PythonExtension, CudaPackage, ROCmPackage):
 
     depends_on("cmake@3.20:3", type="build", when="@:24.08")
     depends_on("cmake@3.24:3", type="build", when="@24.09:")
+    depends_on("pkgconfig", type="build")  # amrex +fft
     depends_on("python@3.8:", type=("build", "run"))
     depends_on("py-mpi4py@2.1.0:", type=("build", "run"), when="+mpi")
     depends_on("py-numpy@1.15:", type=("build", "run"))
