@@ -29,7 +29,7 @@ class HpcBeeflow(PythonPackage):
     depends_on("py-poetry@0.12:", type="build")
 
     depends_on("py-flask@2.0:", type=("build", "run"))
-    depends_on("py-fastapi@0.109.2:", type=("build", "run"))
+    depends_on("py-fastapi@0.109.2", type=("build", "run"))
     depends_on("py-uvicorn@0.27.1", type=("build", "run"))
     depends_on("py-neo4j@5:", type=("build", "run"))
     depends_on("py-pyyaml@6.0.1:", type=("build", "run"))
