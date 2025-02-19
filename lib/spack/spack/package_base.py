@@ -1117,7 +1117,10 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
             if not link_format:
                 link_format = "build-{arch}-{hash:7}"
             stage_link = self.spec.format_path(link_format)
-            source_stage = DevelopStage(compute_stage_name(self.spec), dev_path, stage_link)
+            dev_cache_id = self.spec.format_path("{name}-{version}")
+            source_stage = DevelopStage(
+                compute_stage_name(self.spec), dev_path, stage_link, mirror_id=dev_cache_id
+            )
         else:
             source_stage = self._make_root_stage(self.fetcher)
 
