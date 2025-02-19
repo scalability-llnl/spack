@@ -18,13 +18,13 @@ class Xnedit(MakefilePackage):
     functionality like antialiased text rendering and support for unicode.
     """
 
+    license("GPL-2.0-or-later")
+
     homepage = "https://www.unixwork.de/xnedit/"
     url = "https://github.com/unixwork/xnedit/archive/refs/tags/v1.6.1.tar.gz"
     git = "https://github.com/unixwork/xnedit.git"
 
     maintainers("davekeeshan")
-
-    license("GPL-2.0-or-later")
 
     version("1.6.1", sha256="46489fa3017f5e40da810170b33c681affd3cd4dff1dbd0f8a4c51f8285ca5c4")
     version("1.6.0", sha256="197e635fc1aa8e4ff2dcd2375efac597975f04170c3eace3280c4054bbbc57ac")
