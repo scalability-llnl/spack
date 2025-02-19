@@ -45,20 +45,13 @@ class Go(Package):
     version("1.23.3", sha256="8d6a77332487557c6afa2421131b50f83db4ae3c579c3bc72e670ee1f6968599")
     version("1.23.2", sha256="36930162a93df417d90bd22c6e14daff4705baac2b02418edda671cdfa9cd07f")
     version("1.23.1", sha256="6ee44e298379d146a5e5aa6b1c5b5d5f5d0a3365eabdd70741e6e21340ec3b0d")
+    version("1.22.8", sha256="df12c23ebf19dea0f4bf46a22cbeda4a3eca6f474f318390ce774974278440b8")
+    version("1.22.7", sha256="66432d87d85e0cfac3edffe637d5930fc4ddf5793313fe11e4a0f333023c879f")
+    version("1.22.6", sha256="9e48d99d519882579917d8189c17e98c373ce25abaebb98772e2927088992a51")
+    version("1.22.4", sha256="fed720678e728a7ca30ba8d1ded1caafe27d16028fab0232b8ba8e22008fb784")
 
+    # Deprecated versions due to CVEs
     with default_args(deprecated=True):
-        version(
-            "1.22.8", sha256="df12c23ebf19dea0f4bf46a22cbeda4a3eca6f474f318390ce774974278440b8"
-        )
-        version(
-            "1.22.7", sha256="66432d87d85e0cfac3edffe637d5930fc4ddf5793313fe11e4a0f333023c879f"
-        )
-        version(
-            "1.22.6", sha256="9e48d99d519882579917d8189c17e98c373ce25abaebb98772e2927088992a51"
-        )
-        version(
-            "1.22.4", sha256="fed720678e728a7ca30ba8d1ded1caafe27d16028fab0232b8ba8e22008fb784"
-        )
         # https://nvd.nist.gov/vuln/detail/CVE-2024-24790
         # https://nvd.nist.gov/vuln/detail/CVE-2024-24789
         version(
@@ -80,12 +73,13 @@ class Go(Package):
     provides("golang")
 
     depends_on("bash", type="build")
-    depends_on("sed", type="build")
     depends_on("grep", type="build")
-    depends_on("go-or-gccgo-bootstrap", type="build")
-    depends_on("go-or-gccgo-bootstrap@1.17.13:", type="build", when="@1.20:")
-    depends_on("go-or-gccgo-bootstrap@1.20.6:", type="build", when="@1.22:")
+    depends_on("sed", type="build")
+
     depends_on("go-or-gccgo-bootstrap@1.22.6:", type="build", when="@1.24:")
+    depends_on("go-or-gccgo-bootstrap@1.20.6:", type="build", when="@1.22:")
+    depends_on("go-or-gccgo-bootstrap@1.17.13:", type="build", when="@1.20:")
+    depends_on("go-or-gccgo-bootstrap", type="build")
 
     phases = ["build", "install"]
 
@@ -99,7 +93,6 @@ class Go(Package):
         return match.group(1) if match else None
 
     def setup_build_environment(self, env):
-        env.set("GOROOT_FINAL", self.spec.prefix.go)
         # We need to set CC/CXX_FOR_TARGET, otherwise cgo will use the
         # internal Spack wrappers and fail.
         env.set("CC_FOR_TARGET", self.compiler.cc)
