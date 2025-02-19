@@ -34,7 +34,7 @@ class Liburing(AutotoolsPackage):
     depends_on("c", type="build")
     depends_on("cxx", type="build")  # only for tests
 
-    requires("platform=linux")
+    requires("platform=linux", msg="liburing is only supported on Linux.")
 
     @property
     def build_targets(self):
