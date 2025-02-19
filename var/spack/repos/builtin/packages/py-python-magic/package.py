@@ -23,4 +23,4 @@ class PyPythonMagic(PythonPackage):
 
     depends_on("python@2.7.0:2.7,3.5:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
-    depends_on("file", type="run")
+    depends_on("file-util", type="run")

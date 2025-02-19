@@ -93,7 +93,7 @@ class Spack(Package):
 
     # Build tools
     depends_on("bash", type="run")
-    depends_on("file", type="run")
+    depends_on("file-util", type="run")
     depends_on("gmake", type="run")
     depends_on("patch", type="run")
     depends_on("ccache", type="run")
@@ -116,7 +116,7 @@ class Spack(Package):
     # Buildcache
     # We really just need the 'strings' from binutils for older versions of spack
     depends_on("binutils", type="run", when="@:0.20")
-    depends_on("gnupg", type="run")
+    depends_on("gpg", type="run")
     depends_on("patchelf", type="run", when="platform=linux")
 
     # See https://github.com/spack/spack/pull/24686

@@ -14,4 +14,4 @@ class PyFileMagic(PythonPackage):
     version("0.4.1", sha256="a91d1483117f7ed48cd0238ad9be36b04824d57e9c38ea7523113989e81b9c53")
 
     depends_on("py-setuptools@61:", type="build")
-    depends_on("file", type="run")
+    depends_on("file-util", type="run")
