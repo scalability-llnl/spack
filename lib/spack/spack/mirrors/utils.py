@@ -274,7 +274,7 @@ def create_mirror_from_package_object(
 # I need a function that does the same thing as create_mirror_from_package_object(), but uses an
 # empty (fresh) spack mirror_stats object, and returns that, then we need a method in the mirror_stat object that will merge two mirror_stats
 def cache_single_package(pkg_obj, mirror_cache: "spack.caches.MirrorCache") -> MirrorStats:
-    """Cache a single package object, and return the mirror_stats file.
+    """Cache a single package object, and return the MirrorStats object.
 
     The package object is only required to have an associated spec
     with a concrete version.
@@ -286,7 +286,7 @@ def cache_single_package(pkg_obj, mirror_cache: "spack.caches.MirrorCache") -> M
     Return:
         mirror_stats: statistics on the current mirror
     """
-    # Create an empty MirrorStats file we will later combine with others
+    # Create an empty MirrorStats object we will later combine with others
     mirror_stats = MirrorStats()
     tty.msg("Adding package {} to mirror".format(pkg_obj.spec.format("{name}{@version}")))
     max_retries = 3
