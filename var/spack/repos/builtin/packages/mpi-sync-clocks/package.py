@@ -2,8 +2,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import os
-
 from spack.package import *
 
 
@@ -37,8 +35,5 @@ class MpiSyncClocks(AutotoolsPackage):
             return super().configure_directory
 
     def autoreconf(self, spec, prefix):
-        w = os.getcwd()
-        os.chdir(self.configure_directory)
-        autogen = Executable("./autogen.sh")
-        autogen()
-        os.chdir(w)
+        with working_dir(self.configure_directory):
+            Executable("./autogen.sh")()
