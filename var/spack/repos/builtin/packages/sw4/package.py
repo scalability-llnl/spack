@@ -42,34 +42,38 @@ class Sw4(MakefilePackage):
     depends_on("fftw@3: +mpi", when="+fftw")
     depends_on("llvm-openmp", when="%apple-clang +openmp")
 
-    def edit(self, spec, prefix):
-        os.environ["CXX"] = spec["mpi"].mpicxx
-        os.environ["FC"] = spec["mpi"].mpifc
+    def setup_build_environment(self, env):
+        env.set("CXX", self.spec["mpi"].mpicxx)
+        env.set("FC", self.spec["mpi"].mpifc)
         # openmp is enabled by default
-        if spec.satisfies("~openmp"):
-            os.environ["openmp"] = "no"
-        if spec.satisfies("+proj"):
-            os.environ["proj"] = "yes"
-            os.environ["SW4ROOT"] = spec["proj"].prefix
-        if spec.satisfies("+hdf5"):
-            os.environ["hdf5"] = "yes"
-            os.environ["HDF5ROOT"] = spec["hdf5"].prefix
-        if spec.satisfies("+zfp"):
-            os.environ["zfp"] = "yes"
-            os.environ["ZFPROOT"] = spec["zfp"].prefix
-            os.environ["H5ZROOT"] = spec["h5z-zfp"].prefix
-        if spec.satisfies("+fftw"):
-            os.environ["fftw"] = "yes"
-            os.environ["FFTWHOME"] = spec["fftw"].prefix
-        if spec.satisfies("+debug"):
-            os.environ["debug"] = "yes"
+        if self.spec.satisfies("~openmp"):
+            env.set("openmp", "no")
+        if self.spec.satisfies("+proj"):
+            env.set("proj", "yes")
+            env.set("SW4ROOT", self.spec["proj"].prefix)
+        if self.spec.satisfies("+hdf5"):
+            env.set("hdf5", "yes")
+            env.set("HDF5ROOT", self.spec["hdf5"].prefix)
+        if self.spec.satisfies("+zfp"):
+            env.set("zfp", "yes")
+            env.set("ZFPROOT", self.spec["zfp"].prefix)
+            env.set("H5ZROOT", self.spec["h5z-zfp"].prefix)
+        if self.spec.satisfies("+fftw"):
+            env.set("fftw", "yes")
+            env.set("FFTWHOME", self.spec["fftw"].prefix)
+        if self.spec.satisfies("+debug"):
+            env.set("debug", "yes")
         os.environ["EXTRA_LINK_FLAGS"] = "-lstdc++ -lm -ldl "
-        os.environ["EXTRA_LINK_FLAGS"] += spec["blas"].libs.ld_flags + " "
-        os.environ["EXTRA_LINK_FLAGS"] += spec["lapack"].libs.ld_flags + " "
-        if spec.satisfies("%apple-clang +openmp"):
-            os.environ["EXTRA_LINK_FLAGS"] += spec["llvm-openmp"].libs.ld_flags + " "
+        os.environ["EXTRA_LINK_FLAGS"] += self.spec["blas"].libs.ld_flags + " "
+        os.environ["EXTRA_LINK_FLAGS"] += self.spec["lapack"].libs.ld_flags + " "
+        if self.spec.satisfies("%apple-clang +openmp"):
+            os.environ["EXTRA_LINK_FLAGS"] += self.spec["llvm-openmp"].libs.ld_flags + " "
         # From spack/trilinos
-        if spec.satisfies("%gcc") or spec.satisfies("%clang") or spec.satisfies("%apple-clang"):
+        if (
+            self.spec.satisfies("%gcc")
+            or self.spec.satisfies("%clang")
+            or self.spec.satisfies("%apple-clang")
+        ):
             fc = Executable(self.compiler.fc)
             libgfortran = fc("--print-file-name", "libgfortran." + dso_suffix, output=str).strip()
             if libgfortran == "libgfortran." + dso_suffix:
