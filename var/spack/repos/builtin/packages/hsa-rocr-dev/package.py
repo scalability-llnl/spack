@@ -155,6 +155,24 @@ class HsaRocrDev(CMakePackage):
             ver = None
         return ver
 
+    def patch(self):
+        if self.spec.target.family == "aarch64":
+            filter_file(
+                "_mm_pause();", """asm volatile("yield");""", "src/core/util/locks.h", string=True
+            )
+            filter_file(
+                '#include "mm_malloc.h"',
+                '//#include "mm_malloc.h"',
+                "src/image/util.h",
+                string=True,
+            )
+            filter_file(
+                "#elif defined(__loongarch64)",
+                "#elif defined(__loongarch64)\n" "#elif defined(__aarch64__)",
+                "src/image/util.h",
+                string=True,
+            )
+
     def cmake_args(self):
         spec = self.spec
 
