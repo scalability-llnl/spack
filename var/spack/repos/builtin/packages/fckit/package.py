@@ -63,7 +63,8 @@ class Fckit(CMakePackage):
 
         # Turn off finalization of derived data types (DDTs) because it is
         # flaky and we can't rely on fckit to auto-detect if the compiler
-        # supports the feature or not. TODO ADD LINK TO FCKIT ISSUE HERE
+        # supports the feature or not.
+        # https://github.com/JCSDA/spack-stack/issues/1521
         args.append("-DENABLE_FINAL=OFF")
 
         if (
