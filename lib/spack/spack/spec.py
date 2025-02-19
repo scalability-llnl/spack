@@ -2706,7 +2706,7 @@ class Spec:
                 return name, depflag
 
             def spec_and_dependency_types(
-                s: Union[Spec, Tuple[Spec, str]]
+                s: Union[Spec, Tuple[Spec, str]],
             ) -> Tuple[Spec, dt.DepFlag]:
                 """Given a non-string key in the literal, extracts the spec
                 and its dependency types.
@@ -3409,12 +3409,20 @@ class Spec:
         # These two loops handle cases where there is an overly restrictive
         # vpkg in one spec for a provider in the other (e.g., mpi@3: is not
         # compatible with mpich2)
-        for spec in self.virtual_dependencies():
-            if spec.name in other_index and not other_index.providers_for(spec):
+        for spec in self.traverse():
+            if (
+                spack.repo.PATH.is_virtual(spec.name)
+                and spec.name in other_index
+                and not other_index.providers_for(spec)
+            ):
                 return False
 
-        for spec in other.virtual_dependencies():
-            if spec.name in self_index and not self_index.providers_for(spec):
+        for spec in other.traverse():
+            if (
+                spack.repo.PATH.is_virtual(spec.name)
+                and spec.name in self_index
+                and not self_index.providers_for(spec)
+            ):
                 return False
 
         return True
@@ -3557,10 +3565,6 @@ class Spec:
             any(lhs.satisfies(rhs, deps=False) for lhs in self.traverse(root=False))
             for rhs in other.traverse(root=False)
         )
-
-    def virtual_dependencies(self):
-        """Return list of any virtual deps in this spec."""
-        return [spec for spec in self.traverse() if spack.repo.PATH.is_virtual(spec.name)]
 
     @property  # type: ignore[misc] # decorated prop not supported in mypy
     def patches(self):
@@ -3751,18 +3755,16 @@ class Spec:
             csv = query_parameters.pop().strip()
             query_parameters = re.split(r"\s*,\s*", csv)
 
-        order = lambda: itertools.chain(
-            self.traverse_edges(deptype=dt.LINK, order="breadth", cover="edges"),
-            self.edges_to_dependencies(depflag=dt.BUILD | dt.RUN | dt.TEST),
-            self.traverse_edges(deptype=dt.ALL, order="breadth", cover="edges"),
+        # Consider all direct dependencies and transitive runtime dependencies
+        order = itertools.chain(
+            self.edges_to_dependencies(depflag=dt.ALL),
+            self.traverse_edges(deptype=dt.LINK | dt.RUN, order="breadth", cover="edges"),
         )
 
-        # Consider runtime dependencies and direct build/test deps before transitive dependencies,
-        # and prefer matches closest to the root.
         try:
-            edge = next((e for e in order() if e.spec.name == name or name in e.virtuals))
-        except StopIteration:
-            raise KeyError(f"No spec with name {name} in {self}")
+            edge = next((e for e in order if e.spec.name == name or name in e.virtuals))
+        except StopIteration as e:
+            raise KeyError(f"No spec with name {name} in {self}") from e
 
         if self._concrete:
             return SpecBuildInterface(
@@ -3785,8 +3787,11 @@ class Spec:
         # if anonymous or same name, we only have to look at the root
         if not spec.name or spec.name == self.name:
             return self.satisfies(spec)
-        else:
-            return any(s.satisfies(spec) for s in self.traverse(root=False))
+        try:
+            dep = self[spec.name]
+        except KeyError:
+            return False
+        return dep.satisfies(spec)
 
     def eq_dag(self, other, deptypes=True, vs=None, vo=None):
         """True if the full dependency DAGs of specs are equal."""

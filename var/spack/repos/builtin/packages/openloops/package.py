@@ -15,18 +15,22 @@ class Openloops(Package):
     at NLO QCD and NLO EW."""
 
     homepage = "https://openloops.hepforge.org/"
-    url = "https://openloops.hepforge.org/downloads?f=OpenLoops-2.1.1.tar.gz"
+    url = "https://gitlab.com/openloops/OpenLoops/-/archive/OpenLoops-2.1.3/OpenLoops-OpenLoops-2.1.3.tar.gz"
 
     tags = ["hep"]
 
     license("GPL-3.0-only")
-
+    version("2.1.4", sha256="3423688d016ffcda3b738de89418338e95249276ac634e77f356a20deb57daaa")
+    version("2.1.3", sha256="b26ee805d63b781244a5bab4db09f4a7a5a5c9ed371ead0d5260f00a0a94b233")
     version("2.1.2", sha256="f52575cae3d70b6b51a5d423e9cd0e076ed5961afcc015eec00987e64529a6ae")
     version("2.1.1", sha256="f1c47ece812227eab584e2c695fef74423d2f212873f762b8658f728685bcb91")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
+
+    # conflicts because there is a scons 3.0.5 in 2.1.2
+    conflicts("^python@3.12:", when="@:2.1.2")
 
     all_processes = [
         "tbln",
@@ -248,6 +252,11 @@ class Openloops(Package):
     depends_on("python", type=("build", "run"))
 
     phases = ["configure", "build", "build_processes", "install"]
+
+    def url_for_version(self, v):
+        if self.spec.satisfies("@:2.1.2"):
+            return f"https://openloops.hepforge.org/downloads?f=OpenLoops-{v}.tar.gz"
+        return f"https://gitlab.com/openloops/OpenLoops/-/archive/OpenLoops-{v}/OpenLoops-OpenLoops-{v}.tar.gz"
 
     def configure(self, spec, prefix):
         spack_env = (

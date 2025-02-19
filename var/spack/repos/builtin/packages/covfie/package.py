@@ -19,6 +19,8 @@ class Covfie(CMakePackage, CudaPackage):
 
     maintainers("stephenswat")
 
+    version("0.12.1", sha256="c33d7707ee30ab5fa8df686a780600343760701023ac0b23355627e1f2f044de")
+    version("0.12.0", sha256="e35e94075a40e89c4691ff373e3061577295d583a2546c682b2d652d9fce7828")
     version("0.11.0", sha256="39fcd0f218d3b4f3aacc6af497a8cda8767511efae7a72b47781f10fd4340f4f")
     version("0.10.0", sha256="d44142b302ffc193ad2229f1d2cc6d8d720dd9da8c37989ada4f23018f86c964")
 

@@ -8,7 +8,6 @@ import os
 import pytest
 
 import spack.concretize
-import spack.directives
 import spack.directives_meta
 import spack.paths
 import spack.repo

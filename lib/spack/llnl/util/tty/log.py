@@ -2,8 +2,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-"""Utility classes for logging the output of blocks of code.
-"""
+"""Utility classes for logging the output of blocks of code."""
 import atexit
 import ctypes
 import errno
