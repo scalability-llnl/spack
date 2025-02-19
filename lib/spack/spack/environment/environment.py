@@ -2634,18 +2634,20 @@ def initialize_environment_dir(
     # TODO: make this recursive
     includes = manifest[TOP_LEVEL_KEY].get("include", [])
     for include in includes:
-        if os.path.isabs(include):
+        included_path = spack.config.included_path(include)
+        path = included_path.path
+        if os.path.isabs(path):
             continue
 
-        abspath = pathlib.Path(os.path.normpath(environment_dir / include))
+        abspath = pathlib.Path(os.path.normpath(environment_dir / path))
         common_path = pathlib.Path(os.path.commonpath([environment_dir, abspath]))
         if common_path != environment_dir:
-            tty.debug(f"Will not copy relative include from outside environment: {include}")
+            tty.debug(f"Will not copy relative include file from outside environment: {path}")
             continue
 
-        orig_abspath = os.path.normpath(envfile.parent / include)
+        orig_abspath = os.path.normpath(envfile.parent / path)
         if not os.path.exists(orig_abspath):
-            tty.warn(f"Included file does not exist; will not copy: '{include}'")
+            tty.warn(f"Included file does not exist; will not copy: '{path}'")
             continue
 
         fs.touchp(abspath)

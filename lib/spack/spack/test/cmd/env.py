@@ -1067,13 +1067,17 @@ spack:
         assert os.path.exists(os.path.join(e2.path, f))
 
 
+# TODO: Should we be supporting relative path rewrites when creating new env from existing?
+# TODO: If so, then this should confirm that the absolute include paths in the new env exist.
 def test_init_from_yaml_relative_includes_outside_env(tmp_path):
-    files = ["../outside_env_not_copied/repos.yaml"]
+    """Ensure relative includes to files outside the environment fail."""
+    files = ["../outside_env/repos.yaml"]
 
     manifest = f"""
 spack:
   specs: []
-  include: {files}
+  include:
+  - path: {files[0]}
 """
 
     # subdir to ensure parent of environment dir is not shared
@@ -1086,7 +1090,7 @@ spack:
     for f in files:
         fs.touchp(e1_path / f)
 
-    with pytest.raises(spack.config.ConfigFileError, match="Detected 1 missing include"):
+    with pytest.raises(ValueError, match="does not exist"):
         _ = _env_create("test2", init_file=e1_manifest)
 
 
@@ -4341,7 +4345,7 @@ spack:
 
 
 @pytest.mark.parametrize("first", ["false", "true", "custom"])
-def test_env_include_mixed_views(tmp_path, mutable_mock_env_path, mutable_config, first):
+def test_env_include_mixed_views(tmp_path, mutable_config, mutable_mock_env_path, first):
     """Ensure including path and boolean views in different combinations result
     in the creation of only the first view if it is not disabled."""
     false_yaml = tmp_path / "false-view.yaml"
