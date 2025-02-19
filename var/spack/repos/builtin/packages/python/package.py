@@ -198,6 +198,15 @@ class Python(Package):
         description="Symlink 'python3' executable to 'python' (not PEP 394 compliant)",
     )
 
+    # free-threaded (no-GIL) builds are experimental as of Python 3.13
+    # https://docs.python.org/3/howto/free-threading-python.html
+    variant(
+        "freethreading",
+        default=False,
+        description="Build with the Global Interpreter Lock disabled",
+        when="@3.13:",
+    )
+
     # Optional Python modules
     variant("readline", default=sys.platform != "win32", description="Build readline module")
     variant("ssl", default=True, description="Build ssl module")
@@ -382,6 +391,12 @@ class Python(Package):
                 variants += "+crypt"
             except ProcessError:
                 variants += "~crypt"
+        try:
+            python("-c", "import sys; assert sys._is_gil_enabled()")
+        except ProcessError:
+            variants += "~freethreading"
+        else:
+            variants += "+freethreading"
 
         return variants
 
@@ -640,6 +655,9 @@ class Python(Package):
         # https://docs.python.org/3.8/library/sqlite3.html#f1
         if spec.satisfies("+sqlite3 ^sqlite+dynamic_extensions"):
             config_args.append("--enable-loadable-sqlite-extensions")
+
+        if "+freethreading" in spec:
+            config_args.append("--disable-gil")
 
         if spec.satisfies("%oneapi"):
             cflags.append("-fp-model=strict")
