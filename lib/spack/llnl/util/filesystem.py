@@ -1046,6 +1046,7 @@ def replace_directory_transaction(directory_name):
     try:
         yield backup_dir
     except (Exception, KeyboardInterrupt, SystemExit) as inner_exception:
+        print("hitting the proper exception block")
         # Try to recover the original directory, if this fails, raise a
         # composite exception.
         try:
@@ -1054,8 +1055,11 @@ def replace_directory_transaction(directory_name):
                 shutil.rmtree(directory_name)
             os.rename(backup_dir, directory_name)
         except Exception as outer_exception:
+            print("CouldNOtRestoreDirectBackup")
             raise CouldNotRestoreDirectoryBackup(inner_exception, outer_exception)
 
+        for a,b,c in os.walk(directory_name):
+            print(a,b,c)
         tty.debug("Directory recovered [{0}]".format(directory_name))
         raise
     else:
