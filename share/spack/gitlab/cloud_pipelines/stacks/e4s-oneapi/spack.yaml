@@ -3,14 +3,13 @@ spack:
 
   concretizer:
     reuse: false
-    unify: when_possible
+    unify: false
     static_analysis: true
 
   packages:
     all:
       require:
       - target=x86_64_v3
-      prefer:
       - '%oneapi'
       providers:
         c: [intel-oneapi-compilers, gcc]
