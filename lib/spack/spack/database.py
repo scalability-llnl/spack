@@ -720,12 +720,13 @@ class Database:
     def query_by_spec_hash(
         self, hash_key: str, data: Optional[Dict[str, InstallRecord]] = None
     ) -> Tuple[bool, Optional[InstallRecord]]:
-        """Get a spec for hash, and whether it's installed upstream.
+        """Get an InstallRecord for a hash, and also indicate whether
+        the record is from an upstream DB.
 
         Return:
             (tuple): (bool, optional InstallRecord): bool tells us whether
-                the spec is installed upstream. Its InstallRecord is also
-                returned if it's installed at all; otherwise None.
+                the record is from an upstream DB. Its InstallRecord is
+                also returned; otherwise None.
         """
         if data and hash_key in data:
             return False, data[hash_key]
