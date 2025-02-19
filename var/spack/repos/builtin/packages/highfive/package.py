@@ -42,7 +42,8 @@ class Highfive(CMakePackage):
     version("1.1", sha256="430fc312fc1961605ffadbfad82b9753a5e59482e9fbc64425fb2c184123d395")
     version("1.0", sha256="d867fe73d00817f686d286f3c69a23731c962c3e2496ca1657ea7302cd0bb944")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("boost", default=False, description="Support Boost")
     variant("mpi", default=True, description="Support MPI")
@@ -57,10 +58,9 @@ class Highfive(CMakePackage):
     depends_on("hdf5 +mpi", when="+mpi")
 
     def cmake_args(self):
-        args = [
-            "-DUSE_BOOST:Bool={0}".format(self.spec.satisfies("+boost")),
-            "-DHIGHFIVE_PARALLEL_HDF5:Bool={0}".format(self.spec.satisfies("+mpi")),
-            "-DHIGHFIVE_UNIT_TESTS:Bool=false",
-            "-DHIGHFIVE_EXAMPLES:Bool=false",
+        return [
+            self.define_from_variant("USE_BOOST", "boost"),
+            self.define_from_variant("HIGHFIVE_PARALLEL_HDF5", "mpi"),
+            self.define("HIGHFIVE_UNIT_TESTS", False),
+            self.define("HIGHFIVE_EXAMPLES", False),
         ]
-        return args

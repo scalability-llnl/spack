@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import copy
 import os
-import os.path
 import sys
 
 import spack.util.environment
@@ -39,10 +38,11 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     git = "https://github.com/cp2k/cp2k.git"
     list_url = "https://github.com/cp2k/cp2k/releases"
 
-    maintainers("dev-zero", "mtaillefumier")
+    maintainers("dev-zero", "mtaillefumier", "RMeli", "abussy")
 
     license("GPL-2.0-or-later")
 
+    version("2025.1", sha256="65c8ad5488897b0f995919b9fa77f2aba4b61677ba1e3c19bb093d5c08a8ce1d")
     version("2024.3", sha256="a6eeee773b6b1fb417def576e4049a89a08a0ed5feffcd7f0b33c7d7b48f19ba")
     version("2024.2", sha256="cc3e56c971dee9e89b705a1103765aba57bf41ad39a11c89d3de04c8b8cdf473")
     version("2024.1", sha256="a7abf149a278dfd5283dc592a2c4ae803b37d040df25d62a5e35af5c4557668f")
@@ -116,8 +116,26 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     )
     variant("pytorch", default=False, description="Enable libtorch support")
     variant("quip", default=False, description="Enable quip support")
+    variant("dftd4", when="@2024.2:", default=False, description="Enable DFT-D4 support")
     variant("mpi_f08", default=False, description="Use MPI F08 module")
-
+    variant("smeagol", default=False, description="Enable libsmeagol support", when="@2025.2:")
+    variant(
+        "pw_gpu", default=True, description="Enable FFT calculations on GPU", when="@2025.2: +cuda"
+    )
+    variant("grid_gpu", default=True, description="Enable grid GPU backend", when="@2025.2:")
+    variant("dbm_gpu", default=True, description="Enable DBM GPU backend", when="@2025.2:")
+    variant(
+        "pw_gpu",
+        default=False,
+        description="Enable FFT calculations on GPU",
+        when="@2025.2: +rocm",
+    )
+    variant(
+        "hip_backend_cuda",
+        default=False,
+        description="Enable HIP backend on Nvidia GPU",
+        when="@2025.2: +cuda",
+    )
     variant(
         "enable_regtests",
         default=False,
@@ -146,6 +164,12 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
             description="Use CUBLAS for general matrix operations in DBCSR",
         )
 
+    with when("+hip_backend_cuda"):
+        depends_on("hipcc")
+        depends_on("hip+cuda")
+        depends_on("hipfft+cuda")
+        depends_on("hipblas+cuda")
+
     HFX_LMAX_RANGE = range(4, 8)
 
     variant(
@@ -157,6 +181,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     )
 
     depends_on("python@3", type="build")
+    depends_on("pkgconfig", type="build", when="build_system=cmake")
 
     depends_on("blas")
     depends_on("lapack")
@@ -194,13 +219,14 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
             )
 
     with when("+libxc"):
-        depends_on("pkgconfig", type="build", when="@7.0:")
+        depends_on("pkgconfig", type="build", when="@7.0: ^libxc@:6")
         depends_on("libxc@4.0.3:4", when="@7.0:8.1")
         depends_on("libxc@5.1.3:5.1", when="@8.2:8")
         depends_on("libxc@5.1.7:5.1", when="@9:2022.2")
         depends_on("libxc@6.1:", when="@2023.1:")
         depends_on("libxc@6.2:", when="@2023.2:")
         depends_on("libxc@:6", when="@:2024.3")
+        depends_on("libxc@7 build_system=cmake", when="@2025.2:")
 
     with when("+spla"):
         depends_on("spla+cuda+fortran", when="+cuda")
@@ -261,6 +287,8 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
         depends_on("plumed+mpi", when="+mpi")
         depends_on("plumed~mpi", when="~mpi")
 
+    depends_on("libsmeagol", when="+smeagol")
+
     # while we link statically against PEXSI, its own deps may be linked in
     # dynamically, therefore can't set this as pure build-type dependency.
     depends_on("pexsi+fortran@0.10.0:", when="+pexsi")
@@ -290,6 +318,8 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     depends_on("py-fypp")
 
     depends_on("spglib", when="+spglib")
+
+    depends_on("dftd4@3.6.0: build_system=cmake", when="+dftd4")
 
     with when("build_system=cmake"):
         depends_on("cmake@3.22:", type="build")
@@ -622,6 +652,18 @@ class MakefileBuilder(makefile.MakefileBuilder):
             ldflags += [spglib.search_flags]
             libs.append(spglib.ld_flags)
 
+        if spec.satisfies("+dftd4"):
+            cppflags += ["-D__DFTD4"]
+            dftd4 = spec["dftd4"].libs
+            ldflags += [dftd4.search_flags]
+            libs.append(dftd4.ld_flags)
+
+        if spec.satisfies("+smeagol"):
+            cppflags += ["-D__SMEAGOL"]
+            smeagol = spec["libsmeagol"].libs
+            ldflags += [smeagol.search_flags]
+            libs.append(smeagol.ld_flags)
+
         cc = spack_cc if "~mpi" in spec else spec["mpi"].mpicc
         cxx = spack_cxx if "~mpi" in spec else spec["mpi"].mpicxx
         fc = spack_fc if "~mpi" in spec else spec["mpi"].mpifc
@@ -764,8 +806,8 @@ class MakefileBuilder(makefile.MakefileBuilder):
                     "Point environment variable LIBSMM_PATH to "
                     "the absolute path of the libsmm.a file"
                 )
-            except IOError:
-                raise IOError(
+            except OSError:
+                raise OSError(
                     "The file LIBSMM_PATH pointed to does not "
                     "exist. Note that it must be absolute path."
                 )
@@ -963,10 +1005,15 @@ class CMakeBuilder(cmake.CMakeBuilder):
                 raise InstallError("CP2K supports only one cuda_arch at a time.")
             else:
                 gpu_ver = GPU_MAP[spec.variants["cuda_arch"].value[0]]
-                args += [
-                    self.define("CP2K_USE_ACCEL", "CUDA"),
-                    self.define("CP2K_WITH_GPU", gpu_ver),
-                ]
+                if spec.satisfies("+hip_backend_cuda"):
+                    args += [
+                        self.define("CP2K_USE_ACCEL", "HIP"),
+                        self.define("CMAKE_HIP_PLATFORM", "nvidia"),
+                    ]
+                else:
+                    args += [self.define("CP2K_USE_ACCEL", "CUDA")]
+
+                args += [self.define("CP2K_WITH_GPU", gpu_ver)]
 
         if spec.satisfies("+rocm"):
             if len(spec.variants["amdgpu_target"].value) > 1:
@@ -995,7 +1042,12 @@ class CMakeBuilder(cmake.CMakeBuilder):
             self.define_from_variant("CP2K_USE_VORI", "libvori"),
             self.define_from_variant("CP2K_USE_SPLA", "spla"),
             self.define_from_variant("CP2K_USE_QUIP", "quip"),
+            self.define_from_variant("CP2K_USE_DFTD4", "dftd4"),
             self.define_from_variant("CP2K_USE_MPI_F08", "mpi_f08"),
+            self.define_from_variant("CP2K_USE_LIBSMEAGOL", "smeagol"),
+            self.define_from_variant("CP2K_ENABLE_GRID_GPU", "grid_gpu"),
+            self.define_from_variant("CP2K_ENABLE_DBM_GPU", "dbm_gpu"),
+            self.define_from_variant("CP2K_ENABLE_PW_GPU", "pw_gpu"),
         ]
 
         # we force the use elpa openmp threading support. might need to be revisited though

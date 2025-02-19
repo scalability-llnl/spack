@@ -6,7 +6,6 @@
 import os
 import sys
 
-import spack.util.environment
 from spack.operating_systems.mac_os import macos_version
 from spack.package import *
 from spack.util.environment import is_system_path
@@ -848,9 +847,7 @@ class Root(CMakePackage):
         if "+rpath" not in self.spec:
             env.prepend_path(self.root_library_path, self.prefix.lib.root)
 
-    def setup_dependent_build_environment(
-        self, env: spack.util.environment.EnvironmentModifications, dependent_spec
-    ):
+    def setup_dependent_build_environment(self, env: EnvironmentModifications, dependent_spec):
         env.set("ROOTSYS", self.prefix)
         env.set("ROOT_VERSION", "v{0}".format(self.version.up_to(1)))
         env.prepend_path("PYTHONPATH", self.prefix.lib.root)
@@ -863,9 +860,7 @@ class Root(CMakePackage):
             # Newer deployment targets cause fatal errors in rootcling
             env.unset("MACOSX_DEPLOYMENT_TARGET")
 
-    def setup_dependent_run_environment(
-        self, env: spack.util.environment.EnvironmentModifications, dependent_spec
-    ):
+    def setup_dependent_run_environment(self, env: EnvironmentModifications, dependent_spec):
         env.prepend_path("ROOT_INCLUDE_PATH", dependent_spec.prefix.include)
         # For dependents that build dictionaries, ROOT needs to know where the
         # dictionaries have been installed.  This can be facilitated by

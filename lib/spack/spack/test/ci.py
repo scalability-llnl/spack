@@ -1,8 +1,10 @@
 # Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import io
 import os
 import subprocess
+from urllib.error import HTTPError
 
 import pytest
 
@@ -15,6 +17,7 @@ import spack.error
 import spack.paths as spack_paths
 import spack.repo as repo
 import spack.util.git
+from spack.test.conftest import MockHTTPResponse
 
 pytestmark = [pytest.mark.usefixtures("mock_packages")]
 
@@ -162,38 +165,8 @@ def test_import_signing_key(mock_gnupghome):
     ci.import_signing_key(signing_key)
 
 
-class FakeWebResponder:
-    def __init__(self, response_code=200, content_to_read=[]):
-        self._resp_code = response_code
-        self._content = content_to_read
-        self._read = [False for c in content_to_read]
-
-    def open(self, request, data=None, timeout=object()):
-        return self
-
-    def getcode(self):
-        return self._resp_code
-
-    def read(self, length=None):
-        if len(self._content) <= 0:
-            return None
-
-        if not self._read[-1]:
-            return_content = self._content[-1]
-            if length:
-                self._read[-1] = True
-            else:
-                self._read.pop()
-                self._content.pop()
-            return return_content
-
-        self._read.pop()
-        self._content.pop()
-        return None
-
-
-def test_download_and_extract_artifacts(tmpdir, monkeypatch, working_env):
-    os.environ.update({"GITLAB_PRIVATE_TOKEN": "faketoken"})
+def test_download_and_extract_artifacts(tmpdir, monkeypatch):
+    monkeypatch.setenv("GITLAB_PRIVATE_TOKEN", "faketoken")
 
     url = "https://www.nosuchurlexists.itsfake/artifacts.zip"
     working_dir = os.path.join(tmpdir.strpath, "repro")
@@ -201,10 +174,13 @@ def test_download_and_extract_artifacts(tmpdir, monkeypatch, working_env):
         spack_paths.test_path, "data", "ci", "gitlab", "artifacts.zip"
     )
 
-    with open(test_artifacts_path, "rb") as fd:
-        fake_responder = FakeWebResponder(content_to_read=[fd.read()])
+    def _urlopen_OK(*args, **kwargs):
+        with open(test_artifacts_path, "rb") as f:
+            return MockHTTPResponse(
+                "200", "OK", {"Content-Type": "application/zip"}, io.BytesIO(f.read())
+            )
 
-    monkeypatch.setattr(ci, "build_opener", lambda handler: fake_responder)
+    monkeypatch.setattr(ci, "urlopen", _urlopen_OK)
 
     ci.download_and_extract_artifacts(url, working_dir)
 
@@ -214,7 +190,11 @@ def test_download_and_extract_artifacts(tmpdir, monkeypatch, working_env):
     found_install = fs.find(working_dir, "install.sh")
     assert len(found_install) == 1
 
-    fake_responder._resp_code = 400
+    def _urlopen_500(*args, **kwargs):
+        raise HTTPError(url, 500, "Internal Server Error", {}, None)
+
+    monkeypatch.setattr(ci, "urlopen", _urlopen_500)
+
     with pytest.raises(spack.error.SpackError):
         ci.download_and_extract_artifacts(url, working_dir)
 
@@ -328,16 +308,14 @@ def test_get_spec_filter_list(mutable_mock_env_path, mutable_mock_repo):
     e1.add("hypre")
     e1.concretize()
 
-    """
-    Concretizing the above environment results in the following graphs:
+    # Concretizing the above environment results in the following graphs:
 
-    mpileaks -> mpich (provides mpi virtual dep of mpileaks)
-             -> callpath -> dyninst -> libelf
-                                    -> libdwarf -> libelf
-                         -> mpich (provides mpi dep of callpath)
+    # mpileaks -> mpich (provides mpi virtual dep of mpileaks)
+    #          -> callpath -> dyninst -> libelf
+    #                                 -> libdwarf -> libelf
+    #                      -> mpich (provides mpi dep of callpath)
 
-    hypre -> openblas-with-lapack (provides lapack and blas virtual deps of hypre)
-    """
+    # hypre -> openblas-with-lapack (provides lapack and blas virtual deps of hypre)
 
     touched = ["libdwarf"]
 

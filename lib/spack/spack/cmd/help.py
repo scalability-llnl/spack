@@ -54,10 +54,6 @@ spec expression syntax:
       @m{target=target}                 specific <target> processor
       @m{arch=platform-os-target}       shortcut for all three above
 
-    cross-compiling:
-      @m{os=backend} or @m{os=be}           build for compute node (backend)
-      @m{os=frontend} or @m{os=fe}          build for login node (frontend)
-
     dependencies:
       ^dependency [constraints]     specify constraints on dependencies
       ^@K{/hash}                        build with a specific installed

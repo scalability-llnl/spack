@@ -1,17 +1,6 @@
 # Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import pathlib
-
-import pytest
-
-import spack.concretize
-import spack.config
-import spack.environment as ev
-import spack.paths
-import spack.repo
-import spack.spec
-import spack.util.spack_yaml as syaml
 
 """
 These tests include the following package DAGs:
@@ -41,6 +30,18 @@ u x
 |/
 y
 """
+
+import pathlib
+
+import pytest
+
+import spack.concretize
+import spack.config
+import spack.environment as ev
+import spack.paths
+import spack.repo
+import spack.spec
+import spack.util.spack_yaml as syaml
 
 
 @pytest.fixture

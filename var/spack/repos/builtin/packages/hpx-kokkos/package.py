@@ -2,8 +2,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import llnl.util.filesystem as fs
-
 from spack.package import *
 
 
@@ -95,7 +93,7 @@ class HpxKokkos(CMakePackage, CudaPackage, ROCmPackage):
 
     def check(self):
         if self.run_tests:
-            with fs.working_dir(self.build_directory):
+            with working_dir(self.build_directory):
                 cmake("--build", ".", "--target", "tests")
                 cmake("--build", ".", "--target", "benchmarks")
                 ctest("--output-on-failure")

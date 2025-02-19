@@ -2,11 +2,9 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
-import os.path
 import re
 import sys
 
-import llnl.util.tty as tty
 from llnl.util.lang import classproperty
 
 import spack.compilers
@@ -57,70 +55,160 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
 
     version("main", branch="main")
     version("19.1.7", sha256="59abea1c22e64933fad4de1671a61cdb934098793c7a31b333ff58dc41bff36c")
-    version("19.1.6", sha256="f07fdcbb27b2b67aa95e5ddadf45406b33228481c250e65175066d36536a1ee2")
-    version("19.1.5", sha256="e2204b9903cd9d7ee833a2f56a18bef40a33df4793e31cc090906b32cbd8a1f5")
-    version("19.1.4", sha256="010e1fd3cabee8799bd2f8a6fbc68f28207494f315cf9da7057a2820f79fd531")
-    version("19.1.3", sha256="e5106e2bef341b3f5e41340e4b6c6a58259f4021ad801acf14e88f1a84567b05")
-    version("19.1.2", sha256="622cb6c5e95a3bb7e9876c4696a65671f235bd836cfd0c096b272f6c2ada41e7")
-    version("19.1.1", sha256="115dfd98a353d05bffdab3f80db22f159da48aca0124e8c416f437adcd54b77f")
-    version("19.1.0", sha256="0a08341036ca99a106786f50f9c5cb3fbe458b3b74cab6089fd368d0edb2edfe")
     version("18.1.8", sha256="09c08693a9afd6236f27a2ebae62cda656eba19021ef3f94d59e931d662d4856")
-    version("18.1.7", sha256="b60df7cbe02cef2523f7357120fb0d46cbb443791cde3a5fb36b82c335c0afc9")
-    version("18.1.6", sha256="01390edfae5b809e982b530ff9088e674c62b13aa92cb9dc1e067fa2cf501083")
-    version("18.1.5", sha256="d543309f55ae3f9b422108302b45c40f5696c96862f4bda8f5526955daa54284")
-    version("18.1.4", sha256="deca5a29e8b1d103ecc4badb3c304aca50d5cac6453364d88ee415dc55699dfb")
-    version("18.1.3", sha256="fc5a2fd176d73ceb17f4e522f8fe96d8dde23300b8c233476d3609f55d995a7a")
-    version("18.1.2", sha256="8d686d5ece6f12b09985cb382a3a530dc06bb6e7eb907f57c7f8bf2d868ebb0b")
-    version("18.1.1", sha256="62439f733311869dbbaf704ce2e02141d2a07092d952fc87ef52d1d636a9b1e4")
-    version("18.1.0", sha256="eb18f65a68981e94ea1a5aae4f02321b17da9e99f76bfdb983b953f4ba2d3550")
     version("17.0.6", sha256="81494d32e6f12ea6f73d6d25424dbd2364646011bb8f7e345ca870750aa27de1")
-    version("17.0.5", sha256="432c1eda3d1c9379cd52a9bee8e0ea6f7b204bff5075895f963fd8e575aa4fb8")
-    version("17.0.4", sha256="46200b79f52a02fe26d0a43fd856ab6ceff49ab2a0b7c240ac4b700a6ada700c")
-    version("17.0.3", sha256="1e3d9d04fb5fbd8d0080042ad72c7e2a5c68788b014b186647a604dbbdd625d2")
-    version("17.0.2", sha256="dcba3eb486973dce45b6edfe618f3f29b703ae7e6ef9df65182fb50fb6fe4235")
-    version("17.0.1", sha256="d51b10be66c10a6a81f4c594b554ffbf1063ffbadcb810af37d1f88d6e0b49dd")
     version("16.0.6", sha256="56b2f75fdaa95ad5e477a246d3f0d164964ab066b4619a01836ef08e475ec9d5")
-    version("16.0.5", sha256="e0fbca476693fcafa125bc71c8535587b6d9950293122b66b262bb4333a03942")
-    version("16.0.4", sha256="10c3fe1757d2e4f1cd7745dc548ecf687680a71824ec81701c38524c2a0753e2")
-    version("16.0.3", sha256="0bd71bc687a4e5a250c40afb0decefc50c85178fcce726137b682039de63919b")
-    version("16.0.2", sha256="97c3c6aafb53c4bb0ed2781a18d6f05e75445e24bb1dc57a32b74f8d710ac19f")
-    version("16.0.1", sha256="b5a9ff1793b1e2d388a3819bf35797002b1d2e40bb35a10c65605e0ea1435271")
-    version("16.0.0", sha256="cba969a0782a3a398658d439f047b5e548ea04724f4fbfdbe17cfc946f4cd3ed")
     version("15.0.7", sha256="42a0088f148edcf6c770dfc780a7273014a9a89b66f357c761b4ca7c8dfa10ba")
-    version("15.0.6", sha256="4d857d7a180918bdacd09a5910bf9743c9861a1e49cb065a85f7a990f812161d")
-    version("15.0.5", sha256="c47640269e0251e009ae18a25162df4e20e175885286e21d28c054b084b991a4")
-    version("15.0.4", sha256="e24b4d3bf7821dcb1c901d1e09096c1f88fb00095c5a6ef893baab4836975e52")
-    version("15.0.3", sha256="8ac8e4c0982bf236526d737d385db5e1e66543ab217a9355d54159659eae3774")
-    version("15.0.2", sha256="dc11d35e60ab61792baa607dff080c993b39de23fb93b3d3369ba15b0601c307")
-    version("15.0.1", sha256="20bccb964e39f604fdc16d1258f94d2053fbdcdab2b2f6d5e20e6095ec403c00")
-    version("15.0.0", sha256="36d83cd84e1caf2bcfda1669c029e2b949adb9860cff01e7d3246ac2348b11ae")
     version("14.0.6", sha256="98f15f842700bdb7220a166c8d2739a03a72e775b67031205078f39dd756a055")
-    version("14.0.5", sha256="a4a57f029cb81f04618e05853f05fc2d21b64353c760977d8e7799bf7218a23a")
-    version("14.0.4", sha256="1333236f9bee38658762076be4236cb5ebf15ae9b7f2bfce6946b96ae962dc73")
-    version("14.0.3", sha256="0e1d049b050127ecf6286107e9a4400b0550f841d5d2288b9d31fd32ed0683d5")
-    version("14.0.2", sha256="ca52232b3451c8e017f00eb882277707c13e30fac1271ec97015f6d0eeb383d1")
-    version("14.0.1", sha256="c8be00406e872c8a24f8571cf6f5517b73ae707104724b1fd1db2f0af9544019")
-    version("14.0.0", sha256="87b1a068b370df5b79a892fdb2935922a8efb1fddec4cc506e30fe57b6a1d9c4")
     version("13.0.1", sha256="09c50d558bd975c41157364421820228df66632802a4a6a7c9c17f86a7340802")
-    version("13.0.0", sha256="a1131358f1f9f819df73fa6bff505f2c49d176e9eef0a3aedd1fdbce3b4630e8")
     version("12.0.1", sha256="66b64aa301244975a4aea489f402f205cde2f53dd722dad9e7b77a0459b4c8df")
-    version("12.0.0", sha256="8e6c99e482bb16a450165176c2d881804976a2d770e0445af4375e78a1fbf19c")
     version("11.1.0", sha256="53a0719f3f4b0388013cfffd7b10c7d5682eece1929a9553c722348d1f866e79")
-    version("11.0.1", sha256="9c7ad8e8ec77c5bde8eb4afa105a318fd1ded7dff3747d14f012758719d7171b")
-    version("11.0.0", sha256="8ad4ddbafac4f2c8f2ea523c2c4196f940e8e16f9e635210537582a48622a5d5")
     version("10.0.1", sha256="c7ccb735c37b4ec470f66a6c35fbae4f029c0f88038f6977180b1a8ddc255637")
-    version("10.0.0", sha256="b81c96d2f8f40dc61b14a167513d87c0d813aae0251e06e11ae8a4384ca15451")
     version("9.0.1", sha256="be7b034641a5fda51ffca7f5d840b1a768737779f75f7c4fd18fe2d37820289a")
-    version("9.0.0", sha256="7807fac25330e24e9955ca46cd855dd34bbc9cc4fdba8322366206654d1036f2")
     version("8.0.1", sha256="5b18f6111c7aee7c0933c355877d4abcfe6cb40c1a64178f28821849c725c841")
-    version("8.0.0", sha256="d81238b4a69e93e29f74ce56f8107cbfcf0c7d7b40510b7879e98cc031e25167")
     version("7.1.0", sha256="71c93979f20e01f1a1cc839a247945f556fa5e63abf2084e8468b238080fd839")
-    version("7.0.1", sha256="f17a6cd401e8fd8f811fbfbb36dcb4f455f898c9d03af4044807ad005df9f3c0")
     version("6.0.1", sha256="aefadceb231f4c195fe6d6cd3b1a010b269c8a22410f339b5a089c2e902aa177")
-    version("6.0.0", sha256="1946ec629c88d30122afa072d3c6a89cc5d5e4e2bb28dc63b2f9ebcc7917ee64")
     version("5.0.2", sha256="fe87aa11558c08856739bfd9bd971263a28657663cb0c3a0af01b94f03b0b795")
-    version("5.0.1", sha256="84ca454abf262579814a2a2b846569f6e0cb3e16dc33ca3642b4f1dff6fbafd3")
-    version("5.0.0", sha256="1f1843315657a4371d8ca37f01265fa9aae17dbcf46d2d0a95c1fdb3c6a4bab6")
+
+    with default_args(deprecated=True):
+        version(
+            "19.1.6", sha256="f07fdcbb27b2b67aa95e5ddadf45406b33228481c250e65175066d36536a1ee2"
+        )
+        version(
+            "19.1.5", sha256="e2204b9903cd9d7ee833a2f56a18bef40a33df4793e31cc090906b32cbd8a1f5"
+        )
+        version(
+            "19.1.4", sha256="010e1fd3cabee8799bd2f8a6fbc68f28207494f315cf9da7057a2820f79fd531"
+        )
+        version(
+            "19.1.3", sha256="e5106e2bef341b3f5e41340e4b6c6a58259f4021ad801acf14e88f1a84567b05"
+        )
+        version(
+            "19.1.2", sha256="622cb6c5e95a3bb7e9876c4696a65671f235bd836cfd0c096b272f6c2ada41e7"
+        )
+        version(
+            "19.1.1", sha256="115dfd98a353d05bffdab3f80db22f159da48aca0124e8c416f437adcd54b77f"
+        )
+        version(
+            "19.1.0", sha256="0a08341036ca99a106786f50f9c5cb3fbe458b3b74cab6089fd368d0edb2edfe"
+        )
+        version(
+            "18.1.7", sha256="b60df7cbe02cef2523f7357120fb0d46cbb443791cde3a5fb36b82c335c0afc9"
+        )
+        version(
+            "18.1.6", sha256="01390edfae5b809e982b530ff9088e674c62b13aa92cb9dc1e067fa2cf501083"
+        )
+        version(
+            "18.1.5", sha256="d543309f55ae3f9b422108302b45c40f5696c96862f4bda8f5526955daa54284"
+        )
+        version(
+            "18.1.4", sha256="deca5a29e8b1d103ecc4badb3c304aca50d5cac6453364d88ee415dc55699dfb"
+        )
+        version(
+            "18.1.3", sha256="fc5a2fd176d73ceb17f4e522f8fe96d8dde23300b8c233476d3609f55d995a7a"
+        )
+        version(
+            "18.1.2", sha256="8d686d5ece6f12b09985cb382a3a530dc06bb6e7eb907f57c7f8bf2d868ebb0b"
+        )
+        version(
+            "18.1.1", sha256="62439f733311869dbbaf704ce2e02141d2a07092d952fc87ef52d1d636a9b1e4"
+        )
+        version(
+            "18.1.0", sha256="eb18f65a68981e94ea1a5aae4f02321b17da9e99f76bfdb983b953f4ba2d3550"
+        )
+        version(
+            "17.0.5", sha256="432c1eda3d1c9379cd52a9bee8e0ea6f7b204bff5075895f963fd8e575aa4fb8"
+        )
+        version(
+            "17.0.4", sha256="46200b79f52a02fe26d0a43fd856ab6ceff49ab2a0b7c240ac4b700a6ada700c"
+        )
+        version(
+            "17.0.3", sha256="1e3d9d04fb5fbd8d0080042ad72c7e2a5c68788b014b186647a604dbbdd625d2"
+        )
+        version(
+            "17.0.2", sha256="dcba3eb486973dce45b6edfe618f3f29b703ae7e6ef9df65182fb50fb6fe4235"
+        )
+        version(
+            "17.0.1", sha256="d51b10be66c10a6a81f4c594b554ffbf1063ffbadcb810af37d1f88d6e0b49dd"
+        )
+        version(
+            "16.0.5", sha256="e0fbca476693fcafa125bc71c8535587b6d9950293122b66b262bb4333a03942"
+        )
+        version(
+            "16.0.4", sha256="10c3fe1757d2e4f1cd7745dc548ecf687680a71824ec81701c38524c2a0753e2"
+        )
+        version(
+            "16.0.3", sha256="0bd71bc687a4e5a250c40afb0decefc50c85178fcce726137b682039de63919b"
+        )
+        version(
+            "16.0.2", sha256="97c3c6aafb53c4bb0ed2781a18d6f05e75445e24bb1dc57a32b74f8d710ac19f"
+        )
+        version(
+            "16.0.1", sha256="b5a9ff1793b1e2d388a3819bf35797002b1d2e40bb35a10c65605e0ea1435271"
+        )
+        version(
+            "16.0.0", sha256="cba969a0782a3a398658d439f047b5e548ea04724f4fbfdbe17cfc946f4cd3ed"
+        )
+        version(
+            "15.0.6", sha256="4d857d7a180918bdacd09a5910bf9743c9861a1e49cb065a85f7a990f812161d"
+        )
+        version(
+            "15.0.5", sha256="c47640269e0251e009ae18a25162df4e20e175885286e21d28c054b084b991a4"
+        )
+        version(
+            "15.0.4", sha256="e24b4d3bf7821dcb1c901d1e09096c1f88fb00095c5a6ef893baab4836975e52"
+        )
+        version(
+            "15.0.3", sha256="8ac8e4c0982bf236526d737d385db5e1e66543ab217a9355d54159659eae3774"
+        )
+        version(
+            "15.0.2", sha256="dc11d35e60ab61792baa607dff080c993b39de23fb93b3d3369ba15b0601c307"
+        )
+        version(
+            "15.0.1", sha256="20bccb964e39f604fdc16d1258f94d2053fbdcdab2b2f6d5e20e6095ec403c00"
+        )
+        version(
+            "15.0.0", sha256="36d83cd84e1caf2bcfda1669c029e2b949adb9860cff01e7d3246ac2348b11ae"
+        )
+        version(
+            "14.0.5", sha256="a4a57f029cb81f04618e05853f05fc2d21b64353c760977d8e7799bf7218a23a"
+        )
+        version(
+            "14.0.4", sha256="1333236f9bee38658762076be4236cb5ebf15ae9b7f2bfce6946b96ae962dc73"
+        )
+        version(
+            "14.0.3", sha256="0e1d049b050127ecf6286107e9a4400b0550f841d5d2288b9d31fd32ed0683d5"
+        )
+        version(
+            "14.0.2", sha256="ca52232b3451c8e017f00eb882277707c13e30fac1271ec97015f6d0eeb383d1"
+        )
+        version(
+            "14.0.1", sha256="c8be00406e872c8a24f8571cf6f5517b73ae707104724b1fd1db2f0af9544019"
+        )
+        version(
+            "14.0.0", sha256="87b1a068b370df5b79a892fdb2935922a8efb1fddec4cc506e30fe57b6a1d9c4"
+        )
+        version(
+            "13.0.0", sha256="a1131358f1f9f819df73fa6bff505f2c49d176e9eef0a3aedd1fdbce3b4630e8"
+        )
+        version(
+            "12.0.0", sha256="8e6c99e482bb16a450165176c2d881804976a2d770e0445af4375e78a1fbf19c"
+        )
+        version(
+            "11.0.1", sha256="9c7ad8e8ec77c5bde8eb4afa105a318fd1ded7dff3747d14f012758719d7171b"
+        )
+        version(
+            "11.0.0", sha256="8ad4ddbafac4f2c8f2ea523c2c4196f940e8e16f9e635210537582a48622a5d5"
+        )
+        version(
+            "10.0.0", sha256="b81c96d2f8f40dc61b14a167513d87c0d813aae0251e06e11ae8a4384ca15451"
+        )
+        version("9.0.0", sha256="7807fac25330e24e9955ca46cd855dd34bbc9cc4fdba8322366206654d1036f2")
+        version("8.0.0", sha256="d81238b4a69e93e29f74ce56f8107cbfcf0c7d7b40510b7879e98cc031e25167")
+        version("7.0.1", sha256="f17a6cd401e8fd8f811fbfbb36dcb4f455f898c9d03af4044807ad005df9f3c0")
+        version("6.0.0", sha256="1946ec629c88d30122afa072d3c6a89cc5d5e4e2bb28dc63b2f9ebcc7917ee64")
+        version("5.0.1", sha256="84ca454abf262579814a2a2b846569f6e0cb3e16dc33ca3642b4f1dff6fbafd3")
+        version("5.0.0", sha256="1f1843315657a4371d8ca37f01265fa9aae17dbcf46d2d0a95c1fdb3c6a4bab6")
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
@@ -642,6 +730,19 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
 
     patch("sanitizer-platform-limits-posix-xdr-macos.patch", when="@10:14 platform=darwin")
 
+    # https://github.com/spack/spack/issues/48865
+    patch(
+        "https://github.com/llvm/llvm-project/commit/f4be5ed6a3fef0b2b0c60b29e1c0638926638d28.patch?full_index=1",
+        sha256="51740996bbc01a5049fa859134ad44ffc9514da212cc7d9a445c8d16d6cc867e",
+        when="@15",
+    )
+    # https://github.com/spack/spack/issues/48865
+    patch(
+        "https://github.com/llvm/llvm-project/commit/73e15b5edb4fa4a77e68c299a6e3b21e610d351f.patch?full_index=1",
+        sha256="b540ef6e3728d7881d95775a163314fac6e2f9207f5d5e8b79c8c73c73ba4dc3",
+        when="@15:16",
+    )
+
     @when("@14:17")
     def patch(self):
         # https://github.com/llvm/llvm-project/pull/69458
@@ -652,19 +753,21 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
             string=True,
         )
 
+    clang_and_friends = "(?:clang|flang|flang-new)"
+
     compiler_version_regex = (
         # Normal clang compiler versions are left as-is
-        r"clang version ([^ )\n]+)-svn[~.\w\d-]*|"
+        rf"{clang_and_friends} version ([^ )\n]+)-svn[~.\w\d-]*|"
         # Don't include hyphenated patch numbers in the version
         # (see https://github.com/spack/spack/pull/14365 for details)
-        r"clang version ([^ )\n]+?)-[~.\w\d-]*|"
-        r"clang version ([^ )\n]+)|"
+        rf"{clang_and_friends} version ([^ )\n]+?)-[~.\w\d-]*|"
+        rf"{clang_and_friends} version ([^ )\n]+)|"
         # LLDB
         r"lldb version ([^ )\n]+)|"
         # LLD
         r"LLD ([^ )\n]+) \(compatible with GNU linkers\)"
     )
-    fortran_names = ["flang"]
+    fortran_names = ["flang", "flang-new"]
 
     @property
     def supported_languages(self):

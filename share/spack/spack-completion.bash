@@ -929,12 +929,8 @@ _spack_debug() {
     then
         SPACK_COMPREPLY="-h --help"
     else
-        SPACK_COMPREPLY="create-db-tarball report"
+        SPACK_COMPREPLY="report"
     fi
-}
-
-_spack_debug_create_db_tarball() {
-    SPACK_COMPREPLY="-h --help"
 }
 
 _spack_debug_report() {

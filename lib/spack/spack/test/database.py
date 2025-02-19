@@ -476,8 +476,8 @@ def test_default_queries(database):
 
 def test_005_db_exists(database):
     """Make sure db cache file exists after creating."""
-    index_file = os.path.join(database.root, ".spack-db", "index.json")
-    lock_file = os.path.join(database.root, ".spack-db", "lock")
+    index_file = os.path.join(database.root, ".spack-db", spack.database.INDEX_JSON_FILE)
+    lock_file = os.path.join(database.root, ".spack-db", spack.database._LOCK_FILE)
     assert os.path.exists(str(index_file))
     # Lockfiles not currently supported on Windows
     if sys.platform != "win32":
@@ -982,7 +982,7 @@ def test_database_works_with_empty_dir(tmpdir):
     # Create the lockfile and failures directory otherwise
     # we'll get a permission error on Database creation
     db_dir = tmpdir.ensure_dir(".spack-db")
-    db_dir.ensure("lock")
+    db_dir.ensure(spack.database._LOCK_FILE)
     db_dir.ensure_dir("failures")
     tmpdir.chmod(mode=0o555)
     db = spack.database.Database(str(tmpdir))

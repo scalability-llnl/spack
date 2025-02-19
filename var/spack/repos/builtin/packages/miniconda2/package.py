@@ -5,7 +5,6 @@
 from os.path import split
 
 from spack.package import *
-from spack.util.environment import EnvironmentModifications
 
 
 class Miniconda2(Package):

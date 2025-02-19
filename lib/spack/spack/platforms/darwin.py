@@ -4,8 +4,6 @@
 
 import platform as py_platform
 
-import archspec.cpu
-
 from spack.operating_systems.mac_os import MacOs
 from spack.version import Version
 
@@ -19,18 +17,8 @@ class Darwin(Platform):
 
     def __init__(self):
         super().__init__("darwin")
-        self._add_archspec_targets()
-
-        self.default = archspec.cpu.host().name
-        self.front_end = self.default
-        self.back_end = self.default
-
         mac_os = MacOs()
-
         self.default_os = str(mac_os)
-        self.front_os = str(mac_os)
-        self.back_os = str(mac_os)
-
         self.add_operating_system(str(mac_os), mac_os)
 
     @classmethod

@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-"""Simple wrapper around JSON to guarantee consistent use of load/dump. """
+"""Simple wrapper around JSON to guarantee consistent use of load/dump."""
 import json
 from typing import Any, Dict, Optional
 

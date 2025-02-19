@@ -5,7 +5,7 @@
 """This module implements the classes necessary to generate Tcl
 non-hierarchical modules.
 """
-import os.path
+import os
 from typing import Dict, Optional, Tuple
 
 import spack.config

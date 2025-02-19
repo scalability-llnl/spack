@@ -21,6 +21,8 @@ class PyWxpython(PythonPackage):
     depends_on("wxwidgets +gui")
     depends_on("wxwidgets@3.2.6 +gui", when="@4.2.2")
 
+    # Needed by the buildtools/config.py script
+    depends_on("pkgconfig", type="build")
     # Needed for the build.py script
     depends_on("py-setuptools", type="build")
     depends_on("py-setuptools@:75", type="build", when="@:4.1")  # deprecated license-file

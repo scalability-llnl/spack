@@ -8,8 +8,6 @@ import re
 
 from macholib import MachO, mach_o
 
-from llnl.util import tty
-
 from spack.package import *
 from spack.util.elf import delete_needed_from_elf, parse_elf
 

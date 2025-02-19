@@ -7,7 +7,6 @@ import contextlib
 import inspect
 import json
 import os
-import os.path
 import pickle
 import re
 import shlex

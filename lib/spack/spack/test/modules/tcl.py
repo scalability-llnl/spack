@@ -238,10 +238,7 @@ class TestTcl:
 
         assert len([x for x in content if "module load " in x]) == 1
 
-        # Catch "Exception" to avoid using FileNotFoundError on Python 3
-        # and IOError on Python 2 or common bases like EnvironmentError
-        # which are not officially documented
-        with pytest.raises(Exception):
+        with pytest.raises(FileNotFoundError):
             modulefile_content(f"callpath target={host_architecture_str}")
 
         content = modulefile_content(f"zmpi target={host_architecture_str}")

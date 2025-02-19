@@ -66,7 +66,7 @@ class Compadre(CMakePackage):
             [
                 "-DKokkosCore_PREFIX={0}".format(kokkos.prefix),
                 "-DKokkosKernels_PREFIX={0}".format(kokkos_kernels.prefix),
-                "-DCMAKE_CXX_COMPILER:STRING={0}".format(spec["kokkos"].kokkos_cxx),
+                "-DCMAKE_CXX_COMPILER:STRING={0}".format(self["kokkos"].kokkos_cxx),
                 # Compadre_USE_PYTHON is OFF by default
                 "-DCompadre_USE_PYTHON=OFF",
             ]
