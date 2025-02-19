@@ -24,6 +24,7 @@ import spack.spec_parser
 reserved_names = [
     "arch",
     "architecture",
+    "commit",
     "dev_path",
     "namespace",
     "operating_system",
