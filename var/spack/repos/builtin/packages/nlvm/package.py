@@ -20,7 +20,9 @@ class Nlvm(MakefilePackage):
 
     variant("static_llvm", default=False, description="Link to LLVM statically")
 
-    depends_on("llvm +clang @19.1", type=("build"))
+    conflicts("%apple-clang", msg="Incompatible with Apple Clang's default linker")
+
+    depends_on("llvm +clang @19.1", type="build")
     depends_on("llvm +llvm_dylib @19.1", type=("build", "link"), when="~static_llvm")
     depends_on(
         "nim@2.0.14",
