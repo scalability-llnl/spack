@@ -228,6 +228,17 @@ class IntelOneapiMkl(IntelOneApiLibraryPackage):
         else:
             return IntelOneApiStaticLibraryList(libs, system_libs)
 
+    @property
+    def cmake_bla_vendor(self):
+        if self.spec.satisfies("+ilp64") and not self.spec.satisfies("threads=none"):
+            return "Intel10_64ilp"
+        elif self.spec.satisfies("+ilp64 threads=none"):
+            return "Intel10_64ilp_seq"
+        elif self.spec.satisfies("~ilp64") and not self.spec.satisfies("threads=none"):
+            return "Intel10_64lp"
+        elif self.spec.satisfies("~ilp64 threads=none"):
+            return "Intel10_64lp_seq"
+
     def setup_dependent_build_environment(self, env, dependent_spec):
         # Only if environment modifications are desired (default is +envmods)
         if self.spec.satisfies("+envmods"):
