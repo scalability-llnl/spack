@@ -220,7 +220,7 @@ def concretize_one(spec: Union[str, Spec], tests: TestsType = False) -> Spec:
     opt, i, answer = min(result.answers)
     name = spec.name
     # TODO: Consolidate this code with similar code in solve.py
-    if spec.virtual:
+    if spack.repo.PATH.is_virtual(spec.name):
         providers = [s.name for s in answer.values() if s.package.provides(name)]
         name = providers[0]
 

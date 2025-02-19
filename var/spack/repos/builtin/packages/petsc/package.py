@@ -335,8 +335,7 @@ class Petsc(Package, CudaPackage, ROCmPackage):
     patch("revert-3.18.0-ver-format-for-dealii.patch", when="@3.18.0")
 
     depends_on("diffutils", type="build")
-    # not listed as a "build" dependency - so that slepc build gets the same dependency
-    depends_on("gmake")
+    depends_on("gmake", type="build")
 
     # Virtual dependencies
     # Git repository needs sowing to build Fortran interface
@@ -582,13 +581,16 @@ class Petsc(Package, CudaPackage, ROCmPackage):
 
         if "+sycl" in spec:
             sycl_compatible_compilers = ["icpx"]
-            if not (os.path.basename(self.compiler.cxx) in sycl_compatible_compilers):
+            if os.path.basename(self.compiler.cxx) not in sycl_compatible_compilers:
                 raise InstallError("PETSc's SYCL GPU Backend requires oneAPI CXX (icpx) compiler.")
             options.append("--with-sycl=1")
             options.append("--with-syclc=" + self.compiler.cxx)
             options.append("SYCLPPFLAGS=-Wno-tautological-constant-compare")
         else:
             options.append("--with-sycl=0")
+
+        if spec.satisfies("^cuda@12.8.0"):
+            options.append("CUDAPPFLAGS=-Wno-deprecated-gpu-targets")
 
         if "trilinos" in spec:
             if spec.satisfies("^trilinos+boost"):
@@ -608,14 +610,14 @@ class Petsc(Package, CudaPackage, ROCmPackage):
         if "+exodusii+fortran" in spec and "+fortran" in spec:
             options.append("--with-exodusii-fortran-bindings")
 
+        direct_dependencies = {
+            *(spec.name for spec in spec.dependencies()),
+            *(virtual for edge in spec.edges_to_dependencies() for virtual in edge.virtuals),
+        }
         # tuple format (spacklibname, petsclibname, useinc, uselib)
         # default: 'gmp', => ('gmp', 'gmp', True, True)
         # any other combination needs a full tuple
         # if not (useinc || uselib): usedir - i.e (False, False)
-        direct_dependencies = []
-        for dep in spec.dependencies():
-            direct_dependencies.append(dep.name)
-            direct_dependencies.extend(set(vspec.name for vspec in dep.package.virtuals_provided))
         for library in (
             ("cuda", "cuda", False, False),
             ("hip", "hip", True, False),

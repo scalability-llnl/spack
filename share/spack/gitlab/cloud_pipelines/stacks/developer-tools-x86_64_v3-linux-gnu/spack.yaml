@@ -2,10 +2,16 @@ spack:
   view: false
   packages:
     all:
-      require: target=x86_64_v3
+      require:
+      - target=x86_64_v3
+      - ~cuda
+      - ~rocm
+
   concretizer:
     unify: true
     reuse: false
+    static_analysis: true
+
   definitions:
   - default_specs:
       # editors
@@ -38,7 +44,7 @@ spack:
     - ripgrep
     - gh
     - fd
-    # - bfs # liburing: /usr/include/linux/ipv6.h:19:8: error: redefinition of 'struct in6_pktinfo'
+    - bfs
     - fzf
     - tree
     - jq

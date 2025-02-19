@@ -2,8 +2,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-"""Utility classes for logging the output of blocks of code.
-"""
+"""Utility classes for logging the output of blocks of code."""
 import atexit
 import ctypes
 import errno
@@ -344,26 +343,6 @@ class FileWrapper:
             self.file.close()
 
 
-@contextmanager
-def replace_environment(env):
-    """Replace the current environment (`os.environ`) with `env`.
-
-    If `env` is empty (or None), this unsets all current environment
-    variables.
-    """
-    env = env or {}
-    old_env = os.environ.copy()
-    try:
-        os.environ.clear()
-        for name, val in env.items():
-            os.environ[name] = val
-        yield
-    finally:
-        os.environ.clear()
-        for name, val in old_env.items():
-            os.environ[name] = val
-
-
 def log_output(*args, **kwargs):
     """Context manager that logs its output to a file.
 
@@ -447,7 +426,6 @@ class nixlog:
         self.echo = echo
         self.debug = debug
         self.buffer = buffer
-        self.env = env  # the environment to use for _writer_daemon
         self.filter_fn = filter_fn
 
         self._active = False  # used to prevent re-entry
@@ -519,21 +497,20 @@ class nixlog:
                 # just don't forward input if this fails
                 pass
 
-            with replace_environment(self.env):
-                self.process = multiprocessing.Process(
-                    target=_writer_daemon,
-                    args=(
-                        input_fd,
-                        read_fd,
-                        self.write_fd,
-                        self.echo,
-                        self.log_file,
-                        child_pipe,
-                        self.filter_fn,
-                    ),
-                )
-                self.process.daemon = True  # must set before start()
-                self.process.start()
+            self.process = multiprocessing.Process(
+                target=_writer_daemon,
+                args=(
+                    input_fd,
+                    read_fd,
+                    self.write_fd,
+                    self.echo,
+                    self.log_file,
+                    child_pipe,
+                    self.filter_fn,
+                ),
+            )
+            self.process.daemon = True  # must set before start()
+            self.process.start()
 
         finally:
             if input_fd:
@@ -729,10 +706,7 @@ class winlog:
     Does not support the use of 'v' toggling as nixlog does.
     """
 
-    def __init__(
-        self, file_like=None, echo=False, debug=0, buffer=False, env=None, filter_fn=None
-    ):
-        self.env = env
+    def __init__(self, file_like=None, echo=False, debug=0, buffer=False, filter_fn=None):
         self.debug = debug
         self.echo = echo
         self.logfile = file_like
@@ -789,11 +763,10 @@ class winlog:
                     reader.close()
 
             self._active = True
-            with replace_environment(self.env):
-                self._thread = Thread(
-                    target=background_reader, args=(self.reader, self.echo_writer, self._kill)
-                )
-                self._thread.start()
+            self._thread = Thread(
+                target=background_reader, args=(self.reader, self.echo_writer, self._kill)
+            )
+            self._thread.start()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):

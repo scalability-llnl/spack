@@ -23,6 +23,10 @@ class Bash(AutotoolsPackage, GNUMirrorPackage):
 
     depends_on("c", type="build")  # generated
 
+    depends_on("autoconf", type="build")
+    depends_on("automake", type="build")
+    depends_on("libtool", type="build")
+
     depends_on("ncurses")
     depends_on("readline@8.2:", when="@5.2:")
     depends_on("readline@5.0:")

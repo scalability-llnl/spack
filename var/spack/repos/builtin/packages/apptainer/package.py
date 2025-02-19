@@ -36,7 +36,7 @@ class Apptainer(SingularityBase):
         checked_by="tgamblin",
     )
 
-    version("main", branch="main")
+    version("main", branch="main", get_full_repo=True)  # apptainer version uses git describe
     version("1.3.6", sha256="b5343369e7fdf67572f887d81f8d2b938f099fb39c876d96430d747935960d51")
     version("1.3.5", sha256="fe1c977da952edf1056915b2df67ae2203ef06065d4e4901a237c902329306b2")
     version("1.3.4", sha256="c6ccfdd7c967e5c36dde8711f369c4ac669a16632b79fa0dcaf7e772b7a47397")

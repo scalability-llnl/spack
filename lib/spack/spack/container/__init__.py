@@ -57,7 +57,7 @@ def validate(configuration_file):
     # Set the default value of the concretization strategy to unify and
     # warn if the user explicitly set another value
     env_dict.setdefault("concretizer", {"unify": True})
-    if not env_dict["concretizer"]["unify"] is True:
+    if env_dict["concretizer"]["unify"] is not True:
         warnings.warn(
             '"concretizer:unify" is not set to "true", which means the '
             "generated image may contain different variants of the same "

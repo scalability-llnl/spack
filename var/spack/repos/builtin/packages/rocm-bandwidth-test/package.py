@@ -17,6 +17,7 @@ class RocmBandwidthTest(CMakePackage):
     maintainers("srekolam", "renjithravindrankannath", "afzpatel")
 
     version("master", branch="master")
+    version("6.3.2", sha256="3754831244d7c4f6314fc25b3e929adf9abe44c9cb60621dd8ae5d1aa930ae55")
     version("6.3.1", sha256="98002e4104929a62a308114ed82fba530880359a17f90ebd62a2ca49c2baac78")
     version("6.3.0", sha256="6d1e444b962e7a40fb9f20c87631865d3e04e8c9027fd21b439bee9b62d0070c")
     version("6.2.4", sha256="4d25c62d81f60eba8042f57ca0905adc853a214333ffc70238d91e2f53606a79")
@@ -86,6 +87,7 @@ class RocmBandwidthTest(CMakePackage):
         "6.2.4",
         "6.3.0",
         "6.3.1",
+        "6.3.2",
         "master",
     ]:
         depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")
@@ -107,6 +109,7 @@ class RocmBandwidthTest(CMakePackage):
         "6.2.4",
         "6.3.0",
         "6.3.1",
+        "6.3.2",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 

@@ -124,7 +124,7 @@ class PyTorchgeo(PythonPackage):
         depends_on("py-pycocotools@2.0.7:", when="@0.6:")
         depends_on("py-pycocotools@2.0.5:", when="@0.5:")
         depends_on("py-pycocotools@2:")
-        depends_on("py-pyvista@0.34.2:", when="@0.5:")
+        depends_on("py-pyvista@0.34.2:", when="@0.5:0.6")
         depends_on("py-pyvista@0.20:", when="@0.4:")
         depends_on("py-scikit-image@0.19:", when="@0.6:")
         depends_on("py-scikit-image@0.18:", when="@0.4:")

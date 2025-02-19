@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-# flake8: noqa: F401
+# flake8: noqa: F401, E402
 """spack.package defines the public API for Spack packages, by re-exporting useful symbols from
 other modules. Packages should import this module, instead of importing from spack.* directly
 to ensure forward compatibility with future versions of Spack."""

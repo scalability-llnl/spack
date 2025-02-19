@@ -9,6 +9,7 @@ import re
 import shutil
 import stat
 import sys
+import tempfile
 from typing import Callable, Dict, Optional
 
 from typing_extensions import Literal
@@ -708,7 +709,10 @@ class SimpleFilesystemView(FilesystemView):
         def skip_list(file):
             return os.path.basename(file) == spack.store.STORE.layout.metadata_dir
 
-        visitor = SourceMergeVisitor(ignore=skip_list)
+        # Determine if the root is on a case-insensitive filesystem
+        normalize_paths = is_folder_on_case_insensitive_filesystem(self._root)
+
+        visitor = SourceMergeVisitor(ignore=skip_list, normalize_paths=normalize_paths)
 
         # Gather all the directories to be made and files to be linked
         for spec in specs:
@@ -884,3 +888,8 @@ def get_dependencies(specs):
 
 class ConflictingProjectionsError(SpackError):
     """Raised when a view has a projections file and is given one manually."""
+
+
+def is_folder_on_case_insensitive_filesystem(path: str) -> bool:
+    with tempfile.NamedTemporaryFile(dir=path, prefix=".sentinel") as sentinel:
+        return os.path.exists(os.path.join(path, os.path.basename(sentinel.name).upper()))

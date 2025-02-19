@@ -15,8 +15,11 @@ class PyStatsmodels(PythonPackage):
     pypi = "statsmodels/statsmodels-0.8.0.tar.gz"
     git = "https://github.com/statsmodels/statsmodels.git"
 
+    maintainers("climbfuji")
+
     license("BSD-3-Clause")
 
+    version("0.14.1", sha256="2260efdc1ef89f39c670a0bd8151b1d0843567781bcafec6cda0534eb47a94f6")
     version("0.14.0", sha256="6875c7d689e966d948f15eb816ab5616f4928706b180cf470fd5907ab6f647a4")
     version("0.13.5", sha256="593526acae1c0fda0ea6c48439f67c3943094c542fe769f8b90fe9e6c6cc4871")
     version("0.13.2", sha256="77dc292c9939c036a476f1770f9d08976b05437daa229928da73231147cde7d4")
@@ -33,37 +36,44 @@ class PyStatsmodels(PythonPackage):
     depends_on("python@3.8:", when="@0.14:", type=("build", "link", "run"))
     depends_on("python", type=("build", "link", "run"))
 
+    depends_on("py-setuptools@69.0.2:", when="@0.14.1: ^python@3.12:", type="build")
+    depends_on("py-setuptools@63.4.3:", when="@0.14.1:", type="build")
     depends_on("py-setuptools@59.2:", when="@0.13.3:", type="build")
     depends_on("py-setuptools@0.6c5:", type="build")
 
     # pyproject.toml
-    depends_on("py-cython@0.29.26:2", when="@0.14:", type="build")
+    depends_on("py-cython@0.29.33:3", when="@0.14.1", type="build")
+    depends_on("py-cython@0.29.26:2", when="@0.14.0", type="build")
     depends_on("py-cython@0.29.32:2", when="@0.13.5:0.13", type="build")
-    depends_on("py-cython@0.29.22:2", when="@0.13:", type="build")
-    depends_on("py-cython@0.29.14:2", when="@0.12:", type="build")
-    depends_on("py-cython@0.29:2", type="build")
-    depends_on("py-setuptools-scm+toml@7.0", when="@0.13.3:", type="build")
+    depends_on("py-cython@0.29.22:2", when="@0.13:0.13.4", type="build")
+    depends_on("py-cython@0.29.14:2", when="@0.12", type="build")
+    depends_on("py-cython@0.29:2", when="@:0.11", type="build")
+    depends_on("py-setuptools-scm+toml@8", when="@0.14.1:", type="build")
+    depends_on("py-setuptools-scm+toml@7.0", when="@0.13.3:0.14.0", type="build")
 
     # patsy@0.5.1 works around a Python change
     #    https://github.com/statsmodels/statsmodels/issues/5343 and
     #    https://github.com/pydata/patsy/pull/131
 
     # requirements.txt
-    depends_on("py-numpy@1.18:", when="@0.14:", type=("build", "link", "run"))
+    depends_on("py-numpy@1.22.3:1", when="@0.14.1:", type=("build", "link", "run"))
+    depends_on("py-numpy@1.18:1", when="@0.14:", type=("build", "link", "run"))
     depends_on("py-numpy@1.17:", when="@0.13:", type=("build", "link", "run"))
     depends_on("py-numpy@1.15:", when="@0.12.1:", type=("build", "link", "run"))
     depends_on("py-numpy@1.11:", when="@0.10.1:", type=("build", "link", "run"))
     # https://github.com/statsmodels/statsmodels/issues/9194
     depends_on("py-numpy@:1", when="@:0.14.1", type=("build", "link", "run"))
     depends_on("py-scipy@1.4:", when="@0.13.5:", type=("build", "run"))
-    conflicts("^py-scipy@1.9.2")
+    conflicts("^py-scipy@1.9.2", when="@:0.14.1")
     depends_on("py-scipy@1.3:", when="@0.13:", type=("build", "run"))
     depends_on("py-scipy@1.2:", when="@0.12:", type=("build", "run"))
     depends_on("py-scipy@0.18:", when="@0.10.1:", type=("build", "run"))
     depends_on("py-pandas@1:", when="@0.14:", type=("build", "run"))
+    conflicts("^py-scipy@2.1.0", when="@:0.14.1")
     depends_on("py-pandas@0.25:", when="@0.13:", type=("build", "run"))
     depends_on("py-pandas@0.23:", when="@0.12:", type=("build", "run"))
     depends_on("py-pandas@0.19:", when="@0.10.1:", type=("build", "run"))
+    depends_on("py-patsy@0.5.4:", when="@0.14.1:", type=("build", "run"))
     depends_on("py-patsy@0.5.2:", when="@0.13:", type=("build", "run"))
     depends_on("py-patsy@0.5.1:", when="@0.12:", type=("build", "run"))
     depends_on("py-patsy@0.4:", when="@0.10.1:", type=("build", "run"))
