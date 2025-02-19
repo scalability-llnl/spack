@@ -20,8 +20,8 @@ import spack.error
 import spack.package_base
 import spack.phase_callbacks
 import spack.spec
-import spack.version
 import spack.util.prefix
+import spack.version
 from spack import traverse
 from spack.directives import build_system, conflicts, depends_on, variant
 from spack.multimethod import when
