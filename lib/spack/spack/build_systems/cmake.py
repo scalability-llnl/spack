@@ -21,6 +21,7 @@ import spack.package_base
 import spack.phase_callbacks
 import spack.spec
 import spack.util.prefix
+import spack.version
 from spack import traverse
 from spack.directives import build_system, conflicts, depends_on, variant
 from spack.multimethod import when
@@ -405,6 +406,8 @@ class CMakeBuilder(BuilderWithDefaults):
             define("CMAKE_PREFIX_PATH", get_cmake_prefix_path(pkg)),
             define("CMAKE_BUILD_TYPE", build_type),
         ]
+        if pkg.spec["cmake"].version >= spack.version.Version("4.0.0-rc1"):
+            args.append(define("CMAKE_POLICY_VERSION_MINIMUM", "3.5"))
 
         if primary_generator == "Unix Makefiles":
             args.append(define("CMAKE_VERBOSE_MAKEFILE", True))
