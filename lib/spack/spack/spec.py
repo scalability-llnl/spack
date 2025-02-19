@@ -4845,26 +4845,37 @@ def reconstruct_virtuals_on_edges(spec):
         spec: spec on which we want to reconstruct virtuals
     """
     # Collect all possible virtuals
-    possible_virtuals = set()
+    possible_virtuals = collections.defaultdict(set)
     for node in spec.traverse():
+        key = node.dag_hash()
         try:
-            possible_virtuals.update(
-                {x for x in node.package.dependencies if spack.repo.PATH.is_virtual(x)}
-            )
+            node_pkg = node.package
         except Exception as e:
-            warnings.warn(f"cannot reconstruct virtual dependencies on package {node.name}: {e}")
+            warnings.warn(f"cannot reconstruct virtual dependencies on {node.name}: {e}")
             continue
 
-    # Assume all incoming edges to provider are marked with virtuals=
-    for vspec in possible_virtuals:
+        for name, when_deps in node_pkg.dependencies_by_name(when=True).items():
+            if not spack.repo.PATH.is_virtual(name):
+                continue
+
+            if any(node.satisfies(x) for x in when_deps):
+                possible_virtuals[key].add(name)
+
+    for edge in spec.traverse_edges(cover="edges"):
+        if edge.parent is None:
+            continue
+
+        key = edge.parent.dag_hash()
         try:
-            provider = spec[vspec]
-        except KeyError:
-            # Virtual not in the DAG
+            provided_virtuals = {x.name for x in edge.spec.package.virtuals_provided}
+        except Exception as e:
+            warnings.warn(f"cannot reconstruct virtual dependencies on {edge.parent.name}: {e}")
             continue
 
-        for edge in provider.edges_from_dependents():
-            edge.update_virtuals([vspec])
+        virtuals_to_add = possible_virtuals[key] & provided_virtuals
+        if not virtuals_to_add:
+            continue
+        edge.update_virtuals(virtuals_to_add)
 
 
 class SpecfileReaderBase:
