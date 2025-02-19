@@ -1,0 +1,26 @@
+def py_proto_library(
+        name,
+        srcs = [],
+        deps = [],
+        py_libs = [],
+        py_extra_srcs = [],
+        include = None,
+        use_grpc_plugin = False,
+        **kargs):
+
+    outs = [s[:-len(".proto")] + "_pb2.py" for s in srcs]
+
+    native.genrule(
+        name = name + "_protoc_gen",
+        outs = outs,
+        srcs = srcs,
+        cmd = "protoc --python_out=$(GENDIR) -I. $<",
+    )
+
+    native.py_library(
+        name = name,
+        srcs = outs + py_extra_srcs,
+        deps = py_libs + deps,
+        imports = [],
+        **kargs
+    )
