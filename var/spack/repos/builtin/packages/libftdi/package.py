@@ -16,7 +16,6 @@ class Libftdi(CMakePackage):
 
     maintainers("davekeeshan")
 
-
     version("master", branch="master")
     version("1.5", commit="5c2c58e03ea999534e8cb64906c8ae8b15536c30")
     version("1.4", commit="d5c1622a2ff0c722c0dc59533748489b45774e55")
