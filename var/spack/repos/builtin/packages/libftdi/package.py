@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,12 +9,13 @@ class Libftdi(CMakePackage):
     """libftdi - A library (using libusb) to talk to FTDI's UART/FIFO chips
     including the popular bitbang mode"""
 
+    license("GPL-2.0-or-later")
+
     homepage = "https://www.intra2net.com/en/developer/libftdi/index.php"
     git = "git://developer.intra2net.com/libftdi"
 
     maintainers("davekeeshan")
 
-    license("GPL-2.0-or-later")
 
     version("master", branch="master")
     version("1.5", commit="5c2c58e03ea999534e8cb64906c8ae8b15536c30")
