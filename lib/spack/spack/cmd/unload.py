@@ -3,11 +3,11 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
-import sys
 
 import spack.cmd
 import spack.cmd.common
 import spack.error
+import spack.hooks.cache_shell_script as shell_script
 import spack.store
 import spack.user_environment as uenv
 from spack.cmd.common import arguments
@@ -88,9 +88,7 @@ def unload(parser, args):
         )
         return 1
 
-    env_mod = uenv.environment_modifications_for_specs(*specs).reversed()
     for spec in specs:
-        env_mod.remove_path(uenv.spack_loaded_hashes_var, spec.dag_hash())
-    cmds = env_mod.shell_modifications(args.shell)
+        shell_script_file = shell_script.path_to_unload_shell_script(spec, args.shell)
 
-    sys.stdout.write(cmds)
+        print(f"source {shell_script_file}")
