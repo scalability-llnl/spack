@@ -214,7 +214,24 @@ class MirrorStats:
     # TODO: AQ, Merge a given MirrorStats object to this one. Return just one MirrorStats
     def merge(self, ext_mirror_stat: MirrorStats) -> MirrorStats:
         # For the sake of parallelism we need a way to reduce/merge different
-        # MirrorStats objects. 
+        # MirrorStats objects.
+        self.present.update(ext_mirror_stat.present)
+        self.new.update(ext_mirror_stat.new)
+        self.errors.update(ext_mirror_stat.errors)
+
+        if self.current_spec != None and ext_mirror_stat.current_spec != None:
+            # If we already have a current_spec it needs to be tallied
+            # and then the new one set (via next_spec)
+            self.next_spec(ext_mirror_stat.current_spec)
+        elif self.current_spec != None and ext_mirror_stat.current_spec == None:
+            # If we have a current_spec, and there's no new one coming, leave things alone
+            continue
+        else
+            # In anycase where current_spec is None, use the incoming mirror_stat current. 
+            self.current_spec = ext_mirror_stat.current_spec
+
+        self.added_resources.update(ext_mirror_stat.added_resources)
+        self.existing_resources.update(ext_mirror_stat.existing_resources)
 
 
 def create_mirror_from_package_object(
