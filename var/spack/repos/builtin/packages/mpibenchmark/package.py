@@ -1,7 +1,6 @@
 # Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import os
 
 from spack.package import *
 
@@ -51,7 +50,6 @@ class Mpibenchmark(AutotoolsPackage):
             return super().configure_directory
 
     def configure_args(self):
-        spec = self.spec
         config_args = [
             "--with-hwloc",  # always use hwloc in spack
             "--without-cuda",
