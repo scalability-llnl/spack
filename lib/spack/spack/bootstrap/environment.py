@@ -38,13 +38,18 @@ class BootstrapEnvironment(spack.environment.Environment):
     @classmethod
     def spack_dev_requirements(cls) -> List[str]:
         """Spack development requirements"""
-        return [
+        dev_specs = [
             isort_root_spec(),
             mypy_root_spec(),
             black_root_spec(),
             flake8_root_spec(),
             pytest_root_spec(),
         ]
+        # Only add ruff if the python is newer than 3.7
+        if sys.version_info[:2] >= (3, 7):
+            dev_specs.append(ruff_root_spec())
+
+        return dev_specs
 
     @classmethod
     def environment_root(cls) -> pathlib.Path:
@@ -144,6 +149,11 @@ def flake8_root_spec() -> str:
 def pytest_root_spec() -> str:
     """Return the root spec used to bootstrap flake8"""
     return _root_spec("py-pytest@6.2.4:")
+
+
+def ruff_root_spec() -> str:
+    """Return the root spec used to bootstrap flake8"""
+    return _root_spec("py-ruff@0.9.0:")
 
 
 def ensure_environment_dependencies() -> None:
