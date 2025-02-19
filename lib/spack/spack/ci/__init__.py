@@ -616,7 +616,7 @@ def copy_test_logs_to_artifacts(test_stage, job_test_dir):
     copy_files_to_artifacts(os.path.join(test_stage, "*", "*.txt"), job_test_dir)
 
 
-def download_and_extract_artifacts(url, work_dir):
+def download_and_extract_artifacts(url, work_dir) -> str:
     """Look for gitlab artifacts.zip at the given url, and attempt to download
         and extract the contents into the given work_dir
 
@@ -624,6 +624,10 @@ def download_and_extract_artifacts(url, work_dir):
 
         url (str): Complete url to artifacts.zip file
         work_dir (str): Path to destination where artifacts should be extracted
+
+    Output:
+
+        Artifacts root path relative to the archive root
     """
     tty.msg(f"Fetching artifacts from: {url}")
 
@@ -641,13 +645,25 @@ def download_and_extract_artifacts(url, work_dir):
         response = urlopen(request, timeout=SPACK_CDASH_TIMEOUT)
         with open(artifacts_zip_path, "wb") as out_file:
             shutil.copyfileobj(response, out_file)
+
+        with zipfile.ZipFile(artifacts_zip_path) as zip_file:
+            zip_file.extractall(work_dir)
+            # Get the artifact root
+            artifact_root = ""
+            for f in zip_file.filelist:
+                if "spack.lock" in f.filename:
+                    artifact_root = os.path.dirname(os.path.dirname(f.filename))
+                    break
     except OSError as e:
         raise SpackError(f"Error fetching artifacts: {e}")
+    finally:
+        try:
+            os.remove(artifacts_zip_path)
+        except FileNotFoundError:
+            # If the file doesn't exist we are already raising
+            pass
 
-    with zipfile.ZipFile(artifacts_zip_path) as zip_file:
-        zip_file.extractall(work_dir)
-
-    os.remove(artifacts_zip_path)
+    return artifact_root
 
 
 def get_spack_info():
@@ -761,7 +777,7 @@ def setup_spack_repro_version(repro_dir, checkout_commit, merge_commit=None):
     return True
 
 
-def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime):
+def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime, use_local_head):
     """Given a url to gitlab artifacts.zip from a failed 'spack ci rebuild' job,
     attempt to setup an environment in which the failure can be reproduced
     locally.  This entails the following:
@@ -775,8 +791,11 @@ def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime):
     commands to run to reproduce the build once inside the container.
     """
     work_dir = os.path.realpath(work_dir)
+    if os.path.exists(work_dir) and os.listdir(work_dir):
+        raise SpackError(f"Cannot run reproducer in non-emptry working dir:\n  {work_dir}")
+
     platform_script_ext = "ps1" if IS_WINDOWS else "sh"
-    download_and_extract_artifacts(url, work_dir)
+    artifact_root = download_and_extract_artifacts(url, work_dir)
 
     gpg_path = None
     if gpg_url:
@@ -838,6 +857,9 @@ def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime):
     with open(repro_file, encoding="utf-8") as fd:
         repro_details = json.load(fd)
 
+    spec_file = fs.find(work_dir, repro_details["job_spec_json"])[0]
+    reproducer_spec = spack.spec.Spec.from_specfile(spec_file)
+
     repro_dir = os.path.dirname(repro_file)
     rel_repro_dir = repro_dir.replace(work_dir, "").lstrip(os.path.sep)
 
@@ -898,17 +920,20 @@ def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime):
     commit_regex = re.compile(r"commit\s+([^\s]+)")
     merge_commit_regex = re.compile(r"Merge\s+([^\s]+)\s+into\s+([^\s]+)")
 
-    # Try the more specific merge commit regex first
-    m = merge_commit_regex.search(spack_info)
-    if m:
-        # This was a merge commit and we captured the parents
-        commit_1 = m.group(1)
-        commit_2 = m.group(2)
+    if use_local_head:
+        commit_1 = "HEAD"
     else:
-        # Not a merge commit, just get the commit sha
-        m = commit_regex.search(spack_info)
+        # Try the more specific merge commit regex first
+        m = merge_commit_regex.search(spack_info)
         if m:
+            # This was a merge commit and we captured the parents
             commit_1 = m.group(1)
+            commit_2 = m.group(2)
+        else:
+            # Not a merge commit, just get the commit sha
+            m = commit_regex.search(spack_info)
+            if m:
+                commit_1 = m.group(1)
 
     setup_result = False
     if commit_1:
@@ -983,6 +1008,8 @@ def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime):
             "entrypoint", entrypoint_script, work_dir, run=False, exit_on_failure=False
         )
 
+        # Attempt to create a unique name for the reproducer container
+        container_suffix = "_" + reproducer_spec.dag_hash() if reproducer_spec else ""
         docker_command = [
             runtime,
             "run",
@@ -990,14 +1017,14 @@ def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime):
             "-t",
             "--rm",
             "--name",
-            "spack_reproducer",
+            f"spack_reproducer{container_suffix}",
             "-v",
             ":".join([work_dir, mounted_workdir, "Z"]),
             "-v",
             ":".join(
                 [
-                    os.path.join(work_dir, "jobs_scratch_dir"),
-                    os.path.join(mount_as_dir, "jobs_scratch_dir"),
+                    os.path.join(work_dir, artifact_root),
+                    os.path.join(mount_as_dir, artifact_root),
                     "Z",
                 ]
             ),

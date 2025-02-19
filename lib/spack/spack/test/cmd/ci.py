@@ -28,6 +28,7 @@ from spack.ci.common import PipelineDag, PipelineOptions, SpackCIConfig
 from spack.ci.generator_registry import generator
 from spack.cmd.ci import FAILED_CREATE_BUILDCACHE_CODE
 from spack.database import INDEX_JSON_FILE
+from spack.error import SpackError
 from spack.schema.buildcache_spec import schema as specfile_schema
 from spack.schema.database_index import schema as db_idx_schema
 from spack.spec import Spec
@@ -170,7 +171,9 @@ spack:
     url: https://my.fake.cdash
     project: Not used
     site: Nothing
-"""
+""",
+        "--artifacts-root",
+        str(tmp_path / "my_artifacts_root"),
     )
     yaml_contents = syaml.load(outputfile.read_text())
 
@@ -192,7 +195,7 @@ spack:
 
     assert "variables" in yaml_contents
     assert "SPACK_ARTIFACTS_ROOT" in yaml_contents["variables"]
-    assert yaml_contents["variables"]["SPACK_ARTIFACTS_ROOT"] == "jobs_scratch_dir"
+    assert yaml_contents["variables"]["SPACK_ARTIFACTS_ROOT"] == "my_artifacts_root"
 
 
 def test_ci_generate_with_env_missing_section(ci_generate_test, tmp_path, mock_binary_index):
@@ -1322,44 +1325,50 @@ spack:
         env.concretize()
         env.write()
 
-        repro_dir.mkdir()
+    def fake_download_and_extract_artifacts(url, work_dir, merge_commit_test=True):
+        with working_dir(tmp_path), ev.Environment(".") as env:
+            if not os.path.exists(repro_dir):
+                repro_dir.mkdir()
 
-        job_spec = env.concrete_roots()[0]
-        with open(repro_dir / "archivefiles.json", "w", encoding="utf-8") as f:
-            f.write(job_spec.to_json(hash=ht.dag_hash))
+            job_spec = env.concrete_roots()[0]
+            with open(repro_dir / "archivefiles.json", "w", encoding="utf-8") as f:
+                f.write(job_spec.to_json(hash=ht.dag_hash))
+                artifacts_root = repro_dir / "jobs_scratch_dir"
+                pipeline_path = artifacts_root / "pipeline.yml"
 
-        artifacts_root = repro_dir / "scratch_dir"
-        pipeline_path = artifacts_root / "pipeline.yml"
-
-        ci_cmd(
-            "generate",
-            "--output-file",
-            str(pipeline_path),
-            "--artifacts-root",
-            str(artifacts_root),
-        )
-
-        job_name = gitlab_generator.get_job_name(job_spec)
-
-        with open(repro_dir / "repro.json", "w", encoding="utf-8") as f:
-            f.write(
-                json.dumps(
-                    {
-                        "job_name": job_name,
-                        "job_spec_json": "archivefiles.json",
-                        "ci_project_dir": str(repro_dir),
-                    }
+                ci_cmd(
+                    "generate",
+                    "--output-file",
+                    str(pipeline_path),
+                    "--artifacts-root",
+                    str(artifacts_root),
                 )
-            )
 
-        with open(repro_dir / "install.sh", "w", encoding="utf-8") as f:
-            f.write("#!/bin/sh\n\n#fake install\nspack install blah\n")
+                job_name = gitlab_generator.get_job_name(job_spec)
 
-        with open(repro_dir / "spack_info.txt", "w", encoding="utf-8") as f:
-            f.write(f"\nMerge {last_two_git_commits[1]} into {last_two_git_commits[0]}\n\n")
+                with open(repro_dir / "repro.json", "w", encoding="utf-8") as f:
+                    f.write(
+                        json.dumps(
+                            {
+                                "job_name": job_name,
+                                "job_spec_json": "archivefiles.json",
+                                "ci_project_dir": str(repro_dir),
+                            }
+                        )
+                    )
 
-    def fake_download_and_extract_artifacts(url, work_dir):
-        pass
+                with open(repro_dir / "install.sh", "w", encoding="utf-8") as f:
+                    f.write("#!/bin/sh\n\n#fake install\nspack install blah\n")
+
+                with open(repro_dir / "spack_info.txt", "w", encoding="utf-8") as f:
+                    if merge_commit_test:
+                        f.write(
+                            f"\nMerge {last_two_git_commits[1]} into {last_two_git_commits[0]}\n\n"
+                        )
+                    else:
+                        f.write(f"\ncommit {last_two_git_commits[1]}\n\n")
+
+            return "jobs_scratch_dir"
 
     monkeypatch.setattr(ci, "download_and_extract_artifacts", fake_download_and_extract_artifacts)
     rep_out = ci_cmd(
@@ -1374,6 +1383,64 @@ spack:
 
     # Make sure we tell the user where it is when not in interactive mode
     assert f"$ {repro_dir}/start.sh" in rep_out
+
+    # Ensure the correct commits are used
+    assert f"checkout_commit: {last_two_git_commits[0]}" in rep_out
+    assert f"merge_commit: {last_two_git_commits[1]}" in rep_out
+
+    # Test re-running in dirty working dir
+    with pytest.raises(SpackError, match=f"{repro_dir}"):
+        rep_out = ci_cmd(
+            "reproduce-build",
+            "https://example.com/api/v1/projects/1/jobs/2/artifacts",
+            "--working-dir",
+            str(repro_dir),
+            output=str,
+        )
+
+    # Cleanup between  tests
+    shutil.rmtree(repro_dir)
+
+    # Test --use-local-head
+    rep_out = ci_cmd(
+        "reproduce-build",
+        "https://example.com/api/v1/projects/1/jobs/2/artifacts",
+        "--use-local-head",
+        "--working-dir",
+        str(repro_dir),
+        output=str,
+    )
+
+    # Make sure we are checkout out the HEAD commit without a merge commit
+    assert "checkout_commit: HEAD" in rep_out
+    assert "merge_commit: None" in rep_out
+
+    # Test the case where the spack_info.txt is not a merge commit
+    monkeypatch.setattr(
+        ci,
+        "download_and_extract_artifacts",
+        lambda url, wd: fake_download_and_extract_artifacts(url, wd, False),
+    )
+
+    # Cleanup between  tests
+    shutil.rmtree(repro_dir)
+
+    rep_out = ci_cmd(
+        "reproduce-build",
+        "https://example.com/api/v1/projects/1/jobs/2/artifacts",
+        "--working-dir",
+        str(repro_dir),
+        output=str,
+    )
+    # Make sure the script was generated
+    assert (repro_dir / "start.sh").exists()
+
+    # Make sure we tell the user where it is when not in interactive mode
+    assert f"$ {repro_dir}/start.sh" in rep_out
+
+    # Ensure the correct commit is used (different than HEAD)
+    assert f"checkout_commit: {last_two_git_commits[1]}" in rep_out
+    assert "merge_commit: None" in rep_out
 
 
 @pytest.mark.parametrize(
