@@ -7,7 +7,7 @@ from spack.package import *
 
 
 class Xnedit(MakefilePackage):
-    """XNEdit is a multi-purpose text editor for the X Window System, which combines a standard, easy 
+    """XNEdit is a multi-purpose text editor for the X Window System, which combines a standard, easy
     to use, graphical user interface with the thorough functionality and stability.
     XNEdit is a fork of the Nirvana Editor (NEdit) and provides new functionality like antialiased text
     rendering and support for unicode.
