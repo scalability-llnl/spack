@@ -732,7 +732,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
     depends_on("plumed", when="+plumed")
     depends_on("eigen@3:", when="+user-smd")
     depends_on("eigen@3:", when="+machdyn")
-    depends_on("pace", when="+ml-pace", type="build")
+    depends_on("pace", when="+ml-pace")
     depends_on("py-cython", when="+mliap+python", type="build")
     depends_on("py-cython", when="+ml-iap+python", type="build")
     depends_on("py-mdi", when="+mdi", type=("build", "run"))
