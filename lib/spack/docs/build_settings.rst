@@ -34,6 +34,7 @@ an object, with the following keys:
 
 1. ``roots``: if ``true`` root specs are reused, if ``false`` only dependencies of root specs are reused
 2. ``from``: list of sources from which reused specs are taken
+3. ``namespaces``: list of namespaces from which to reuse specs, or the string ``"any"``.
 
 Each source in ``from`` is itself an object:
 
@@ -56,6 +57,7 @@ For instance, the following configuration:
    concretizer:
      reuse:
        roots: true
+       namespaces: [builtin]
        from:
        - type: local
          include:
@@ -63,7 +65,8 @@ For instance, the following configuration:
          - "%clang"
 
 tells the concretizer to reuse all specs compiled with either ``gcc`` or ``clang``, that are installed
-in the local store. Any spec from remote buildcaches is disregarded.
+in the local store. Any spec from remote buildcaches is disregarded. Any spec from a namespace other than
+Spack's builtin repo is disregarded.
 
 To reduce the boilerplate in configuration files, default values for the ``include`` and
 ``exclude`` options can be pushed up one level:
