@@ -48,7 +48,7 @@ class Delphes(CMakePackage):
     variant("pythia8", default=True, description="build with pythia8")
 
     depends_on("cmake", type="build")
-    depends_on("root")
+    depends_on("root +geom +opengl")
     depends_on("pythia8", when="+pythia8")
 
     def cmake_args(self):

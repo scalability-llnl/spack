@@ -35,6 +35,8 @@ class Root(CMakePackage):
     version("develop", branch="master")
 
     # Production version
+    version("6.34.02", sha256="166bec562e420e177aaf3133fa3fb09f82ecddabe8a2e1906345bad442513f94")
+    version("6.34.00", sha256="f3b00f3db953829c849029c39d7660a956468af247efd946e89072101796ab03")
     version("6.32.08", sha256="29ad4945a72dff1a009c326a65b6fa5ee2478498823251d3cef86a2cbeb77b27")
     version("6.32.06", sha256="3fc032d93fe848dea5adb1b47d8f0a86279523293fee0aa2b3cd52a1ffab7247")
     version("6.32.04", sha256="132f126aae7d30efbccd7dcd991b7ada1890ae57980ef300c16421f9d4d07ea8")
@@ -206,6 +208,10 @@ class Root(CMakePackage):
         default=True,
         description="Ignore most of Root's feature defaults except for " "basic graphic options",
     )
+    variant("geom", default=True, description="Enable support for the geometry library")
+    conflicts("~geom", when="@:6.33", msg="geom is always enabled through 6.33")
+    variant("geombuilder", default=False, description="Enable support for the geombuilder library")
+    conflicts("~geombuilder", when="@:6.33", msg="geombuilder is always enabled through 6.33")
     variant("gsl", default=True, description="Enable linking against shared libraries for GSL")
     variant("http", default=False, description="Enable HTTP server support")
     variant(
@@ -258,10 +264,16 @@ class Root(CMakePackage):
         description="Build TMVA with CPU support for deep learning (requires BLAS)",
     )
     variant(
+        "tmva-cudnn",
+        when="@6.34.00:",
+        default=True,
+        description="Enable support for cuDNN in TMVA",
+    )
+    variant(
         "tmva-gpu",
         when="@6.15.02:",
         default=False,
-        description="Build TMVA with GPU support for deep learning (requries CUDA)",
+        description="Build TMVA with GPU support for deep learning (requires CUDA)",
     )
     variant(
         "tmva-pymva",
@@ -275,6 +287,12 @@ class Root(CMakePackage):
         default=False,
         description="Build TMVA with support for sofie - "
         "fast inference code generation (requires protobuf 3)",
+    )
+    variant(
+        "tpython",
+        when="@6.34.00: +python",
+        default=True,
+        description="Build the TPython class to run Python code from C++",
     )
     variant("unuran", default=True, description="Use UNURAN for random number generation")
     variant("vc", default=False, description="Enable Vc for adding new types for SIMD programming")
@@ -308,6 +326,7 @@ class Root(CMakePackage):
     depends_on("cmake@3.9:", type="build", when="@6.18.00:")
     depends_on("cmake@3.16:", type="build", when="@6.26.00:")
     depends_on("cmake@3.19:", type="build", when="@6.28.00: platform=darwin")
+    depends_on("cmake@3.20:", type="build", when="@6.34.00:")
     depends_on("pkgconfig", type="build")
 
     # 6.32.00 requires sys/random.h
@@ -353,6 +372,7 @@ class Root(CMakePackage):
     # Python
     depends_on("python@2.7:", when="+python", type=("build", "run"))
     depends_on("python@2.7:3.10", when="@:6.26.09 +python", type=("build", "run"))
+    depends_on("python@3.8:", when="@6.34.00: +python", type=("build", "run"))
     depends_on("py-numpy", type=("build", "run"), when="+tmva-pymva")
     # See: https://sft.its.cern.ch/jira/browse/ROOT-10626
     depends_on("py-numpy", type=("build", "run"), when="@6.20.00:6.20.05 +python")
@@ -541,6 +561,8 @@ class Root(CMakePackage):
         _add_variant(v, f, "fitsio", "+fits")
         _add_variant(v, f, ("ftgl", "opengl"), "+opengl")
         _add_variant(v, f, "gdml", "+gdml")
+        _add_variant(v, f, "geom", "+geom")
+        _add_variant(v, f, "geombuilder", "+geombuilder")
         _add_variant(v, f, "mathmore", "+math")
         _add_variant(v, f, "gviz", "+graphviz")
         _add_variant(v, f, "http", "+http")
@@ -684,6 +706,8 @@ class Root(CMakePackage):
             define_from_variant("fitsio", "fits"),
             define_from_variant("ftgl", "opengl"),
             define_from_variant("gdml"),
+            define_from_variant("geom"),
+            define_from_variant("geombuilder"),
             define_from_variant("genvector", "math"),
             define("geocad", False),
             define("gfal", False),
@@ -767,6 +791,11 @@ class Root(CMakePackage):
 
         if self.spec.satisfies("@:6.30"):
             options.append(define_from_variant("minuit2", "minuit"))
+
+        if self.spec.satisfies("@6.34:"):
+            options.append(define_from_variant("tmva-cudnn", "tmva-cudnn"))
+            options.append(define_from_variant("tmva-cudnn", "cudnn"))
+            options.append(define_from_variant("tpython"))
 
         # #################### Compiler options ####################
 
