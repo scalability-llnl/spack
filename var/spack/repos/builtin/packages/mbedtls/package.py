@@ -2,10 +2,12 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import spack.build_systems.cmake
+import spack.build_systems.makefile
 from spack.package import *
 
 
-class Mbedtls(MakefilePackage):
+class Mbedtls(MakefilePackage, CMakePackage):
     """mbed TLS (formerly known as PolarSSL) makes it trivially easy for
     developers to include cryptographic and SSL/TLS capabilities in
     their (embedded) products, facilitating this functionality with a
@@ -69,12 +71,7 @@ class Mbedtls(MakefilePackage):
     # and the 2.x backport: https://github.com/ARMmbed/mbedtls/pull/5133
     patch("fix-dt-needed-shared-libs.patch", when="@2.7:2.27,3.0.0")
 
-    build_type_to_flags = {
-        "Debug": "-O0 -g",
-        "Release": "-O3",
-        "RelWithDebInfo": "-O2 -g",
-        "MinSizeRel": "-Os",
-    }
+    build_system("makefile", "cmake", default="makefile")
 
     # TODO: Can't express this in spack right now; but we can live with
     # libs=shared building both shared and static libs.
@@ -87,6 +84,20 @@ class Mbedtls(MakefilePackage):
             return f"https://github.com/Mbed-TLS/mbedtls/releases/download/v{version}/mbedtls-{version}.tar.bz2"
         # release tags for @2.28.9:2,3.6.1:
         return f"https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-{version}/mbedtls-{version}.tar.bz2"
+
+    @run_after("install")
+    def darwin_fix(self):
+        if self.spec.satisfies("platform=darwin"):
+            fix_darwin_install_name(self.prefix.lib)
+
+
+class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
+    build_type_to_flags = {
+        "Debug": "-O0 -g",
+        "Release": "-O3",
+        "RelWithDebInfo": "-O2 -g",
+        "MinSizeRel": "-Os",
+    }
 
     def flag_handler(self, name, flags):
         # Compile with PIC, if requested.
@@ -106,13 +117,22 @@ class Mbedtls(MakefilePackage):
             # -Wno-format-nonliteral is not supported.
             env.set("WARNING_CFLAGS", "-Wall -Wextra -Wformat=2")
 
-    def build(self, spec, prefix):
-        make("no_test")
+    @property
+    def build_targets(self):
+        return ["no_test"]
 
-    def install(self, spec, prefix):
-        make("install", "DESTDIR={0}".format(prefix))
+    @property
+    def install_targets(self):
+        return ["install", "DESTDIR={0}".format(self.prefix)]
 
-    @run_after("install")
-    def darwin_fix(self):
-        if self.spec.satisfies("platform=darwin"):
-            fix_darwin_install_name(self.prefix.lib)
+
+class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
+    def cmake_args(self):
+        return [
+            self.define(
+                "USE_STATIC_MBEDTLS_LIBRARY", "static" in self.spec.variants["libs"].value
+            ),
+            self.define(
+                "USE_SHARED_MBEDTLS_LIBRARY", "shared" in self.spec.variants["libs"].value
+            ),
+        ]
