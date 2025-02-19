@@ -4849,17 +4849,19 @@ def reconstruct_virtuals_on_edges(spec):
     for node in spec.traverse():
         key = node.dag_hash()
         try:
-            for name, when_deps in node.package.dependencies_by_name(when=True).items():
-                if not spack.repo.PATH.is_virtual(name):
-                    continue
-
-                if any(node.satisfies(x) for x in when_deps):
-                    possible_virtuals[key].add(name)
+            node_pkg = node.package
         except Exception as e:
             warnings.warn(f"cannot reconstruct virtual dependencies on {node.name}: {e}")
             continue
 
-    for edge in spec.traverse_edges():
+        for name, when_deps in node_pkg.dependencies_by_name(when=True).items():
+            if not spack.repo.PATH.is_virtual(name):
+                continue
+
+            if any(node.satisfies(x) for x in when_deps):
+                possible_virtuals[key].add(name)
+
+    for edge in spec.traverse_edges(cover="edges"):
         if edge.parent is None:
             continue
 
