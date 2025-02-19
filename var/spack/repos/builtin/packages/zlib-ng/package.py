@@ -71,7 +71,7 @@ class ZlibNg(AutotoolsPackage, CMakePackage):
 
     def flag_handler(self, name, flags):
         if name == "cflags" and self.spec.satisfies("+pic build_system=autotools"):
-            flags.append(self.compiler.cc_pic_flag)
+            flags.append(self["c"].pic_flag)
         return (flags, None, None)
 
 

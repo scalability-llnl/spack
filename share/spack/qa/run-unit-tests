@@ -60,9 +60,9 @@ fi
 # where it seems that otherwise the configuration file might not be located by subprocesses
 # in some, not better specified, cases.
 if [[ "$UNIT_TEST_COVERAGE" == "true" ]]; then
-  "$(which spack)" unit-test -x --verbose --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml
+  "$(which spack)" unit-test --verbose --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml
 else
-  "$(which spack)" unit-test -x --verbose
+  "$(which spack)" unit-test --verbose
 fi
 
 

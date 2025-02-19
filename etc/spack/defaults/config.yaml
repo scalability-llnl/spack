@@ -19,7 +19,7 @@ config:
   install_tree:
     root: $spack/opt/spack
     projections:
-      all: "{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}"
+      all: "{architecture.platform}-{architecture.target}/{name}-{version}-{hash}"
     # install_tree can include an optional padded length (int or boolean)
     # default is False (do not pad)
     # if padded_length is True, Spack will pad as close to the system max path

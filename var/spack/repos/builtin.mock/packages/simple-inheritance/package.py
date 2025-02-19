@@ -28,3 +28,5 @@ class SimpleInheritance(BaseWithDirectives):
 
     depends_on("openblas", when="+openblas")
     provides("lapack", when="+openblas")
+
+    depends_on("c", type="build")

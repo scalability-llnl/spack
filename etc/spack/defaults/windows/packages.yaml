@@ -15,8 +15,8 @@
 # -------------------------------------------------------------------------
 packages:
   all:
-    compiler:
-    - msvc
     providers:
+      c : [msvc]
+      cxx: [msvc]
       mpi: [msmpi]
       gl: [wgl]

@@ -2,25 +2,22 @@ spack:
   view: false
   packages:
     all:
-      require: target=x86_64_v3
-  definitions:
-    - default_specs:
-      - 'uncrustify build_system=autotools'
-      - 'uncrustify build_system=cmake'
-      - lz4  # MakefilePackage
-      - mpich~fortran  # AutotoolsPackage
-      - py-setuptools  # PythonPackage
-      - openjpeg  # CMakePackage
-      - r-rcpp  # RPackage
-      - ruby-rake  # RubyPackage
-      - perl-data-dumper # PerlPackage
-    - arch:
-      - '%gcc'
+      require:
+      - target=x86_64_v3
+    c:
+      require:
+      - gcc
 
   specs:
-    - matrix:
-        - - $default_specs
-        - - $arch
+  - 'uncrustify build_system=autotools'
+  - 'uncrustify build_system=cmake'
+  - lz4  # MakefilePackage
+  - mpich~fortran  # AutotoolsPackage
+  - py-setuptools  # PythonPackage
+  - openjpeg  # CMakePackage
+  - r-rcpp  # RPackage
+  - ruby-rake  # RubyPackage
+  - perl-data-dumper # PerlPackage
 
   cdash:
     build-group: Build Systems

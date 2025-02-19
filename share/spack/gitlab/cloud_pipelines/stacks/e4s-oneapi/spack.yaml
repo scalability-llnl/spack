@@ -4,22 +4,26 @@ spack:
   concretizer:
     reuse: false
     unify: false
+    static_analysis: false
 
   packages:
     all:
       require:
-      - "target=x86_64_v3"
-      - "%oneapi"
+      - target=x86_64_v3
+      - '%oneapi'
       providers:
+        c: [intel-oneapi-compilers, gcc]
+        cxx: [intel-oneapi-compilers, gcc]
+        fortran: [intel-oneapi-compilers, gcc]
         blas: [openblas]
         tbb: [intel-tbb]
       variants: +mpi
     gl:
       require: osmesa
+    fortran:
+      require: intel-oneapi-compilers
     elfutils:
       variants: ~nls
-    gcc-runtime:
-      require: "%gcc target=x86_64_v3"
     hdf5:
       variants: +fortran +hl +shared
     libfabric:
@@ -31,39 +35,46 @@ spack:
     openblas:
       variants: threads=openmp
     trilinos:
-      variants: +amesos +amesos2 +anasazi +aztec +belos +boost +epetra +epetraext
-        +ifpack +ifpack2 +intrepid +intrepid2 +isorropia +kokkos +ml +minitensor +muelu
-        +nox +piro +phalanx +rol +rythmos +sacado +stk +shards +shylu +stokhos +stratimikos
-        +teko +tempus +tpetra +trilinoscouplings +zoltan +zoltan2 +superlu-dist gotype=long_long
+      variants: +amesos +amesos2 +anasazi +aztec +belos +boost +epetra +epetraext +ifpack +ifpack2 +intrepid +intrepid2 +isorropia +kokkos +ml +minitensor +muelu +nox +piro +phalanx +rol +rythmos +sacado +stk +shards +shylu +stokhos +stratimikos +teko +tempus +tpetra +trilinoscouplings +zoltan +zoltan2 +superlu-dist gotype=long_long
     xz:
       variants: +pic
     mpi:
-      require: 'mpich@4: target=x86_64_v3'
+      require:
+      - 'mpich@4: target=x86_64_v3'
     mpich:
-      require: '~wrapperrpath ~hwloc target=x86_64_v3'
+      require:
+      - ~wrapperrpath ~hwloc target=x86_64_v3
     unzip:
-      require: '%gcc target=x86_64_v3'
+      require:
+      - '%gcc target=x86_64_v3'
     binutils:
-      require: '%gcc target=x86_64_v3'
+      require:
+      - '%gcc target=x86_64_v3'
       variants: +ld +gold +headers +libiberty ~nls
     llvm:
-      require: '%gcc target=x86_64_v3'
+      require:
+      - '%gcc target=x86_64_v3'
     ruby:
-      require: '%gcc target=x86_64_v3'
+      require:
+      - '%gcc target=x86_64_v3'
     rust:
-      require: '%gcc target=x86_64_v3'
+      require:
+      - '%gcc target=x86_64_v3'
     krb5:
-      require: '%gcc target=x86_64_v3'
-    papi:
-      require: '%gcc target=x86_64_v3'
+      require:
+      - '%gcc target=x86_64_v3'
     openssh:
-      require: '%gcc target=x86_64_v3'
+      require:
+      - '%gcc target=x86_64_v3'
     dyninst:
-      require: "%gcc target=x86_64_v3"
+      require:
+      - '%gcc target=x86_64_v3'
     bison:
-      require: '%gcc target=x86_64_v3'
+      require:
+      - '%gcc target=x86_64_v3'
     paraview:
-      require: "+examples %oneapi target=x86_64_v3"
+      require:
+      - +examples target=x86_64_v3
 
   specs:
   # CPU

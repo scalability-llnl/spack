@@ -7,7 +7,9 @@ import os
 import re
 import sys
 
-import spack.compilers
+import llnl.util.tty as tty
+
+import spack.compilers.config
 from spack.package import *
 
 
@@ -401,9 +403,9 @@ class Openmpi(AutotoolsPackage, CudaPackage):
         "1.0", sha256="cf75e56852caebe90231d295806ac3441f37dc6d9ad17b1381791ebb78e21564"
     )  # libmpi.so.0.0.0
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
 
     patch("ad_lustre_rwcontig_open_source.patch", when="@1.6.5")
     patch("llnl-platforms.patch", when="@1.6.5")
@@ -898,10 +900,16 @@ with '-Wl,-commons,use_dylibs' and without
     def setup_dependent_build_environment(self, env, dependent_spec):
         # Use the spack compiler wrappers under MPI
         dependent_module = dependent_spec.package.module
-        env.set("OMPI_CC", dependent_module.spack_cc)
-        env.set("OMPI_CXX", dependent_module.spack_cxx)
-        env.set("OMPI_FC", dependent_module.spack_fc)
-        env.set("OMPI_F77", dependent_module.spack_f77)
+        for var_name, attr_name in (
+            ("OMPI_CC", "spack_cc"),
+            ("OMPI_CXX", "spack_cxx"),
+            ("OMPI_FC", "spack_fc"),
+            ("OMPI_F77", "spack_f77"),
+        ):
+            if not hasattr(dependent_module, attr_name):
+                continue
+
+            env.set(var_name, getattr(dependent_module, attr_name))
 
         # See https://www.open-mpi.org/faq/?category=building#installdirs
         for suffix in [
@@ -971,37 +979,37 @@ with '-Wl,-commons,use_dylibs' and without
     def with_or_without_fca(self, activated):
         if not activated:
             return "--without-fca"
-        return "--with-fca={0}".format(self.spec["fca"].prefix)
+        return f"--with-fca={self.spec['fca'].prefix}"
 
     def with_or_without_hcoll(self, activated):
         if not activated:
             return "--without-hcoll"
-        return "--with-hcoll={0}".format(self.spec["hcoll"].prefix)
+        return f"--with-hcoll={self.spec['hcoll'].prefix}"
 
     def with_or_without_ucc(self, activated):
         if not activated:
             return "--without-ucc"
-        return "--with-ucc={0}".format(self.spec["ucc"].prefix)
+        return f"--with-ucc={self.spec['ucc'].prefix}"
 
     def with_or_without_xpmem(self, activated):
         if not activated:
             return "--without-xpmem"
-        return "--with-xpmem={0}".format(self.spec["xpmem"].prefix)
+        return f"--with-xpmem={self.spec['xpmem'].prefix}"
 
     def with_or_without_knem(self, activated):
         if not activated:
             return "--without-knem"
-        return "--with-knem={0}".format(self.spec["knem"].prefix)
+        return f"--with-knem={self.spec['knem'].prefix}"
 
     def with_or_without_lsf(self, activated):
         if not activated:
             return "--without-lsf"
-        return "--with-lsf={0}".format(self.spec["lsf"].prefix)
+        return f"--with-lsf={self.spec['lsf'].prefix}"
 
     def with_or_without_tm(self, activated):
         if not activated:
             return "--without-tm"
-        return "--with-tm={0}".format(self.spec["pbs"].prefix)
+        return f"--with-tm={self.spec['pbs'].prefix}"
 
     @run_before("autoreconf")
     def die_without_fortran(self):
@@ -1351,7 +1359,7 @@ with '-Wl,-commons,use_dylibs' and without
 
 
 def get_spack_compiler_spec(compiler):
-    spack_compilers = spack.compilers.find_compilers([os.path.dirname(compiler)])
+    spack_compilers = spack.compilers.config.find_compilers([os.path.dirname(compiler)])
     actual_compiler = None
     # check if the compiler actually matches the one we want
     for spack_compiler in spack_compilers:

@@ -79,10 +79,15 @@ class CrayMpich(MpichEnvironmentModifications, Package, CudaPackage, ROCmPackage
             self.setup_mpi_wrapper_variables(env)
             return
 
-        env.set("MPICC", self.compiler.cc)
-        env.set("MPICXX", self.compiler.cxx)
-        env.set("MPIFC", self.compiler.fc)
-        env.set("MPIF77", self.compiler.f77)
+        if self.spec.dependencies(virtuals=("c",)):
+            env.set("MPICC", self["c"].cc)
+
+        if self.spec.dependencies(virtuals=("cxx",)):
+            env.set("MPICXX", self["cxx"].cxx)
+
+        if self.spec.dependencies(virtuals=("fortran",)):
+            env.set("MPIFC", self["fortran"].fc)
+            env.set("MPIF77", self["fortran"].fc)
 
     def setup_dependent_package(self, module, dependent_spec):
         spec = self.spec

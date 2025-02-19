@@ -26,7 +26,8 @@ class Hztool(AutotoolsPackage):
     version("4.1", sha256="a24b5d483d1dacaa991958956e838601a426133c74885b3aa2fc27c98b42d22a")
     version("4.0", sha256="e6f6955159da46156bf9182f61754a59dd14e407d40c2448e3f821d55bf963a0")
 
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("fortran", type="build")
 
     def patch(self):
         filter_file("-fno-automatic", "-fno-automatic -fallow-argument-mismatch", "configure.ac")

@@ -240,8 +240,8 @@ class ProviderIndex(_IndexBase):
         index.providers = _transform(
             providers,
             lambda vpkg, plist: (
-                spack.spec.SpecfileV4.from_node_dict(vpkg),
-                set(spack.spec.SpecfileV4.from_node_dict(p) for p in plist),
+                spack.spec.SpecfileLatest.from_node_dict(vpkg),
+                set(spack.spec.SpecfileLatest.from_node_dict(p) for p in plist),
             ),
         )
         return index

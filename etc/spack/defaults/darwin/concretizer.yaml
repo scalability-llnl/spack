@@ -1,0 +1,2 @@
+concretizer:
+  static_analysis: true

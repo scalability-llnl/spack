@@ -177,7 +177,7 @@ class CDash(Reporter):
         # something went wrong pre-cdash "configure" phase b/c we have an exception and only
         # "update" was encounterd.
         # dump the report in the configure line so teams can see what the issue is
-        if len(phases_encountered) == 1 and package["exception"]:
+        if len(phases_encountered) == 1 and package.get("exception"):
             # TODO this mapping is not ideal since these are pre-configure errors
             # we need to determine if a more appropriate cdash phase can be utilized
             # for now we will add a message to the log explaining this

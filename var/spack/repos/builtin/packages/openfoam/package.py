@@ -918,7 +918,12 @@ class OpenfoamArch:
 
     #: Map spack compiler names to OpenFOAM compiler names
     #  By default, simply capitalize the first letter
-    compiler_mapping = {"aocc": "Amd", "fj": "Fujitsu", "intel": "Icc", "oneapi": "Icx"}
+    compiler_mapping = {
+        "aocc": "Amd",
+        "fj": "Fujitsu",
+        "intel": "Icc",
+        "intel-oneapi-compilers": "Icx",
+    }
 
     def __init__(self, spec, **kwargs):
         # Some user settings, to be adjusted manually or via variants
