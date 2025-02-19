@@ -15,10 +15,13 @@ class Doxygen(CMakePackage):
     extent D.."""
 
     homepage = "https://www.doxygen.org"
-    url = "https://github.com/doxygen/doxygen/archive/refs/tags/Release_1_9_5.tar.gz"
+    url = "https://github.com/doxygen/doxygen/archive/refs/tags/Release_1_13_2.tar.gz"
 
     license("GPL-2.0-or-later")
 
+    version("1.13.2", sha256="4c9d9c8e95c2af4163ee92bcb0f3af03b2a4089402a353e4715771e8d3701c48")
+    version("1.13.1", sha256="16632b5052e0e5f8acbcfc80aaf37f0e445e777ca68aab0df136a68fa855d91c")
+    version("1.13.0", sha256="f447f6d3dce91e70d323611fc5e1b15dfff705093eddbe8f36f2d9b10d99743d")
     version("1.12.0", sha256="5ca35e1258020df5fe8b21c3656aed156c317def4a81b7fe52f452edc9f35768")
     version("1.11.0", sha256="1fea49c69e51fec3dd2599947f6d48d9b1268bd5115b1bb08dffefc1fd5d19ee")
     version("1.10.0", sha256="795692a53136ca9bb9a6cd72656968af7858a78be7d6d011e12ab1dce6b9533c")

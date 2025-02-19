@@ -34,7 +34,7 @@ class PyAwkwardCpp(PythonPackage):
 
     depends_on("python@3.7:", type=("build", "run"))
     depends_on("python@3.8:", type=("build", "run"), when="@19:")
-    depends_on("py-scikit-build-core@0.2.0:+pyproject", when="@11:", type="build")
+    depends_on("py-scikit-build-core@0.2.0:+pyproject", when="@10:", type="build")
     depends_on("py-pybind11", type=("build", "link"))
     depends_on("py-numpy@1.17.0:", when="@12:", type=("build", "run"))
     depends_on("py-numpy@1.18.0:", when="@19:", type=("build", "run"))

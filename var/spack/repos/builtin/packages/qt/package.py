@@ -6,8 +6,6 @@ import os
 import platform
 import sys
 
-import llnl.util.tty as tty
-
 from spack.operating_systems.linux_distro import kernel_version
 from spack.operating_systems.mac_os import macos_version
 from spack.package import *
@@ -208,6 +206,8 @@ class Qt(Package):
             depends_on("assimp@5.0.0:5", when="@5.5:+opengl")
             depends_on("sqlite+column_metadata", when="+sql", type=("build", "run"))
             depends_on("inputproto", when="@:5.8")
+            depends_on("gmake", type="build")
+
     for plat in ["linux", "freebsd"]:
         with when(f"platform={plat} +gui"):
             depends_on("fontconfig")

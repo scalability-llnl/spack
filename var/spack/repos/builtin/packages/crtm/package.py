@@ -51,6 +51,9 @@ class Crtm(CMakePackage):
     license("CC0-1.0")
 
     version(
+        "v3.1.1-build1", sha256="1ed49e594da5d3769cbaa52cc7fc19c1bb0325ee6324f6057227c31e2d95ca67"
+    )
+    version(
         "v3.1.0-skylabv8",
         sha256="a475c8a444072aef1e8c2babba3d12f13ab0fb6c7ecab88edad57130839e29ff",
     )
@@ -80,8 +83,9 @@ class Crtm(CMakePackage):
     depends_on("fortran", type="build")  # generated
 
     def url_for_version(self, version):
-        if self.spec.satisfies("@v3") or version >= Version("3.0.0"):
-            return f"https://github.com/JCSDA/crtmv3/archive/refs/tags/{version}.tar.gz"
+        if version > Version("v3") or version >= Version("3"):
+            fmtversion = str(version).replace("-build", "+build")
+            return f"https://github.com/JCSDA/CRTMv3/archive/refs/tags/{fmtversion}.tar.gz"
         else:
             return f"https://github.com/JCSDA/crtm/archive/refs/tags/{version}.tar.gz"
 

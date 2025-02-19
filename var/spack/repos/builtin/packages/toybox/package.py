@@ -16,6 +16,7 @@ class Toybox(MakefilePackage):
 
     license("0BSD", checked_by="Buldram")
 
+    version("0.8.12", sha256="ad88a921133ae2231d9f2df875ec0bd42af4429145caea7d7db9e02208a6fd2e")
     version("0.8.11", sha256="15aa3f832f4ec1874db761b9950617f99e1e38144c22da39a71311093bfe67dc")
     version("0.8.10", sha256="d3afee05ca90bf425ced73f527e418fecd626c5340b5f58711a14531f8d7d108")
     version("0.8.9", sha256="06913dde3de7139b40f947bd7f23869dfc8796e9c6ff39de02719f8b7b2d47ad")
@@ -46,7 +47,7 @@ class Toybox(MakefilePackage):
     depends_on("bash", type="build")
     depends_on("sed", type="build")
     depends_on("openssl", type="link", when="+ssl")
-    depends_on("zlib", type="link", when="+zlib")
+    depends_on("zlib-api", type="link", when="+zlib")
 
     # CVE-2022-32298
     patch(
@@ -54,7 +55,7 @@ class Toybox(MakefilePackage):
         sha256="2c6ffad53102db23b620fd883636daad15c70a08c72f802a1fbcf96c331280cc",
         when="@=0.8.7",
     )
-
+    # Fixes segfaults when building with more recent toolchains.
     patch(
         "https://github.com/landley/toybox/commit/78289203031afc23585035c362beec10db54958d.patch?full_index=1",
         sha256="a27a831eb80f9d46809f619b52018eb2e481758581f7a6932423b95422f23911",
@@ -68,7 +69,7 @@ class Toybox(MakefilePackage):
             env.set("V", 1)  # Verbose
 
         if self.spec.satisfies("+static"):
-            env.set("LDFLAGS", "--static")
+            env.append_flags("LDFLAGS", "--static")
 
     def edit(self, spec, prefix):
         if spec.satisfies("platform=darwin"):

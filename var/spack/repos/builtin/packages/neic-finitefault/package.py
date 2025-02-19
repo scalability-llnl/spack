@@ -73,6 +73,7 @@ class NeicFinitefault(PythonPackage):
     depends_on("proj@=9.2.0", type=("build", "run"))
     # not a direct dep, but we do need gdal to have these variants
     depends_on("gdal+jpeg+jxl+openjpeg", type=("build", "run"))
+    depends_on("gmake", type="build")
 
     parallel = False
 

@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import re
 import subprocess
 import sys
 
@@ -136,6 +137,14 @@ class NodeJs(Package):
     # See https://github.com/nodejs/node/pull/53728
     # and https://github.com/nodejs/node/issues/53633
     patch("fix-broken-gcc12-pr53728.patch", when="@22.2:22.5")
+
+    executables = ["^node$"]
+
+    @classmethod
+    def determine_version(cls, exe):
+        output = Executable(exe)("--version", output=str, error=str)
+        match = re.match(r"v([\d.]+)\s*", output)
+        return match.group(1) if match else None
 
     def setup_build_environment(self, env):
         # Force use of experimental Python 3 support

@@ -81,6 +81,10 @@ jobs:
     with:
       with_coverage: ${{ needs.changes.outputs.core }}
 
+  import-check:
+    needs: [ changes ]
+    uses: ./.github/workflows/import-check.yaml
+
   all-prechecks:
     needs: [ prechecks ]
     if: ${{ always() }}

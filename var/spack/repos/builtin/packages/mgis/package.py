@@ -70,6 +70,7 @@ class Mgis(CMakePackage):
     depends_on("tfel@3.3.0", when="@1.1")
     depends_on("tfel@3.2.1", when="@1.0.1")
     depends_on("tfel@3.2.0", when="@1.0")
+    depends_on("tfel@rliv-5.0", when="@rliv-3.0")
     depends_on("tfel@rliv-4.2", when="@rliv-2.2")
     depends_on("tfel@rliv-4.1", when="@rliv-2.1")
     depends_on("tfel@rliv-4.0", when="@rliv-2.0")
@@ -77,10 +78,21 @@ class Mgis(CMakePackage):
     depends_on("tfel@rliv-3.3", when="@rliv-1.1")
     depends_on("tfel@rliv-3.2", when="@rliv-1.0")
     depends_on("tfel@master", when="@master")
-    depends_on(
-        "boost+python+numpy+exception+container", when="+python", type=("build", "link", "run")
-    )
+
     depends_on("py-numpy", when="+python", type=("build", "link", "run"))
+
+    with when("@3.1:"):
+        depends_on("py-pybind11", when="+python", type=("build", "link", "run"))
+
+    with when("@1.0:3.0.99"):
+        depends_on(
+            "boost+python+numpy+exception+container", when="+python", type=("build", "link", "run")
+        )
+
+    with when("@rliv-1.0:rliv-3.0"):
+        depends_on(
+            "boost+python+numpy+exception+container", when="+python", type=("build", "link", "run")
+        )
 
     extends("python", when="+python")
 
@@ -113,8 +125,13 @@ class Mgis(CMakePackage):
             args.append("-DPYTHON_LIBRARY={0}".format(python.libs[0]))
             args.append("-DPYTHON_INCLUDE_DIR={0}".format(python.headers.directories[0]))
             args.append("-DPython_ADDITIONAL_VERSIONS={0}".format(python.version.up_to(2)))
-            # adding path to boost
-            args.append("-DBOOST_ROOT={0}".format(self.spec["boost"].prefix))
+
+            if "py-pybind11" in self.spec:
+                args.append("-Dpybind11_DIR={0}".format(self.spec["py-pybind11"].prefix))
+
+            if "boost" in self.spec:
+                # adding path to boost
+                args.append("-DBOOST_ROOT={0}".format(self.spec["boost"].prefix))
 
         if "+static" in self.spec:
             args.append("-Denable-static=ON")

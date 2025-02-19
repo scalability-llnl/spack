@@ -23,6 +23,7 @@ class Libwhich(Package):
     version("1.0.0", sha256="61d5d643d4cbd4b340b9b48922e1b4fd2a35729b7cfdcc7283aab82a6f742a6c")
 
     depends_on("c", type="build")  # generated
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         make()

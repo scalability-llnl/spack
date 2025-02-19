@@ -35,6 +35,7 @@ class Vmd(Package):
     depends_on("libxinerama", type=("run", "link"))
     depends_on("gl@3:", type=("run", "link"))
     depends_on("patchelf", type="build")
+    depends_on("gmake", type="build")
 
     def setup_build_environment(self, env):
         env.set("VMDINSTALLBINDIR", self.prefix.bin)

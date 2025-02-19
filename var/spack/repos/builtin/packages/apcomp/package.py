@@ -6,8 +6,6 @@
 import os
 import socket
 
-import llnl.util.tty as tty
-
 from spack.build_systems.cmake import CMakeBuilder
 from spack.package import *
 
@@ -55,6 +53,7 @@ class Apcomp(Package):
     depends_on("cmake@3.9:", type="build")
     depends_on("mpi", when="+mpi")
     depends_on("llvm-openmp", when="+openmp %apple-clang")
+    depends_on("gmake", type="build")
 
     root_cmakelists_dir = "src"
 

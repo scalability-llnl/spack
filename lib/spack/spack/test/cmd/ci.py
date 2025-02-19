@@ -5,7 +5,6 @@ import json
 import os
 import pathlib
 import shutil
-from io import BytesIO
 from typing import NamedTuple
 
 import jsonschema
@@ -18,6 +17,7 @@ import spack.binary_distribution
 import spack.ci as ci
 import spack.cmd
 import spack.cmd.ci
+import spack.concretize
 import spack.environment as ev
 import spack.hash_types as ht
 import spack.main
@@ -27,9 +27,11 @@ from spack.ci import gitlab as gitlab_generator
 from spack.ci.common import PipelineDag, PipelineOptions, SpackCIConfig
 from spack.ci.generator_registry import generator
 from spack.cmd.ci import FAILED_CREATE_BUILDCACHE_CODE
+from spack.database import INDEX_JSON_FILE
 from spack.schema.buildcache_spec import schema as specfile_schema
 from spack.schema.database_index import schema as db_idx_schema
 from spack.spec import Spec
+from spack.test.conftest import MockHTTPResponse
 
 config_cmd = spack.main.SpackCommand("config")
 ci_cmd = spack.main.SpackCommand("ci")
@@ -237,7 +239,7 @@ spack:
     # That fake token should have resulted in being unable to
     # register build group with cdash, but the workload should
     # still have been generated.
-    assert "Problem populating buildgroup" in output
+    assert "Failed to create or retrieve buildgroups" in output
     expected_keys = ["rebuild-index", "stages", "variables", "workflow"]
     assert all([key in yaml_contents.keys() for key in expected_keys])
 
@@ -327,14 +329,14 @@ def test_ci_generate_pkg_with_deps(ci_generate_test, tmp_path, ci_base_environme
         f"""\
 spack:
   specs:
-    - flatten-deps
+    - dependent-install
   mirrors:
     buildcache-destination: {tmp_path / 'ci-mirror'}
   ci:
     pipeline-gen:
     - submapping:
       - match:
-          - flatten-deps
+          - dependent-install
         build-job:
           tags:
             - donotcare
@@ -353,12 +355,12 @@ spack:
             assert "stage" in ci_obj
             assert ci_obj["stage"] == "stage-0"
             found.append("dependency-install")
-        if "flatten-deps" in ci_key:
+        if "dependent-install" in ci_key:
             assert "stage" in ci_obj
             assert ci_obj["stage"] == "stage-1"
-            found.append("flatten-deps")
+            found.append("dependent-install")
 
-    assert "flatten-deps" in found
+    assert "dependent-install" in found
     assert "dependency-install" in found
 
 
@@ -370,14 +372,14 @@ def test_ci_generate_for_pr_pipeline(ci_generate_test, tmp_path, monkeypatch):
         f"""\
 spack:
   specs:
-    - flatten-deps
+    - dependent-install
   mirrors:
     buildcache-destination: {tmp_path / 'ci-mirror'}
   ci:
     pipeline-gen:
     - submapping:
       - match:
-          - flatten-deps
+          - dependent-install
         build-job:
           tags:
             - donotcare
@@ -846,7 +848,7 @@ spack:
 
             # Test generating buildcache index while we have bin mirror
             buildcache_cmd("update-index", mirror_url)
-            with open(mirror_dir / "build_cache" / "index.json", encoding="utf-8") as idx_fd:
+            with open(mirror_dir / "build_cache" / INDEX_JSON_FILE, encoding="utf-8") as idx_fd:
                 index_object = json.load(idx_fd)
                 jsonschema.validate(index_object, db_idx_schema)
 
@@ -897,7 +899,7 @@ def test_ci_generate_override_runner_attrs(
         f"""\
 spack:
   specs:
-    - flatten-deps
+    - dependent-install
     - pkg-a
   mirrors:
     buildcache-destination: {tmp_path / "ci-mirror"}
@@ -906,7 +908,7 @@ spack:
     - match_behavior: {match_behavior}
       submapping:
         - match:
-            - flatten-deps
+            - dependent-install
           build-job:
             tags:
               - specific-one
@@ -1004,8 +1006,8 @@ spack:
             assert the_elt["script"][0] == "main step"
             assert len(the_elt["after_script"]) == 1
             assert the_elt["after_script"][0] == "post step one"
-        if "flatten-deps" in ci_key:
-            # The flatten-deps match specifies that we keep the two
+        if "dependent-install" in ci_key:
+            # The dependent-install match specifies that we keep the two
             # top level variables, but add a third specifc one.  It
             # also adds a custom tag which should be combined with
             # the top-level tag.
@@ -1056,7 +1058,7 @@ spack:
     with working_dir(tmp_path):
         env_cmd("create", "test", "./spack.yaml")
         with ev.read("test"):
-            concrete_spec = Spec("callpath").concretized()
+            concrete_spec = spack.concretize.concretize_one("callpath")
             with open(tmp_path / "spec.json", "w", encoding="utf-8") as f:
                 f.write(concrete_spec.to_json(hash=ht.dag_hash))
 
@@ -1064,7 +1066,7 @@ spack:
             buildcache_cmd("push", "-u", "-f", mirror_url, "callpath")
             ci_cmd("rebuild-index")
 
-            with open(mirror_dir / "build_cache" / "index.json", encoding="utf-8") as f:
+            with open(mirror_dir / "build_cache" / INDEX_JSON_FILE, encoding="utf-8") as f:
                 jsonschema.validate(json.load(f), db_idx_schema)
 
 
@@ -1177,17 +1179,15 @@ def test_ci_generate_read_broken_specs_url(
     ci_base_environment,
 ):
     """Verify that `broken-specs-url` works as intended"""
-    spec_a = Spec("pkg-a")
-    spec_a.concretize()
+    spec_a = spack.concretize.concretize_one("pkg-a")
     a_dag_hash = spec_a.dag_hash()
 
-    spec_flattendeps = Spec("flatten-deps")
-    spec_flattendeps.concretize()
+    spec_flattendeps = spack.concretize.concretize_one("dependent-install")
     flattendeps_dag_hash = spec_flattendeps.dag_hash()
 
     broken_specs_url = tmp_path.as_uri()
 
-    # Mark 'a' as broken (but not 'flatten-deps')
+    # Mark 'a' as broken (but not 'dependent-install')
     broken_spec_a_url = "{0}/{1}".format(broken_specs_url, a_dag_hash)
     job_stack = "job_stack"
     a_job_url = "a_job_url"
@@ -1201,7 +1201,7 @@ def test_ci_generate_read_broken_specs_url(
             f"""\
 spack:
   specs:
-    - flatten-deps
+    - dependent-install
     - pkg-a
   mirrors:
     buildcache-destination: {(tmp_path / "ci-mirror").as_uri()}
@@ -1211,7 +1211,7 @@ spack:
     - submapping:
       - match:
           - pkg-a
-          - flatten-deps
+          - dependent-install
           - pkg-b
           - dependency-install
         build-job:
@@ -1234,7 +1234,7 @@ spack:
             )
             assert expected in output
 
-            not_expected = f"flatten-deps/{flattendeps_dag_hash[:7]} (in stack"
+            not_expected = f"dependent-install/{flattendeps_dag_hash[:7]} (in stack"
             assert not_expected not in output
 
 
@@ -1447,7 +1447,7 @@ spack:
   include: [{configs_path}]
   view: false
   specs:
-    - flatten-deps
+    - dependent-install
   mirrors:
     buildcache-destination: {tmp_path / "ci-mirror"}
   ci:
@@ -1533,8 +1533,7 @@ spack:
 """
         )
 
-    spec_a = Spec("pkg-a")
-    spec_a.concretize()
+    spec_a = spack.concretize.concretize_one("pkg-a")
 
     return gitlab_generator.get_job_name(spec_a)
 
@@ -1549,10 +1548,10 @@ def test_ci_dynamic_mapping_empty(
     ci_base_environment,
 ):
     # The test will always return an empty dictionary
-    def fake_dyn_mapping_urlopener(*args, **kwargs):
-        return BytesIO("{}".encode())
+    def _urlopen(*args, **kwargs):
+        return MockHTTPResponse.with_json(200, "OK", headers={}, body={})
 
-    monkeypatch.setattr(ci.common, "_dyn_mapping_urlopener", fake_dyn_mapping_urlopener)
+    monkeypatch.setattr(ci.common, "_urlopen", _urlopen)
 
     _ = dynamic_mapping_setup(tmpdir)
     with tmpdir.as_cwd():
@@ -1573,15 +1572,15 @@ def test_ci_dynamic_mapping_full(
     monkeypatch,
     ci_base_environment,
 ):
-    # The test will always return an empty dictionary
-    def fake_dyn_mapping_urlopener(*args, **kwargs):
-        return BytesIO(
-            json.dumps(
-                {"variables": {"MY_VAR": "hello"}, "ignored_field": 0, "unallowed_field": 0}
-            ).encode()
+    def _urlopen(*args, **kwargs):
+        return MockHTTPResponse.with_json(
+            200,
+            "OK",
+            headers={},
+            body={"variables": {"MY_VAR": "hello"}, "ignored_field": 0, "unallowed_field": 0},
         )
 
-    monkeypatch.setattr(ci.common, "_dyn_mapping_urlopener", fake_dyn_mapping_urlopener)
+    monkeypatch.setattr(ci.common, "_urlopen", _urlopen)
 
     label = dynamic_mapping_setup(tmpdir)
     with tmpdir.as_cwd():

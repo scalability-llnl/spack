@@ -1,0 +1,13 @@
+diff --git a/compiler/util/files.cpp b/compiler/util/files.cpp
+index 4183614988..9746baf935 100644
+--- a/compiler/util/files.cpp
++++ b/compiler/util/files.cpp
+@@ -211,7 +211,7 @@ void restoreDriverTmp(const char* tmpFilePath,
+
+   fileinfo* tmpFile = openTmpFile(tmpFilePath, "r");
+
+-  char strBuf[4096];
++  char strBuf[8192];
+   while (fgets(strBuf, sizeof(strBuf), tmpFile->fptr)) {
+     // Note: Using strlen here (instead of strnlen) is safe because fgets
+     // guarantees null termination.

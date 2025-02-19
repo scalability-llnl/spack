@@ -125,7 +125,7 @@ def check_expand_archive(stage, stage_name, expected_file_list):
 
         assert os.path.isfile(fn)
         with open(fn, encoding="utf-8") as _file:
-            _file.read() == contents
+            assert _file.read() == contents
 
 
 def check_fetch(stage, stage_name):

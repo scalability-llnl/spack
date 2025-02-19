@@ -406,6 +406,8 @@ class ArmplGcc(Package):
     provides("lapack")
     provides("fftw-api@3")
 
+    depends_on("gmake", type="build")
+
     # Run the installer with the desired install directory
     def install(self, spec, prefix):
         if spec.platform == "darwin":

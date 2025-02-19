@@ -84,10 +84,10 @@ class Openvdb(CMakePackage):
                 pyso = "pyopenvdb.dylib"
             else:
                 pyso = "pyopenvdb.so"
-            pyver = "python{0}".format(spec["python"].package.version.up_to(2))
+            pyver = f"python{self['python'].version.up_to(2)}"
 
-            src = prefix.lib.join(pyver).join(pyso)
+            src = self.prefix.lib.join(pyver).join(pyso)
             if not os.path.isfile(src):
-                src = prefix.lib64.join(pyver).join(pyso)
+                src = self.prefix.lib64.join(pyver).join(pyso)
             assert os.path.isfile(src)
             os.rename(src, os.path.join(python_platlib, pyso))

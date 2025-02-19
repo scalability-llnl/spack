@@ -20,6 +20,7 @@ class Mummer(Package):
 
     depends_on("gnuplot")
     depends_on("perl", type=("build", "run"))
+    depends_on("gmake", type="build")
 
     patch("Makefile.patch")
     patch("scripts-Makefile.patch")

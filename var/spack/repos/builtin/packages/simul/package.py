@@ -20,6 +20,7 @@ class Simul(Package):
     depends_on("c", type="build")  # generated
 
     depends_on("mpi")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         filter_file("mpicc", "$(MPICC)", "Makefile", string=True)

@@ -542,6 +542,7 @@ class SimmetrixSimmodsuite(Package):
 
     depends_on("mpi")
     depends_on("libtirpc", type="link")
+    depends_on("gmake", type="build")
 
     oslib = "x64_rhel8_gcc83"
 

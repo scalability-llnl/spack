@@ -154,3 +154,35 @@ def test_gzip_compressed_tarball_is_reproducible(tmpdir):
                 == spack.util.crypto.checksum_stream(hashlib.sha256, f)
                 == spack.util.crypto.checksum_stream(hashlib.sha256, g)
             )
+
+
+def test_reproducible_tarfile_from_prefix_path_to_name(tmp_path: Path):
+    prefix = tmp_path / "example"
+    prefix.mkdir()
+    (prefix / "file1").write_bytes(b"file")
+    (prefix / "file2").write_bytes(b"file")
+
+    def map_prefix(path: str) -> str:
+        """maps <prefix>/<path> to some/common/prefix/<path>"""
+        p = PurePath(path)
+        assert p.parts[: len(prefix.parts)] == prefix.parts, f"{path} is not under {prefix}"
+        return PurePath("some", "common", "prefix", *p.parts[len(prefix.parts) :]).as_posix()
+
+    with tarfile.open(tmp_path / "example.tar", "w") as tar:
+        reproducible_tarfile_from_prefix(
+            tar,
+            str(tmp_path / "example"),
+            include_parent_directories=True,
+            path_to_name=map_prefix,
+        )
+
+    with tarfile.open(tmp_path / "example.tar", "r") as tar:
+        assert [t.name for t in tar.getmembers() if t.isdir()] == [
+            "some",
+            "some/common",
+            "some/common/prefix",
+        ]
+        assert [t.name for t in tar.getmembers() if t.isfile()] == [
+            "some/common/prefix/file1",
+            "some/common/prefix/file2",
+        ]

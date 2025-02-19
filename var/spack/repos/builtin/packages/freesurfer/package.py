@@ -6,7 +6,6 @@ import glob
 import os
 
 from spack.package import *
-from spack.util.environment import EnvironmentModifications
 
 
 class Freesurfer(Package):

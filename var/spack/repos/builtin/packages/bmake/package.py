@@ -20,6 +20,7 @@ class Bmake(Package):
     version("20171207", sha256="1703667e53a0498c0903b20612ebcbb41b886a94b238624cfeadd91a4111d39a")
 
     depends_on("c", type="build")  # generated
+    depends_on("gmake", type="build")
 
     def patch(self):
         # Do not pre-roff cat pages

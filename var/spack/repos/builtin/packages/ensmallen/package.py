@@ -20,15 +20,17 @@ class Ensmallen(CMakePackage):
 
     license("BSD-3-Clause")
 
+    version("2.22.1", sha256="daf53fe96783043ca33151a3851d054a826fab8d9a173e6bcbbedd4a7eabf5b1")
     version("2.21.1", sha256="820eee4d8aa32662ff6a7d883a1bcaf4e9bf9ca0a3171d94c5398fe745008750")
     version("2.19.1", sha256="f36ad7f08b0688d2a8152e1c73dd437c56ed7a5af5facf65db6ffd977b275b2e")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("cxx", type="build")
 
     variant("openmp", default=True, description="Use OpenMP for parallelization")
 
     depends_on("cmake@3.3.2:")
     depends_on("armadillo@9.800.0:")
+    depends_on("armadillo@10.8.2:", when="@2.22:")
 
     def cmake_args(self):
         args = [self.define_from_variant("USE_OPENMP", "openmp")]

@@ -22,7 +22,7 @@ class Typst(CargoPackage):
 
     depends_on("rust@1.81.0:")
     depends_on("openssl")
-    depends_on("pkgconf", type="build")
+    depends_on("pkgconfig", type="build")
 
     @classmethod
     def determine_version(cls, exe):

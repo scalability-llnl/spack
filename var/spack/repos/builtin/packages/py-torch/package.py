@@ -24,6 +24,7 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     maintainers("adamjstewart")
 
     version("main", branch="main")
+    version("2.6.0", tag="v2.6.0", commit="1eba9b3aa3c43f86f4a2c807ac8e12c4a7767340")
     version("2.5.1", tag="v2.5.1", commit="a8d6afb511a69687bbb2b7e88a3cf67917e1697e")
     version("2.5.0", tag="v2.5.0", commit="32f585d9346e316e554c8d9bf7548af9f62141fc")
     version("2.4.1", tag="v2.4.1", commit="ee1b6804381c57161c477caa380a840a84167676")
@@ -107,13 +108,18 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     variant("ucc", default=False, description="Use UCC", when="@1.13: +distributed")
     variant("gloo", default=True, description="Use Gloo", when="+distributed")
     variant("tensorpipe", default=True, description="Use TensorPipe", when="@1.6: +distributed")
-    variant("onnx_ml", default=True, description="Enable traditional ONNX ML API", when="@1.5:")
     variant(
         "breakpad",
         default=True,
         description="Enable breakpad crash dump library",
         when="@1.10:1.11",
     )
+    # Flash attention has very high memory requirements that may cause the build to fail
+    # https://github.com/pytorch/pytorch/issues/111526
+    # https://github.com/pytorch/pytorch/issues/124018
+    _desc = "Build the flash_attention kernel for scaled dot product attention"
+    variant("flash_attention", default=True, description=_desc, when="@1.13:+cuda")
+    variant("flash_attention", default=True, description=_desc, when="@1.13:+rocm")
     # py-torch has strict dependencies on old protobuf/py-protobuf versions that
     # cause problems with other packages that require newer versions of protobuf
     # and py-protobuf --> provide an option to use the internal/vendored protobuf.
@@ -165,17 +171,18 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     with default_args(type=("build", "run")):
         # setup.py
         depends_on("py-filelock", when="@2:")
+        depends_on("py-typing-extensions@4.10:", when="@2.6:")
         depends_on("py-typing-extensions@4.8:", when="@2.2:")
         depends_on("py-typing-extensions@3.6.2.1:", when="@1.7:")
+        depends_on("py-setuptools")
         depends_on("py-sympy", when="@2:")
         depends_on("py-networkx", when="@2:")
         depends_on("py-jinja2", when="@2:")
         depends_on("py-fsspec", when="@2.1:")
 
         # pyproject.toml
-        depends_on("py-setuptools")
         depends_on("py-astunparse", when="@1.13:")
-        depends_on("py-numpy@1.16.6:")
+        depends_on("py-numpy")
         # https://github.com/pytorch/pytorch/issues/107302
         depends_on("py-numpy@:1", when="@:2.2")
         depends_on("py-pyyaml")
@@ -189,15 +196,18 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     # Third party dependencies
     depends_on("fp16@2020-05-14", when="@1.6:")
     depends_on("fxdiv@2020-04-17", when="@1.6:")
+    depends_on("nvtx@3.1.0", when="@2.6:")
     # https://github.com/pytorch/pytorch/issues/60332
-    # depends_on("xnnpack@2024-02-29", when="@2.3:+xnnpack")
+    # depends_on("xnnpack@2024-11-08", when="@2.6:+xnnpack")
+    # depends_on("xnnpack@2024-02-29", when="@2.3:2.5+xnnpack")
     # depends_on("xnnpack@2022-12-21", when="@2.0:2.2+xnnpack")
     # depends_on("xnnpack@2022-02-16", when="@1.12:1+xnnpack")
     # depends_on("xnnpack@2021-06-21", when="@1.10:1.11+xnnpack")
     # depends_on("xnnpack@2021-02-22", when="@1.8:1.9+xnnpack")
     # depends_on("xnnpack@2020-03-23", when="@1.6:1.7+xnnpack")
     depends_on("benchmark", when="@1.6:+test")
-    depends_on("cpuinfo@2024-09-06", when="@2.5.1:")
+    depends_on("cpuinfo@2024-09-26", when="@2.6:")
+    depends_on("cpuinfo@2024-09-06", when="@2.5.1")
     depends_on("cpuinfo@2024-08-30", when="@2.5.0")
     depends_on("cpuinfo@2023-11-04", when="@2.3:2.4")
     depends_on("cpuinfo@2023-01-13", when="@2.1:2.2")
@@ -217,16 +227,17 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     depends_on("gloo+libuv", when="@1.6: platform=darwin")
     depends_on("nccl", when="+nccl+cuda")
     # https://github.com/pytorch/pytorch/issues/60331
-    # depends_on("onnx@1.16.0", when="@2.3:+onnx_ml")
-    # depends_on("onnx@1.15.0", when="@2.2+onnx_ml")
-    # depends_on("onnx@1.14.1", when="@2.1+onnx_ml")
-    # depends_on("onnx@1.13.1", when="@2.0+onnx_ml")
-    # depends_on("onnx@1.12.0", when="@1.13:1+onnx_ml")
-    # depends_on("onnx@1.11.0", when="@1.12+onnx_ml")
-    # depends_on("onnx@1.10.1_2021-10-08", when="@1.11+onnx_ml")
-    # depends_on("onnx@1.10.1", when="@1.10+onnx_ml")
-    # depends_on("onnx@1.8.0_2020-11-03", when="@1.8:1.9+onnx_ml")
-    # depends_on("onnx@1.7.0_2020-05-31", when="@1.6:1.7+onnx_ml")
+    # depends_on("onnx@1.17.0", when="@2.6:")
+    # depends_on("onnx@1.16.0", when="@2.3:2.5")
+    # depends_on("onnx@1.15.0", when="@2.2")
+    # depends_on("onnx@1.14.1", when="@2.1")
+    # depends_on("onnx@1.13.1", when="@2.0")
+    # depends_on("onnx@1.12.0", when="@1.13:1")
+    # depends_on("onnx@1.11.0", when="@1.12")
+    # depends_on("onnx@1.10.1_2021-10-08", when="@1.11")
+    # depends_on("onnx@1.10.1", when="@1.10")
+    # depends_on("onnx@1.8.0_2020-11-03", when="@1.8:1.9")
+    # depends_on("onnx@1.7.0_2020-05-31", when="@1.6:1.7")
     with when("~custom-protobuf"):
         depends_on("protobuf@3.13.0", when="@1.10:")
         depends_on("protobuf@3.11.4", when="@1.6:1.9")
@@ -243,7 +254,8 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     depends_on("pthreadpool@2020-10-05", when="@1.8")
     depends_on("pthreadpool@2020-06-15", when="@1.6:1.7")
     with default_args(type=("build", "link", "run")):
-        depends_on("py-pybind11@2.13.5:", when="@2.5:")
+        depends_on("py-pybind11@2.13.6:", when="@2.6:")
+        depends_on("py-pybind11@2.13.5:", when="@2.5")
         depends_on("py-pybind11@2.12.0:", when="@2.3:2.4")
         depends_on("py-pybind11@2.11.0:", when="@2.1:2.2")
         depends_on("py-pybind11@2.10.1:", when="@2.0")
@@ -310,6 +322,14 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
 
     conflicts("%gcc@:9.3", when="@2.2:", msg="C++17 support required")
 
+    # https://github.com/pytorch/pytorch/issues/146239
+    patch(
+        "https://github.com/pytorch/pytorch/pull/140275.patch?full_index=1",
+        sha256="65f56305a27d47d7065711d1131c6ac1611fabcb55b129c27ed6beabe4b94fe0",
+        when="@2.6:",
+        reverse=True,
+    )
+
     # https://github.com/pytorch/pytorch/issues/90448
     patch(
         "https://github.com/pytorch/pytorch/pull/97270.patch?full_index=1",
@@ -344,6 +364,9 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     # https://github.com/pytorch/pytorch/pull/35607
     # https://github.com/pytorch/pytorch/pull/37865
     patch("xnnpack.patch", when="@1.5")
+    # https://github.com/pytorch/pytorch/issues/141083
+    # https://github.com/google/XNNPACK/commit/5f23827e66cca435fa400b6e221892ac95af0079
+    patch("xnnpack2.patch", when="@2.6", working_dir="third_party/XNNPACK")
 
     # Fixes build error when ROCm is enabled for pytorch-1.5 release
     patch("rocm.patch", when="@1.5+rocm")
@@ -577,17 +600,13 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
             env.set("CUDNN_INCLUDE_DIR", self.spec["cudnn"].prefix.include)
             env.set("CUDNN_LIBRARY", self.spec["cudnn"].libs[0])
 
-        # Flash attention has very high memory requirements that may cause the build to fail
-        # https://github.com/pytorch/pytorch/issues/111526
-        # https://github.com/pytorch/pytorch/issues/124018
-        env.set("USE_FLASH_ATTENTION", "OFF")
-
         enable_or_disable("fbgemm")
         enable_or_disable("kineto")
         enable_or_disable("magma")
         enable_or_disable("metal")
         enable_or_disable("mps")
         enable_or_disable("breakpad")
+        enable_or_disable("flash_attention")
 
         enable_or_disable("nccl")
         if "+cuda+nccl" in self.spec:
@@ -622,11 +641,6 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
             env.set("DEBUG", "ON")
         else:
             env.set("DEBUG", "OFF")
-
-        if "+onnx_ml" in self.spec:
-            env.set("ONNX_ML", "ON")
-        elif "~onnx_ml" in self.spec:
-            env.set("ONNX_ML", "OFF")
 
         if not self.spec.satisfies("@main"):
             env.set("PYTORCH_BUILD_VERSION", self.version)
@@ -678,6 +692,7 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
         env.set("USE_SYSTEM_FXDIV", "ON")
         env.set("USE_SYSTEM_GLOO", "ON")
         env.set("USE_SYSTEM_NCCL", "ON")
+        env.set("USE_SYSTEM_NVTX", "ON")
         # https://github.com/pytorch/pytorch/issues/60331
         # env.set("USE_SYSTEM_ONNX", "ON")
         env.set("USE_SYSTEM_PSIMD", "ON")

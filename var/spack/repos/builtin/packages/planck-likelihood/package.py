@@ -70,6 +70,7 @@ class PlanckLikelihood(Package):
     depends_on("blas")
     depends_on("cfitsio +shared")
     depends_on("lapack")
+    depends_on("gmake", type="build")
 
     # Note: Could also install Python bindings
 

@@ -29,6 +29,7 @@ class Libtasn1(Package):
     version("4.0", sha256="41d044f7644bdd1c4f8a5c15ac1885ca1fcbf32f5f6dd4760a19278b979857fe")
 
     depends_on("c", type="build")  # generated
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         configure(

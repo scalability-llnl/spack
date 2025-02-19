@@ -4,7 +4,7 @@
 
 
 import argparse
-import os.path
+import os
 import textwrap
 
 from llnl.util.lang import stable_partition

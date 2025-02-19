@@ -22,6 +22,7 @@ class Minced(Package):
     version("0.1.6", sha256="035e343591b4595c571e17b0b3f526a01a23c3a47ebafb66f20ba667b29b3ed7")
 
     depends_on("java", type=("build", "run"))
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         make()

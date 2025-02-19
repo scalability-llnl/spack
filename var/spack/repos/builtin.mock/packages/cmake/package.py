@@ -20,6 +20,8 @@ class Cmake(Package):
     homepage = "https://www.cmake.org"
     url = "https://cmake.org/files/v3.4/cmake-3.4.3.tar.gz"
 
+    tags = ["build-tools"]
+
     version(
         "3.23.1",
         md5="4cb3ff35b2472aae70f542116d616e63",

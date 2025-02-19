@@ -35,6 +35,7 @@ class Minimap2(PythonPackage):
 
     variant("jstools", default=False, description="Include Javascript tools (paftools)")
     depends_on("k8", type="run", when="+jstools")
+    depends_on("gmake", type="build")
 
     @run_after("install")
     def install_minimap2(self):

@@ -39,6 +39,7 @@ class Paraver(Package):
     depends_on("wxpropgrid@1.4:")
     depends_on("libxml2")
     depends_on("zlib-api")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         os.chdir("ptools_common_files")

@@ -32,6 +32,7 @@ class Ffte(Package):
     variant("vector", default=False, description="Use vectorized FFT")
 
     depends_on("mpi", when="+mpi")
+    depends_on("gmake", type="build")
 
     requires("%nvhpc", when="+cuda", msg="ffte+cuda must use NVHPC compiler")
 

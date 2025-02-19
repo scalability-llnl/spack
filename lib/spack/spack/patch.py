@@ -4,7 +4,6 @@
 
 import hashlib
 import os
-import os.path
 import pathlib
 import sys
 from typing import Any, Dict, Optional, Tuple, Type, Union

@@ -40,6 +40,7 @@ class Freebayes(MesonPackage):
     depends_on("vcftools", when="@1.3.5:")
     depends_on("bc", when="@1.3.5:")
     depends_on("samtools", when="@1.3.5:")
+    depends_on("gmake", type="build")
 
     parallel = False
 

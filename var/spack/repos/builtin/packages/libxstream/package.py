@@ -19,6 +19,7 @@ class Libxstream(Package):
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
+    depends_on("gmake", type="build")
 
     def patch(self):
         kwargs = {"ignore_absent": False, "backup": True, "string": True}

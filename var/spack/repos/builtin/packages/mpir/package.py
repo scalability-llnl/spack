@@ -29,6 +29,7 @@ class Mpir(Package):
 
     # Other dependencies
     depends_on("yasm")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         # We definitely don't want to have MPIR build its

@@ -23,6 +23,7 @@ class Cblas(Package):
     depends_on("fortran", type="build")  # generated
 
     depends_on("blas")
+    depends_on("gmake", type="build")
     parallel = False
 
     def patch(self):

@@ -43,6 +43,7 @@ class Polymake(Package):
     depends_on("ppl")
     depends_on("ppl@1.2:", when="@3.2:")
     depends_on("readline")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         configure(

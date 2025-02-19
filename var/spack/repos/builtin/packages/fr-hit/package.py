@@ -21,6 +21,7 @@ class FrHit(Package):
 
     depends_on("perl")
     depends_on("python@2.7:")
+    depends_on("gmake", type="build")
 
     # The patch adds the python interpreter to the beginning of the script
     # allowing it to be run directly without passing the entire path to the

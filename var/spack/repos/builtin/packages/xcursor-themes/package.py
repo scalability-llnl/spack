@@ -24,6 +24,7 @@ class XcursorThemes(Package, XorgPackage):
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")
     depends_on("util-macros@1.20:", type="build", when="@1.0.7:")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         configure("--prefix={0}".format(prefix))

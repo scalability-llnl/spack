@@ -1,0 +1,13 @@
+diff --git a/Makefile b/Makefile
+index e607bb3cb..a4752dff6 100644
+--- a/Makefile
++++ b/Makefile
+@@ -203,7 +203,7 @@ endif
+
+ .PHONY: compile-arrow-cpp
+ compile-arrow-cpp:
+-	$(CHPL_CXX) -O3 -std=c++17 -c $(ARROW_CPP) -o $(ARROW_O) $(INCLUDE_FLAGS) $(ARROW_SANITIZE)
++	$(CHPL_CXX) -fPIC -O3 -std=c++17 -c $(ARROW_CPP) -o $(ARROW_O) $(INCLUDE_FLAGS) $(ARROW_SANITIZE)
+
+ $(ARROW_O): $(ARROW_CPP) $(ARROW_H)
+ 	make compile-arrow-cpp

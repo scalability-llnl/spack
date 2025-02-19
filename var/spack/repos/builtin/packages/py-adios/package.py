@@ -39,6 +39,7 @@ class PyAdios(PythonPackage):
     depends_on("mpi", when="+mpi")
     depends_on("py-mpi4py", type=["run"], when="+mpi")
     depends_on("py-cython", type=["build"])
+    depends_on("gmake", type="build")
 
     build_directory = "wrappers/numpy"
 

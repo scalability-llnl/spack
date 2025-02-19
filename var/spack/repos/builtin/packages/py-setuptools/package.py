@@ -19,6 +19,8 @@ class PySetuptools(Package, PythonExtension):
     # Requires railroad
     skip_modules = ["setuptools._vendor", "pkg_resources._vendor"]
 
+    version("75.8.0", sha256="e3982f444617239225d675215d51f6ba05f845d4eec313da4418fdbb56fb27e3")
+    version("75.3.0", sha256="f2504966861356aa38616760c0f66568e535562374995367b4e69c7143cf6bcd")
     version("69.2.0", sha256="c21c49fb1042386df081cb5d86759792ab89efca84cf114889191cd09aacc80c")
     version("69.1.1", sha256="02fa291a0471b3a18b2b2481ed902af520c69e8ae0919c13da936542754b4c56")
     version("69.0.3", sha256="385eb4edd9c9d5c17540511303e39a147ce2fc04bc55289c322b9e5904fe2c05")

@@ -76,6 +76,7 @@ class Edm4hep(CMakePackage):
     depends_on("nlohmann-json@3.10.5:", when="@:0.99.1")
     depends_on("podio@1:", when="@0.99:")
     depends_on("podio@0.15:", when="@:0.10.5")
+    depends_on("podio@:1.1", when="@:0.99.0")
     for _std in _cxxstd_values:
         for _v in _std:
             depends_on(f"podio cxxstd={_v.value}", when=f"cxxstd={_v.value}")

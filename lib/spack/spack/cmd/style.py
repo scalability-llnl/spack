@@ -6,7 +6,7 @@ import ast
 import os
 import re
 import sys
-from itertools import zip_longest
+from itertools import islice, zip_longest
 from typing import Dict, List, Optional
 
 import llnl.util.tty as tty
@@ -423,7 +423,8 @@ def _run_import_check(
             continue
 
         for m in is_abs_import.finditer(contents):
-            if contents.count(m.group(1)) == 1:
+            # Find at most two occurences: the first is the import itself, the second is its usage.
+            if len(list(islice(re.finditer(rf"{re.escape(m.group(1))}(?!\w)", contents), 2))) == 1:
                 to_remove.append(m.group(0))
                 exit_code = 1
                 print(f"{pretty_path}: redundant import: {m.group(1)}", file=out)
@@ -438,7 +439,7 @@ def _run_import_check(
             module = _module_part(root, m.group(0))
             if not module or module in to_add:
                 continue
-            if re.search(rf"import {re.escape(module)}\b(?!\.)", contents):
+            if re.search(rf"import {re.escape(module)}(?!\w|\.)", contents):
                 continue
             to_add.add(module)
             exit_code = 1

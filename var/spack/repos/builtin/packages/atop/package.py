@@ -23,6 +23,7 @@ class Atop(Package):
 
     depends_on("zlib-api")
     depends_on("ncurses")
+    depends_on("gmake", type="build")
 
     def setup_build_environment(self, env):
         env.append_flags("LDFLAGS", "-ltinfo")

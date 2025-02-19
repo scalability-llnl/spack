@@ -28,7 +28,7 @@ class BigdftSpred(AutotoolsPackage):
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")
-    depends_on("pkg-config", type="build")
+    depends_on("pkgconfig", type="build")
 
     variant("mpi", default=True, description="Enable MPI support")
     variant("openmp", default=True, description="Enable OpenMP support")

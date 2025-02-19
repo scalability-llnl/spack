@@ -217,9 +217,7 @@ class Qgis(CMakePackage):
         elif "^py-pyqt6" in self.spec:
             pyqtx = "PyQt6"
 
-        sip_inc_dir = join_path(
-            self.spec["qscintilla"].package.module.python_platlib, pyqtx, "bindings"
-        )
+        sip_inc_dir = join_path(self["qscintilla"].module.python_platlib, pyqtx, "bindings")
         with open(join_path("python", "gui", "pyproject.toml.in"), "a") as tomlfile:
             tomlfile.write(f'\n[tool.sip.project]\nsip-include-dirs = ["{sip_inc_dir}"]\n')
 

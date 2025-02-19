@@ -3,8 +3,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import re
 
-import llnl.util.tty as tty
-
 import spack.compiler
 from spack.package import *
 

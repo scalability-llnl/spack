@@ -24,6 +24,7 @@ class Global(Package):
 
     depends_on("exuberant-ctags", type=("build", "run"))
     depends_on("ncurses")
+    depends_on("gmake", type="build")
 
     patch("global-ncurse.patch")
 

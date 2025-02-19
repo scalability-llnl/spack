@@ -144,7 +144,7 @@ def installed_dependents(specs: List[spack.spec.Spec]) -> List[spack.spec.Spec]:
         record = spack.store.STORE.db.query_local_by_spec_hash(spec.dag_hash())
         return record and record.installed
 
-    specs = traverse.traverse_nodes(
+    all_specs = traverse.traverse_nodes(
         specs,
         root=False,
         order="breadth",
@@ -155,7 +155,7 @@ def installed_dependents(specs: List[spack.spec.Spec]) -> List[spack.spec.Spec]:
     )
 
     with spack.store.STORE.db.read_transaction():
-        return [spec for spec in specs if is_installed(spec)]
+        return [spec for spec in all_specs if is_installed(spec)]
 
 
 def dependent_environments(

@@ -19,6 +19,7 @@ class Wxpropgrid(Package, SourceforgePackage):
     depends_on("cxx", type="build")  # generated
 
     depends_on("wxwidgets")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         configure(

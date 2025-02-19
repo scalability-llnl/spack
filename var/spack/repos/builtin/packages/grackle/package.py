@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import os.path
+import os
 
 from spack.hooks.sbang import filter_shebang
 from spack.package import *
@@ -32,6 +32,7 @@ class Grackle(Package):
     depends_on("tcsh", type="build")
     depends_on("mpi")
     depends_on("hdf5+mpi")
+    depends_on("gmake", type="build")
 
     parallel = False
 

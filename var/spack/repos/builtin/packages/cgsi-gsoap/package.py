@@ -20,7 +20,7 @@ class CgsiGsoap(CMakePackage):
 
     depends_on("c", type="build")
 
-    depends_on("pkg-config", type="build")
+    depends_on("pkgconfig", type="build")
     depends_on("gsoap")
     depends_on("voms")
     depends_on("globus-common")

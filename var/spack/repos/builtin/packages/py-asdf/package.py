@@ -28,6 +28,8 @@ class PyAsdf(PythonPackage):
     with when("@3.5.0:"):
         depends_on("python@3.9:", type=("build", "run"))
 
+        depends_on("py-setuptools-scm@8: +toml", type="build")  # for version_file
+
         depends_on("py-asdf-standard@1.1.0:", type=("build", "run"))
         depends_on("py-importlib-metadata@4.11.4:", type=("build", "run"), when="^python@:3.11")
         depends_on("py-numpy@1.22:", type=("build", "run"))

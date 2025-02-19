@@ -26,7 +26,7 @@ def is_shared_library_elf(filepath):
         with open(filepath, "rb") as f:
             elf = parse_elf(f, interpreter=True, dynamic_section=True)
             return elf.has_pt_dynamic and (elf.has_soname or not elf.has_pt_interp)
-    except (IOError, OSError, ElfParsingError):
+    except (OSError, ElfParsingError):
         return False
 
 

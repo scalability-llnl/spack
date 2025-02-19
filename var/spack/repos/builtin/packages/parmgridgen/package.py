@@ -24,6 +24,7 @@ class Parmgridgen(Package):
     variant("mpi", default=True, description="Activate the compilation of parallel libraries")
 
     depends_on("mpi", when="+mpi")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         make_opts = [

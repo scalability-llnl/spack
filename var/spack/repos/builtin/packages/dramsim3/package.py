@@ -26,6 +26,7 @@ class Dramsim3(Package):
     depends_on("cxx", type="build")  # generated
 
     depends_on("cmake", type="build")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         cmake = which("cmake")

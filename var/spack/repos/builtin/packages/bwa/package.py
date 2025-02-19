@@ -25,7 +25,7 @@ class Bwa(Package):
     )
 
     depends_on("c", type="build")  # generated
-
+    depends_on("gmake", type="build")
     depends_on("zlib-api")
     depends_on("sse2neon", when="target=aarch64:")
 

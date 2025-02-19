@@ -96,6 +96,7 @@ class PyPyside2(PythonPackage):
     depends_on("libxml2@2.6.32:", when="+doc", type="build")
     depends_on("libxslt@1.1.19:", when="+doc", type="build")
     depends_on("py-sphinx", when="+doc", type="build")
+    depends_on("gmake", type="build")
 
     def patch(self):
         filter_file(

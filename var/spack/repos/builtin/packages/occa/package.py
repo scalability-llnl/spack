@@ -42,6 +42,7 @@ class Occa(Package):
     variant("opencl", default=True, description="Activates support for OpenCL")
 
     depends_on("cuda", when="+cuda")
+    depends_on("gmake", type="build")
 
     conflicts("%gcc@6:", when="^cuda@:8")
     conflicts("%gcc@7:", when="^cuda@:9")

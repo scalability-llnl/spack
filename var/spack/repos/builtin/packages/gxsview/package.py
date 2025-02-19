@@ -45,7 +45,7 @@ class Gxsview(QMakePackage):
     depends_on("vtk@9:+qt+opengl2", when="@2024.03.15:")
     conflicts("%gcc@:7.2.0", msg="Requires C++17 compiler support")  # need C++17 standard
     conflicts("qt@6:", msg="Qt 6 support is not yet achieved")
-    conflicts("qt-base@6:", msg="Qt 6 support is not yet achieved")  # required for clingo
+    conflicts("^qt-base@6:", msg="Qt 6 support is not yet achieved")  # required for clingo
 
     patch("vtk9.patch", when="^vtk@9:")
     # gcc11 compilation rule for std::numeric_limits,
@@ -75,13 +75,13 @@ class Gxsview(QMakePackage):
             ]
         )
         # Below to avoid undefined reference to `std::filesystem::__cxx11::path::_M_split_cmpts()'
-        if self.spec.satisfies("%gcc@8.0:8.9") or self.spec.satisfies("%fj"):
+        if self.spec.satisfies("%gcc@:8.9") or self.spec.satisfies("%fj"):
             if self.spec.satisfies("^vtk@9:"):
                 fic = "vtk9.pri"
             else:
                 fic = "vtk8.pri"
             with open(fic, "a") as fh:
-                fh.write("-lstdc++fs\n")
+                fh.write("\nLIBS += -lstdc++fs\n")
         return args
 
     def install(self, spec, prefix):

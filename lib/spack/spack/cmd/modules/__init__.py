@@ -5,7 +5,7 @@
 """Implementation details of the ``spack module`` command."""
 
 import collections
-import os.path
+import os
 import shutil
 import sys
 

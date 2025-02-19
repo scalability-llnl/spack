@@ -10,10 +10,11 @@ class PyGraphviz(PythonPackage):
     """Simple Python interface for Graphviz"""
 
     homepage = "https://github.com/xflr6/graphviz"
-    pypi = "graphviz/graphviz-0.10.1.zip"
+    pypi = "graphviz/graphviz-0.20.3.zip"
 
     license("MIT")
 
+    version("0.20.3", sha256="09d6bc81e6a9fa392e7ba52135a9d49f1ed62526f96499325930e87ca1b5925d")
     version("0.13.2", sha256="60acbeee346e8c14555821eab57dbf68a169e6c10bce40e83c1bf44f63a62a01")
     version("0.13", sha256="dc08677f37c65a4a480f00df4bd0d19a0a103c06aad95f21a37f0b7fd440de81")
     version("0.12", sha256="c60e232a66e4847f9f644fbaa94730ca4f78385a1314a2cc1e7f4cb2d7461298")
@@ -24,6 +25,7 @@ class PyGraphviz(PythonPackage):
     variant("dev", default=False, description="development mode")
     variant("docs", default=False, description="build documentation")
 
+    depends_on("python@3.8:", type=("build", "run"), when="@0.20.3:")
     depends_on("python@2.7:2.8,3.4:", type=("build", "run"), when="@:0.10.1")
     depends_on("python@2.7:2.8,3.5:", type=("build", "run"), when="@0.11.0:")
     depends_on("py-setuptools", type="build")

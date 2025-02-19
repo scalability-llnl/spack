@@ -5,8 +5,6 @@
 import glob
 import os
 
-import llnl.util.tty as tty
-
 import spack.tengine
 from spack.package import *
 
@@ -106,6 +104,7 @@ class Likwid(Package):
     # depends_on('gnuplot', type='run')
 
     depends_on("perl", type=("build", "run"))
+    depends_on("gmake", type="build")
 
     def patch(self):
         files = glob.glob("perl/*.*") + glob.glob("bench/perl/*.*")
@@ -261,8 +260,8 @@ class Likwid(Package):
     @run_after("install")
     def caveats(self):
         if self.spec.satisfies("accessmode=accessdaemon"):
-            perm_script = "spack_perms_fix.sh"
-            perm_script_path = join_path(self.spec.prefix, perm_script)
+            perm_script = "spack_likwid_fix_perms.sh.j2"
+            perm_script_path = join_path(self.spec.prefix.bin, perm_script)
             daemons = glob.glob(join_path(self.spec.prefix, "sbin", "*"))
             with open(perm_script_path, "w") as f:
                 env = spack.tengine.make_environment(dirs=self.package_dir)

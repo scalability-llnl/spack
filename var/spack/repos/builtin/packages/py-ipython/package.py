@@ -61,7 +61,7 @@ class PyIpython(PythonPackage):
     depends_on("py-colorama", when="platform=windows", type=("build", "run"))
     depends_on("py-decorator", type=("build", "run"))
     depends_on("py-exceptiongroup", when="@8.15: ^python@:3.10", type=("build", "run"))
-    depends_on("py-jedi@0.16:0.18", when="@7.18,7.20:", type=("build", "run"))
+    depends_on("py-jedi@0.16:", when="@7.18,7.20:", type=("build", "run"))
     depends_on("py-jedi@0.10:", when="@7.5:7.17,7.19", type=("build", "run"))
     depends_on("py-matplotlib-inline", when="@7.23:", type=("build", "run"))
     depends_on("py-pexpect@4.4:", when="@7.18: platform=linux", type=("build", "run"))

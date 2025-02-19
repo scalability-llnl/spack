@@ -48,6 +48,7 @@ class Cntk(Package):
     depends_on("nccl", when="+cuda")
     depends_on("cntk1bitsgd@c8b77d", when="+1bitsgd")
     depends_on("multiverso@143187", when="+asgd")
+    depends_on("gmake", type="build")
 
     # Patch CNTN's build process to use libs installed outside CNTK source tree
     # multiverso, kaldi, openfst

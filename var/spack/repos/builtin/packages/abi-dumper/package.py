@@ -24,6 +24,7 @@ class AbiDumper(Package):
     depends_on("binutils")
     depends_on("universal-ctags")
     depends_on("vtable-dumper@1.1:")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         make(f"prefix={prefix}", "install")

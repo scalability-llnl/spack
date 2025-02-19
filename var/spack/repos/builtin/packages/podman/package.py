@@ -41,6 +41,7 @@ class Podman(Package):
     depends_on("libassuan")
     depends_on("libgpg-error")
     depends_on("libseccomp")
+    depends_on("gmake", type="build")
 
     def patch(self):
         defs = FileFilter("vendor/github.com/containers/common/pkg/config/default.go")

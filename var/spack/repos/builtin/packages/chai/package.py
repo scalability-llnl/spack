@@ -97,7 +97,8 @@ class Chai(CachedCMakePackage, CudaPackage, ROCmPackage):
     )
     version("1.0", tag="v1.0", commit="501a098ad879dc8deb4a74fcfe8c08c283a10627", submodules=True)
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     # Patching Umpire for dual BLT targets import changed MPI target name in Umpire link interface
     # We propagate the patch here.

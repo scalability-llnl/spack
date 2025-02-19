@@ -33,7 +33,7 @@ class Ncdu(Package):
     version("1.7", sha256="70dfe10b4c0843050ee17ab27b7ad4d65714682f117079b85d779f83431fb333")
 
     depends_on("c", type="build")  # generated
-
+    depends_on("gmake", type="build")
     depends_on("ncurses")
     depends_on("pkgconfig", type="build")
 

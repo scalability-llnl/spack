@@ -7,7 +7,7 @@ import os
 
 import llnl.util.filesystem as fs
 
-import spack.spec
+import spack.concretize
 import spack.store
 import spack.util.spack_json as sjson
 import spack.verify
@@ -65,7 +65,7 @@ def test_single_file_verify_cmd(tmpdir):
 def test_single_spec_verify_cmd(tmpdir, mock_packages, mock_archive, mock_fetch, install_mockery):
     # Test the verify command interface to verify a single spec
     install("libelf")
-    s = spack.spec.Spec("libelf").concretized()
+    s = spack.concretize.concretize_one("libelf")
     prefix = s.prefix
     hash = s.dag_hash()
 

@@ -16,3 +16,8 @@ class Gmake(Package):
 
     def do_stage(self):
         mkdirp(self.stage.source_path)
+
+    def setup_dependent_package(self, module, dspec):
+        module.make = MakeExecutable(
+            "make", jobs=determine_number_of_jobs(parallel=dspec.package.parallel)
+        )

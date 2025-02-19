@@ -42,6 +42,7 @@ class Tetgen(Package):
     )
 
     depends_on("cxx", type="build")  # generated
+    depends_on("gmake", type="build")
 
     variant("pic", default=True, description="Builds the library in pic mode.")
     variant("debug", default=False, description="Builds the library in debug mode.")

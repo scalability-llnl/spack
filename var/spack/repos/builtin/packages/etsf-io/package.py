@@ -27,6 +27,7 @@ class EtsfIo(Package):
 
     depends_on("netcdf-fortran")
     depends_on("hdf5+mpi~cxx", when="+mpi")  # required for NetCDF-4 support
+    depends_on("gmake", type="build")
 
     patch("tests_module.patch")
     patch("tests_init.patch")

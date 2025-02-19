@@ -17,6 +17,7 @@ class FluxPmix(AutotoolsPackage):
     maintainers("grondo")
 
     version("main", branch="main")
+    version("0.6.0", sha256="31f9d9b99f8a75c05e2fd183a35998f104d8e80bd819c57252aca477be0d4c6e")
     version("0.5.0", sha256="f382800b1a342df0268146ea7ce33011299bf0c69a46ac8a52e87de6026c9322")
     version("0.4.0", sha256="f7f58891fc9d9a97a0399b3ab186f2cae30a75806ba0b4d4c1307f07b3f6d1bc")
     version("0.3.0", sha256="88edb2afaeb6058b56ff915105a36972acc0d83204cff7f4a4d2f65a5dee9d34")

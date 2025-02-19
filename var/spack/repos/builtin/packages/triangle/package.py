@@ -20,6 +20,7 @@ class Triangle(Package):
     version("1.6", sha256="1766327add038495fa3499e9b7cc642179229750f7201b94f8e1b7bee76f8480")
 
     depends_on("libx11", type="link")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         make()

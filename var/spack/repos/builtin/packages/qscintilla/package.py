@@ -101,9 +101,7 @@ class Qscintilla(QMakePackage):
 
         with working_dir(join_path(self.stage.source_path, "Python")):
             copy(ftoml, "pyproject.toml")
-            sip_inc_dir = join_path(
-                self.spec[py_pyqtx].package.module.python_platlib, pyqtx, "bindings"
-            )
+            sip_inc_dir = join_path(self[py_pyqtx].module.python_platlib, pyqtx, "bindings")
 
             with open("pyproject.toml", "a") as tomlfile:
                 # https://pyqt-builder.readthedocs.io/en/latest/pyproject_toml.html

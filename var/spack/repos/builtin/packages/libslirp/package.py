@@ -14,6 +14,7 @@ class Libslirp(MesonPackage):
 
     license("BSD-3-Clause")
 
+    version("4.8.0", sha256="2a98852e65666db313481943e7a1997abff0183bd9bea80caec1b5da89fda28c")
     version("4.7.0", sha256="9398f0ec5a581d4e1cd6856b88ae83927e458d643788c3391a39e61b75db3d3b")
     version("4.6.1", sha256="69ad4df0123742a29cc783b35de34771ed74d085482470df6313b6abeb799b11")
 

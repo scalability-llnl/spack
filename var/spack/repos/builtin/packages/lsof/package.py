@@ -18,6 +18,8 @@ class Lsof(Package):
     version("4.90", sha256="27794d3d6499fd5f0f08710b4518b33aed8a4580951d1adf27f6c25898685c9e")
     version("4.89", sha256="5d08da7ebe049c9d9a6472d6afb81aa5af54c4733a3f8822cbc22b57867633c9")
 
+    depends_on("gmake", type="build")
+
     def install(self, spec, prefix):
         tar = which("tar")
         tar("xf", "lsof_{0}_src.tar".format(self.version))

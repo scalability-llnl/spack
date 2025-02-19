@@ -62,6 +62,7 @@ class EnvironmentModules(Package):
 
     variant("X", default=True, description="Build with X functionality")
 
+    depends_on("gmake", type="build")
     depends_on("util-linux", type=("build", "run"), when="@5.5:")
     depends_on("less", type=("build", "run"), when="@4.1:")
     with when("@main"):

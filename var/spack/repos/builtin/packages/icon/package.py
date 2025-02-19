@@ -129,6 +129,7 @@ class Icon(AutotoolsPackage):
             "atmo",
             "les",
             "upatmo",
+            "ocean",
             "jsbach",
             "waves",
             "aes",

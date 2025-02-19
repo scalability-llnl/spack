@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
+import re
 
 from spack.package import *
 
@@ -51,6 +52,7 @@ class Visit(CMakePackage):
     tags = ["radiuss"]
 
     maintainers("cyrush")
+    license("BSD-3-Clause")
 
     extendable = True
 

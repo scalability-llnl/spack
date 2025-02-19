@@ -31,7 +31,7 @@ import contextlib
 import copy
 import datetime
 import inspect
-import os.path
+import os
 import re
 import string
 from typing import List, Optional

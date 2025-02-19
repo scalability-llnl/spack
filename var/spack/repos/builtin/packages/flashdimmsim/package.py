@@ -14,6 +14,7 @@ class Flashdimmsim(Package):
     version("master", branch="master")
 
     depends_on("cxx", type="build")  # generated
+    depends_on("gmake", type="build")
 
     build_directory = "src"
 

@@ -28,6 +28,7 @@ class PyGenders(Package):
     # FIXME: Missing a dependency on genders
     # #include <genders.h>
     depends_on("bison", type="build")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         configure("--prefix=%s" % prefix)

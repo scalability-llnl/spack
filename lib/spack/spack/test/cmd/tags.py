@@ -2,9 +2,9 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import spack.concretize
 import spack.main
 import spack.repo
-import spack.spec
 from spack.installer import PackageInstaller
 
 tags = spack.main.SpackCommand("tags")
@@ -47,7 +47,7 @@ def test_tags_no_tags(monkeypatch):
 
 
 def test_tags_installed(install_mockery, mock_fetch):
-    s = spack.spec.Spec("mpich").concretized()
+    s = spack.concretize.concretize_one("mpich")
     PackageInstaller([s.package], explicit=True, fake=True).install()
 
     out = tags("-i")

@@ -19,6 +19,7 @@ class Ladot(Package):
     depends_on("perl", type=("run", "test"))
     depends_on("graphviz", type=("run", "test"))
     depends_on("texlive", type="test")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         if self.run_tests:

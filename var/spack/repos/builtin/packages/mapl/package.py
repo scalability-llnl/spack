@@ -38,6 +38,10 @@ class Mapl(CMakePackage):
     version("develop", branch="develop")
     version("main", branch="main")
 
+    version("2.54.1", sha256="2430ded45a98989e9100037f54cf22f5a5083e17196514b3667d3003413e49e1")
+    version("2.53.1", sha256="8371a75d4d81294eb9d99d66702f8cf62d4bd954cec3e247e1afae621b4e4726")
+    version("2.53.0", sha256="68c24e6c0e3340645b1fb685972c96ef80746d5a289572c9883e520680708ebe")
+    version("2.52.0", sha256="c30be3a6ed3fca40aea903e10ee51e2fb50b4ef2445fdc959d4871baf3c20585")
     version("2.51.2", sha256="f6df2be24d0c113af3d0424b674d970621660bf11e59a699373f014a14d0716e")
     version("2.51.1", sha256="337dba3980de1d5e603361ecf8f001c5bf99d0addecbeb5c207f3604183ca623")
     version("2.51.0", sha256="56213d845f5287e599213aab1dea60bf6b64c29cd8093313639304b270c45676")
@@ -250,9 +254,11 @@ class Mapl(CMakePackage):
     conflicts("%gcc@13:", when="@:2.44")
 
     # MAPL can use ifx only from MAPL 2.51 onwards and only supports
-    # ifx 2025.0 and newer due to bugs in ifx
-    conflicts("%oneapi@:2024")
-    conflicts("%oneapi", when="@:2.50")
+    # ifx 2025.0 and newer due to bugs in ifx.
+    conflicts("%oneapi@2025:", when="@:2.50")
+    # NOTE there is a further check on oneapi in the cmake_args below
+    # that is hard to conflict since we don't know the fortran compiler
+    # at this point
 
     variant("flap", default=False, description="Build with FLAP support", when="@:2.39")
     variant("pflogger", default=True, description="Build with pFlogger support")
@@ -385,6 +391,22 @@ class Mapl(CMakePackage):
                 fflags.append("-fallow-argument-mismatch")
         if fflags:
             args.append(self.define("CMAKE_Fortran_FLAGS", " ".join(fflags)))
+
+        # If oneapi@:2024 is used and it gets past the conflict above, we might be
+        # using ifx or ifort. If we are using ifx and the MAPL version is 2.50 or older
+        # we need to raise an error
+
+        if self.spec.satisfies("@:2.50 %oneapi@:2024"):
+            # We now need to get which Fortran compiler is used here but there
+            # isn't an easy way like:
+            #   if self.spec["fortran"].name == "ifx":
+            # yet (see https://github.com/spack/spack/pull/45189)
+            # So we need to parse the output of $FC --version
+            output = spack.compiler.get_compiler_version_output(
+                self.compiler.fc, "-diag-disable=10448 --version", ignore_errors=True
+            )
+            if "ifx" in output:
+                raise InstallError("MAPL versions 2.50 and older do not support ifx")
 
         # Scripts often need to know the MPI stack used to setup the environment.
         # Normally, we can autodetect this, but building with Spack does not

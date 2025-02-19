@@ -19,6 +19,7 @@ class Bbcp(Package):
     depends_on("zlib-api")
     depends_on("openssl")
     depends_on("libnsl")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         cd("src")

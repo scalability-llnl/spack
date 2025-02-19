@@ -25,7 +25,7 @@ class Psrdada(AutotoolsPackage, CudaPackage):
     depends_on("automake", type="build")
     depends_on("libtool", type="build")
     depends_on("nasm", type="build")
-    depends_on("pkgconf", type="build")
+    depends_on("pkgconfig", type="build")
     depends_on("fftw@3.3:", type="build")
     depends_on("python")
     depends_on("cuda", type="build")

@@ -48,6 +48,7 @@ class ProcessInProcess(Package):
         depends_on("systemtap")
         depends_on("libxml2")
         depends_on("pigz")
+    depends_on("gmake", type="build")
 
     # resources for PiP version 2
     #  PiP-glibc resource

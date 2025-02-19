@@ -26,6 +26,8 @@ class Tree(Package):
     version("1.8.0", sha256="715d5d4b434321ce74706d0dd067505bb60c5ea83b5f0b3655dae40aa6f9b7c2")
     version("1.7.0", sha256="6957c20e82561ac4231638996e74f4cfa4e6faabc5a2f511f0b4e3940e8f7b12")
 
+    depends_on("gmake", type="build")
+
     @when("@2:")
     def install(self, spec, prefix):
         make(

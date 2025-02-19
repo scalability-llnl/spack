@@ -24,6 +24,7 @@ class Veclibfort(Package):
 
     depends_on("c", type="build")  # generated
     depends_on("fortran", type="build")  # generated
+    depends_on("gmake", type="build")
 
     variant("shared", default=True, description="Build shared libraries as well as static libs.")
 

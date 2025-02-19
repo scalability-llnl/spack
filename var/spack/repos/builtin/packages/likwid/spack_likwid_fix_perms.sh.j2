@@ -1,0 +1,9 @@
+#!/bin/sh -eu
+
+{% for cf in chowns %}
+chown root:root "{{ cf }}"
+{% endfor %}
+
+{% for sf in chmods %}
+chmod 4755 "{{ sf }}"
+{% endfor %}

@@ -144,6 +144,7 @@ class Eospac(Package):
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
     depends_on("fortran", type="build")  # generated
+    depends_on("gmake", type="build")
 
     # This patch allows the use of spack's compile wrapper 'flang'
     patch("flang.patch", when="@:6.4.0beta.2%clang")

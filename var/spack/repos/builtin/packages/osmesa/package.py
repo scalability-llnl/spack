@@ -21,11 +21,11 @@ class Osmesa(BundlePackage):
 
     @property
     def headers(self):
-        return self.spec["mesa"].package.libosmesa_headers
+        return self["mesa"].libosmesa_headers
 
     @property
     def libs(self):
-        return self.spec["mesa"].package.libosmesa_libs
+        return self["mesa"].libosmesa_libs
 
     @property
     def gl_headers(self):
@@ -33,4 +33,4 @@ class Osmesa(BundlePackage):
 
     @property
     def gl_libs(self):
-        return self.spec["mesa"].package.libosmesa_libs
+        return self["mesa"].libosmesa_libs

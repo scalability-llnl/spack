@@ -27,13 +27,6 @@ class SlurmDrmaa(AutotoolsPackage):
 
     depends_on("c", type="build")  # generated
 
-    # Remove this patch when it is merged into main:
-    patch(
-        "https://github.com/natefoo/slurm-drmaa/pull/62.patch?full_index=1",
-        sha256="ec8d2963c731f7054f7d3c130232e731bc92366280100e108d93a3685fddfca7",
-        when="@main",
-    )
-
     depends_on("autoconf", type="build", when="@main")
     depends_on("automake", type="build", when="@main")
     depends_on("libtool", type="build", when="@main")

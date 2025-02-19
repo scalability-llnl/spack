@@ -36,6 +36,7 @@ class Ompss2(Package):
     depends_on("extrae", when="+extrae")
     depends_on("boost@1.59.0:")
     depends_on("numactl")
+    depends_on("gmake", type="build")
 
     resource(
         name="jemalloc",

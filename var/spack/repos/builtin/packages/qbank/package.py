@@ -32,6 +32,7 @@ class Qbank(Package):
 
     depends_on("perl@5.6:5.16", type=("build", "run"))
     depends_on("perl-dbi@1.00:", type=("build", "run"))
+    depends_on("gmake", type="build")
 
     def configure_args(self):
         config_args = ["--prefix", self.prefix, "--logdir", self.prefix.var.log.qbank]

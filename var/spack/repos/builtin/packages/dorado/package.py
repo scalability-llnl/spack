@@ -26,7 +26,7 @@ class Dorado(CMakePackage, CudaPackage):
     depends_on("git", type="build")
     depends_on("curl", type="build")
     depends_on("cuda")
-    depends_on("hdf5@1.17:+hl+cxx+szip")
+    depends_on("hdf5@:1+hl+cxx+szip")
     depends_on("htslib@1.15.1")
     depends_on("openssl")
     depends_on("zstd")

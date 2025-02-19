@@ -19,7 +19,7 @@ class Seqtk(Package):
     version("1.1", sha256="f01b9f9af6e443673a0105a7536a01957a4fc371826385a1f3dd1e417aa91d52")
 
     depends_on("c", type="build")  # generated
-
+    depends_on("gmake", type="build")
     depends_on("zlib-api")
 
     def install(self, spec, prefix):

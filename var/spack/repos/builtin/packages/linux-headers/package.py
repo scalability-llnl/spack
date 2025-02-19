@@ -25,6 +25,7 @@ class LinuxHeaders(Package):
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
+    depends_on("gmake", type="build")
 
     def url_for_version(self, version):
         url = "https://www.kernel.org/pub/linux/kernel/v{0}.x/linux-{1}.tar.xz"

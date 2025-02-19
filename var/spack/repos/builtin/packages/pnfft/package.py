@@ -31,7 +31,7 @@ class Pnfft(AutotoolsPackage):
     @property
     def fftw_selected_precisions(self):
         if not self._fftw_precisions:
-            self._fftw_precisions = self.spec["fftw"].package.selected_precisions
+            self._fftw_precisions = self["fftw"].selected_precisions
         return self._fftw_precisions
 
     def configure(self, spec, prefix):

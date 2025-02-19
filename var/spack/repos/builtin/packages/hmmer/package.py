@@ -31,6 +31,7 @@ class Hmmer(Package):
 
     depends_on("mpi", when="+mpi")
     depends_on("gsl", when="+gsl")
+    depends_on("gmake", type="build")
 
     # https://github.com/EddyRivasLab/hmmer/issues/283
     conflicts(
