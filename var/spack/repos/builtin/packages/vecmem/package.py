@@ -67,6 +67,11 @@ class Vecmem(CMakePackage, CudaPackage):
     depends_on("hip", when="+hip")
     depends_on("sycl", when="+sycl")
 
+    # NOTE: this package uses a non-standard "SYCLCXX" environment variable which we can
+    # set easily only by requiring the OneAPI compiler, as this is automatically capable
+    # of compiling SYCL code.
+    requires("%oneapi", when="+sycl")
+
     # FIXME: due to #29447, googletest is not available to cmake when building with --test,
     # and we can choose between always depending on googletest, or using FetchContent
     # depends_on("googletest", type="test")
