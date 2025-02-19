@@ -97,7 +97,7 @@ class ConstraintAction(argparse.Action):
 class SetParallelJobs(argparse.Action):
     """Sets the correct value for parallel build jobs.
 
-    The value is is set in the command line configuration scope so that
+    The value is set in the command line configuration scope so that
     it can be retrieved using the spack.config API.
     """
 
@@ -111,6 +111,23 @@ class SetParallelJobs(argparse.Action):
         spack.config.set("config:build_jobs", jobs, scope="command_line")
 
         setattr(namespace, "jobs", jobs)
+
+
+class SetConcurrentPackages(argparse.Action):
+    """Sets the value for maximum number of concurrent package builds
+
+    The value is set in the command line configuration scope so that
+    it can be retrieved using the spack.config API.
+    """
+
+    def __call__(self, parser, namespace, concurrent_packages, option_string):
+        if concurrent_packages < 1:
+            msg = 'invalid value for argument "{0}" ' '[expectd a positive integer, got "{1}"]'
+            raise ValueError(msg.format(option_string, concurrent_packages))
+
+        spack.config.set("config:concurrent_packages", concurrent_packages, scope="command_line")
+
+        setattr(namespace, "concurrent_packages", concurrent_packages)
 
 
 class DeptypeAction(argparse.Action):
@@ -374,6 +391,18 @@ def jobs():
         type=int,
         dest="jobs",
         help="explicitly set number of parallel jobs",
+    )
+
+
+@arg
+def concurrent_packages():
+    return Args(
+        "-p",
+        "--concurrent-packages",
+        action=SetConcurrentPackages,
+        type=int,
+        default=4,
+        help="maximum number of packages to build concurrently",
     )
 
 
