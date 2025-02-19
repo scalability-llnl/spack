@@ -5,7 +5,6 @@
 import re
 
 from spack.package import *
-from spack.pkg.builtin.boost import Boost
 
 
 class MiopenOpencl(CMakePackage):
@@ -33,11 +32,6 @@ class MiopenOpencl(CMakePackage):
 
     depends_on("cmake@3.5:", type="build")
     depends_on("boost@1.67.0:1.73.0", type="link")
-
-    # TODO: replace this with an explicit list of components of Boost,
-    # for instance depends_on('boost +filesystem')
-    # See https://github.com/spack/spack/pull/22303 for reference
-    depends_on(Boost.with_default_variants, type="link")
     depends_on("pkgconfig", type="build")
     depends_on("bzip2", type="link")
     depends_on("sqlite", type="link")

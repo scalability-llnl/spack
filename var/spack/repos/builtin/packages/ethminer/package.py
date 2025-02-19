@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
-from spack.pkg.builtin.boost import Boost
 
 
 class Ethminer(CMakePackage):
@@ -24,11 +23,7 @@ class Ethminer(CMakePackage):
     variant("stratum", default=True, description="Build with Stratum protocol support.")
 
     depends_on("python")
-
-    # TODO: replace this with an explicit list of components of Boost,
-    # for instance depends_on('boost +filesystem')
-    # See https://github.com/spack/spack/pull/22303 for reference
-    depends_on(Boost.with_default_variants)
+    depends_on("boost")
     depends_on("json-c")
     depends_on("curl")
     depends_on("zlib-api")

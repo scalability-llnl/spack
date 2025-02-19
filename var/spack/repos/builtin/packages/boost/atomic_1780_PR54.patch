@@ -1,0 +1,72 @@
+commit bf08155d16ea8c359d1bfab6bac684cdfada4a5b
+Author: Andrey Semashev <andrey.semashev@gmail.com>
+Date:   Wed Dec 15 02:06:11 2021 +0300
+
+    Fix compilation for UWP.
+    
+    UWP does not support APIs related to dynamic symbol binding and dlls.
+    Disable runtime detection of WaitOnAddress & co. for that target. These
+    APIs should be enabled at compile time on Windows 8.
+    
+    Fixes https://github.com/boostorg/atomic/issues/54.
+
+Index: boost_1_78_0/libs/atomic/src/wait_on_address.cpp
+===================================================================
+--- boost_1_78_0.orig/libs/atomic/src/wait_on_address.cpp	2021-12-15 14:13:15.947085327 +0300
++++ boost_1_78_0/libs/atomic/src/wait_on_address.cpp	2021-12-15 14:13:15.944085319 +0300
+@@ -23,28 +23,34 @@
+ #include <boost/atomic/detail/config.hpp>
+ #include <boost/atomic/detail/link.hpp>
+ #include <boost/atomic/detail/once_flag.hpp>
+ #include <boost/atomic/detail/wait_on_address.hpp>
+ 
++#if BOOST_WINAPI_PARTITION_DESKTOP || BOOST_WINAPI_PARTITION_SYSTEM
++
+ #include <boost/static_assert.hpp>
+ #include <boost/memory_order.hpp>
+ #include <boost/winapi/thread.hpp>
+ #include <boost/winapi/get_proc_address.hpp>
+ #include <boost/winapi/dll.hpp>
+ 
+ #include <boost/atomic/detail/core_operations.hpp>
+ 
++#endif // BOOST_WINAPI_PARTITION_DESKTOP || BOOST_WINAPI_PARTITION_SYSTEM
++
+ #include <boost/atomic/detail/header.hpp>
+ 
+ namespace boost {
+ namespace atomics {
+ namespace detail {
+ 
+ BOOST_ATOMIC_DECL wait_on_address_t* wait_on_address = NULL;
+ BOOST_ATOMIC_DECL wake_by_address_t* wake_by_address_single = NULL;
+ BOOST_ATOMIC_DECL wake_by_address_t* wake_by_address_all = NULL;
+ 
++#if BOOST_WINAPI_PARTITION_DESKTOP || BOOST_WINAPI_PARTITION_SYSTEM
++
+ BOOST_ATOMIC_DECL once_flag wait_functions_once_flag = { 2u };
+ 
+ BOOST_ATOMIC_DECL void initialize_wait_functions() BOOST_NOEXCEPT
+ {
+     BOOST_STATIC_ASSERT_MSG(once_flag_operations::is_always_lock_free, "Boost.Atomic unsupported target platform: native atomic operations not implemented for bytes");
+@@ -88,10 +94,20 @@ BOOST_ATOMIC_DECL void initialize_wait_f
+             break;
+         }
+     }
+ }
+ 
++#else // BOOST_WINAPI_PARTITION_DESKTOP || BOOST_WINAPI_PARTITION_SYSTEM
++
++BOOST_ATOMIC_DECL once_flag wait_functions_once_flag = { 0u };
++
++BOOST_ATOMIC_DECL void initialize_wait_functions() BOOST_NOEXCEPT
++{
++}
++
++#endif // BOOST_WINAPI_PARTITION_DESKTOP || BOOST_WINAPI_PARTITION_SYSTEM
++
+ } // namespace detail
+ } // namespace atomics
+ } // namespace boost
+ 
+ #include <boost/atomic/detail/footer.hpp>
