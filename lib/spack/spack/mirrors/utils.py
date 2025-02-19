@@ -211,7 +211,7 @@ class MirrorStats:
         self.errors.add(self.current_spec)
 
     # TODO: AQ, Merge a given MirrorStats object to this one. Return just one MirrorStats
-    def merge(self, ext_mirror_stat: MirrorStats) -> MirrorStats:
+    def merge(self, ext_mirror_stat: "MirrorStats") -> "MirrorStats":
         # For the sake of parallelism we need a way to reduce/merge different
         # MirrorStats objects.
         self.present.update(ext_mirror_stat.present)
@@ -224,8 +224,8 @@ class MirrorStats:
             self.next_spec(ext_mirror_stat.current_spec)
         elif self.current_spec != None and ext_mirror_stat.current_spec == None:
             # If we have a current_spec, and there's no new one coming, leave things alone
-            continue
-        else
+            pass
+        else:
             # In anycase where current_spec is None, use the incoming mirror_stat current. 
             self.current_spec = ext_mirror_stat.current_spec
 
@@ -234,7 +234,7 @@ class MirrorStats:
 
 
 def create_mirror_from_package_object(
-    pkg_obj, mirror_cache: "spack.caches.MirrorCache", mirror_stats: MirrorStats
+    pkg_obj, mirror_cache: "spack.caches.MirrorCache", mirror_stats: "MirrorStats"
 ) -> bool:
     """Add a single package object to a mirror.
 
@@ -272,7 +272,7 @@ def create_mirror_from_package_object(
 # TODO: AQ
 # I need a function that does the same thing as create_mirror_from_package_object(), but uses an
 # empty (fresh) spack mirror_stats object, and returns that, then we need a method in the mirror_stat object that will merge two mirror_stats
-def cache_single_package(pkg_obj, mirror_cache: "spack.caches.MirrorCache") -> MirrorStats:
+def cache_single_package(pkg_obj, mirror_cache: "spack.caches.MirrorCache") -> "MirrorStats":
     """Cache a single package object, and return the MirrorStats object.
 
     The package object is only required to have an associated spec
