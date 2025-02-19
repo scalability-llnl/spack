@@ -202,8 +202,8 @@ class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
             args.append("--enable-void-return-complex")
 
         if spec.satisfies("@3.0:3.1 %aocc"):
-            """To enabled Fortran to C calling convention for
-            complex types when compiling with aocc flang"""
+            # To enable Fortran to C calling convention for complex types when compiling with
+            # aocc flang
             args.append("--enable-f2c-dotc")
 
         if spec.satisfies("@3.0.1: +ilp64"):

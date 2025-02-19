@@ -331,7 +331,7 @@ class Perl(Package):  # Perl doesn't use Autotools, it should subclass Package
             try:
                 perm = os.stat(filename).st_mode
                 os.chmod(filename, perm | 0o200)
-            except IOError:
+            except OSError:
                 continue
 
     def nmake_arguments(self):

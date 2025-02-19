@@ -104,6 +104,12 @@ class Rivet(AutotoolsPackage):
 
     filter_compiler_wrappers("rivet-build", relative_root="bin")
 
+    # fix missing header in 3.1.10
+    patch(
+        "https://gitlab.com/hepcedar/rivet/-/merge_requests/800.diff",
+        sha256="9ff3429f20a4497d100627551c75a6b76dd8666d40fb5e21fdc83df4e539a6b5",
+        when="@3.1.10",
+    )
     # fix missing headers in 4.0.x
     patch(
         "https://gitlab.com/hepcedar/rivet/-/merge_requests/973.diff",

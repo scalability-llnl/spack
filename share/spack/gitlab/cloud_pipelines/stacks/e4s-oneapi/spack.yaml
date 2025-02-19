@@ -113,6 +113,7 @@ spack:
   - laghos
   - lammps
   - legion
+  - libceed
   - libnrm
   - libpressio +bitgrooming +bzip2 ~cuda ~cusz +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp
   - libquo

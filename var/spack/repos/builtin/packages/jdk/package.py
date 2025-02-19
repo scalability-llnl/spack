@@ -6,7 +6,6 @@ import os
 import re
 
 from spack.package import *
-from spack.util.prefix import Prefix
 
 
 class Jdk(Package):

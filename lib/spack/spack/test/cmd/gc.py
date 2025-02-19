@@ -139,7 +139,7 @@ def test_gc_except_specific_environments(mutable_database, mutable_mock_env_path
 def test_gc_except_nonexisting_dir_env(mutable_database, mutable_mock_env_path, tmpdir):
     output = gc("-ye", tmpdir.strpath, fail_on_error=False)
     assert "No such environment" in output
-    gc.returncode == 1
+    assert gc.returncode == 1
 
 
 @pytest.mark.db

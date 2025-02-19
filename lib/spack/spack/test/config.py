@@ -408,7 +408,7 @@ def test_substitute_config_variables(mock_low_high_config, monkeypatch):
         os.path.join("foo", "$platform", "bar")
     ) == os.path.abspath(os.path.join("foo", "test", "bar"))
 
-    host_target = spack.platforms.host().target("default_target")
+    host_target = spack.platforms.host().default_target()
     host_target_family = str(host_target.family)
     assert spack_path.canonicalize_path(
         os.path.join("foo", "$target_family", "bar")

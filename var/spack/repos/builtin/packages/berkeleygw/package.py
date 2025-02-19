@@ -118,7 +118,7 @@ class Berkeleygw(MakefilePackage):
     def edit(self, spec, prefix):
         # archive is a tar file, despite the .gz expension
         tar = which("tar")
-        tar("-x", "-f", self.stage.archive_file, "--strip-components=1")
+        tar("-x", "-o", "-f", self.stage.archive_file, "--strip-components=1")
 
         # get generic arch.mk template
         if spec.satisfies("+mpi"):

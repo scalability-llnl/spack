@@ -39,6 +39,7 @@ class Pmdk(Package):
     variant("rpmem", default=False, description="Build remote persistent memory components")
 
     depends_on("gmake", type="build")
+    depends_on("cmake", type="build")
     depends_on("pkgconfig", when="@1.12.1:", type="build")
     depends_on("ncurses", when="@1.6:")
     depends_on("libfabric", when="+rpmem")

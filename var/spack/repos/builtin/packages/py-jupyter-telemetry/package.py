@@ -6,9 +6,8 @@ from spack.package import *
 
 
 class PyJupyterTelemetry(PythonPackage):
-    """Jupyter Telemetry enables Jupyter Applications to record events and transmit"""
-
-    """ them to destinations as structured data"""
+    """Jupyter Telemetry enables Jupyter Applications to record events and transmit them to
+    destinations as structured data"""
 
     pypi = "jupyter-telemetry/jupyter_telemetry-0.1.0.tar.gz"
 

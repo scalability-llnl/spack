@@ -8,7 +8,6 @@ from typing import Optional
 import spack.directives_meta
 import spack.error
 import spack.fetch_strategy
-import spack.package_base
 import spack.repo
 import spack.spec
 import spack.util.hash
@@ -61,10 +60,18 @@ class RemoveDirectives(ast.NodeTransformer):
     """
 
     def __init__(self, spec):
-        # list of URL attributes and metadata attributes
-        # these will be removed from packages.
-        self.metadata_attrs = [s.url_attr for s in spack.fetch_strategy.all_strategies]
-        self.metadata_attrs += spack.package_base.PackageBase.metadata_attrs
+        #: List of attributes to be excluded from a package's hash.
+        self.metadata_attrs = [s.url_attr for s in spack.fetch_strategy.all_strategies] + [
+            "homepage",
+            "url",
+            "urls",
+            "list_url",
+            "extendable",
+            "parallel",
+            "make_jobs",
+            "maintainers",
+            "tags",
+        ]
 
         self.spec = spec
         self.in_classdef = False  # used to avoid nested classdefs

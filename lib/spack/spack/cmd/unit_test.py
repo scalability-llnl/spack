@@ -5,7 +5,7 @@
 import argparse
 import collections
 import io
-import os.path
+import os
 import re
 import sys
 

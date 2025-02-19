@@ -165,8 +165,8 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
     def cache_test_sources(self):
         if self.spec.satisfies("@2020.10.00"):
             return
-        """Copy the example source files after the package is installed to an
-        install test subdirectory for use during `spack test run`."""
+        # Copy the example source files after the package is installed to an
+        # install test subdirectory for use during `spack test run`.
         cache_extra_test_sources(self, ["examples"])
 
     def mpi_launcher(self):

@@ -10,7 +10,7 @@ def try_le(x, y):
     try:
         return int(x) < y
     except ValueError:
-        False
+        return False
 
 
 class LcFramework(CMakePackage, CudaPackage):

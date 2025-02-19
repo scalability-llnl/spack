@@ -216,3 +216,22 @@ def test_develop_full_git_repo(
         develop_dir = spec.variants["dev_path"].value
         commits = _git_commit_list(develop_dir)
         assert len(commits) > 1
+
+
+def test_concretize_dev_path_with_at_symbol_in_env(mutable_mock_env_path, tmpdir, mock_packages):
+    spec_like = "develop-test@develop"
+
+    develop_dir = tmpdir.mkdir("build@location")
+    env("create", "test_at_sym")
+
+    with ev.read("test_at_sym") as e:
+        add(spec_like)
+        develop(f"--path={develop_dir}", spec_like)
+        e.concretize()
+        result = e.concrete_roots()
+
+        assert len(result) == 1
+        cspec = result[0]
+        assert cspec.satisfies(spec_like), cspec
+        assert cspec.is_develop, cspec
+        assert develop_dir in cspec.variants["dev_path"], cspec

@@ -53,7 +53,7 @@ class Gurobi(Package):
     def setup_run_environment(self, env):
         env.set("GUROBI_HOME", self.prefix)
         env.set("GRB_LICENSE_FILE", join_path(self.prefix, "gurobi.lic"))
-        env.prepend_path("LD_LIBRARY_PATH", self.prefix.lib),
+        env.prepend_path("LD_LIBRARY_PATH", self.prefix.lib)
 
     def install(self, spec, prefix):
         install_tree("linux64", prefix)

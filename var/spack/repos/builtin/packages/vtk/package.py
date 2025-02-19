@@ -87,6 +87,10 @@ class Vtk(CMakePackage):
 
     conflicts("%gcc@13", when="@9.2")
 
+    # VTK 8 vendors a heavily outdated version of CMake's GenerateExportHeader module, which
+    # has a bogus version check for GCC/Intel version to early exit. This drops the early exit.
+    patch("vtk-bogus-compiler-check.patch", when="@7.1:8")
+
     # Based on PyPI wheel availability
     with when("+python"), default_args(type=("build", "link", "run")):
         depends_on("python@:3.13")
@@ -197,22 +201,17 @@ class Vtk(CMakePackage):
     depends_on("proj@8:", when="@9.2:")
     depends_on("cgns@4.1.1:+mpi", when="@9.1: +mpi")
     depends_on("cgns@4.1.1:~mpi", when="@9.1: ~mpi")
+
+    # VTK introduced Seacas IOSS dependency on 9.1
     with when("@9.1:"):
         depends_on("seacas+mpi", when="+mpi")
         depends_on("seacas~mpi", when="~mpi")
-        depends_on("seacas@2021-05-12:")
-    with when("@9.4:"):
-        depends_on("seacas@2024-06-27:")
+        depends_on("seacas@2021-05-12:2022-10-14", when="@9.1")
+        # vtk@9.2: need Ioss::Utils::get_debug_stream() which only 2022-10-14 provides,
+        # and to be safe against other issues, make them build with this version only:
+        depends_on("seacas@2022-10-14", when="@9.2:9.3")
+        depends_on("seacas@2024-06-27", when="@9.4:")
 
-    # seacas@2023-05-30 does not provide needed SEACASIoss_INCLUDE_DIRS:
-    # CMake Error at CMake/vtkModule.cmake:5552 (message):
-    # The variable `SEACASIoss_INCLUDE_DIRS` was expected to have been available,
-    # but was not defined:
-    conflicts("seacas@2023-05-30", when="@:9.2")
-
-    # vtk@9.2: need Ioss::Utils::get_debug_stream() which only 2022-10-14 provides,
-    # and to be safe against other issues, make them build with this version only:
-    depends_on("seacas@2022-10-14", when="@9.2:")
     depends_on("nlohmann-json", when="@9.2:")
 
     # For finding Fujitsu-MPI wrapper commands
@@ -239,6 +238,27 @@ class Vtk(CMakePackage):
         sha256="dab51ffd0d62b00c089c1245e6b105f740106b53893305c87193d4ba03a948e0",
         when="@9.1:9.2 %gcc@13:",
     )
+
+    # SEACAS >= 2024-06-27 needs c++17 which is already required in VTK master.
+    patch(
+        "https://gitlab.kitware.com/vtk/vtk/-/commit/00afe3ae0def6c2d0a6f7cb497c8d55874127820.diff",
+        sha256="1e5fb55b14ba6455a1891d27aa4a0506f47e3155014af06f97633ae1ef6e9cc2",
+        when="@9.4:",
+    )
+
+    # Needed to build VTK with external SEACAS.
+    patch(
+        "https://gitlab.kitware.com/vtk/vtk/-/commit/e98526813691e527fff7d5df6a1641ae36c0cf4f.diff",
+        sha256="174930dde06828ead84c68b1a192202766f6297a60f0c54eef6cab2605a466ef",
+        when="@9.4:",
+    )
+
+    # Needed to build VTK with external SEACAS >= 2022-10-14
+    @when("@9.4:")
+    def patch(self):
+        filter_file(
+            "^.*USE_VARIABLES SEACASIoss_INCLUDE_DIRS.*$", "", "ThirdParty/ioss/CMakeLists.txt"
+        )
 
     @when("@9.2:")
     def patch(self):

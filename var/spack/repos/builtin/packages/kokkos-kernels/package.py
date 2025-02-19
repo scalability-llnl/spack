@@ -267,7 +267,7 @@ class KokkosKernels(CMakePackage, CudaPackage):
             options.append("-DCMAKE_CXX_COMPILER=%s" % spec["hip"].hipcc)
         else:
             # Compiler weirdness due to nvcc_wrapper
-            options.append("-DCMAKE_CXX_COMPILER=%s" % spec["kokkos"].kokkos_cxx)
+            options.append("-DCMAKE_CXX_COMPILER=%s" % self["kokkos"].kokkos_cxx)
 
         if self.run_tests:
             options.append("-DKokkosKernels_ENABLE_TESTS=ON")

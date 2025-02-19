@@ -306,7 +306,7 @@ def specfile_for(default_mock_concretization):
         (
             r"os=fe",  # Various translations associated with the architecture
             [Token(SpecTokens.KEY_VALUE_PAIR, value="os=fe")],
-            "arch=test-redhat6-None",
+            "arch=test-debian6-None",
         ),
         (
             r"os=default_os",
@@ -999,14 +999,14 @@ def test_disambiguate_hash_by_spec(spec1, spec2, constraint, mock_packages, monk
         ("x arch=linux-rhel7-ppc64le arch=linux-rhel7-x86_64", "two architectures"),
         ("y ^x arch=linux-rhel7-x86_64 arch=linux-rhel7-x86_64", "two architectures"),
         ("y ^x arch=linux-rhel7-x86_64 arch=linux-rhel7-ppc64le", "two architectures"),
-        ("x os=fe os=fe", "'os'"),
-        ("x os=fe os=be", "'os'"),
-        ("x target=fe target=fe", "'target'"),
-        ("x target=fe target=be", "'target'"),
+        ("x os=redhat6 os=debian6", "'os'"),
+        ("x os=debian6 os=redhat6", "'os'"),
+        ("x target=core2 target=x86_64", "'target'"),
+        ("x target=x86_64 target=core2", "'target'"),
         ("x platform=test platform=test", "'platform'"),
         # TODO: these two seem wrong: need to change how arch is initialized (should fail on os)
-        ("x os=fe platform=test target=fe os=fe", "'platform'"),
-        ("x target=be platform=test os=be os=fe", "'platform'"),
+        ("x os=debian6 platform=test target=default_target os=redhat6", "two architectures"),
+        ("x target=default_target platform=test os=redhat6 os=debian6", "'platform'"),
         # Dependencies
         ("^[@foo] zlib", "edge attributes"),
         ("x ^[deptypes=link]foo ^[deptypes=run]foo", "conflicting dependency types"),

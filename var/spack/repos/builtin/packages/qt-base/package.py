@@ -8,8 +8,6 @@ import shutil
 import sys
 import tempfile
 
-import llnl.util.tty as tty
-
 from spack.operating_systems.mac_os import macos_version
 from spack.package import *
 

@@ -6,7 +6,6 @@ import platform
 from os.path import split
 
 from spack.package import *
-from spack.util.environment import EnvironmentModifications
 
 
 class Anaconda3(Package):

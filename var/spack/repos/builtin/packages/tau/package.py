@@ -104,6 +104,9 @@ class Tau(Package):
     variant(
         "rocprofv2", default=False, description="Activates ROCm rocprofiler support", when="@2.34:"
     )
+    variant(
+        "salt", default=False, description="Activates SALT source instrumentation", when="@2.34:"
+    )
     variant("opencl", default=False, description="Activates OpenCL support")
     variant("fortran", default=darwin_default, description="Activates Fortran support")
     variant("io", default=True, description="Activates POSIX I/O support")
@@ -167,6 +170,7 @@ class Tau(Package):
     depends_on("hsa-rocr-dev", when="+rocm")
     depends_on("rocm-smi-lib", when="@2.32.1: +rocm")
     depends_on("rocm-core", when="@2.34: +rocm")
+    depends_on("salt", when="+salt", type="run")
     depends_on("hip", when="@2.34: +roctracer")
     depends_on("java", type="run")  # for paraprof
     depends_on("oneapi-level-zero", when="+level_zero")

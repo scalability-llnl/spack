@@ -436,8 +436,8 @@ def _dump_annotated(handler, data, stream=None):
     width = max(clen(a) for a in _ANNOTATIONS)
     formats = ["%%-%ds  %%s\n" % (width + cextra(a)) for a in _ANNOTATIONS]
 
-    for f, a, l in zip(formats, _ANNOTATIONS, lines):
-        stream.write(f % (a, l))
+    for fmt, annotation, line in zip(formats, _ANNOTATIONS, lines):
+        stream.write(fmt % (annotation, line))
 
     if getvalue:
         return getvalue()
