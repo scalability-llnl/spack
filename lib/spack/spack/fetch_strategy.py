@@ -1591,13 +1591,15 @@ def for_package_version(pkg, version=None):
         version = pkg.version
 
     # if it's a commit, we must use a GitFetchStrategy
-    if isinstance(version, spack.version.GitVersion):
+    commit_sha = pkg.spec.variants.get("commit", None)
+    if isinstance(version, spack.version.GitVersion) or commit_sha:
         if not hasattr(pkg, "git"):
             raise spack.error.FetchError(
                 f"Cannot fetch git version for {pkg.name}. Package has no 'git' attribute"
             )
         # Populate the version with comparisons to other commits
-        version.attach_lookup(spack.version.git_ref_lookup.GitRefLookup(pkg.name))
+        if isinstance(version, spack.version.GitVersion):
+            version.attach_lookup(spack.version.git_ref_lookup.GitRefLookup(pkg.name))
 
         # For GitVersion, we have no way to determine whether a ref is a branch or tag
         # Fortunately, we handle branches and tags identically, except tags are
@@ -1605,16 +1607,34 @@ def for_package_version(pkg, version=None):
         # We call all non-commit refs tags in this context, at the cost of a slight
         # performance hit for branches on older versions of git.
         # Branches cannot be cached, so we tell the fetcher not to cache tags/branches
-        ref_type = "commit" if version.is_commit else "tag"
-        kwargs = {"git": pkg.git, ref_type: version.ref, "no_cache": True}
+
+        # TODO(psakiev) eventually we should  only need to clone based on the commit
+        ref_type = None
+        ref_value = None
+        if commit_sha:
+            ref_type = "commit"
+            ref_value = commit_sha.value
+        else:
+            ref_type = "commit" if version.is_commit else "tag"
+            ref_value = version.ref
+        kwargs = {ref_type: ref_value, "no_cache": True}
+
+        kwargs["git"] = pkg.git
+        version_attrs = pkg.versions.get(version)
+        if version_attrs and version_attrs.get("git"):
+            kwargs["git"] = version_attrs["git"]
 
         kwargs["submodules"] = getattr(pkg, "submodules", False)
 
         # if the ref_version is a known version from the package, use that version's
         # submodule specifications
-        ref_version_attributes = pkg.versions.get(pkg.version.ref_version)
-        if ref_version_attributes:
-            kwargs["submodules"] = ref_version_attributes.get("submodules", kwargs["submodules"])
+        if hasattr(pkg.version, "ref_version"):
+            ref_version_attributes = pkg.versions.get(pkg.version.ref_version)
+            if ref_version_attributes:
+                kwargs["submodules"] = ref_version_attributes.get(
+                    "submodules", kwargs["submodules"]
+                )
+                kwargs["git"] = ref_version_attributes.get("git", kwargs["git"])
 
         fetcher = GitFetchStrategy(**kwargs)
         return fetcher

@@ -3743,7 +3743,7 @@ class SpecBuilder:
                         spack.version.git_ref_lookup.GitRefLookup(spec.fullname)
                     )
 
-        # check for commits mush happen after all version adaptations are complete
+        # check for commits must happen after all version adaptations are complete
         for s in self._specs.values():
             _specs_with_commits(s)
 
@@ -3793,9 +3793,6 @@ def _specs_with_commits(spec):
 
     if not (has_commit_var or has_git_version):
         return
-
-    if "dev_path" in spec.variants:
-        assert False
 
     # Specs with commit variants
     # - variant value satsifies commit regex
