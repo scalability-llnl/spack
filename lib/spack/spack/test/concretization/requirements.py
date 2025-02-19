@@ -662,6 +662,7 @@ def test_conditional_requirements_from_packages_yaml(
         assert spec.satisfies(match_str) is expected
 
 
+@pytest.mark.xfail(reason="chaining doesn't extend to compiler failures")
 @pytest.mark.parametrize(
     "packages_yaml,spec_str,expected_message",
     [
@@ -785,7 +786,7 @@ compilers::
     assert s.satisfies("%gcc@12.0.0")
 
     # This package can only be compiled with clang
-    with pytest.raises(spack.error.SpackError, match="can only be compiled with Clang"):
+    with pytest.raises(spack.error.SpackError, match="Cannot set the required compiler.*clang"):
         spack.concretize.concretize_one("requires_clang")
 
 

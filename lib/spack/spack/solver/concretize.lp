@@ -415,6 +415,9 @@ imposed_packages(ID, A1) :- imposed_constraint(ID, _, A1, _, _).
 imposed_packages(ID, A1) :- imposed_constraint(ID, _, A1, _, _, _).
 imposed_packages(ID, A1) :- imposed_constraint(ID, "depends_on", _, A1, _).
 
+% If X/A1 is part of the condition_set of NodeID/Package,
+% an EffectID is being imposed for A1,
+% NodeID/Package (i.e. the root) is triggered,
 imposed_nodes(EffectID, node(NodeID, Package), node(X, A1))
   :- pkg_fact(Package, condition_trigger(ID, TriggerID)),
      pkg_fact(Package, condition_effect(ID, EffectID)),
@@ -762,6 +765,16 @@ requirement_group_satisfied(node(ID, Package), X) :-
   activate_requirement(node(ID, Package), X),
   requirement_group(Package, X).
 
+1 { impose(EffectID, node(ID, Package)) : requirement_group_member(Y, Package, X), pkg_fact(Package, condition_effect(Y, EffectID)) } :-
+  requirement_policy(Package, X, "any_of"),
+  activate_requirement(node(ID, Package), X),
+  requirement_group(Package, X).
+
+1 { impose(EffectID, node(ID, Package)) : requirement_group_member(Y, Package, X), pkg_fact(Package, condition_effect(Y, EffectID)) } 1 :-
+  requirement_policy(Package, X, "one_of"),
+  activate_requirement(node(ID, Package), X),
+  requirement_group(Package, X).
+
 % Do not impose requirements, if the conditional requirement is not active
 do_not_impose(EffectID, node(ID, Package)) :-
   trigger_condition_holds(TriggerID, node(ID, Package)),
@@ -803,19 +816,6 @@ requirement_weight(node(ID, Package), Group, W) :-
   },
   requirement_policy(Package, Group, "any_of"),
   requirement_group_satisfied(node(ID, Package), Group).
-
-error(100, "cannot satisfy a requirement for package '{0}'.", Package) :-
-  activate_requirement(node(ID, Package), X),
-  requirement_group(Package, X),
-  not requirement_message(Package, X, _),
-  not requirement_group_satisfied(node(ID, Package), X).
-
-
-error(10, Message) :-
-  activate_requirement(node(ID, Package), X),
-  requirement_group(Package, X),
-  requirement_message(Package, X, Message),
-  not requirement_group_satisfied(node(ID, Package), X).
 
 
 #defined requirement_group/2.
