@@ -202,7 +202,8 @@ as well (after the package name and version) and in this case begins
 with ``llv2ys``. The id distinguishes a particular built package from all
 other built packages with the same os/arch, compiler, name, and version.
 Below is an example of a signed binary package metadata file. Such a
-file would live in the ``build_cache`` directory of a binary mirror::
+file would live in the versioned specs directory of a binary mirror, for
+example ``v3/specs/``::
 
   -----BEGIN PGP SIGNED MESSAGE-----
   Hash: SHA512
@@ -237,7 +238,7 @@ If a user has trusted the public key associated with the private key
 used to sign the above spec file, the signature can be verified with
 gpg, as follows::
 
-  $ gpg –verify linux-ubuntu18.04-haswell-gcc-7.5.0-zlib-1.2.12-llv2ysfdxnppzjrt5ldybb5c52qbmoow.spec.json.sig
+  $ gpg –verify gmake-4.4.1-cgsvs45frdmuvlxcvoghbtabhk4imgxs.spec.json.sig
 
 The metadata (regardless whether signed or unsigned) contains the checksum
 of the ``.spack`` file containing the actual installation. The checksum should
@@ -245,23 +246,32 @@ be compared to a checksum computed locally on the ``.spack`` file to ensure the
 contents have not changed since the binary spec plus metadata were signed. The
 ``.spack`` files are actually tarballs containing the compressed archive of the
 install tree.  These files, along with the metadata files, live within the
-``build_cache`` directory of the mirror, and together are organized as follows::
+versioned specs directory of the mirror, for example ``v3/specs/``. Together,
+these are organized as follows::
 
-  build_cache/
-    # unsigned metadata (for indexing, contains sha256 of .spack file)
-    <arch>-<compiler>-<name>-<ver>-24zvipcqgg2wyjpvdq2ajy5jnm564hen.spec.json
-    # clearsigned metadata (same as above, but signed)
-    <arch>-<compiler>-<name>-<ver>-24zvipcqgg2wyjpvdq2ajy5jnm564hen.spec.json.sig
-    <arch>/
-      <compiler>/
-        <name>-<ver>/
-          # tar.gz-compressed prefix (may support more compression formats later)
-          <arch>-<compiler>-<name>-<ver>-24zvipcqgg2wyjpvdq2ajy5jnm564hen.spack
+  mirror_directory/
+    v3/
+      specs/
+        gmake-4.4.1-cgsvs45frdmuvlxcvoghbtabhk4imgxs.spec.json.sig
+        pkgconf-2.3.0-jxzgksm7tn4w6vuhxku7sfhosllvhcm4.spec.json.sig
+        gnuconfig-2024-07-27-sy5lhrkwdighl2kj7u22regqmi46dl43.spec.json.sig
+    blobs/
+      sha256/
+        33/
+        33/33532e2219a424929b923eb83499359bd1917b4986701f1f7a478bf5b4404030
+        f3/
+        f3/f35b571f9ebf1664f6ff60ce43c77dfa10bff9b40df72d1cffc6009a99cb2b6c
+        77/
+        77/77385824aa58c84a858f19ac25b313a0af211992d49bef0a03743bf0ab4ff879
 
-Uncompressing and extracting the ``.spack`` file results in the install tree.
-This is in contrast to previous versions of spack, where the ``.spack`` file
-contained a (duplicated) metadata file, a signature file and a nested tarball
-containing the install tree.
+Each spec file contains the checksum of the associated compressed tarball, as
+well as the algorithm used to compute the checksum, which are used to address
+the binary tarball within the blobs directory.  Uncompressing and extracting
+the blob file results in the install tree.
+
+This is in contrast to previous versions of spack, where the compressed tarball
+had a ``.spack`` extension, and was found in a path named after the details of
+the concrete spec.
 
 .. _internal_implementation:
 

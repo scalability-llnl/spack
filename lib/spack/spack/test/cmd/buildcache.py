@@ -19,6 +19,7 @@ import spack.main
 import spack.mirrors.mirror
 import spack.spec
 import spack.util.url
+import spack.util.web as web_util
 from spack.installer import PackageInstaller
 
 buildcache = spack.main.SpackCommand("buildcache")
@@ -74,20 +75,6 @@ def test_buildcache_list_allarch(database, mock_get_specs_multiarch, capsys):
     assert output.count("mpileaks") == 2
 
 
-def tests_buildcache_create(install_mockery, mock_fetch, monkeypatch, tmpdir):
-    """ "Ensure that buildcache create creates output files"""
-    pkg = "trivial-install-test-package"
-    install(pkg)
-
-    buildcache("push", "--unsigned", str(tmpdir), pkg)
-
-    spec = spack.concretize.concretize_one(pkg)
-    tarball_path = spack.binary_distribution.tarball_path_name(spec, ".spack")
-    tarball = spack.binary_distribution.tarball_name(spec, ".spec.json")
-    assert os.path.exists(os.path.join(str(tmpdir), "build_cache", tarball_path))
-    assert os.path.exists(os.path.join(str(tmpdir), "build_cache", tarball))
-
-
 def tests_buildcache_create_env(
     install_mockery, mock_fetch, monkeypatch, tmpdir, mutable_mock_env_path
 ):
@@ -102,10 +89,21 @@ def tests_buildcache_create_env(
         buildcache("push", "--unsigned", str(tmpdir))
 
     spec = spack.concretize.concretize_one(pkg)
-    tarball_path = spack.binary_distribution.tarball_path_name(spec, ".spack")
-    tarball = spack.binary_distribution.tarball_name(spec, ".spec.json")
-    assert os.path.exists(os.path.join(str(tmpdir), "build_cache", tarball_path))
-    assert os.path.exists(os.path.join(str(tmpdir), "build_cache", tarball))
+
+    mirror_url = f"file://{tmpdir.strpath}"
+
+    cache_entry = spack.binary_distribution.create_urlbuildcacheentry()
+    cache_entry.initialize_from_spec_and_mirror(spec, mirror_url)
+
+    exists = cache_entry.exists()
+
+    assert exists.unsigned
+    assert exists.tarball
+
+    assert web_util.url_exists(exists.unsigned_url)
+    assert web_util.url_exists(exists.tarball_url)
+
+    cache_entry.destroy()
 
 
 def test_buildcache_create_fails_on_noargs(tmpdir):
@@ -159,7 +157,9 @@ def test_update_key_index(
     # it causes the index to get update.
     buildcache("update-index", "--keys", mirror_dir.strpath)
 
-    key_dir_list = os.listdir(os.path.join(mirror_dir.strpath, "build_cache", "_pgp"))
+    key_dir_list = os.listdir(
+        os.path.join(mirror_dir.strpath, spack.binary_distribution.buildcache_relative_keys_path())
+    )
 
     uninstall("-y", s.name)
     mirror("rm", "test-mirror")
@@ -180,10 +180,10 @@ def test_buildcache_autopush(tmp_path, install_mockery, mock_fetch):
     # Install and generate build cache index
     PackageInstaller([s.package], explicit=True).install()
 
-    metadata_file = spack.binary_distribution.tarball_name(s, ".spec.json")
+    metadata_file = spack.binary_distribution.buildcache_relative_spec_url(s, ".spec.json")
 
-    assert not (mirror_dir / "build_cache" / metadata_file).exists()
-    assert (mirror_autopush_dir / "build_cache" / metadata_file).exists()
+    assert not (mirror_dir / metadata_file).exists()
+    assert (mirror_autopush_dir / metadata_file).exists()
 
 
 def test_buildcache_sync(
@@ -205,7 +205,11 @@ def test_buildcache_sync(
     out_env_pkg = "libdwarf"
 
     def verify_mirror_contents():
-        dest_list = os.listdir(os.path.join(dest_mirror_dir, "build_cache"))
+        dest_list = os.listdir(
+            os.path.join(
+                dest_mirror_dir, spack.binary_distribution.buildcache_relative_specs_path()
+            )
+        )
 
         found_pkg = False
 
@@ -255,32 +259,11 @@ def test_buildcache_sync(
         shutil.rmtree(dest_mirror_dir)
 
         def manifest_insert(manifest, spec, dest_url):
-            manifest[spec.dag_hash()] = [
-                {
-                    "src": spack.util.url.join(
-                        src_mirror_url,
-                        spack.binary_distribution.build_cache_relative_path(),
-                        spack.binary_distribution.tarball_name(spec, ".spec.json"),
-                    ),
-                    "dest": spack.util.url.join(
-                        dest_url,
-                        spack.binary_distribution.build_cache_relative_path(),
-                        spack.binary_distribution.tarball_name(spec, ".spec.json"),
-                    ),
-                },
-                {
-                    "src": spack.util.url.join(
-                        src_mirror_url,
-                        spack.binary_distribution.build_cache_relative_path(),
-                        spack.binary_distribution.tarball_path_name(spec, ".spack"),
-                    ),
-                    "dest": spack.util.url.join(
-                        dest_url,
-                        spack.binary_distribution.build_cache_relative_path(),
-                        spack.binary_distribution.tarball_path_name(spec, ".spack"),
-                    ),
-                },
-            ]
+            cache_entry = spack.binary_distribution.create_urlbuildcacheentry()
+            manifest[spec.dag_hash()] = {
+                "src": cache_entry.compute_remote_spec_url(spec, src_mirror_url, signed=False),
+                "dest": cache_entry.compute_remote_spec_url(spec, dest_url, signed=False),
+            }
 
         manifest_file = os.path.join(tmpdir.strpath, "manifest_dest.json")
         with open(manifest_file, "w", encoding="utf-8") as fd:
@@ -329,11 +312,24 @@ def test_buildcache_create_install(
 
     buildcache("push", "--unsigned", str(tmpdir), pkg)
 
+    mirror_url = f"file://{tmpdir.strpath}"
+
     spec = spack.concretize.concretize_one(pkg)
-    tarball_path = spack.binary_distribution.tarball_path_name(spec, ".spack")
-    tarball = spack.binary_distribution.tarball_name(spec, ".spec.json")
-    assert os.path.exists(os.path.join(str(tmpdir), "build_cache", tarball_path))
-    assert os.path.exists(os.path.join(str(tmpdir), "build_cache", tarball))
+    cache_entry = spack.binary_distribution.create_urlbuildcacheentry()
+    cache_entry.initialize_from_spec_and_mirror(spec, mirror_url)
+    spec_path = os.path.join(
+        str(tmpdir), *cache_entry.get_relative_spec_components(spec, ".spec.json")
+    )
+    assert os.path.exists(spec_path)
+
+    cache_entry.fetch_metadata()
+    tarball_components = cache_entry.get_relative_tarball_components(
+        cache_entry.get_archive_checksum_algorithm(), cache_entry.get_archive_checksum_hash()
+    )
+    tarball_path = os.path.join(str(tmpdir), *tarball_components)
+    assert os.path.exists(tarball_path)
+
+    cache_entry.destroy()
 
 
 @pytest.mark.parametrize(

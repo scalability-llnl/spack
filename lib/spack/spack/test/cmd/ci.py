@@ -846,18 +846,20 @@ spack:
 
             mirror_cmd("rm", "test-ci")
 
+            specs_dir = spack.binary_distribution.buildcache_relative_specs_path()
+
             # Test generating buildcache index while we have bin mirror
             buildcache_cmd("update-index", mirror_url)
-            with open(mirror_dir / "build_cache" / INDEX_JSON_FILE, encoding="utf-8") as idx_fd:
+            with open(mirror_dir / specs_dir / INDEX_JSON_FILE, encoding="utf-8") as idx_fd:
                 index_object = json.load(idx_fd)
                 jsonschema.validate(index_object, db_idx_schema)
 
             # Now that index is regenerated, validate "buildcache list" output
             assert "patchelf" in buildcache_cmd("list", output=str)
             # Also test buildcache_spec schema
-            for file_name in os.listdir(mirror_dir / "build_cache"):
+            for file_name in os.listdir(mirror_dir / specs_dir):
                 if file_name.endswith(".spec.json.sig"):
-                    with open(mirror_dir / "build_cache" / file_name, encoding="utf-8") as f:
+                    with open(mirror_dir / specs_dir / file_name, encoding="utf-8") as f:
                         spec_dict = Spec.extract_json_from_clearsig(f.read())
                         jsonschema.validate(spec_dict, specfile_schema)
 
@@ -867,7 +869,9 @@ spack:
             assert "spack-build-out.txt" in os.listdir(logs_dir)
 
             dl_dir = scratch / "download_dir"
-            buildcache_cmd("download", "--spec-file", json_path, "--path", str(dl_dir))
+            buildcache_cmd(
+                "download", "--spec", f"/{concrete_spec.dag_hash()[:7]}", "--path", str(dl_dir)
+            )
             assert len(os.listdir(dl_dir)) == 2
 
 
@@ -1066,7 +1070,8 @@ spack:
             buildcache_cmd("push", "-u", "-f", mirror_url, "callpath")
             ci_cmd("rebuild-index")
 
-            with open(mirror_dir / "build_cache" / INDEX_JSON_FILE, encoding="utf-8") as f:
+            specs_dir = spack.binary_distribution.buildcache_relative_specs_path()
+            with open(mirror_dir / specs_dir / INDEX_JSON_FILE, encoding="utf-8") as f:
                 jsonschema.validate(json.load(f), db_idx_schema)
 
 

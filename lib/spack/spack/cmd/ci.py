@@ -392,7 +392,7 @@ def ci_rebuild(args):
         # jobs in subsequent stages.
         tty.msg("No need to rebuild {0}, found hash match at: ".format(job_spec_pkg_name))
         for match in matches:
-            tty.msg("    {0}".format(match["mirror_url"]))
+            tty.msg("    {0}".format(match.url_and_version.url))
 
         # Now we are done and successful
         return 0

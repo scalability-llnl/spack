@@ -5,10 +5,9 @@ import argparse
 import glob
 import json
 import os
-import shutil
 import sys
 import tempfile
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import llnl.util.tty as tty
 from llnl.string import plural
@@ -207,13 +206,7 @@ def setup_parser(subparser: argparse.ArgumentParser):
 
     # Download tarball and specfile
     download = subparsers.add_parser("download", help=download_fn.__doc__)
-    download_spec_or_specfile = download.add_mutually_exclusive_group(required=True)
-    download_spec_or_specfile.add_argument(
-        "-s", "--spec", help="download built tarball for spec from mirror"
-    )
-    download_spec_or_specfile.add_argument(
-        "--spec-file", help="download built tarball for spec (from json or yaml file) from mirror"
-    )
+    download.add_argument("-s", "--spec", help="download built tarball for spec from mirror")
     download.add_argument(
         "-p",
         "--path",
@@ -222,21 +215,6 @@ def setup_parser(subparser: argparse.ArgumentParser):
         help="path to directory where tarball should be downloaded",
     )
     download.set_defaults(func=download_fn)
-
-    # Get buildcache name
-    getbuildcachename = subparsers.add_parser(
-        "get-buildcache-name", help=get_buildcache_name_fn.__doc__
-    )
-    getbuildcachename_spec_or_specfile = getbuildcachename.add_mutually_exclusive_group(
-        required=True
-    )
-    getbuildcachename_spec_or_specfile.add_argument(
-        "-s", "--spec", help="spec string for which buildcache name is desired"
-    )
-    getbuildcachename_spec_or_specfile.add_argument(
-        "--spec-file", help="path to spec json or yaml file for which buildcache name is desired"
-    )
-    getbuildcachename.set_defaults(func=get_buildcache_name_fn)
 
     # Given the root spec, save the yaml of the dependent spec to a file
     savespecfile = subparsers.add_parser("save-specfile", help=save_specfile_fn.__doc__)
@@ -578,28 +556,12 @@ def download_fn(args):
     code indicates that the command failed to download at least one of the required buildcache
     components
     """
-    if args.spec_file:
-        tty.warn(
-            "The flag `--spec-file` is deprecated and will be removed in Spack 0.22. "
-            "Use --spec instead."
-        )
-
-    specs = _matching_specs(spack.cmd.parse_specs(args.spec or args.spec_file))
+    specs = _matching_specs(spack.cmd.parse_specs(args.spec))
 
     if len(specs) != 1:
         tty.die("a single spec argument is required to download from a buildcache")
 
-    if not bindist.download_single_spec(specs[0], args.path):
-        sys.exit(1)
-
-
-def get_buildcache_name_fn(args):
-    """get name (prefix) of buildcache entries for this spec"""
-    tty.warn("This command is deprecated and will be removed in Spack 0.22.")
-    specs = _matching_specs(spack.cmd.parse_specs(args.spec or args.spec_file))
-    if len(specs) != 1:
-        tty.die("a single spec argument is required to get buildcache name")
-    print(bindist.tarball_name(specs[0], ""))
+    bindist.download_single_spec(specs[0], args.path)
 
 
 def save_specfile_fn(args):
@@ -630,29 +592,53 @@ def save_specfile_fn(args):
     )
 
 
-def copy_buildcache_file(src_url, dest_url, local_path=None):
-    """Copy from source url to destination url"""
-    tmpdir = None
-
-    if not local_path:
-        tmpdir = tempfile.mkdtemp()
-        local_path = os.path.join(tmpdir, os.path.basename(src_url))
-
+def copy_buildcache_entry(cache_entry: bindist.URLBuildcacheEntry, destination_url: str):
+    """Download buildcache entry and copy it to the destination_url"""
     try:
-        temp_stage = spack.stage.Stage(src_url, path=os.path.dirname(local_path))
-        try:
-            temp_stage.create()
-            temp_stage.fetch()
-            web_util.push_to_url(local_path, dest_url, keep_original=True)
-        except spack.error.FetchError as e:
-            # Expected, since we have to try all the possible extensions
-            tty.debug("no such file: {0}".format(src_url))
-            tty.debug(e)
-        finally:
-            temp_stage.destroy()
-    finally:
-        if tmpdir and os.path.exists(tmpdir):
-            shutil.rmtree(tmpdir)
+        spec_dict = cache_entry.fetch_metadata()
+        cache_entry.fetch_archive(allow_unsigned=True)
+    except bindist.BuildcacheEntryError as e:
+        tty.warn(f"Failed to retrieve buildcache for copying due to {e}")
+        cache_entry.destroy()
+        return
+
+    target_spec = spack.spec.Spec.from_dict(spec_dict)
+
+    spec_dest_url = url_util.join(
+        destination_url,
+        bindist.buildcache_relative_spec_path(
+            target_spec, ".spec.json", layout_version=cache_entry.layout_version
+        ),
+    )
+
+    if cache_entry.get_remote_spec_url().endswith(".sig"):
+        spec_dest_url = f"{spec_dest_url}.sig"
+
+    tarball_dest_url = url_util.join(
+        destination_url,
+        bindist.buildcache_relative_tarball_path(
+            cache_entry.get_archive_checksum_algorithm(), cache_entry.get_archive_checksum_hash()
+        ),
+    )
+
+    local_tarball_path = cache_entry.get_local_archive_path()
+    local_spec_path = cache_entry.get_local_spec_path()
+
+    # Try to push the tarball
+    try:
+        web_util.push_to_url(local_tarball_path, tarball_dest_url, keep_original=True)
+    except Exception as e:
+        tty.warn(f"Failed to push {local_tarball_path} to {tarball_dest_url} due to {e}")
+        cache_entry.destroy()
+        return
+
+    # Finally try to push the spec file
+    try:
+        web_util.push_to_url(local_spec_path, spec_dest_url, keep_original=True)
+    except Exception as e:
+        tty.warn(f"Failed to push {local_spec_path} to {spec_dest_url} due to {e}")
+
+    cache_entry.destroy()
 
 
 def sync_fn(args):
@@ -692,37 +678,19 @@ def sync_fn(args):
         )
     )
 
-    build_cache_dir = bindist.build_cache_relative_path()
-    buildcache_rel_paths = []
-
     tty.debug("Syncing the following specs:")
     for s in env.all_specs():
         tty.debug("  {0}{1}: {2}".format("* " if s in env.roots() else "  ", s.name, s.dag_hash()))
-
-        buildcache_rel_paths.extend(
-            [
-                os.path.join(build_cache_dir, bindist.tarball_path_name(s, ".spack")),
-                os.path.join(build_cache_dir, bindist.tarball_name(s, ".spec.json.sig")),
-                os.path.join(build_cache_dir, bindist.tarball_name(s, ".spec.json")),
-                os.path.join(build_cache_dir, bindist.tarball_name(s, ".spec.yaml")),
-            ]
+        cache_entry = bindist.create_urlbuildcacheentry(
+            layout_version=bindist.CURRENT_BUILD_CACHE_LAYOUT_VERSION
         )
-
-    tmpdir = tempfile.mkdtemp()
-
-    try:
-        for rel_path in buildcache_rel_paths:
-            src_url = url_util.join(src_mirror_url, rel_path)
-            local_path = os.path.join(tmpdir, rel_path)
-            dest_url = url_util.join(dest_mirror_url, rel_path)
-
-            tty.debug("Copying {0} to {1} via {2}".format(src_url, dest_url, local_path))
-            copy_buildcache_file(src_url, dest_url, local_path=local_path)
-    finally:
-        shutil.rmtree(tmpdir)
+        cache_entry.initialize_from_spec_and_mirror(s, src_mirror_url)
+        copy_buildcache_entry(cache_entry, dest_mirror_url)
 
 
-def manifest_copy(manifest_file_list, dest_mirror=None):
+def manifest_copy(
+    manifest_file_list: List[str], dest_mirror: Optional[spack.mirrors.mirror.Mirror] = None
+):
     """Read manifest files containing information about specific specs to copy
     from source to destination, remove duplicates since any binary packge for
     a given hash should be the same as any other, and copy all files specified
@@ -732,21 +700,21 @@ def manifest_copy(manifest_file_list, dest_mirror=None):
     for manifest_path in manifest_file_list:
         with open(manifest_path, encoding="utf-8") as fd:
             manifest = json.loads(fd.read())
-            for spec_hash, copy_list in manifest.items():
+            for spec_hash, copy_obj in manifest.items():
                 # Last duplicate hash wins
-                deduped_manifest[spec_hash] = copy_list
+                deduped_manifest[spec_hash] = copy_obj
 
-    build_cache_dir = bindist.build_cache_relative_path()
-    for spec_hash, copy_list in deduped_manifest.items():
-        for copy_file in copy_list:
-            dest = copy_file["dest"]
-            if dest_mirror:
-                src_relative_path = os.path.join(
-                    build_cache_dir, copy_file["src"].rsplit(build_cache_dir, 1)[1].lstrip("/")
-                )
-                dest = url_util.join(dest_mirror.push_url, src_relative_path)
-            tty.debug("copying {0} to {1}".format(copy_file["src"], dest))
-            copy_buildcache_file(copy_file["src"], dest)
+    for spec_hash, copy_obj in deduped_manifest.items():
+        cache_entry = bindist.create_urlbuildcacheentry(
+            layout_version=bindist.CURRENT_BUILD_CACHE_LAYOUT_VERSION
+        )
+        cache_entry.initialize_from_spec_url(copy_obj["src"])
+        if dest_mirror:
+            destination_url = dest_mirror.push_url
+        else:
+            destination_url = cache_entry.get_base_url(copy_obj["dest"])
+        tty.debug("copying {0} to {1}".format(copy_obj["src"], destination_url))
+        copy_buildcache_entry(cache_entry, destination_url)
 
 
 def update_index(mirror: spack.mirrors.mirror.Mirror, update_keys=False):
@@ -770,9 +738,7 @@ def update_index(mirror: spack.mirrors.mirror.Mirror, update_keys=False):
         bindist._url_generate_package_index(url, tmpdir)
 
     if update_keys:
-        keys_url = url_util.join(
-            url, bindist.build_cache_relative_path(), bindist.build_cache_keys_relative_path()
-        )
+        keys_url = url_util.join(url, bindist.buildcache_relative_keys_url())
 
         try:
             with tempfile.TemporaryDirectory(dir=spack.stage.get_stage_root()) as tmpdir:
