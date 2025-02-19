@@ -36,10 +36,6 @@ modules:
 
   # These are configurations for the module set named "default"
   default:
-    # Where to install modules
-    roots:
-     tcl:    $spack/share/spack/modules
-     lmod:   $spack/share/spack/lmod
     # What type of modules to use ("tcl" and/or "lmod")
     enable: []
 

@@ -12,11 +12,11 @@ import llnl.util.tty as tty
 import spack.caches
 import spack.cmd
 import spack.config
+import spack.paths as paths
 import spack.stage
 import spack.store
 import spack.util.path
 from spack.cmd.common import arguments
-from spack.paths import lib_path, var_path
 
 description = "remove temporary build files and/or downloaded archives"
 section = "build"
@@ -72,7 +72,7 @@ def setup_parser(subparser):
 
 
 def remove_python_cache():
-    for directory in [lib_path, var_path]:
+    for directory in [paths.lib_path, paths.repos_path]:
         for root, dirs, files in os.walk(directory):
             for f in files:
                 if f.endswith(".pyc") or f.endswith(".pyo"):
