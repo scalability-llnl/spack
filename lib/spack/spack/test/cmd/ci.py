@@ -1823,3 +1823,16 @@ def test_ci_verify_versions_standard_invalid(
 
     out = ci_cmd("verify-versions", commits[-1], commits[-2], fail_on_error=False)
     assert "Invalid checksum found diff-test@2.1.5" in out
+
+
+def test_ci_verify_versions_manual_package(
+    monkeypatch, mock_packages, fetch_versions_invalid, mock_git_package_changes
+):
+    repo_path, _, commits = mock_git_package_changes
+    monkeypatch.setattr(spack.paths, "prefix", repo_path)
+
+    pkg_class = spack.spec.Spec("diff-test").package_class
+    monkeypatch.setattr(pkg_class, "manual_download", True)
+
+    out = ci_cmd("verify-versions", commits[-1], commits[-2], fail_on_error=False)
+    assert "Skipping manual download package: diff-test" in out

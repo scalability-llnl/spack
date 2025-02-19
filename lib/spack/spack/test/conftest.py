@@ -150,7 +150,7 @@ def mock_git_version_info(git, tmpdir, override_git_repos_cache_path):
     version tags on multiple branches, and version order is not equal to time
     order or topological order.
     """
-    repo_path = str(tmpdir.mkdir("git_repo"))
+    repo_path = str(tmpdir.mkdir("git_version_info_repo"))
     filename = "file.txt"
 
     def commit(message):
@@ -250,7 +250,7 @@ def mock_git_package_changes(git, tmpdir, override_git_repos_cache_path):
     Important attributes of the repo for test coverage are: multiple package
     versions are added with some coming from a tarball and some from git refs.
     """
-    repo_path = str(tmpdir.mkdir("git_repo"))
+    repo_path = str(tmpdir.mkdir("git_package_changes_repo"))
     filename = "var/spack/repos/builtin/packages/diff-test/package.py"
 
     def commit(message):

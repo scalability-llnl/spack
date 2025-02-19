@@ -10,7 +10,6 @@ class DiffTest(AutotoolsPackage):
 
     homepage = "https://github.com/zlib-ng/zlib-ng"
     url = "https://github.com/zlib-ng/zlib-ng/archive/2.0.0.tar.gz"
-    git = "https://github.com/zlib-ng/zlib-ng.git"
 
     license("Zlib")
 

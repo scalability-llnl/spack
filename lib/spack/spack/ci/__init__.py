@@ -97,6 +97,9 @@ def get_added_versions(
 
     # Gather git diff
     diff_lines = git_exe("diff", from_ref, to_ref, "--", path, output=str).split("\n")
+    print(checksums_version_dict)
+    for line in diff_lines:
+        print(line)
 
     # Store added and removed versions
     added_checksums = set()
