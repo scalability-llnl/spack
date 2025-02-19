@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -8,8 +7,7 @@ from spack.package import *
 
 class Xnedit(MakefilePackage):
     """XNEdit is a multi-purpose text editor for the X Window System, which combines a standard,
-    easy to use, graphical user interface with the thorough functionality and stability.
-    """
+    easy to use, graphical user interface with the thorough functionality and stability."""
 
     license("GPL-2.0-or-later")
 
