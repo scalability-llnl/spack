@@ -579,10 +579,34 @@ def allows_unknown_args(command):
     return argcount == 3 and varnames[2] == "unknown_args"
 
 
-def _invoke_command(command, parser, args, unknown_args):
+def allows_unparsed_args(command):
+    """Implements really simple argument injection for unparsed arguments.
+
+    Commands may add an optional argument called "unparsed args" to
+    indicate they can handle unparsed args after --, and we'll pass the unparsed
+    args in.
+    """
+    info = dict(inspect.getmembers(command))
+    varnames = info["__code__"].co_varnames
+    argcount = info["__code__"].co_argcount
+    return argcount == 3 and varnames[2] == "unparsed_args"
+
+
+def _filter_unparsed(command, argv):
+    unparsed = []
+    if allows_unparsed_args(command) and "--" in argv:
+        divider = argv.index("--")
+        unparsed = argv[divider + 1 :]
+        argv = argv[0:divider]
+    return argv, unparsed
+
+
+def _invoke_command(command, parser, args, unknown_args, unparsed_args):
     """Run a spack command *without* setting spack global options."""
     if allows_unknown_args(command):
         return_val = command(parser, args, unknown_args)
+    elif allows_unparsed_args(command):
+        return_val = command(parser, args, unparsed_args)
     else:
         if unknown_args:
             tty.die("unrecognized arguments: %s" % " ".join(unknown_args))
@@ -652,6 +676,7 @@ class SpackCommand:
             out = out.decode()
         else:
             command = self.parser.add_command(self.command_name)
+            argv, unparsed = _filter_unparsed(command, argv)
             args, unknown = self.parser.parse_known_args(
                 prepend + [self.command_name] + list(argv)
             )
@@ -659,7 +684,9 @@ class SpackCommand:
             out = io.StringIO()
             try:
                 with log_output(out, echo=True):
-                    self.returncode = _invoke_command(command, self.parser, args, unknown)
+                    self.returncode = _invoke_command(
+                        command, self.parser, args, unknown, unparsed
+                    )
 
             except SystemExit as e:
                 self.returncode = e.code
@@ -689,7 +716,7 @@ class SpackCommand:
                     tty.verbose(fmt.format(ln.replace("==> ", "")))
 
 
-def _profile_wrapper(command, parser, args, unknown_args):
+def _profile_wrapper(command, parser, args, unknown_args, unparsed_args):
     import cProfile
 
     try:
@@ -711,7 +738,7 @@ def _profile_wrapper(command, parser, args, unknown_args):
         # make a profiler and run the code.
         pr = cProfile.Profile()
         pr.enable()
-        return _invoke_command(command, parser, args, unknown_args)
+        return _invoke_command(command, parser, args, unknown_args, unparsed_args)
 
     finally:
         pr.disable()
@@ -995,7 +1022,8 @@ def finish_parse_and_run(parser, cmd_name, main_args, env_format_error):
     """Finish parsing after we know the command to run."""
     # add the found command to the parser and re-run then re-parse
     command = parser.add_command(cmd_name)
-    args, unknown = parser.parse_known_args(main_args.command)
+    argv, unparsed = _filter_unparsed(command, main_args.command)
+    args, unknown = parser.parse_known_args(argv)
     # we need to inherit verbose since the install command checks for it
     args.verbose = main_args.verbose
 
@@ -1011,14 +1039,16 @@ def finish_parse_and_run(parser, cmd_name, main_args, env_format_error):
 
     # now we can actually execute the command.
     if main_args.spack_profile or main_args.sorted_profile:
-        _profile_wrapper(command, parser, args, unknown)
+        _profile_wrapper(command, parser, args, unknown, unparsed)
     elif main_args.pdb:
         import pdb
 
-        pdb.runctx("_invoke_command(command, parser, args, unknown)", globals(), locals())
+        pdb.runctx(
+            "_invoke_command(command, parser, args, unknown, unparsed)", globals(), locals()
+        )
         return 0
     else:
-        return _invoke_command(command, parser, args, unknown)
+        return _invoke_command(command, parser, args, unknown, unparsed)
 
 
 def main(argv=None):
