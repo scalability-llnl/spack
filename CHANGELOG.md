@@ -1,3 +1,33 @@
+# v0.23.1 (2025-02-19)
+
+## Bugfixes
+- Fix a correctness issue of `ArchSpec.intersects` (#48741)
+- Make `extra_attributes` order independent in Spec hashing (#48615, #48854)
+- Fix issue where system proxy settings were not respected in OCI build caches (#48783)
+- Fix an issue where the `--test` concretizer flag was not forwarded correctly (#48417)
+- Fix an issue where `codesign` and `install_name_tool` would not preserve hardlinks on
+  Darwin (#47808)
+- Fix an issue on Darwin where codesign would run on unmodified binaries (#48568)
+- Patch configure scripts generated with libtool < 2.5.4, to avoid redundant flags when
+  creating shared libraries on Darwin (#48671)
+- Fix issue related to mirror URL paths on Windows (#47898)
+- Esnure proper UTF-8 encoding/decoding in logging (#48005)
+- Fix issues related to `filter_file` (#48038, #48108)
+- Fix issue related to creating bootstrap source mirrors (#48235)
+- Fix issue where command line config arguments were not always top level (#48255)
+- Fix an incorrect typehint of `concretized()` (#48504)
+- Improve mention of next Spack version in warning (#47887)
+- Tests: fix forward compatibility with Python 3.13 (#48209)
+- Docs: encourage use of `--oci-username-variable` and `--oci-password-variable` (#48189)
+- Docs: ensure Getting Started has bootstrap list output in correct place (#48281)
+- CI: allow GitHub actions to run on forks of Spack with different project name (#48041)
+- CI: make unit tests work on Ubuntu 24.04 (#48151)
+- CI: re-enable cray pipelines (#47697)
+
+# Package updates
+- `qt-base`: fix rpath for dependents (#47424)
+- `gdk-pixbuf`: fix outdated URL (#47825)
+
 # v0.23.0 (2024-11-13)
 
 `v0.23.0` is a major feature release.
