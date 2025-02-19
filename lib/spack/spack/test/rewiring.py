@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import filecmp
-import os
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -24,7 +24,7 @@ else:
 def check_spliced_spec_prefixes(spliced_spec):
     """check the file in the prefix has the correct paths"""
     for node in spliced_spec.traverse(root=True):
-        text_file_path = os.path.join(node.prefix, node.name)
+        text_file_path = Path(node.prefix, node.name)
         with open(text_file_path, "r", encoding="utf-8") as f:
             text = f.read()
             print(text)
@@ -46,7 +46,7 @@ def test_rewire_db(mock_fetch, install_mockery, transitive):
     spack.rewiring.rewire(spliced_spec)
 
     # check that the prefix exists
-    assert os.path.exists(spliced_spec.prefix)
+    assert Path(spliced_spec.prefix).exists()
 
     # test that it made it into the database
     rec = spack.store.STORE.db.get_record(spliced_spec)
@@ -71,7 +71,7 @@ def test_rewire_bin(mock_fetch, install_mockery, transitive):
     spack.rewiring.rewire(spliced_spec)
 
     # check that the prefix exists
-    assert os.path.exists(spliced_spec.prefix)
+    assert Path(spliced_spec.prefix).exists()
 
     # test that it made it into the database
     rec = spack.store.STORE.db.get_record(spliced_spec)
@@ -82,7 +82,7 @@ def test_rewire_bin(mock_fetch, install_mockery, transitive):
     bin_names = {"garply": "garplinator", "corge": "corgegator", "quux": "quuxifier"}
     for node in spliced_spec.traverse(root=True):
         for dep in node.traverse(root=True):
-            bin_file_path = os.path.join(dep.prefix.bin, bin_names[dep.name])
+            bin_file_path = Path(dep.prefix.bin, bin_names[dep.name])
             assert text_in_bin(dep.prefix, bin_file_path)
 
 
@@ -99,34 +99,36 @@ def test_rewire_writes_new_metadata(mock_fetch, install_mockery):
     # test install manifests
     for node in spliced_spec.traverse(root=True):
         spack.store.STORE.layout.ensure_installed(node)
-        manifest_file_path = os.path.join(
-            node.prefix,
-            spack.store.STORE.layout.metadata_dir,
-            spack.store.STORE.layout.manifest_file_name,
+        node_prefix = Path(node.prefix)
+        manifest_file_path = (
+            node_prefix
+            / spack.store.STORE.layout.metadata_dir
+            / spack.store.STORE.layout.manifest_file_name
         )
-        assert os.path.exists(manifest_file_path)
+        assert manifest_file_path.exists()
         orig_node = spec[node.name]
         if node == orig_node:
             continue
-        orig_manifest_file_path = os.path.join(
-            orig_node.prefix,
-            spack.store.STORE.layout.metadata_dir,
-            spack.store.STORE.layout.manifest_file_name,
+        orig_node_prefix = Path(orig_node.prefix)
+        orig_manifest_file_path = (
+            orig_node_prefix
+            / spack.store.STORE.layout.metadata_dir
+            / spack.store.STORE.layout.manifest_file_name
         )
-        assert os.path.exists(orig_manifest_file_path)
+        assert orig_manifest_file_path.exists()
         assert not filecmp.cmp(orig_manifest_file_path, manifest_file_path, shallow=False)
-        specfile_path = os.path.join(
-            node.prefix,
-            spack.store.STORE.layout.metadata_dir,
-            spack.store.STORE.layout.spec_file_name,
+        specfile_path = (
+            node_prefix
+            / spack.store.STORE.layout.metadata_dir
+            / spack.store.STORE.layout.spec_file_name
         )
-        assert os.path.exists(specfile_path)
-        orig_specfile_path = os.path.join(
-            orig_node.prefix,
-            spack.store.STORE.layout.metadata_dir,
-            spack.store.STORE.layout.spec_file_name,
+        assert specfile_path.exists()
+        orig_specfile_path = (
+            orig_node_prefix
+            / spack.store.STORE.layout.metadata_dir
+            / spack.store.STORE.layout.spec_file_name
         )
-        assert os.path.exists(orig_specfile_path)
+        assert orig_specfile_path.exists()
         assert not filecmp.cmp(orig_specfile_path, specfile_path, shallow=False)
 
 
@@ -141,7 +143,7 @@ def test_uninstall_rewired_spec(mock_fetch, install_mockery, transitive):
     spack.rewiring.rewire(spliced_spec)
     spliced_spec.package.do_uninstall()
     assert len(spack.store.STORE.db.query(spliced_spec)) == 0
-    assert not os.path.exists(spliced_spec.prefix)
+    assert not Path(spliced_spec.prefix).exists()
 
 
 @pytest.mark.requires_executables(*required_executables)
