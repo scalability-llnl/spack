@@ -1,0 +1,113 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index de46022..8a98e87 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -485,11 +485,14 @@ SET(CMAKE_MACOSX_RPATH 1)
+ #####
+ ############################################################################
+ SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
++add_library( ParMmg INTERFACE )
+ 
+ IF ( LIBPARMMG_STATIC )
+   ADD_AND_INSTALL_LIBRARY ( lib${PROJECT_NAME}_a STATIC
+     "${pmmg_library_files}" ${PROJECT_NAME} )
+ 
++  target_link_libraries( ParMmg INTERFACE lib${PROJECT_NAME}_a )
++
+   IF ( DOWNLOAD_MMG )
+     Add_Dependencies(lib${PROJECT_NAME}_a Mmg)
+   ENDIF ( )
+@@ -505,6 +508,8 @@ IF ( LIBPARMMG_SHARED )
+   ADD_AND_INSTALL_LIBRARY ( lib${PROJECT_NAME}_so SHARED
+     "${pmmg_library_files}" ${PROJECT_NAME} )
+ 
++  target_link_libraries( ParMmg INTERFACE lib${PROJECT_NAME}_so )
++
+   IF ( DOWNLOAD_MMG )
+     Add_Dependencies(lib${PROJECT_NAME}_so Mmg)
+   ENDIF ( )
+@@ -515,6 +520,14 @@ IF ( LIBPARMMG_SHARED )
+ 
+ ENDIF()
+ 
++add_library(ParMmg::ParMmg ALIAS ParMmg)
++install(TARGETS ParMmg EXPORT ParMmgTargets
++  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
++  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
++  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
++  INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/parmmg
++  )
++
+ # parmmg header files needed for library
+ SET( pmmg_headers
+   ${PMMG_SOURCE_DIR}/libparmmg.h
+@@ -540,12 +553,45 @@ ELSE()
+   SET(LIBPARMMG_INTERNAL OFF )
+ ENDIF()
+ 
++if ( BUILD_SHARED_LIBS )
++  set(LIBPARMMG lib${PROJECT_NAME}_so)
++else()
++  set(LIBPARMMG lib${PROJECT_NAME}_a)
++endif()
++
+ install(EXPORT ParMmgTargets
+   FILE ParMmgTargets.cmake
+   NAMESPACE ParMmg::
+   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/parmmg
+   )
+ 
++
++include(CMakePackageConfigHelpers)
++
++configure_package_config_file(
++    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/ParMmgConfig.cmake.in"
++    "${CMAKE_CURRENT_BINARY_DIR}/ParMmgConfig.cmake"
++    INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/parmmg"
++)
++
++# Install ParMmgConfig.cmake and ParMmgConfigVersion.cmake
++install(
++    FILES "${CMAKE_CURRENT_BINARY_DIR}/ParMmgConfig.cmake"
++    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/parmmg"
++)
++
++# Install ParMmgConfigVersion.cmake for version tracking
++write_basic_package_version_file(
++    "${CMAKE_CURRENT_BINARY_DIR}/ParMmgConfigVersion.cmake"
++    VERSION ${CMAKE_RELEASE_VERSION}
++    COMPATIBILITY AnyNewerVersion
++)
++
++install(
++    FILES "${CMAKE_CURRENT_BINARY_DIR}/ParMmgConfigVersion.cmake"
++    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/parmmg"
++)
++
+ ###############################################################################
+ #####
+ #####         Compile PMMG executable
+diff --git a/cmake/modules/ParMmgConfig.cmake.in b/cmake/modules/ParMmgConfig.cmake.in
+new file mode 100644
+index 0000000..2765460
+--- /dev/null
++++ b/cmake/modules/ParMmgConfig.cmake.in
+@@ -0,0 +1,5 @@
++@PACKAGE_INIT@
++
++include(CMakeFindDependencyMacro)
++
++include("${CMAKE_CURRENT_LIST_DIR}/ParMmgTargets.cmake")
+\ No newline at end of file
+diff --git a/cmake/modules/macros.cmake b/cmake/modules/macros.cmake
+index bfeb250..616c97d 100644
+--- a/cmake/modules/macros.cmake
++++ b/cmake/modules/macros.cmake
+@@ -156,7 +156,6 @@ MACRO ( ADD_AND_INSTALL_LIBRARY
+     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+-    Component lib
+     )
+ ENDMACRO ( )
+ 
