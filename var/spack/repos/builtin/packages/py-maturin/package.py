@@ -25,6 +25,8 @@ class PyMaturin(PythonPackage):
     version("0.14.17", sha256="fb4e3311e8ce707843235fbe8748a05a3ae166c3efd6d2aa335b53dfc2bd3b88")
     version("0.13.7", sha256="c0a77aa0c57f945649ca711c806203a1b6888ad49c2b8b85196ffdcf0421db77")
 
+    variant("rust_bootstrap", default=False, when="@0.13.3:", description="Use pre-compiled Rust")
+
     with default_args(type="build"):
         depends_on("py-setuptools")
         depends_on("py-wheel@0.36.2:")
@@ -32,13 +34,15 @@ class PyMaturin(PythonPackage):
 
     with default_args(type=("build", "run")):
         depends_on("py-tomli@1.1:", when="^python@:3.10")
-        for rust, maturin in [
-            ("1.70", "1.5.0"),
-            ("1.64", "1.0.0"),
-            ("1.62", "0.14.3"),
-            ("1.59", "0.13.3"),
-        ]:
-            depends_on(f"rust@{rust}:", when=f"@{maturin}:")
+        with when("~rust_bootstrap"):
+            for rust, maturin in [
+                ("1.70", "1.5.0"),
+                ("1.64", "1.0.0"),
+                ("1.62", "0.14.3"),
+                ("1.59", "0.13.3"),
+            ]:
+                depends_on(f"rust@{rust}:", when=f"@{maturin}:")
+        depends_on("rust-bootstrap", when="+rust_bootstrap")
 
     # May be an accidental dependency, remove in the future
     # https://git.alpinelinux.org/aports/commit/?id=7ad298b467403b96a6b97d050170e367f147a75f
