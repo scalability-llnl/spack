@@ -12,6 +12,7 @@ import llnl.util.tty as tty
 import spack.phase_callbacks
 import spack.spec
 import spack.util.prefix
+from spack.util.executable import which_string
 
 from .cmake import CMakeBuilder, CMakePackage
 
@@ -198,19 +199,13 @@ class CachedCMakeBuilder(CMakeBuilder):
         if hasattr(spec["mpi"], "mpifc"):
             entries.append(cmake_cache_path("MPI_Fortran_COMPILER", spec["mpi"].mpifc))
 
-        # Check for slurm
-        using_slurm = False
-        slurm_checks = ["+slurm", "schedulers=slurm", "process_managers=slurm"]
-        if any(spec["mpi"].satisfies(variant) for variant in slurm_checks):
-            using_slurm = True
+        # Check for srun
+        srun_exec = which_string("srun")
+        using_srun = srun_exec is not None
 
         # Determine MPIEXEC
-        if using_slurm:
-            if spec["mpi"].external:
-                # Heuristic until we have dependents on externals
-                mpiexec = "/usr/bin/srun"
-            else:
-                mpiexec = os.path.join(spec["slurm"].prefix.bin, "srun")
+        if using_srun:
+            mpiexec = srun_exec
         elif hasattr(spec["mpi"].package, "mpiexec"):
             mpiexec = spec["mpi"].package.mpiexec
         else:
@@ -231,7 +226,7 @@ class CachedCMakeBuilder(CMakeBuilder):
                 entries.append(cmake_cache_path("MPIEXEC", mpiexec))
 
         # Determine MPIEXEC_NUMPROC_FLAG
-        if using_slurm:
+        if using_srun:
             entries.append(cmake_cache_string("MPIEXEC_NUMPROC_FLAG", "-n"))
         else:
             entries.append(cmake_cache_string("MPIEXEC_NUMPROC_FLAG", "-np"))
