@@ -63,8 +63,5 @@ class Mpibenchmark(AutotoolsPackage):
         return config_args
 
     def autoreconf(self, spec, prefix):
-        w = os.getcwd()
-        os.chdir(self.configure_directory)
-        autogen = Executable("./autogen.sh")
-        autogen()
-        os.chdir(w)
+        with working_dir(self.configure_directory):
+            Executable("./autogen.sh")()
