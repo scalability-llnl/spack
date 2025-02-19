@@ -18,6 +18,7 @@ import spack.paths as spack_paths
 import spack.repo as repo
 import spack.util.git
 from spack.test.conftest import MockHTTPResponse
+from spack.version import Version
 
 pytestmark = [pytest.mark.usefixtures("mock_packages")]
 
@@ -28,6 +29,43 @@ def repro_dir(tmp_path):
     result.mkdir()
     with fs.working_dir(str(tmp_path)):
         yield result
+
+
+def test_get_added_versions_new_checksum(mock_git_package_changes):
+    repo_path, filename, commits = mock_git_package_changes
+
+    checksum_versions = {
+        "3f6576971397b379d4205ae5451ff5a68edf6c103b2f03c4188ed7075fbb5f04": Version("2.1.5"),
+        "a0293475e6a44a3f6c045229fe50f69dc0eebc62a42405a51f19d46a5541e77a": Version("2.1.4"),
+        "6c0853bb27738b811f2b4d4af095323c3d5ce36ceed6b50e5f773204fb8f7200": Version("2.0.7"),
+        "86993903527d9b12fc543335c19c1d33a93797b3d4d37648b5addae83679ecd8": Version("2.0.0"),
+    }
+
+    with fs.working_dir(str(repo_path)):
+        added_versions = ci.get_added_versions(
+            checksum_versions, filename, from_ref=commits[-1], to_ref=commits[-2]
+        )
+        assert len(added_versions) == 1
+        assert added_versions[0] == Version("2.1.5")
+
+
+def test_get_added_versions_new_commit(mock_git_package_changes):
+    repo_path, filename, commits = mock_git_package_changes
+
+    checksum_versions = {
+        "74253725f884e2424a0dd8ae3f69896d5377f325": Version("2.1.6"),
+        "3f6576971397b379d4205ae5451ff5a68edf6c103b2f03c4188ed7075fbb5f04": Version("2.1.5"),
+        "a0293475e6a44a3f6c045229fe50f69dc0eebc62a42405a51f19d46a5541e77a": Version("2.1.4"),
+        "6c0853bb27738b811f2b4d4af095323c3d5ce36ceed6b50e5f773204fb8f7200": Version("2.0.7"),
+        "86993903527d9b12fc543335c19c1d33a93797b3d4d37648b5addae83679ecd8": Version("2.0.0"),
+    }
+
+    with fs.working_dir(str(repo_path)):
+        added_versions = ci.get_added_versions(
+            checksum_versions, filename, from_ref=commits[2], to_ref=commits[1]
+        )
+        assert len(added_versions) == 1
+        assert added_versions[0] == Version("2.1.6")
 
 
 def test_pipeline_dag(config, tmpdir):
