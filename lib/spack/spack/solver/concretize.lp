@@ -1309,6 +1309,7 @@ has_built_packages() :- build(X), not external(X).
 
 % The "gcc" linked to "gcc-runtime" must be used by at least another package
 :- attr("depends_on", node(X, "gcc-runtime"), node(Y, "gcc"), "build"),
+   node_compiler(_, node(_, "gcc")),
    not 2 { attr("depends_on", PackageNode, node(Y, "gcc"), "build") : attr("node", PackageNode) }.
 
 
