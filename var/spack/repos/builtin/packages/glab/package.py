@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,9 @@ class Glab(GoPackage):
 
     license("MIT")
 
+    version("1.53.0", sha256="2930aa5dd76030cc6edcc33483bb49dd6a328eb531d0685733ca7be7b906e915")
+    version("1.52.0", sha256="585495e53d3994172fb927218627b7470678bc766320cb52f4b4204238677dde")
+    version("1.51.0", sha256="6a95d827004fee258aacb49a427875e3b505b063cc578933d965cd56481f5a19")
     version("1.48.0", sha256="45410de23a7bad37feeae18f47f3c0113d81133ad9bb97c8f0b8afc5409272c7")
     version("1.46.1", sha256="935f732ddacc6e54fc83d06351fc25454ac8a58c465c3efa43e066ea226257c2")
     version("1.36.0", sha256="8d6c759ebfe9c6942fcdb7055a4a5c7209a3b22beb25947f906c9aef3bc067e8")
@@ -42,6 +44,7 @@ class Glab(GoPackage):
     depends_on("go@1.22.5:", type="build", when="@1.44:")
     depends_on("go@1.23:", type="build", when="@1.46:")
     depends_on("go@1.23.2:", type="build", when="@1.48:")
+    depends_on("go@1.23.4:", type="build", when="@1.52:")
 
     build_directory = "cmd/glab"
 

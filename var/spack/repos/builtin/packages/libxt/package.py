@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,7 @@ class Libxt(AutotoolsPackage, XorgPackage):
 
     maintainers("wdconinc")
 
+    version("1.3.1", sha256="cf2212189869adb94ffd58c7d9a545a369b83d2274930bfbe148da354030b355")
     version("1.3.0", sha256="de4a80c4cc7785b9620e572de71026805f68e85a2bf16c386009ef0e50be3f77")
     version("1.2.1", sha256="6da1bfa9dd0ed87430a5ce95b129485086394df308998ebe34d98e378e3dfb33")
     version("1.2.0", sha256="d4bee88898fc5e1dc470e361430c72fbc529b9cdbbb6c0ed3affea3a39f97d8d")

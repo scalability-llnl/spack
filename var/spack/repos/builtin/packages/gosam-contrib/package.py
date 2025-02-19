@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,8 +16,9 @@ class GosamContrib(AutotoolsPackage):
     version("2.0", sha256="c05beceea74324eb51c1049773095e2cb0c09c8c909093ee913d8b0da659048d")
     version("1.0", sha256="a29d4232d9190710246abc2ed97fdcd8790ce83580f56a360f3456b0377c40ec")
 
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
 
     # whizard checks for .la files ( but does not use them )
     install_libtool_archives = True

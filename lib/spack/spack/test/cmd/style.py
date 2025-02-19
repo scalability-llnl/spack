@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -238,14 +237,14 @@ def test_external_root(external_style_root, capfd):
     assert "%s Imports are incorrectly sorted" % str(py_file) in output
 
     # mypy error
-    assert 'lib/spack/spack/dummy.py:10: error: Name "Package" is not defined' in output
+    assert 'lib/spack/spack/dummy.py:9: error: Name "Package" is not defined' in output
 
     # black error
     assert "--- lib/spack/spack/dummy.py" in output
     assert "+++ lib/spack/spack/dummy.py" in output
 
     # flake8 error
-    assert "lib/spack/spack/dummy.py:7: [F401] 'os' imported but unused" in output
+    assert "lib/spack/spack/dummy.py:6: [F401] 'os' imported but unused" in output
 
 
 @pytest.mark.skipif(not FLAKE8, reason="flake8 is not installed.")
@@ -305,6 +304,8 @@ def test_run_import_check(tmp_path: pathlib.Path):
     contents = '''
 import spack.cmd
 import spack.config  # do not drop this import because of this comment
+import spack.repo
+import spack.repo_utils
 
 # this comment about spack.error should not be removed
 class Example(spack.build_systems.autotools.AutotoolsPackage):
@@ -315,6 +316,7 @@ def foo(config: "spack.error.SpackError"):
     # the type hint is quoted, so it should not be removed
     spack.util.executable.Executable("example")
     print(spack.__version__)
+    print(spack.repo_utils.__file__)
 '''
     file.write_text(contents)
     root = str(tmp_path)
@@ -330,6 +332,7 @@ def foo(config: "spack.error.SpackError"):
     output = output_buf.getvalue()
 
     assert "issues.py: redundant import: spack.cmd" in output
+    assert "issues.py: redundant import: spack.repo" in output
     assert "issues.py: redundant import: spack.config" not in output  # comment prevents removal
     assert "issues.py: missing import: spack" in output  # used by spack.__version__
     assert "issues.py: missing import: spack.build_systems.autotools" in output

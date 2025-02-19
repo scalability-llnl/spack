@@ -1,0 +1,27 @@
+diff --git a/psz/src/stat/detail/compare.thrust.inl b/psz/src/stat/detail/compare.thrust.inl
+index f35c7df..719d68f 100644
+--- a/psz/src/stat/detail/compare.thrust.inl
++++ b/psz/src/stat/detail/compare.thrust.inl
+@@ -11,6 +11,9 @@
+ 
+ #include <thrust/device_ptr.h>
+ #include <thrust/execution_policy.h>
++#include <thrust/functional.h>
++#include <thrust/iterator/zip_iterator.h>
++#include <thrust/transform_reduce.h>
+ #include <thrust/tuple.h>
+ 
+ #include "cusz/type.h"
+diff --git a/psz/src/stat/detail/maxerr.thrust.inl b/psz/src/stat/detail/maxerr.thrust.inl
+index f7a4db5..ce7925a 100644
+--- a/psz/src/stat/detail/maxerr.thrust.inl
++++ b/psz/src/stat/detail/maxerr.thrust.inl
+@@ -11,6 +11,8 @@
+ 
+ #include <thrust/device_ptr.h>
+ #include <thrust/execution_policy.h>
++#include <thrust/extrema.h>
++#include <thrust/transform.h>
+ 
+ #include "cusz/type.h"
+ #include "port.hh"

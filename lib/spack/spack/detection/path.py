@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Detection of software installed in the system, based on paths inspections
@@ -8,7 +7,6 @@ and running executables.
 import collections
 import concurrent.futures
 import os
-import os.path
 import re
 import sys
 import traceback
@@ -261,6 +259,8 @@ class Finder:
             )
             return []
 
+        from spack.repo import PATH as repo_path
+
         result = []
         for candidate_path, items_in_prefix in _group_by_prefix(
             llnl.util.lang.dedupe(paths)
@@ -307,7 +307,10 @@ class Finder:
 
                 resolved_specs[spec] = candidate_path
                 try:
-                    spec.validate_detection()
+                    # Validate the spec calling a package specific method
+                    pkg_cls = repo_path.get_pkg_class(spec.name)
+                    validate_fn = getattr(pkg_cls, "validate_detected_spec", lambda x, y: None)
+                    validate_fn(spec, spec.extra_attributes)
                 except Exception as e:
                     msg = (
                         f'"{spec}" has been detected on the system but will '

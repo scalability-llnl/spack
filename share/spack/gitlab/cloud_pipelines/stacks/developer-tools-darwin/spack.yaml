@@ -37,7 +37,7 @@ spack:
     - ripgrep
     - gh
     - fd
-    # - bfs # liburing: /usr/include/linux/ipv6.h:19:8: error: redefinition of 'struct in6_pktinfo'
+    - bfs
     - fzf
     - tree
     - jq
@@ -69,7 +69,6 @@ spack:
     - build-job:
         variables:
           CI_GPG_KEY_ROOT: /etc/protected-runner
-        tags: [ "macos-ventura", "apple-clang-15", "aarch64-macos" ]
 
   cdash:
     build-group: Developer Tools Darwin

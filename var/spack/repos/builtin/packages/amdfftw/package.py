@@ -1,11 +1,9 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 
-from spack.build_environment import optimization_flags
 from spack.package import *
 from spack.pkg.builtin.fftw import FftwBase
 
@@ -96,14 +94,14 @@ class Amdfftw(FftwBase):
     )
     variant(
         "amd-dynamic-dispatcher",
-        default=True,
+        default=False,
         when="@4.1: %aocc@4.1.0:",
         description="Single portable optimized library"
         " to execute on different x86 CPU architectures",
     )
     variant(
         "amd-dynamic-dispatcher",
-        default=True,
+        default=False,
         when="@3.2: %gcc",
         description="Single portable optimized library"
         " to execute on different x86 CPU architectures",
@@ -204,11 +202,10 @@ class Amdfftw(FftwBase):
         if not self.compiler.f77 or not self.compiler.fc:
             options.append("--disable-fortran")
 
-        # Cross compilation is supported in amd-fftw by making use of target
-        # variable to set AMD_ARCH configure option.
-        # Spack user can not directly use AMD_ARCH for this purpose but should
-        # use target variable to set appropriate -march option in AMD_ARCH.
-        options.append(f"AMD_ARCH={optimization_flags(self.compiler, spec.target)}")
+        if "avx512" in spec.target:
+            options.append("CFLAGS=-mprefer-vector-width=512")
+        else:
+            options.append("CFLAGS=-mprefer-vector-width=256")
 
         # Specific SIMD support.
         # float and double precisions are supported

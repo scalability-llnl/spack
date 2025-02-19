@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,9 +9,9 @@ from llnl.util.tty.colify import colify
 
 import spack.cmd
 import spack.environment as ev
-import spack.package_base
 import spack.store
 from spack.cmd.common import arguments
+from spack.solver.input_analysis import create_graph_analyzer
 
 description = "show dependencies of a package"
 section = "basic"
@@ -69,15 +68,17 @@ def dependencies(parser, args):
 
     else:
         spec = specs[0]
-        dependencies = spack.package_base.possible_dependencies(
+        dependencies, virtuals, _ = create_graph_analyzer().possible_dependencies(
             spec,
             transitive=args.transitive,
             expand_virtuals=args.expand_virtuals,
-            depflag=args.deptype,
+            allowed_deps=args.deptype,
         )
+        if not args.expand_virtuals:
+            dependencies.update(virtuals)
 
         if spec.name in dependencies:
-            del dependencies[spec.name]
+            dependencies.remove(spec.name)
 
         if dependencies:
             colify(sorted(dependencies))

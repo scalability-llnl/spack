@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from typing import Tuple
@@ -8,6 +7,8 @@ import spack.builder
 import spack.directives
 import spack.package_base
 import spack.phase_callbacks
+import spack.spec
+import spack.util.prefix
 
 from ._checks import BuilderWithDefaults, apply_macos_rpath_fixups, execute_install_time_tests
 
@@ -49,3 +50,8 @@ class GenericBuilder(BuilderWithDefaults):
 
     # unconditionally perform any post-install phase tests
     spack.phase_callbacks.run_after("install")(execute_install_time_tests)
+
+    def install(
+        self, pkg: Package, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
+        raise NotImplementedError

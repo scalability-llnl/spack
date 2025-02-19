@@ -1,5 +1,4 @@
-.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-   Spack Project Developers. See the top-level COPYRIGHT file for details.
+.. Copyright Spack Project Developers. See COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -113,6 +112,19 @@ the original but may concretize differently in the presence of different
 explicit or default configuration settings (e.g., a different version of
 Spack or for a different user account).
 
+Environments created from a manifest will copy any included configs
+from relative paths inside the environment. Relative paths from
+outside the environment will cause errors, and absolute paths will be
+kept absolute. For example, if ``spack.yaml`` includes:
+
+.. code-block:: yaml
+
+   spack:
+     include: [./config.yaml]
+
+then the created environment will have its own copy of the file
+``config.yaml`` copied from the location in the original environment.
+
 Create an environment from a ``spack.lock`` file using:
 
 .. code-block:: console
@@ -161,7 +173,7 @@ accepts.  If an environment already exists then spack will simply activate it
 and ignore the create-specific flags.
 
 .. code-block:: console
-   
+
    $ spack env activate --create -p myenv
    # ...
    # [creates if myenv does not exist yet]
@@ -425,8 +437,8 @@ Developing Packages in a Spack Environment
 
 The ``spack develop`` command allows one to develop Spack packages in
 an environment. It requires a spec containing a concrete version, and
-will configure Spack to install the package from local source. 
-If a version is not provided from the command line interface then spack 
+will configure Spack to install the package from local source.
+If a version is not provided from the command line interface then spack
 will automatically pick the highest version the package has defined.
 This means any infinity versions (``develop``, ``main``, ``stable``) will be
 preferred in this selection process.
@@ -436,9 +448,9 @@ set, and Spack will ensure the package and its dependents are rebuilt
 any time the environment is installed if the package's local source
 code has been modified. Spack's native implementation to check for modifications
 is to check if ``mtime`` is newer than the installation.
-A custom check can be created by overriding the ``detect_dev_src_change`` method 
-in your package class. This is particularly useful for projects using custom spack repo's 
-to drive development and want to optimize performance. 
+A custom check can be created by overriding the ``detect_dev_src_change`` method
+in your package class. This is particularly useful for projects using custom spack repo's
+to drive development and want to optimize performance.
 
 Spack ensures that all instances of a
 developed package in the environment are concretized to match the
@@ -454,7 +466,7 @@ Further development on ``foo`` can be tested by re-installing the environment,
 and eventually committed and pushed to the upstream git repo.
 
 If the package being developed supports out-of-source builds then users can use the
-``--build_directory`` flag to control the location and name of the build directory. 
+``--build_directory`` flag to control the location and name of the build directory.
 This is a shortcut to set the ``package_attributes:build_directory`` in the
 ``packages`` configuration (see :ref:`assigning-package-attributes`).
 The supplied location will become the build-directory for that package in all future builds.

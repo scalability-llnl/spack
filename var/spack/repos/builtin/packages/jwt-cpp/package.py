@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,7 +22,8 @@ class JwtCpp(CMakePackage):
     version("0.5.0", sha256="079a273f070dd11213e301712319a65881e51ab81535cc436d5313191df852a2")
     version("0.4.0", sha256="f0dcc7b0e8bef8f9c3f434e7121f9941145042c9fe3055a5bdd709085a4f2be4")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     # TODO: jwt-cpp>=0.5.0 has an embedded copy of picojson which can be packaged seperately
 

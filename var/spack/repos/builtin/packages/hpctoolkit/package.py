@@ -1,13 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import configparser
 import os
 import tempfile
-
-import llnl.util.tty as tty
 
 import spack.build_systems.autotools
 import spack.build_systems.meson
@@ -119,6 +116,12 @@ class Hpctoolkit(AutotoolsPackage, MesonPackage):
         when="build_system=autotools",
     )
     variant("viewer", default=True, description="Include hpcviewer.")
+    variant(
+        "docs",
+        default=False,
+        description="Include extra documentation (user's manual)",
+        when="@develop",
+    )
 
     variant(
         "python", default=False, description="Support unwinding Python source.", when="@2023.03:"
@@ -185,6 +188,10 @@ class Hpctoolkit(AutotoolsPackage, MesonPackage):
 
     depends_on("zlib-api")
     depends_on("zlib+shared", when="^[virtuals=zlib-api] zlib")
+
+    depends_on("py-docutils", type="build", when="@develop")
+    depends_on("py-sphinx", type="build", when="+docs")
+    depends_on("py-myst-parser@0.19:", type="build", when="+docs")
 
     depends_on("cuda", when="+cuda")
     depends_on("oneapi-level-zero", when="+level_zero")
@@ -403,6 +410,8 @@ class MesonBuilder(spack.build_systems.meson.MesonBuilder):
         spec = self.spec
 
         args = [
+            "-Dmanpages=enabled",
+            "-Dmanual=" + ("enabled" if spec.satisfies("+docs") else "disabled"),
             "-Dhpcprof_mpi=" + ("enabled" if spec.satisfies("+mpi") else "disabled"),
             "-Dpython=" + ("enabled" if spec.satisfies("+python") else "disabled"),
             "-Dpapi=" + ("enabled" if spec.satisfies("+papi") else "disabled"),

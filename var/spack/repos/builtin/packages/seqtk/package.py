@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,7 +19,7 @@ class Seqtk(Package):
     version("1.1", sha256="f01b9f9af6e443673a0105a7536a01957a4fc371826385a1f3dd1e417aa91d52")
 
     depends_on("c", type="build")  # generated
-
+    depends_on("gmake", type="build")
     depends_on("zlib-api")
 
     def install(self, spec, prefix):

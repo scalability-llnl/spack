@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -74,15 +73,12 @@ class Extrae(AutotoolsPackage):
     depends_on("mpi")
     depends_on("libunwind")
 
-    # TODO: replace this with an explicit list of components of Boost,
-    # for instance depends_on('boost +filesystem')
-    # See https://github.com/spack/spack/pull/22303 for reference
-    depends_on(Boost.with_default_variants)
     depends_on("libdwarf")
     depends_on("elf", type="link")
     depends_on("libxml2")
     depends_on("numactl")
-    depends_on("binutils+libiberty@:2.33")
+    depends_on("binutils+libiberty@:2.33", when="@:4.0.1")
+    depends_on("binutils+libiberty", when="@4.0.2:")
     depends_on("gettext")
     # gettext dependency added to find -lintl
     # https://www.gnu.org/software/gettext/FAQ.html#integrating_undefined
@@ -92,6 +88,10 @@ class Extrae(AutotoolsPackage):
     variant("dyninst", default=False, description="Use dyninst for dynamic code installation")
     with when("+dyninst"):
         depends_on("dyninst@10.1.0:")
+        # TODO: replace this with an explicit list of components of Boost,
+        # for instance depends_on('boost +filesystem')
+        # See https://github.com/spack/spack/pull/22303 for reference
+        depends_on(Boost.with_default_variants)
         depends_on("elfutils", when="@4.1.2:")
         depends_on("intel-oneapi-tbb", when="@4.1.2:")
 
@@ -127,7 +127,6 @@ class Extrae(AutotoolsPackage):
         args = [
             "--with-mpi=%s" % mpiroot,
             "--with-unwind=%s" % spec["libunwind"].prefix,
-            "--with-boost=%s" % spec["boost"].prefix,
             "--with-dwarf=%s" % spec["libdwarf"].prefix,
             "--with-elf=%s" % spec["elf"].prefix,
             "--with-xml-prefix=%s" % spec["libxml2"].prefix,
@@ -141,7 +140,10 @@ class Extrae(AutotoolsPackage):
         )
 
         if spec.satisfies("+dyninst"):
-            args += ["--with-dyninst={spec['dyninst'].prefix}"]
+            args += [
+                f"--with-dyninst={spec['dyninst'].prefix}",
+                f"--with-boost={spec['boost'].prefix}",
+            ]
 
             if spec.satisfies("@4.1.2:"):
                 args += [

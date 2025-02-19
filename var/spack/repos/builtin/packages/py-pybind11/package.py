@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -27,6 +26,7 @@ class PyPybind11(CMakePackage, PythonExtension):
     maintainers("ax3l")
 
     version("master", branch="master")
+    version("2.13.6", sha256="e08cb87f4773da97fa7b5f035de8763abc656d87d5773e62f6da0587d1f0ec20")
     version("2.13.5", sha256="b1e209c42b3a9ed74da3e0b25a4f4cd478d89d5efbb48f04b277df427faf6252")
     version("2.13.4", sha256="efc901aa0aab439a3fea6efeaf930b5a349fb06394bf845c64ce15a9cf8f0240")
     version("2.13.3", sha256="6e7a84ec241544f2f5e30c7a82c09c81f0541dd14e9d9ef61051e07105f9c445")

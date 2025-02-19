@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -7,15 +6,20 @@ from spack.package import *
 
 
 class Direnv(GoPackage):
-    """direnv is an environment switcher for the shell."""
+    """Direnv is an environment switcher for the shell that can load and unload
+    environment variables depending on the current directory. This allows project-specific
+    environment variables without cluttering the ~/.profile file."""
 
     homepage = "https://direnv.net/"
     url = "https://github.com/direnv/direnv/archive/v2.11.3.tar.gz"
+    git = "https://github.com/direnv/direnv.git"
 
     maintainers("acastanedam", "alecbcs")
 
     license("MIT")
 
+    # Versions (newest to oldest)
+    version("master", branch="master")
     version("2.35.0", sha256="a7aaec49d1b305f0745dad364af967fb3dc9bb5befc9f29d268d528b5a474e57")
     version("2.34.0", sha256="3d7067e71500e95d69eac86a271a6b6fc3f2f2817ba0e9a589524bf3e73e007c")
     version("2.33.0", sha256="8ef18051aa6bdcd6b59f04f02acdd0b78849b8ddbdbd372d4957af7889c903ea")
@@ -27,5 +31,6 @@ class Direnv(GoPackage):
     version("2.20.0", sha256="cc72525b0a5b3c2ab9a52a3696e95562913cd431f923bcc967591e75b7541bff")
     version("2.11.3", sha256="2d34103a7f9645059270763a0cfe82085f6d9fe61b2a85aca558689df0e7b006")
 
-    depends_on("go@1.16:", type="build", when="@2.28:")
+    # Build dependencies
     depends_on("go@1.20:", type="build", when="@2.33:")
+    depends_on("go@1.16:", type="build", when="@2.28:")

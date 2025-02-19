@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,8 @@ class Easi(CMakePackage):
     license("BSD-3-Clause")
 
     version("master", branch="master")
+    version("1.5.2", tag="v1.5.2", commit="0d87b1a7db31e453d52c7213cb9b31bda88cbf40")
+    version("1.5.1", tag="v1.5.1", commit="d12f3371ed26c7371e4efcc11e3cd468063ffdda")
     version("1.5.0", tag="v1.5.0", commit="391698ab0072f66280d08441974c2bdb04a65ce0")
     version("1.4.0", tag="v1.4.0", commit="0d8fcf936574d93ddbd1d9222d46a93d4b119231")
     version("1.3.0", tag="v1.3.0", commit="99309a0fa78bf11d668c599b3ee469224f04d55b")
@@ -37,17 +38,19 @@ class Easi(CMakePackage):
     variant("asagi", default=True, description="build with ASAGI support")
     variant(
         "jit",
-        default="impalajit,lua",
+        default="lua",
         description="build with JIT support",
         values=("impalajit", "impalajit-llvm", "lua"),
         multi=True,
     )
 
     depends_on("asagi +mpi +mpi3", when="+asagi")
-    depends_on("yaml-cpp@0.6.2")
+    depends_on("yaml-cpp@0.6:")
+
+    conflicts("yaml-cpp@0.7", when="@1.4.0:1.5.0")
 
     depends_on("impalajit@llvm-1.0.0", when="jit=impalajit-llvm")
-    depends_on("lua@5.3.2", when="jit=lua")
+    depends_on("lua@5.3:5.4", when="jit=lua")
     depends_on("impalajit@main", when="jit=impalajit")
 
     depends_on("py-pybind11@2.6.2:", type="build", when="+python")

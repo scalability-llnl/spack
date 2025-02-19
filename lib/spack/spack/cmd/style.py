@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import argparse
@@ -7,7 +6,7 @@ import ast
 import os
 import re
 import sys
-from itertools import zip_longest
+from itertools import islice, zip_longest
 from typing import Dict, List, Optional
 
 import llnl.util.tty as tty
@@ -324,8 +323,6 @@ def run_isort(isort_cmd, file_list, args):
 
     packages_isort_args = (
         "--rm",
-        "spack",
-        "--rm",
         "spack.pkgkit",
         "--rm",
         "spack.package_defs",
@@ -417,8 +414,8 @@ def _run_import_check(
         pretty_path = file if root_relative else cwd_relative(file, root, working_dir)
 
         try:
-            with open(file, "r") as f:
-                contents = open(file, "r").read()
+            with open(file, "r", encoding="utf-8") as f:
+                contents = f.read()
             parsed = ast.parse(contents)
         except Exception:
             exit_code = 1
@@ -426,7 +423,8 @@ def _run_import_check(
             continue
 
         for m in is_abs_import.finditer(contents):
-            if contents.count(m.group(1)) == 1:
+            # Find at most two occurences: the first is the import itself, the second is its usage.
+            if len(list(islice(re.finditer(rf"{re.escape(m.group(1))}(?!\w)", contents), 2))) == 1:
                 to_remove.append(m.group(0))
                 exit_code = 1
                 print(f"{pretty_path}: redundant import: {m.group(1)}", file=out)
@@ -441,7 +439,7 @@ def _run_import_check(
             module = _module_part(root, m.group(0))
             if not module or module in to_add:
                 continue
-            if re.search(rf"import {re.escape(module)}\b(?!\.)", contents):
+            if re.search(rf"import {re.escape(module)}(?!\w|\.)", contents):
                 continue
             to_add.add(module)
             exit_code = 1
@@ -450,7 +448,7 @@ def _run_import_check(
         if not fix or not to_add and not to_remove:
             continue
 
-        with open(file, "r") as f:
+        with open(file, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
         if to_add:
@@ -470,7 +468,7 @@ def _run_import_check(
         for statement in to_remove:
             new_contents = new_contents.replace(f"{statement}\n", "")
 
-        with open(file, "w") as f:
+        with open(file, "w", encoding="utf-8") as f:
             f.write(new_contents)
 
     return exit_code

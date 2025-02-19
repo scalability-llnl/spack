@@ -1,20 +1,20 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import codecs
 import collections
 import hashlib
-import os.path
+import os
 import platform
 import posixpath
 import re
 import socket
 import time
+import warnings
 import xml.sax.saxutils
 from typing import Dict, Optional
 from urllib.parse import urlencode
-from urllib.request import HTTPSHandler, Request, build_opener
+from urllib.request import Request
 
 import llnl.util.tty as tty
 from llnl.util.filesystem import working_dir
@@ -25,10 +25,10 @@ import spack.platforms
 import spack.spec
 import spack.tengine
 import spack.util.git
+import spack.util.web as web_util
 from spack.error import SpackError
 from spack.util.crypto import checksum
 from spack.util.log_parse import parse_log_events
-from spack.util.web import ssl_create_default_context
 
 from .base import Reporter
 from .extract import extract_test_parts
@@ -107,7 +107,7 @@ class CDash(Reporter):
         self.site = configuration.site or socket.gethostname()
         self.osname = platform.system()
         self.osrelease = platform.release()
-        self.target = spack.platforms.host().target("default_target")
+        self.target = spack.platforms.host().default_target()
         self.starttime = int(time.time())
         self.endtime = self.starttime
         self.buildstamp = (
@@ -124,11 +124,15 @@ class CDash(Reporter):
         self.multiple_packages = False
 
     def report_build_name(self, pkg_name):
-        return (
+        buildname = (
             "{0} - {1}".format(self.base_buildname, pkg_name)
             if self.multiple_packages
             else self.base_buildname
         )
+        if len(buildname) > 190:
+            warnings.warn("Build name exceeds CDash 190 character maximum and will be truncated.")
+            buildname = buildname[:190]
+        return buildname
 
     def build_report_for_package(self, report_dir, package, duration):
         if "stdout" not in package:
@@ -253,7 +257,7 @@ class CDash(Reporter):
                 report_file_name = report_name
             phase_report = os.path.join(report_dir, report_file_name)
 
-            with codecs.open(phase_report, "w", "utf-8") as f:
+            with open(phase_report, "w", encoding="utf-8") as f:
                 env = spack.tengine.make_environment()
                 if phase != "update":
                     # Update.xml stores site information differently
@@ -317,7 +321,7 @@ class CDash(Reporter):
             report_file_name = "_".join([package["name"], package["id"], report_name])
             phase_report = os.path.join(report_dir, report_file_name)
 
-            with codecs.open(phase_report, "w", "utf-8") as f:
+            with open(phase_report, "w", encoding="utf-8") as f:
                 env = spack.tengine.make_environment()
                 if phase not in ["update", "testing"]:
                     # Update.xml stores site information differently
@@ -399,7 +403,7 @@ class CDash(Reporter):
         update_template = posixpath.join(self.template_dir, "Update.xml")
         t = env.get_template(update_template)
         output_filename = os.path.join(report_dir, "Update.xml")
-        with open(output_filename, "w") as f:
+        with open(output_filename, "w", encoding="utf-8") as f:
             f.write(t.render(report_data))
         # We don't have a current package when reporting on concretization
         # errors so refer to this report with the base buildname instead.
@@ -430,7 +434,6 @@ class CDash(Reporter):
         # Compute md5 checksum for the contents of this file.
         md5sum = checksum(hashlib.md5, filename, block_size=8192)
 
-        opener = build_opener(HTTPSHandler(context=ssl_create_default_context()))
         with open(filename, "rb") as f:
             params_dict = {
                 "build": self.buildname,
@@ -440,26 +443,21 @@ class CDash(Reporter):
             }
             encoded_params = urlencode(params_dict)
             url = "{0}&{1}".format(self.cdash_upload_url, encoded_params)
-            request = Request(url, data=f)
+            request = Request(url, data=f, method="PUT")
             request.add_header("Content-Type", "text/xml")
             request.add_header("Content-Length", os.path.getsize(filename))
             if self.authtoken:
                 request.add_header("Authorization", "Bearer {0}".format(self.authtoken))
             try:
-                # By default, urllib2 only support GET and POST.
-                # CDash expects this file to be uploaded via PUT.
-                request.get_method = lambda: "PUT"
-                response = opener.open(request, timeout=SPACK_CDASH_TIMEOUT)
+                response = web_util.urlopen(request, timeout=SPACK_CDASH_TIMEOUT)
                 if self.current_package_name not in self.buildIds:
-                    resp_value = response.read()
-                    if isinstance(resp_value, bytes):
-                        resp_value = resp_value.decode("utf-8")
+                    resp_value = codecs.getreader("utf-8")(response).read()
                     match = self.buildid_regexp.search(resp_value)
                     if match:
                         buildid = match.group(1)
                         self.buildIds[self.current_package_name] = buildid
             except Exception as e:
-                print("Upload to CDash failed: {0}".format(e))
+                print(f"Upload to CDash failed: {e}")
 
     def finalize_report(self):
         if self.buildIds:

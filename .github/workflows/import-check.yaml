@@ -1,0 +1,49 @@
+name: import-check
+
+on:
+  workflow_call:
+
+jobs:
+  # Check we don't make the situation with circular imports worse
+  import-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: julia-actions/setup-julia@v2
+      with:
+        version: '1.10'
+    - uses: julia-actions/cache@v2
+
+    # PR: use the base of the PR as the old commit
+    - name: Checkout PR base commit
+      if: github.event_name == 'pull_request'
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      with:
+        ref: ${{ github.event.pull_request.base.sha }}
+        path: old
+    # not a PR: use the previous commit as the old commit
+    - name: Checkout previous commit
+      if: github.event_name != 'pull_request'
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      with:
+        fetch-depth: 2
+        path: old
+    - name: Checkout previous commit
+      if: github.event_name != 'pull_request'
+      run: git -C old reset --hard HEAD^
+
+    - name: Checkout new commit
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      with:
+        path: new
+    - name: Install circular import checker
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      with:
+        repository: haampie/circular-import-fighter
+        ref: 4cdb0bf15f04ab6b49041d5ef1bfd9644cce7f33
+        path: circular-import-fighter
+    - name: Install dependencies
+      working-directory: circular-import-fighter
+      run: make -j dependencies
+    - name: Circular import check
+      working-directory: circular-import-fighter
+      run: make -j compare "SPACK_ROOT=../old ../new"

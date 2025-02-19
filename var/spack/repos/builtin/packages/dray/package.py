@@ -1,12 +1,9 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 import socket
-
-import llnl.util.tty as tty
 
 from spack.build_systems.cmake import CMakeBuilder
 from spack.package import *
@@ -110,6 +107,7 @@ class Dray(Package, CudaPackage):
     depends_on("mfem+conduit~threadsafe")
     depends_on("mfem+shared", when="+shared")
     depends_on("mfem~shared", when="~shared")
+    depends_on("gmake", type="build")
 
     def setup_build_environment(self, env):
         env.set("CTEST_OUTPUT_ON_FAILURE", "1")

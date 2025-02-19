@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,9 @@ class PortsOfCall(CMakePackage):
     license("BSD-3-Clause")
 
     version("main", branch="main")
+    version("1.7.1", sha256="18b0b99370ef2adf3374248f653461606f826fe4076d0f19ac8c72d46035fdf5")
+    version("1.7.0", sha256="99045a7c4e3fbc73f01e930ce870cdc573a39910a28d85c54d65d2135f764bfc")
+    version("1.6.0", sha256="290da149d4ad79c15787956559aeeefa0a06403be2f08cd324562ef013306797")
     version("1.5.2", sha256="73d16fe9236a9475010dbb01bf751c15bef01eb2e15bf92c8d9be2c0a606329f")
     version("1.5.1", sha256="b1f0232cd6d2aac65385d77cc061ec5035283ea50d0f167e7003eae034effb78")
     version("1.4.1", sha256="82d2c75fcca8bd613273fd4126749df68ccc22fbe4134ba673b4275f9972b78d")
@@ -45,11 +47,32 @@ class PortsOfCall(CMakePackage):
         default="None",
         when="@:1.2.0",
     )
+    variant("test", default=False, description="Build tests")
+    variant(
+        "test_portability_strategy",
+        description="Portability strategy used by tests",
+        values=("Kokkos", "Cuda", "None"),
+        multi=False,
+        default="None",
+        when="@1.7.0: +test",
+    )
 
     depends_on("cmake@3.12:", type="build")
+    depends_on("catch2@3.0.1:", when="+test", type=("build", "test"))
+    depends_on("kokkos", when="+test test_portability_strategy=Kokkos", type=("build", "test"))
 
     def cmake_args(self):
-        args = []
+        args = [
+            self.define_from_variant("PORTS_OF_CALL_BUILD_TESTING", "test"),
+            self.define_from_variant(
+                "PORTS_OF_CALL_TEST_PORTABILITY_STRATEGY", "test_portability_strategy"
+            ),
+        ]
         if self.spec.satisfies("@:1.2.0"):
             args.append(self.define_from_variant("PORTABILITY_STRATEGY", "portability_strategy"))
+        if self.spec.satisfies("test_portability_strategy=Kokkos ^kokkos+rocm"):
+            args.append(self.define("CMAKE_CXX_COMPILER", self.spec["hip"].hipcc))
+            args.append(self.define("CMAKE_C_COMPILER", self.spec["hip"].hipcc))
+        if self.spec.satisfies("test_portability_strategy=Kokkos ^kokkos+cuda"):
+            args.append(self.define("CMAKE_CXX_COMPILER", self.spec["kokkos"].kokkos_cxx))
         return args
