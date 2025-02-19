@@ -46,7 +46,7 @@ class Nlvm(MakefilePackage):
 
         filter_file(
             'LLVM(Out|Root) & "(sta/)?bin/llvm-config',
-            '"' + spec["llvm"].prefix.bin.join("llvm-config"),
+            f'"{spec["llvm"].prefix.bin.join("llvm-config")}',
             "llvm/llvm.nim",
         )
         filter_file("{.pass(L|C):.*LL(VM|D)(Out|Root).*.}", "", "llvm/llvm.nim")
@@ -57,27 +57,26 @@ class Nlvm(MakefilePackage):
         makefile.filter(" $(NIMC) Nim/compiler/*.nim ", "", string=True)
         makefile.filter("testament: $(NIMC)", "testament:", string=True)
 
-        nim_prefix = Path(spec["nim"].prefix).as_posix()  # TODO: Test escaping/Windows
+        nim_prefix = Path(spec["nim"].prefix).as_posix()
         filter_file("../Nim", nim_prefix, "nlvm/nim.cfg", string=True)
         filter_file("../Nim", nim_prefix, "nlvm/nlvm.nim", string=True)
-        filter_file('tmp / "Nim"', '"' + nim_prefix + '"', "nlvm/nlvm.nim", string=True)
-        filter_file("../Nim", '"' + nim_prefix + '"', "nlvm/llgen.nim", string=True)
+        filter_file('tmp / "Nim"', f'"{nim_prefix}"', "nlvm/nlvm.nim", string=True)
+        filter_file("../Nim", f'"{nim_prefix}"', "nlvm/llgen.nim", string=True)
 
         # Move nlvm-lib, make absolute instead of dependent on Nim path
-        filter_file("nlvm-lib", "lib", "nlvm/nlvm.nim", string=True)
         filter_file(
-            'conf.prefixDir / RelativeDir"../lib"',
-            'AbsoluteDir(tmp) / RelativeDir"lib"',
+            'conf.prefixDir / RelativeDir"../nlvm-lib"',
+            'AbsoluteDir(tmp) / RelativeDir"nlvm-lib"',
             "nlvm/nlvm.nim",
             string=True,
         )
         filter_file(
             'g.config.prefixDir.string / "../nlvm-lib',
-            '"' + Path(prefix.lib).as_posix(),
+            f'"{Path(join_path(prefix, "nlvm-lib")).as_posix()}',
             "nlvm/llgen.nim",
             string=True,
         )
 
     def install(self, spec, prefix):
         install_tree("nlvm", prefix.bin)
-        install_tree("nlvm-lib", join_path(prefix, "lib"))
+        install_tree("nlvm-lib", join_path(prefix, "nlvm-lib"))
