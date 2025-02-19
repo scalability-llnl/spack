@@ -510,37 +510,61 @@ def test_filter_files_with_different_encodings(regex, replacement, filename, tmp
 
 
 @pytest.mark.not_on_windows("chgrp isn't used on Windows")
-def test_chgrp_dont_set_group_if_already_set(tmpdir, monkeypatch):
-    with fs.working_dir(tmpdir):
-        os.mkdir("test-dir_chgrp_dont_set_group_if_already_set")
+def test_chgrp_dont_set_group_if_already_set():
+    class Fail:
+        def __init__(self, name):
+            self.name = name
 
-    def _fail(*args, **kwargs):
-        raise Exception("chrgrp should not be called")
+        def __call__(self, *args, **kwargs):
+            raise Exception(f"{self.name} should not be called")
 
-    class FakeStat(object):
+    class Record:
+        def __init__(self, name):
+            self.name = name
+            self.called_with = list()
+
+        def __call__(self, *args, **kwargs):
+            self.called_with.append(args[0])
+
+    class FakeStat:
         def __init__(self, gid):
             self.st_gid = gid
 
-    original_stat = os.stat
+    class Stat:
+        def __init__(self, gid):
+            self.gid = gid
 
-    def _stat(*args, **kwargs):
-        path = args[0]
-        if path == "test-dir_chgrp_dont_set_group_if_already_set":
-            return FakeStat(gid=1001)
-        else:
-            # Monkeypatching stat can interfere with post-test cleanup, so for
-            # paths that aren't part of the test, we want the original behavior
-            # of stat
-            return original_stat(*args, **kwargs)
+        def __call__(self, *args, **kwargs):
+            return FakeStat(gid=self.gid)
 
-    monkeypatch.setattr(os, "chown", _fail)
-    monkeypatch.setattr(os, "lchown", _fail)
-    monkeypatch.setattr(os, "stat", _stat)
+    kwargs = {
+        "_chown": Record("chown"),
+        "_lchown": Fail("lchown"),
+        "_stat": Stat(1001),
+        "_lstat": Fail("lstat"),
+    }
 
-    with fs.working_dir(tmpdir):
-        with pytest.raises(Exception):
-            fs.chgrp("test-dir_chgrp_dont_set_group_if_already_set", 1002)
-        fs.chgrp("test-dir_chgrp_dont_set_group_if_already_set", 1001)
+    # First make sure we change the group when the gid's don't match
+    fs.chgrp("d1", 1002, follow_symlinks=True, **kwargs)
+    assert kwargs["_chown"].called_with == ["d1"]
+
+    # Then make sure we don't call chown if they do
+    kwargs["_chown"] = Fail("chown")
+    # If this succeeds without an exception, then chown/lchown were not called
+    fs.chgrp("d1", 1001, follow_symlinks=True, **kwargs)
+
+    kwargs = {
+        "_chown": Fail("chown"),
+        "_lchown": Record("lchown"),
+        "_stat": Fail("stat"),
+        "_lstat": Stat(1001),
+    }
+
+    fs.chgrp("l1", 1002, follow_symlinks=False, **kwargs)
+    assert kwargs["_lchown"].called_with == ["l1"]
+
+    kwargs["_lchown"] = Fail("lchown")
+    fs.chgrp("l1", 1001, follow_symlinks=False, **kwargs)
 
 
 def test_filter_files_multiple(tmpdir):
