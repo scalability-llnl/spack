@@ -20,6 +20,9 @@ class RBasiliskUtils(RPackage):
 
     license("GPL-3.0-only")
 
+    version("1.18.0", commit="9a5711487c31502fca734fca35360bc8372462ac")
+    version("1.16.0", commit="04f649cb529456dbce44cc8896471ea7ad24b01f")
+    version("1.14.1", commit="62f0819320510ad291642ea7d19af39a61c95d82")
     version("1.12.0", commit="8314f9a72ecc0f20b180431aec93647320de8c2c")
 
     depends_on("r-dir-expiry", type=("build", "run"))

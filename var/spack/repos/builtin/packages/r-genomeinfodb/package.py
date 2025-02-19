@@ -16,6 +16,9 @@ class RGenomeinfodb(RPackage):
 
     bioc = "GenomeInfoDb"
 
+    version("1.42.1", commit="4ed5e0d63be873176571485d50d7457744ceb5e1")
+    version("1.40.1", commit="00bb347c37c601d13a6ad9e1216913552dffa697")
+    version("1.38.8", commit="21c97fc89681ed5af46dcaae23ad7efc1e2910eb")
     version("1.36.0", commit="c380bb93a5480b48e0efbf6d107cefc10d574438")
     version("1.34.3", commit="ea6f131f1d1ee61535d6733ce76fabf3c62185fc")
     version("1.32.4", commit="69df6a5a10027fecf6a6d1c8298f3f686b990d8f")
@@ -29,7 +32,7 @@ class RGenomeinfodb(RPackage):
     version("1.12.3", commit="2deef3f0571b7f622483257bc22d2509ab5a0369")
 
     depends_on("r@3.1:", type=("build", "run"))
-    depends_on("r@4.0.0:", type=("build", "run"), when="@1.30.1:")
+    depends_on("r@4.0.0:", type=("build", "run"), when="@1.27.3:")
     depends_on("r-biocgenerics@0.13.8:", type=("build", "run"))
     depends_on("r-biocgenerics@0.37.0:", type=("build", "run"), when="@1.30.1:")
     depends_on("r-s4vectors@0.9.25:", type=("build", "run"))
@@ -37,5 +40,7 @@ class RGenomeinfodb(RPackage):
     depends_on("r-s4vectors@0.25.12:", type=("build", "run"), when="@1.26.2:")
     depends_on("r-iranges@1.99.26:", type=("build", "run"))
     depends_on("r-iranges@2.13.12:", type=("build", "run"), when="@1.16.0:")
-    depends_on("r-rcurl", type=("build", "run"))
     depends_on("r-genomeinfodbdata", type=("build", "run"))
+    depends_on("r-ucsc-utils", type=("build", "run"), when="@1.39.12:")
+
+    depends_on("r-rcurl", type=("build", "run"), when="@:1.39.7")

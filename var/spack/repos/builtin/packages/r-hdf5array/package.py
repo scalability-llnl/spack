@@ -19,6 +19,9 @@ class RHdf5array(RPackage):
 
     bioc = "HDF5Array"
 
+    version("1.34.0", commit="dab3921857f932b050a79b6d81c7ea2f0063ac9f")
+    version("1.32.1", commit="fa5a1d3f75bb532296c7b962f62c707f4f9dbc3c")
+    version("1.30.1", commit="1aee703e5b54c1be0bca0d5643944ce34612e0d3")
     version("1.28.0", commit="8c839417c4a37c35330bd6f02b79dda9f48e76ae")
     version("1.26.0", commit="38b7bd603f7281245605048d8d57237e00b74d79")
     version("1.24.2", commit="fb213ba36631b04dfe754705f701f3a015c4fc82")
@@ -34,6 +37,7 @@ class RHdf5array(RPackage):
     depends_on("c", type="build")  # generated
 
     depends_on("r@3.4:", type=("build", "run"))
+    depends_on("r-sparsearray@1.5.42:", type=("build", "run"), when="@1.33.8:")
     depends_on("r-delayedarray@0.2.4:", type=("build", "run"))
     depends_on("r-delayedarray@0.3.18:", type=("build", "run"), when="@1.6.0:")
     depends_on("r-delayedarray@0.5.32:", type=("build", "run"), when="@1.8.1:")
@@ -48,10 +52,12 @@ class RHdf5array(RPackage):
     depends_on("r-biocgenerics", type=("build", "run"))
     depends_on("r-biocgenerics@0.25.1:", type=("build", "run"), when="@1.8.1:")
     depends_on("r-biocgenerics@0.31.5:", type=("build", "run"), when="@1.18.0:")
+    depends_on("r-biocgenerics@0.51.2:", type=("build", "run"), when="@1.33.7:")
     depends_on("r-s4vectors", type=("build", "run"))
     depends_on("r-s4vectors@0.21.6:", type=("build", "run"), when="@1.12.3:")
     depends_on("r-s4vectors@0.27.13:", type=("build", "run"), when="@1.18.0:")
     depends_on("r-iranges", type=("build", "run"))
+    depends_on("r-s4arrays@1.1.1:", type=("build", "run"), when="@1.29.1:")
     depends_on("r-rhdf5lib", type=("build", "run"), when="@1.12.3:")
     depends_on("gmake", type="build")
     depends_on("zlib-api")
