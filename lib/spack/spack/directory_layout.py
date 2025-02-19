@@ -219,7 +219,7 @@ class DirectoryLayout:
         return os.path.join(self.metadata_path(spec), "install_environment.json")
 
     def build_packages_path(self, spec):
-        return os.path.join(self.metadata_path(spec), self.packages_dir)
+        return Path(self.metadata_path(spec), self.packages_dir)
 
     def create_install_directory(self, spec):
         _check_concrete(spec)
