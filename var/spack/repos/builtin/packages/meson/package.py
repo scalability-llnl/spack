@@ -171,6 +171,9 @@ class Meson(PythonPackage):
 
     executables = ["^meson$"]
 
+    # sanity check
+    sanity_check_is_file = [join_path("bin", "meson")]
+
     @classmethod
     def determine_version(cls, exe):
         return Executable(exe)("--version", output=str, error=str).rstrip()
