@@ -2104,7 +2104,7 @@ class HeaderList(FileList):
         self._macro_definitions.append(macro)
 
 
-def find_headers(headers, root, recursive=False):
+def find_headers(headers, root, recursive=False, max_depth: Optional[int] = None):
     """Returns an iterable object containing a list of full paths to
     headers if found.
 
@@ -2156,7 +2156,7 @@ def find_headers(headers, root, recursive=False):
     # List of headers we are searching with suffixes
     headers = ["{0}.{1}".format(header, suffix) for header in headers for suffix in suffixes]
 
-    return HeaderList(find(root, headers, recursive))
+    return HeaderList(find(root, headers, recursive, max_depth=max_depth))
 
 
 @system_path_filter
