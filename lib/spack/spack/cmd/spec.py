@@ -9,6 +9,7 @@ import llnl.util.tty as tty
 
 import spack
 import spack.cmd
+import spack.deptypes as dt
 import spack.environment as ev
 import spack.hash_types as ht
 import spack.spec
@@ -70,6 +71,11 @@ for further documentation regarding the spec syntax, see:
     subparser.add_argument(
         "-t", "--types", action="store_true", default=False, help="show dependency types"
     )
+    subparser.add_argument(
+        "--show-runtime-deps",
+        action="store_true",
+        help="only show transitive runtime dependencies",
+    )
     arguments.add_common_arguments(subparser, ["specs"])
     arguments.add_concretizer_args(subparser)
 
@@ -109,6 +115,10 @@ def spec(parser, args):
                 print(spec.format(args.format))
         return
 
+    deptypes = dt.ALL
+    if args.show_runtime_deps:
+        deptypes = dt.LINK | dt.RUN
+
     with tree_context():
         print(
             spack.spec.tree(
@@ -117,6 +127,7 @@ def spec(parser, args):
                 format=fmt,
                 hashlen=None if args.very_long else 7,
                 show_types=args.types,
+                deptypes=deptypes,
                 status_fn=install_status_fn if args.install_status else None,
                 hashes=args.long or args.very_long,
                 key=spack.traverse.by_dag_hash,

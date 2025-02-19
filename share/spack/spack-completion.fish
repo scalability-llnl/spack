@@ -2798,7 +2798,7 @@ complete -c spack -n '__fish_spack_using_command restage' -s h -l help -f -a hel
 complete -c spack -n '__fish_spack_using_command restage' -s h -l help -d 'show this help message and exit'
 
 # spack solve
-set -g __fish_spack_optspecs_spack_solve h/help show= timers stats l/long L/very-long N/namespaces I/install-status no-install-status y/yaml j/json format= c/cover= t/types U/fresh reuse fresh-roots deprecated
+set -g __fish_spack_optspecs_spack_solve h/help show= timers stats l/long L/very-long N/namespaces I/install-status no-install-status y/yaml j/json format= c/cover= t/types show-runtime-deps U/fresh reuse fresh-roots deprecated
 complete -c spack -n '__fish_spack_using_command_pos_remainder 0 solve' -f -k -a '(__fish_spack_specs_or_id)'
 complete -c spack -n '__fish_spack_using_command solve' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command solve' -s h -l help -d 'show this help message and exit'
@@ -2828,6 +2828,8 @@ complete -c spack -n '__fish_spack_using_command solve' -s c -l cover -r -f -a '
 complete -c spack -n '__fish_spack_using_command solve' -s c -l cover -r -d 'how extensively to traverse the DAG (default: nodes)'
 complete -c spack -n '__fish_spack_using_command solve' -s t -l types -f -a types
 complete -c spack -n '__fish_spack_using_command solve' -s t -l types -d 'show dependency types'
+complete -c spack -n '__fish_spack_using_command solve' -l show-runtime-deps -f -a show_runtime_deps
+complete -c spack -n '__fish_spack_using_command solve' -l show-runtime-deps -d 'only show transitive runtime dependencies'
 complete -c spack -n '__fish_spack_using_command solve' -s U -l fresh -f -a concretizer_reuse
 complete -c spack -n '__fish_spack_using_command solve' -s U -l fresh -d 'do not reuse installed deps; build newest configuration'
 complete -c spack -n '__fish_spack_using_command solve' -l reuse -f -a concretizer_reuse
@@ -2838,7 +2840,7 @@ complete -c spack -n '__fish_spack_using_command solve' -l deprecated -f -a conf
 complete -c spack -n '__fish_spack_using_command solve' -l deprecated -d 'allow concretizer to select deprecated versions'
 
 # spack spec
-set -g __fish_spack_optspecs_spack_spec h/help l/long L/very-long N/namespaces I/install-status no-install-status y/yaml j/json format= c/cover= t/types U/fresh reuse fresh-roots deprecated
+set -g __fish_spack_optspecs_spack_spec h/help l/long L/very-long N/namespaces I/install-status no-install-status y/yaml j/json format= c/cover= t/types show-runtime-deps U/fresh reuse fresh-roots deprecated
 complete -c spack -n '__fish_spack_using_command_pos_remainder 0 spec' -f -k -a '(__fish_spack_specs_or_id)'
 complete -c spack -n '__fish_spack_using_command spec' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command spec' -s h -l help -d 'show this help message and exit'
@@ -2862,6 +2864,8 @@ complete -c spack -n '__fish_spack_using_command spec' -s c -l cover -r -f -a 'n
 complete -c spack -n '__fish_spack_using_command spec' -s c -l cover -r -d 'how extensively to traverse the DAG (default: nodes)'
 complete -c spack -n '__fish_spack_using_command spec' -s t -l types -f -a types
 complete -c spack -n '__fish_spack_using_command spec' -s t -l types -d 'show dependency types'
+complete -c spack -n '__fish_spack_using_command spec' -l show-runtime-deps -f -a show_runtime_deps
+complete -c spack -n '__fish_spack_using_command spec' -l show-runtime-deps -d 'only show transitive runtime dependencies'
 complete -c spack -n '__fish_spack_using_command spec' -s U -l fresh -f -a concretizer_reuse
 complete -c spack -n '__fish_spack_using_command spec' -s U -l fresh -d 'do not reuse installed deps; build newest configuration'
 complete -c spack -n '__fish_spack_using_command spec' -l reuse -f -a concretizer_reuse

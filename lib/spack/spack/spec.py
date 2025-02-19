@@ -1384,7 +1384,6 @@ def tree(
     deptypes: Union[dt.DepFlag, dt.DepTypes] = dt.ALL,
     show_types: bool = False,
     depth_first: bool = False,
-    recurse_dependencies: bool = True,
     status_fn: Optional[Callable[["Spec"], InstallStatus]] = None,
     prefix: Optional[Callable[["Spec"], str]] = None,
     key: Callable[["Spec"], Any] = id,
@@ -1405,7 +1404,6 @@ def tree(
         deptypes: dependency types to be represented in the tree
         show_types: if True, show the (merged) dependency type of a node
         depth_first: if True, traverse the DAG depth first when representing it as a tree
-        recurse_dependencies: if True, recurse on dependencies
         status_fn: optional callable that takes a node as an argument and return its
             installation status
         prefix: optional callable that takes a node as an argument and return its
@@ -1466,10 +1464,6 @@ def tree(
         if d > 0:
             out += "^"
         out += node.format(format, color=color) + "\n"
-
-        # Check if we wanted just the first line
-        if not recurse_dependencies:
-            break
 
     return out
 
@@ -4202,7 +4196,6 @@ class Spec:
         deptypes: Union[dt.DepTypes, dt.DepFlag] = dt.ALL,
         show_types: bool = False,
         depth_first: bool = False,
-        recurse_dependencies: bool = True,
         status_fn: Optional[Callable[["Spec"], InstallStatus]] = None,
         prefix: Optional[Callable[["Spec"], str]] = None,
         key=id,
@@ -4224,7 +4217,6 @@ class Spec:
             deptypes: dependency types to be represented in the tree
             show_types: if True, show the (merged) dependency type of a node
             depth_first: if True, traverse the DAG depth first when representing it as a tree
-            recurse_dependencies: if True, recurse on dependencies
             status_fn: optional callable that takes a node as an argument and return its
                 installation status
             prefix: optional callable that takes a node as an argument and return its
@@ -4242,7 +4234,6 @@ class Spec:
             deptypes=deptypes,
             show_types=show_types,
             depth_first=depth_first,
-            recurse_dependencies=recurse_dependencies,
             status_fn=status_fn,
             prefix=prefix,
             key=key,
