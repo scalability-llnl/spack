@@ -62,7 +62,10 @@ class CrayLibsci(Package):
     @property
     def blas_libs(self):
         shared = True if "+shared" in self.spec else False
-        compiler = self.spec.compiler.name
+
+        candidates = [name for name in self.canonical_names.values() if name in self.prefix]
+        if len(candidates) != 1:
+            raise RuntimeError("cannot determine libsci libraries")
 
         lib = []
         if self.spec.satisfies("+openmp") and self.spec.satisfies("+mpi"):
@@ -76,7 +79,7 @@ class CrayLibsci(Package):
 
         libname = []
         for lib_fmt in lib:
-            libname.append(lib_fmt.format(self.canonical_names[compiler].lower()))
+            libname.append(lib_fmt.format(candidates[0].lower()))
 
         return find_libraries(libname, root=self.prefix.lib, shared=shared, recursive=False)
 
