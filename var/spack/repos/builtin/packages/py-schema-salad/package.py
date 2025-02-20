@@ -10,7 +10,7 @@ class PySchemaSalad(PythonPackage):
     """Schema Annotations for Linked Avro Data (SALAD)"""
 
     homepage = "https://github.com/common-workflow-language/schema_salad"
-    pypi = "schema-salad/schema-salad-8.3.20221209165047.tar.gz"
+    pypi = "schema-salad/schema_salad-8.7.20241021092521.tar.gz"
 
     license("Apache-2.0")
     version(
