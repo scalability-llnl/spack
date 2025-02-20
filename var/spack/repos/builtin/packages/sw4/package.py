@@ -63,11 +63,11 @@ class Sw4(MakefilePackage):
             env.set("FFTWHOME", self.spec["fftw"].prefix)
         if self.spec.satisfies("+debug"):
             env.set("debug", "yes")
-        os.environ["EXTRA_LINK_FLAGS"] = "-lstdc++ -lm -ldl "
-        os.environ["EXTRA_LINK_FLAGS"] += self.spec["blas"].libs.ld_flags + " "
-        os.environ["EXTRA_LINK_FLAGS"] += self.spec["lapack"].libs.ld_flags + " "
+        env.set("EXTRA_LINK_FLAGS", "-lstdc++ -lm -ldl")
+        env.append_flags("EXTRA_LINK_FLAGS", self.spec["blas"].libs.ld_flags)
+        env.append_flags("EXTRA_LINK_FLAGS", self.spec["lapack"].libs.ld_flags)
         if self.spec.satisfies("%apple-clang +openmp"):
-            os.environ["EXTRA_LINK_FLAGS"] += self.spec["llvm-openmp"].libs.ld_flags + " "
+            env.append_flags("EXTRA_LINK_FLAGS", self.spec["llvm-openmp"].libs.ld_flags)
         # From spack/trilinos
         if (
             self.spec.satisfies("%gcc")
@@ -78,9 +78,9 @@ class Sw4(MakefilePackage):
             libgfortran = fc("--print-file-name", "libgfortran." + dso_suffix, output=str).strip()
             if libgfortran == "libgfortran." + dso_suffix:
                 libgfortran = fc("--print-file-name", "libgfortran.a", output=str).strip()
-            os.environ["EXTRA_LINK_FLAGS"] += " -L{0} -lgfortran ".format(
+            env.append_flags("EXTRA_LINK_FLAGS", "-L{0} -lgfortran".format(
                 os.path.dirname(libgfortran)
-            )
+            ))
 
     def install(self, spec, prefix):
         mkdir(prefix.bin)
