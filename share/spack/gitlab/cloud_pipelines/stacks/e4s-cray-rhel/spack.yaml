@@ -28,6 +28,21 @@ spack:
         tbb: [intel-tbb]
         scalapack: [netlib-scalapack]
       variants: +mpi
+
+    # Virtuals
+    blas:
+      require:
+      - cray-libsci
+    lapack:
+      require:
+      - cray-libsci
+    mpi:
+      require:
+      - cray-mpich
+    scalapack:
+      require:
+      - netlib-scalapack
+
     ncurses:
       require: +termlib ldflags=-Wl,--undefined-version
     tbb:
