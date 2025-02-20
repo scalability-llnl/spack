@@ -5,6 +5,7 @@ spack:
   view: false
 
   concretizer:
+    static_analysis: true
     reuse: false
     unify: false
 
@@ -37,21 +38,28 @@ spack:
       variants: +python +filesystem +iostreams +system
     elfutils:
       variants: ~nls
-      require: "%gcc"
+      require:
+      - target=x86_64_v3
+      - "%gcc"
     gcc-runtime:
-      require: "%gcc"
+      require:
+      - target=x86_64_v3
+      - "%gcc"
     hdf5:
       variants: +fortran +hl +shared
     libfabric:
       variants: fabrics=sockets,tcp,udp,rxm
     mgard:
       require:
+        - target=x86_64_v3
         - "@2023-01-10:"
     mpich:
       variants: ~wrapperrpath
     paraview:
       # Don't build GUI support or GLX rendering for HPC/container deployments
-      require: "~qt ^[virtuals=gl] osmesa"
+      require:
+      - "~qt ^[virtuals=gl] osmesa"
+      - target=x86_64_v3
     trilinos:
       require:
       - one_of: [+amesos +amesos2 +anasazi +aztec +boost +epetra +epetraext +ifpack
@@ -62,6 +70,7 @@ spack:
       - one_of: [~ml ~muelu ~zoltan2 ~teko, +ml +muelu +zoltan2 +teko]
       - one_of: [+superlu-dist, ~superlu-dist]
       - one_of: [+shylu, ~shylu]
+      - target=x86_64_v3
 
   specs:
   # CPU
