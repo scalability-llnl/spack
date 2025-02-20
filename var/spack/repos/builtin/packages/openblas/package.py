@@ -330,6 +330,10 @@ class Openblas(CMakePackage, MakefilePackage):
 
         return find_libraries(name, spec.prefix, shared=search_shared, recursive=True)
 
+    @property
+    def cmake_bla_vendor(self):
+        return "OpenBLAS"
+
 
 class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
     @staticmethod

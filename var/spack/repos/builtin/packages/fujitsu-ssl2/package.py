@@ -132,3 +132,7 @@ class FujitsuSsl2(Package):
         path = join_path(self.spec.prefix, "clang-comp")
         headers = find_headers("cssl", path, recursive=True)
         return headers
+
+    @property
+    def cmake_bla_vendor(self):
+        return "Fujitsu_SSL2"
