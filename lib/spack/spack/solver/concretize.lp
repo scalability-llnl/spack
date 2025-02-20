@@ -892,8 +892,10 @@ required_provider(Provider, Virtual)
      pkg_fact(Virtual, condition_effect(ConditionID, EffectID)),
      imposed_constraint(EffectID, "node", Provider).
 
-:- provider(node(Y, Package), node(X, Virtual)), required_provider(Provider, Virtual), Package != Provider,
-   internal_error("If a provider is required the concretizer must use it").
+error(1, "Trying to use {0} as a provider for {1}, but {2} is required", Package, Virtual, Provider) :-
+   provider(node(Y, Package), node(X, Virtual)),
+   required_provider(Provider, Virtual),
+   Package != Provider.
 
 % TODO: the following choice rule allows the solver to add compiler
 % flags if their only source is from a requirement. This is overly-specific
