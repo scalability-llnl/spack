@@ -36,8 +36,10 @@ spack:
   - paraview_specs:
     - matrix:
       - - paraview +raytracing +adios2 +fides
-      - - +qt ^[virtuals=gl] glx # GUI Support w/ GLX Rendering
-        - ~qt ^[virtuals=gl] glx # GLX Rendering
+      - - +qt ^[virtuals=gl] glx ^[virtuals=qmake] qt-base # Qt6 GUI Support w/ GLX Rendering
+        - ~qt ^[virtuals=gl] glx ^[virtuals=qmake] qt-base # Qt6 GLX Rendering
+        - +qt ^[virtuals=gl] glx ^[virtuals=qmake] qt # Qt5 GUI Support w/ GLX Rendering
+        - ~qt ^[virtuals=gl] glx ^[virtuals=qmake] qt # Qt5 GLX Rendering
         - ^[virtuals=gl] osmesa # OSMesa Rendering
   - visit_specs:
     - matrix:
