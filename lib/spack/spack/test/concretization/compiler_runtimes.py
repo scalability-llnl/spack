@@ -149,3 +149,27 @@ def test_views_can_handle_duplicate_runtime_nodes(
 
     for x in not_expected:
         assert all(not node.satisfies(x) for node in candidate_specs)
+
+
+def test_runtimes_can_be_concretized_as_standalone(runtime_repo):
+    """Tests that we can concretize a runtime as a standalone"""
+    gcc_runtime = spack.concretize.concretize_one("gcc-runtime")
+
+    deps = gcc_runtime.dependencies()
+    assert len(deps) == 1
+    gcc = deps[0]
+    assert gcc_runtime.version == gcc.version
+
+
+def test_runtimes_are_not_reused_if_compiler_not_used(runtime_repo):
+    """Tests that, if we can reuse specs with a more recent runtime version than the compiler we
+    asked for, we will not end-up with a DAG using the recent runtime, and the old compiler.
+    """
+    root, reused = _concretize_with_reuse(root_str="pkg-a %gcc@9", reused_str="pkg-a %gcc@10")
+
+    assert "gcc-runtime" in root
+    gcc_runtime, gcc = root["gcc-runtime"], root["gcc"]
+    assert gcc_runtime.satisfies("@9") and not gcc_runtime.satisfies("@10")
+    assert gcc.satisfies("@9") and not gcc.satisfies("@10")
+    # Same gcc used for both languages
+    assert root["c"] == root["cxx"]
