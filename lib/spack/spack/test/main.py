@@ -231,11 +231,11 @@ packages:
         {"path": cfg5_path, "optional": True},
     ]
     include_cfg = {"include": include_entries}
-    write_config_file("include", include_cfg, "low")
+    filename = write_config_file("include", include_cfg, "low")
 
     assert not spack.config.get("config:dirty")
 
-    spack.main.update_config_with_includes()
+    spack.main.add_command_line_scopes(mock_low_high_config, [os.path.dirname(filename)])
 
     assert spack.config.get("config:dirty")
     python_reqs = spack.config.get("packages")["python"]["require"]
@@ -262,10 +262,11 @@ def test_include_duplicate_source(tmpdir, mutable_config):
 
     system_config = {"config": {"debug": False}}
     write_configs(system_filename, system_config)
+    spack.main.add_command_line_scopes(mutable_config, [os.path.dirname(system_filename)])
 
     site_config = {"config": {"debug": True}}
     write_configs(site_filename, site_config)
+    spack.main.add_command_line_scopes(mutable_config, [os.path.dirname(site_filename)])
 
-    spack.main.update_config_with_includes()
-
+    # Ensure takes the last value of the option
     assert mutable_config.get("config:debug") == site_config["config"]["debug"]
