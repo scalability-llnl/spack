@@ -314,7 +314,7 @@ def using_msvc_compatibility() -> bool:
     return spack.platforms.host().name == "windows"
 
 
-def c_compiler_runs(compiler: spack.compiler.Compiler) -> bool:
+def c_compiler_runs(compiler) -> bool:
     return compiler.compiler_verbose_output is not None
 
 
