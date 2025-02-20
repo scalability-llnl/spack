@@ -1275,7 +1275,6 @@ def test_overwrite_install_backup_failure(
     original prefix. If that fails, the spec is lost, and it should be removed
     from the database.
     """
-
     # Get a build task. TODO: refactor this to avoid calling internal methods
     installer = create_installer(["pkg-b"])
     installer._init_queue()
@@ -1289,24 +1288,15 @@ def test_overwrite_install_backup_failure(
 
     monkeypatch.setattr(inst, "build_process", remove_backup)
 
-    called = False
-
-    def remove(*args, **kwargs):
-        called = True
-
-    monkeypatch.setattr(spack.store.STORE.db, "remove", remove)
     # Make sure that the installer does an overwrite install
     monkeypatch.setattr(task, "_install_action", inst.InstallAction.OVERWRITE)
 
-    # Installation should throw the installation exception, not the backup
-    # failure.
-    installer.start_task(task, install_status, term_status)
-    with pytest.raises(Exception, match="Some fatal install error"):
-        installer.complete_task(task, install_status)
-
     # Make sure that `remove` was called on the database after an unsuccessful
     # attempt to restore the backup.
-    assert called
+    # This error is raised while handling the original install error
+    installer.start_task(task, install_status, term_status)
+    with pytest.raises(Exception, match="No such spec in database"):
+        installer.complete_task(task, install_status)
 
 
 def test_term_status_line():
