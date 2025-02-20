@@ -78,9 +78,9 @@ class Sw4(MakefilePackage):
             libgfortran = fc("--print-file-name", "libgfortran." + dso_suffix, output=str).strip()
             if libgfortran == "libgfortran." + dso_suffix:
                 libgfortran = fc("--print-file-name", "libgfortran.a", output=str).strip()
-            env.append_flags("EXTRA_LINK_FLAGS", "-L{0} -lgfortran".format(
-                os.path.dirname(libgfortran)
-            ))
+            env.append_flags(
+                "EXTRA_LINK_FLAGS", "-L{0} -lgfortran".format(os.path.dirname(libgfortran))
+            )
 
     def install(self, spec, prefix):
         mkdir(prefix.bin)
