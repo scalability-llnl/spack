@@ -157,6 +157,43 @@ def loads(module_type, specs, args, out=None):
                     if not (item in seen or seen_add(item))
                 ]
             )
+    elif module_type == "lmod":
+        specs_from_user_constraint = specs[:]
+        specs = []
+        modulepaths_from_user_constraint = [
+            spack.modules.common.get_module("lmod", spec, get_full_path=True,
+                                            module_set_name=args.module_set_name,
+                                            required=False)
+            for spec in specs_from_user_constraint]
+        # FIXME : during module file creation nodes seem to be visited
+        # FIXME : multiple times even if cover='nodes' is given. This
+        # FIXME : work around permits to get a unique list of spec anyhow.
+        # FIXME : (same problem as in spack/modules.py)
+        writer = spack.modules.module_types["lmod"]
+        seen = set()
+        seen_add = seen.add
+        for spec in specs_from_user_constraint:
+            for item in spec.traverse(order='post', cover='nodes'):
+                # shortcircuit already handled specs
+                if item in seen or seen_add(item):
+                    continue
+
+                # shortcircuit adding the specs from user constraint
+                if item in specs_from_user_constraint:
+                    specs.append(item)
+                    continue
+
+                # skip specs that don't provide any module path modifications
+                item_context = writer(item, args.module_set_name).context
+                if not item_context.has_modulepath_modifications:
+                    continue
+
+                # check whether any of the module paths from the user constraint
+                # begin with a path that is unlocked
+                if any(module_path.startswith(unlocked_path)
+                       for module_path in modulepaths_from_user_constraint
+                       for unlocked_path in item_context.unlocked_paths):
+                    specs.append(item)
 
     modules = list(
         (
