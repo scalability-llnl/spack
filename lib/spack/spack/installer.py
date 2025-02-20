@@ -35,6 +35,7 @@ import os
 import shutil
 import sys
 import time
+import tempfile
 from collections import defaultdict
 from gzip import GzipFile
 from typing import Dict, Iterator, List, Optional, Set, Tuple, Union, Callable
@@ -43,7 +44,7 @@ import llnl.util.filesystem as fs
 import llnl.util.lock as lk
 import llnl.util.tty as tty
 from llnl.string import ordinal
-from llnl.util.lang import pretty_seconds
+from llnl.util.lang import nullcontext, pretty_seconds
 from llnl.util.tty.color import colorize
 from llnl.util.tty.log import log_output
 
@@ -905,7 +906,7 @@ class Task:
             ``TypeError`` if provided an argument of the wrong type
             ``ValueError`` if provided an argument with the wrong value or state
         """
-        
+
         # Ensure dealing with a package that has a concrete spec
         if not isinstance(pkg, spack.package_base.PackageBase):
             raise TypeError(f"{str(pkg)} must be a package")
@@ -976,8 +977,11 @@ class Task:
         self.attempts = attempts
         self._update()
 
-        # initialize cache variables 
+        # initialize cache variables
         self._install_action = None
+
+        # context to allow overwriting
+        self.context = nullcontext()
 
     def start(self):
         """Start the work of this task."""
@@ -1227,6 +1231,8 @@ class BuildTask(Task):
     process_handle: Optional["spack.build_environment.ProcessHandle"] = None
     started: bool = False
     no_op: bool = False
+    tmpdir = None
+    backup_dir = None
 
     def start(self):
         """Attempt to use the binary cache to install
@@ -1234,8 +1240,13 @@ class BuildTask(Task):
 
         Otherwise, start a process for of the requested spec and/or
         dependency represented by the BuildTask."""
-        for a,b,c in os.walk(self.pkg.prefix):
-            print("start",a,b,c)
+        for a, b, c in os.walk(self.pkg.prefix):
+            print("start", a, b, c)
+
+        if self.install_action == InstallAction.OVERWRITE:
+            self.tmpdir = tempfile.mkdtemp(dir=os.path.dirname(self.pkg.prefix), prefix=".backup")
+            self.backup_dir = os.path.join(self.tmpdir, "backup")
+            os.rename(self.pkg.prefix, self.backup_dir)
 
         assert not self.started, "Cannot start a task that has already been started."
         self.started = True
@@ -1260,6 +1271,9 @@ class BuildTask(Task):
             else:
                 tty.msg(f"No binary for {pkg_id} found: installing from source")
 
+        for a, b, c in os.walk(self.pkg.prefix):
+            print("start2", a, b, c)
+
         # if there's an error result, don't start a new process, and leave
         if self.error_result is not None:
             return
@@ -1269,13 +1283,11 @@ class BuildTask(Task):
         pkg.stage
         self._setup_install_dir(pkg)
 
+        for a, b, c in os.walk(self.pkg.prefix):
+            print("start3", a, b, c)
+
         # Create a child process to do the actual installation.
-        process_start_method = spack.build_environment.start_build_process
-        
-        if action == InstallAction.OVERWRITE:
-            process_start_method = overwrite_start_build_process
-        
-        self.process_handle = process_start_method(
+        self.process_handle = spack.build_environment.start_build_process(
             self.pkg, build_process, self.request.install_args
         )
 
@@ -1290,6 +1302,27 @@ class BuildTask(Task):
         ), "Can't call `poll()` before `start()` or identified no-operation task"
         return self.no_op or self.success_result or self.error_result or self.process_handle.poll()
 
+    def succeed(self):
+        # delete the temporary backup for an overwrite
+        # see llnl.util.filesystem.restore_directory_transaction
+        if self.install_action == InstallAction.OVERWRITE:
+            shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def fail(self, inner_exception):
+        if self.install_action != InstallAction.OVERWRITE:
+            raise inner_exception
+
+        # restore the overwrite directory from backup
+        # see llnl.util.filesystem.restore_directory_transaction
+        try:
+            if os.path.exists(self.pkg.prefix):
+                shutil.rmtree(self.pkg.prefix)
+            os.rename(self.backup_dir, self.pkg.prefix)
+        except Exception as outer_exception:
+            raise fs.CouldNotRestoreDirectoryBackup(inner_exception, outer_exception)
+
+        raise inner_exception
+
     def complete(self):
         """
         Complete the installation of the requested spec and/or dependency
@@ -1302,7 +1335,7 @@ class BuildTask(Task):
         pkg = self.pkg
         tests = install_args.get("tests")
 
-        print("error result in complete",self.error_result)
+        print("error result in complete", self.error_result)
         self.status = BuildStatus.INSTALLING
 
         pkg.run_tests = tests is True or tests and pkg.name in tests
@@ -1310,28 +1343,29 @@ class BuildTask(Task):
         # If task has been identified as a no operation,
         # return ExecuteResult.NOOP
         if self.no_op:
+            self.succeed()
             return ExecuteResult.NO_OP
 
         # If installing a package from binary cache is successful,
         # return ExecuteResult.SUCCESS
         if self.success_result is not None:
+            self.succeed()
             return self.success_result
 
         # If an error arises from installing a package,
         # raise spack.error.InstallError
         if self.error_result is not None:
-            
-            print("error result in completei 2",self.error_result)
-            raise self.error_result
+            self.fail(self.error_result)
 
         # hook that allows tests to inspect the Package before installation
         # see unit_test_check() docs.
         if not pkg.unit_test_check():
+            self.succeed()
             return ExecuteResult.FAILED
 
         try:
             # Check if the task's child process has completed
-            print("error result in completei 3",self.error_result)
+            print("error result in completei 3", self.error_result)
             spack.package_base.PackageBase._verbose = self.process_handle.complete()
             # Note: PARENT of the build process adds the new package to
             # the database, so that we don't need to re-read from file.
@@ -1342,9 +1376,10 @@ class BuildTask(Task):
             pid = f"{self.pid}: " if tty.show_pid() else ""
             tty.debug(f"{pid}{str(e)}")
             tty.debug(f"Package stage directory: {pkg.stage.source_path}")
-        finally:
-            print("error result in completei 4",self.error_result)
+        except (Exception, KeyboardInterrupt, SystemExit) as e:
+            self.fail(e)
 
+        self.succeed()
         return ExecuteResult.SUCCESS
 
     def terminate(self) -> None:
@@ -1905,6 +1940,7 @@ class PackageInstaller:
             install_status: the installation status for the package
         """
         rc = task.complete()
+        task.context.__exit__()
         if rc == ExecuteResult.MISSING_BUILD_SPEC:
             self._requeue_with_build_spec_tasks(task)
         elif rc == ExecuteResult.NO_OP:
@@ -2155,16 +2191,16 @@ class PackageInstaller:
         self, task: Task, install_status: InstallStatus, term_status: TermStatusLine
     ) -> None:
         """Attempts to start a package installation."""
-        for a,b,c in os.walk(task.pkg.prefix):
-            print("start_task", a,b,c)
-        
+        for a, b, c in os.walk(task.pkg.prefix):
+            print("start_task", a, b, c)
+
         pkg, pkg_id, spec = task.pkg, task.pkg_id, task.pkg.spec
         install_status.next_pkg(pkg)
         # install_status.set_term_title(f"Processing {task.pkg.name}")
         tty.debug(f"Processing {pkg_id}: task={task}")
-        
-        for a,b,c in os.walk(task.pkg.prefix):
-            print("2", a,b,c)
+
+        for a, b, c in os.walk(task.pkg.prefix):
+            print("2", a, b, c)
 
         # Skip the installation if the spec is not being installed locally
         # (i.e., if external or upstream) BUT flag it as installed since
@@ -2174,8 +2210,8 @@ class PackageInstaller:
             self._flag_installed(pkg, task.dependents)
             task.no_op = True
             return
-        for a,b,c in os.walk(task.pkg.prefix):
-            print("3", a,b,c)
+        for a, b, c in os.walk(task.pkg.prefix):
+            print("3", a, b, c)
 
         # Flag a failed spec.  Do not need an (install) prefix lock since
         # assume using a separate (failed) prefix lock file.
@@ -2186,9 +2222,9 @@ class PackageInstaller:
 
             if self.fail_fast:
                 task.error_result = spack.error.InstallError(_fail_fast_err, pkg=pkg)
-        
-        for a,b,c in os.walk(task.pkg.prefix):
-            print("4", a,b,c)
+
+        for a, b, c in os.walk(task.pkg.prefix):
+            print("4", a, b, c)
 
         # Attempt to get a write lock.  If we can't get the lock then
         # another process is likely (un)installing the spec or has
@@ -2209,8 +2245,8 @@ class PackageInstaller:
             self._requeue_task(task, install_status)
             task.no_op = True
             return
-        for a,b,c in os.walk(task.pkg.prefix):
-            print("5", a,b,c)
+        for a, b, c in os.walk(task.pkg.prefix):
+            print("5", a, b, c)
 
         term_status.clear()
 
@@ -2219,13 +2255,13 @@ class PackageInstaller:
         if task.request.overwrite and task.explicit:
             task.request.overwrite_time = time.time()
 
-        for a,b,c in os.walk(task.pkg.prefix):
-            print("6", a,b,c)
+        for a, b, c in os.walk(task.pkg.prefix):
+            print("6", a, b, c)
         # Determine state of installation artifacts and adjust accordingly.
         # install_status.set_term_title(f"Preparing {task.pkg.name}")
         self._prepare_for_install(task)
-        for a,b,c in os.walk(task.pkg.prefix):
-            print("7", a,b,c)
+        for a, b, c in os.walk(task.pkg.prefix):
+            print("7", a, b, c)
 
         # Flag an already installed package
         if pkg_id in self.installed:
@@ -2251,6 +2287,9 @@ class PackageInstaller:
             task.no_op = True
             return
 
+        for a, b, c in os.walk(task.pkg.prefix):
+            print("8", a, b, c)
+
         # Having a read lock on an uninstalled pkg may mean another
         # process completed an uninstall of the software between the
         # time we failed to acquire the write lock and the time we
@@ -2265,6 +2304,9 @@ class PackageInstaller:
             task.no_op = True
             return
 
+        for a, b, c in os.walk(task.pkg.prefix):
+            print("9", a, b, c)
+
         # Proceed with the installation since we have an exclusive write
         # lock on the package.
         install_status.set_term_title(f"Installing {task.pkg.name}")
@@ -2274,6 +2316,9 @@ class PackageInstaller:
             # Start a child process for a task that's ready to be installed.
             task.start()
             tty.msg(install_msg(pkg_id, self.pid, install_status))
+
+        for a, b, c in os.walk(task.pkg.prefix):
+            print("10", a, b, c)
 
     def complete_task(self, task: Task, install_status: InstallStatus) -> Optional[Tuple]:
         """Attempts to complete a package installation."""
@@ -2325,20 +2370,8 @@ class PackageInstaller:
 
         except (Exception, SystemExit) as exc:
             # Overwrite process exception handling
-            if isinstance(exc, spack.build_environment.ChildError) and exc.name == "CouldNotRestoreDirectoryBackup":
-                print("could not restore exception")
-                spack.store.STORE.db.remove(task.pkg.spec)
-                tty.error(
-                    f"Recovery of install dir of {task.pkg.name} failed due to "
-                    f"{exc.outer_exception.__class__.__name__}: {str(exc.outer_exception)}. "
-                    "The spec is now uninstalled."
-                )
-
-                # Unwrap the actual installation exception.
-                raise exc.inner_exception
-            
             self._update_failed(task, True, exc)
-
+            print("HEHEREHERERES")
             # Best effort installs suppress the exception and mark the
             # package as a failure.
             if not isinstance(exc, spack.error.SpackError) or not exc.printed:  # type: ignore[union-attr] # noqa: E501
@@ -2356,6 +2389,7 @@ class PackageInstaller:
             # Terminate when a single build request has failed, or summarize errors later.
             if task.is_build_request:
                 if len(self.build_requests) == 1:
+                    print("1")
                     raise
                 return (pkg, pkg_id, str(exc))
 
@@ -2411,8 +2445,13 @@ class PackageInstaller:
             for task in done:
                 try:
                     # If complete_task does not return None, the build request failed
-                    print("install_status when passed to complete_task", install_status, type(install_status))
+                    print(
+                        "install_status when passed to complete_task",
+                        install_status,
+                        type(install_status),
+                    )
                     failure = self.complete_task(task, install_status)
+                    print("COMPLETED WITH FAILURE", failure)
                     if failure:
                         failed_build_requests.append(failure)
                 except Exception:
@@ -2460,6 +2499,7 @@ class PackageInstaller:
         ]
 
         if failed_build_requests or missing:
+            print("BBBBBBB")
             for _, pkg_id, err in failed_build_requests:
                 tty.error(f"{pkg_id}: {err}")
 
@@ -2705,14 +2745,6 @@ def build_process(pkg: "spack.package_base.PackageBase", install_args: dict) -> 
     with spack.util.path.filter_padding():
         return installer.run()
 
-
-def overwrite_start_build_process(pkg: "spack.package_base.PackageBase", method: Callable, install_args: dict) -> bool:
-    #  Try to run the install task overwriting the package prefix.
-    #  If this fails, try to recover the original install prefix. If that fails
-    #  too, mark the spec as uninstalled. This function always the original
-    #  install error if installation fails. See ''complete_task()''
-    with fs.replace_directory_transaction(pkg.prefix):
-        return spack.build_environment.start_build_process(pkg, method, install_args)
 
 def deprecate(spec: "spack.spec.Spec", deprecator: "spack.spec.Spec", link_fn) -> None:
     """Deprecate this package in favor of deprecator spec"""
