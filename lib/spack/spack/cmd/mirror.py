@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import sys
+from concurrent.futures import as_completed
 
 import llnl.util.lang as lang
 import llnl.util.tty as tty
@@ -683,7 +684,9 @@ def create_mirror_for_all_specs(mirror_specs, path, skip_unstable_versions, thre
             executor.submit(create_mirror_for_one_spec, candidate, mirror_cache)
             for candidate in mirror_specs
         ]
-        for mirror_future in futures:
+        for mirror_future in as_completed(futures):
+            #TODO: AQ remove debug statement below. 
+            print("PROCESSING MIRROR FUTURE\n")
             ext_mirror_stats = mirror_future.result()
             mirror_stats.merge(ext_mirror_stats)
 
