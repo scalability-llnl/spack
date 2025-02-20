@@ -76,21 +76,26 @@ class Msvc(Package, CompilerPackage):
         if dependent_spec.name != "win-sdk" and "win-sdk" in dependent_spec:
             self.vcvars_call.sdk_ver = dependent_spec["win-sdk"].version.string
 
-        out = self.msvc_compiler_environment()
-        int_env = dict(
-            (key, value)
-            for key, _, value in (line.partition("=") for line in out.splitlines())
-            if key and value
-        )
-
-        for env_var in int_env:
-            if os.pathsep not in int_env[env_var]:
-                env.set(env_var, int_env[env_var])
-            else:
-                env.set_path(env_var, int_env[env_var].split(os.pathsep))
+        self._set_vcvars(env)
 
         env.set("CC", self.cc)
         env.set("CXX", self.cxx)
+
+    def setup_run_environment(self, env):
+        if self.spec.satisfies("languages=c"):
+            env.set("CC", self.cc)
+
+        if self.spec.satisfies("languages=c++"):
+            env.set("CXX", self.cxx)
+
+        if self.spec.satisfies("languages=fortran"):
+            env.set("FC", self.fortran)
+            env.set("F77", self.fortran)
+
+        self._set_vcvars(env)
+
+    def setup_compile_test_environment(self, env):
+        self._set_vcvars(env)
 
     def init_msvc(self):
         # To use the MSVC compilers, VCVARS must be invoked
@@ -115,6 +120,20 @@ class Msvc(Package, CompilerPackage):
         self.vcvars_call = VCVarsInvocation(vcvars_script_path, arch, msvc_version)
         env_cmds.append(self.vcvars_call)
         self.msvc_compiler_environment = CmdCall(*env_cmds)
+
+    def _set_vcvars(self, env):
+        out = self.msvc_compiler_environment()
+        int_env = dict(
+            (key, value)
+            for key, _, value in (line.partition("=") for line in out.splitlines())
+            if key and value
+        )
+
+        for env_var in int_env:
+            if os.pathsep not in int_env[env_var]:
+                env.set(env_var, int_env[env_var])
+            else:
+                env.set_path(env_var, int_env[env_var].split(os.pathsep))
 
     def _standard_flag(self, *, language: str, standard: str) -> str:
         flags = {

@@ -149,6 +149,9 @@ class CompilerPropertyDetector:
         """Sets the environment to run this compiler"""
 
         # No modifications for Spack managed compilers
+        # MSVC is always external for now, but that might not be true in the future
+        # so lets check
+        # MSVC _always_ needs a special environment (VCVARS)
         if not self.spec.external:
             yield
             return
@@ -156,7 +159,10 @@ class CompilerPropertyDetector:
         # Avoid modifying os.environ if possible.
         environment = self.spec.extra_attributes.get("environment", {})
         modules = self.spec.external_modules or []
-        if not self.spec.external_modules and not environment:
+        # Currently only implemented by MSVC, basically non install time specific
+        # setup_environment
+        compiler_specific_env = getattr(self.spec.package, "setup_compile_test_environment", None)
+        if not self.spec.external_modules and not environment and not compiler_specific_env:
             yield
             return
 
@@ -169,7 +175,11 @@ class CompilerPropertyDetector:
                 spack.util.module_cmd.load_module(module)
 
             # apply other compiler environment changes
-            spack.schema.environment.parse(environment).apply_modifications()
+            env = spack.schema.environment.parse(environment)
+            if compiler_specific_env:
+                self.spec.package.setup_compile_test_environment(env)
+
+            env.apply_modifications()
 
             yield
         finally:
