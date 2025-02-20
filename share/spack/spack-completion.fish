@@ -425,7 +425,7 @@ complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a uninstall -d 'rem
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a unit-test -d 'run spack'"'"'s unit tests (wrapper around pytest)'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a unload -d 'remove package from the user environment'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a url -d 'debugging tool for url parsing'
-complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a verify -d 'check that all spack packages are on disk as installed'
+complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a verify -d 'verify spack installations on disk'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a versions -d 'list available versions of a package'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a view -d 'project packages to a compact naming scheme on the filesystem'
 complete -c spack -n '__fish_spack_using_command ' -s h -l help -f -a help
@@ -3153,20 +3153,33 @@ complete -c spack -n '__fish_spack_using_command url stats' -l show-issues -f -a
 complete -c spack -n '__fish_spack_using_command url stats' -l show-issues -d 'show packages with issues (md5 hashes, http urls)'
 
 # spack verify
-set -g __fish_spack_optspecs_spack_verify h/help l/local j/json a/all s/specs f/files
-complete -c spack -n '__fish_spack_using_command_pos_remainder 0 verify' $__fish_spack_force_files -a '(__fish_spack_installed_specs)'
+set -g __fish_spack_optspecs_spack_verify h/help
+complete -c spack -n '__fish_spack_using_command_pos 0 verify' -f -a manifest -d 'verify that install directories have not been modified since installation'
+complete -c spack -n '__fish_spack_using_command_pos 0 verify' -f -a libraries -d 'verify that shared libraries of install packages can be located in rpaths (Linux only)'
 complete -c spack -n '__fish_spack_using_command verify' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command verify' -s h -l help -d 'show this help message and exit'
-complete -c spack -n '__fish_spack_using_command verify' -s l -l local -f -a local
-complete -c spack -n '__fish_spack_using_command verify' -s l -l local -d 'verify only locally installed packages'
-complete -c spack -n '__fish_spack_using_command verify' -s j -l json -f -a json
-complete -c spack -n '__fish_spack_using_command verify' -s j -l json -d 'ouptut json-formatted errors'
-complete -c spack -n '__fish_spack_using_command verify' -s a -l all -f -a all
-complete -c spack -n '__fish_spack_using_command verify' -s a -l all -d 'verify all packages'
-complete -c spack -n '__fish_spack_using_command verify' -s s -l specs -f -a type
-complete -c spack -n '__fish_spack_using_command verify' -s s -l specs -d 'treat entries as specs (default)'
-complete -c spack -n '__fish_spack_using_command verify' -s f -l files -f -a type
-complete -c spack -n '__fish_spack_using_command verify' -s f -l files -d 'treat entries as absolute filenames'
+
+# spack verify manifest
+set -g __fish_spack_optspecs_spack_verify_manifest h/help l/local j/json a/all s/specs f/files
+complete -c spack -n '__fish_spack_using_command_pos_remainder 0 verify manifest' $__fish_spack_force_files -a '(__fish_spack_installed_specs)'
+complete -c spack -n '__fish_spack_using_command verify manifest' -s h -l help -f -a help
+complete -c spack -n '__fish_spack_using_command verify manifest' -s h -l help -d 'show this help message and exit'
+complete -c spack -n '__fish_spack_using_command verify manifest' -s l -l local -f -a local
+complete -c spack -n '__fish_spack_using_command verify manifest' -s l -l local -d 'verify only locally installed packages'
+complete -c spack -n '__fish_spack_using_command verify manifest' -s j -l json -f -a json
+complete -c spack -n '__fish_spack_using_command verify manifest' -s j -l json -d 'ouptut json-formatted errors'
+complete -c spack -n '__fish_spack_using_command verify manifest' -s a -l all -f -a all
+complete -c spack -n '__fish_spack_using_command verify manifest' -s a -l all -d 'verify all packages'
+complete -c spack -n '__fish_spack_using_command verify manifest' -s s -l specs -f -a type
+complete -c spack -n '__fish_spack_using_command verify manifest' -s s -l specs -d 'treat entries as specs (default)'
+complete -c spack -n '__fish_spack_using_command verify manifest' -s f -l files -f -a type
+complete -c spack -n '__fish_spack_using_command verify manifest' -s f -l files -d 'treat entries as absolute filenames'
+
+# spack verify libraries
+set -g __fish_spack_optspecs_spack_verify_libraries h/help
+complete -c spack -n '__fish_spack_using_command_pos_remainder 0 verify libraries' -f -a '(__fish_spack_installed_specs)'
+complete -c spack -n '__fish_spack_using_command verify libraries' -s h -l help -f -a help
+complete -c spack -n '__fish_spack_using_command verify libraries' -s h -l help -d 'show this help message and exit'
 
 # spack versions
 set -g __fish_spack_optspecs_spack_versions h/help s/safe r/remote n/new j/jobs=

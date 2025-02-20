@@ -2027,9 +2027,27 @@ _spack_url_stats() {
 _spack_verify() {
     if $list_options
     then
+        SPACK_COMPREPLY="-h --help"
+    else
+        SPACK_COMPREPLY="manifest libraries"
+    fi
+}
+
+_spack_verify_manifest() {
+    if $list_options
+    then
         SPACK_COMPREPLY="-h --help -l --local -j --json -a --all -s --specs -f --files"
     else
         _all_packages
+    fi
+}
+
+_spack_verify_libraries() {
+    if $list_options
+    then
+        SPACK_COMPREPLY="-h --help"
+    else
+        _installed_packages
     fi
 }
 
