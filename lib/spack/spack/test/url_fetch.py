@@ -4,9 +4,9 @@
 
 import collections
 import filecmp
-import os
 import sys
 import urllib.error
+from pathlib import Path, PurePath
 
 import pytest
 
@@ -164,7 +164,7 @@ def test_fetch(
             with spack.config.override("config:url_fetch_method", _fetch_method):
                 s.package.do_stage()
         with working_dir(s.package.stage.source_path):
-            assert os.path.exists("configure")
+            assert Path("configure").exists()
             assert is_exe("configure")
 
             with open("configure", encoding="utf-8") as f:
@@ -195,7 +195,7 @@ def test_from_list_url(mock_packages, config, spec, url, digest, _fetch_method):
         s = spack.concretize.concretize_one(spec)
         fetch_strategy = fs.from_list_url(s.package)
         assert isinstance(fetch_strategy, fs.URLFetchStrategy)
-        assert os.path.basename(fetch_strategy.url) == url
+        assert PurePath(fetch_strategy.url).name == url
         assert fetch_strategy.digest == digest
         assert fetch_strategy.extra_options == {}
         s.package.fetch_options = {"timeout": 60}
@@ -222,7 +222,7 @@ def test_new_version_from_list_url(
         fetch_strategy = fs.from_list_url(s.package)
 
         assert isinstance(fetch_strategy, fs.URLFetchStrategy)
-        assert os.path.basename(fetch_strategy.url) == tarball
+        assert PurePath(fetch_strategy.url).name == tarball
         assert fetch_strategy.digest == digest
         assert fetch_strategy.extra_options == {}
         s.package.fetch_options = {"timeout": 60}
