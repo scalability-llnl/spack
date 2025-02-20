@@ -32,7 +32,7 @@ class Cmake(Package):
     version("master", branch="master")
     version(
         "4.0.0-rc1",
-        sha256="fd86c6f30b1b5f277cea17f03ec81b435f6c07bae36f38f2993c625800f25507",
+        sha256="70428d4deede456100acf8573b0263bc4d53a55675e62df89cc187dfb40b8618",
         preferred=True,
     )
     version("3.31.5", sha256="66fb53a145648be56b46fa9e8ccade3a4d0dfc92e401e52ce76bdad1fea43d27")
