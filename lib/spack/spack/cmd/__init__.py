@@ -500,7 +500,7 @@ def display_specs(specs, args=None, **kwargs):
         formatted = []
         for spec in specs:
             if deps:
-                for depth, dep in traverse.traverse_tree([spec], depth_first=False):
+                for depth, dep in traverse.traverse_tree([spec]):
                     formatted.append((fmt(dep.spec, depth), dep.spec))
                 formatted.append(("", None))  # mark newlines
             else:

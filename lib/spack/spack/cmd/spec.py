@@ -65,16 +65,17 @@ for further documentation regarding the spec syntax, see:
         "--cover",
         action="store",
         default="nodes",
-        choices=["nodes", "edges", "paths"],
+        choices=["nodes", "edges"],
         help="how extensively to traverse the DAG (default: nodes)",
     )
     subparser.add_argument(
         "-t", "--types", action="store_true", default=False, help="show dependency types"
     )
     subparser.add_argument(
-        "--show-runtime-deps",
-        action="store_true",
-        help="only show transitive runtime dependencies",
+        "--show-runtime-deps", action="store_true", help="show transitive runtime dependencies"
+    )
+    subparser.add_argument(
+        "--show-build-deps", action="store_true", help="show transitive runtime dependencies"
     )
     arguments.add_common_arguments(subparser, ["specs"])
     arguments.add_concretizer_args(subparser)
@@ -115,9 +116,12 @@ def spec(parser, args):
                 print(spec.format(args.format))
         return
 
-    deptypes = dt.ALL
-    if args.show_runtime_deps:
-        deptypes = dt.LINK | dt.RUN
+    if not args.show_runtime_deps and not args.show_build_deps:
+        direct_deptypes = dt.ALL
+        transitive_deptypes = dt.ALL
+    else:
+        direct_deptypes = dt.ALL if args.show_build_deps else dt.NONE
+        transitive_deptypes = dt.LINK | dt.RUN if args.show_runtime_deps else dt.NONE
 
     with tree_context():
         print(
@@ -127,7 +131,8 @@ def spec(parser, args):
                 format=fmt,
                 hashlen=None if args.very_long else 7,
                 show_types=args.types,
-                deptypes=deptypes,
+                direct_deptypes=direct_deptypes,
+                transitive_deptypes=transitive_deptypes,
                 status_fn=install_status_fn if args.install_status else None,
                 hashes=args.long or args.very_long,
                 key=spack.traverse.by_dag_hash,

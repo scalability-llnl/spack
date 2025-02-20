@@ -25,6 +25,10 @@ import spack.spec
 # Export only the high-level API.
 __all__ = ["traverse_edges", "traverse_nodes", "traverse_tree"]
 
+OrderType = Literal["pre", "post", "breadth", "topo"]
+CoverType = Literal["nodes", "edges"]
+DirectionType = Literal["children", "parents"]
+
 
 #: Data class that stores a directed edge together with depth at
 #: which the target vertex was found. It is passed to ``accept``
@@ -198,7 +202,6 @@ def get_visitor_from_args(
             ``edges`` -- If a node has been visited once but is reached along a
             new path, it's accepted, but not recurisvely followed. This traverses
             each 'edge' in the DAG once.
-            ``paths`` -- Explore every unique path reachable from the root.
             This descends into visited subtrees and will accept nodes multiple
             times if they're reachable by multiple paths.
         direction (str): ``children`` or ``parents``. If ``children``, does a traversal
@@ -333,7 +336,13 @@ def traverse_depth_first_with_visitor(edges, visitor):
 # Helper functions for generating a tree using breadth-first traversal
 
 
-def breadth_first_to_tree_edges(roots, deptype="all", key=id):
+def breadth_first_to_tree_edges(
+    roots,
+    direct_type: dt.DepFlag = dt.ALL,
+    transitive_type: dt.DepFlag = dt.RUN | dt.LINK,
+    key=id,
+    cover: CoverType = "nodes",
+):
     """This produces an adjacency list (with edges) and a map of parents.
     There may be nodes that are reached through multiple edges. To print as
     a tree, one should use the parents dict to verify if the path leading to
@@ -342,26 +351,19 @@ def breadth_first_to_tree_edges(roots, deptype="all", key=id):
     edges = defaultdict(list)
     parents = dict()
 
-    for edge in traverse_edges(roots, order="breadth", cover="edges", deptype=deptype, key=key):
+    visitor = MixedDepthVisitor(direct=direct_type, transitive=transitive_type, key=key)
+    root_edges = with_artificial_edges(roots)
+
+    for edge in traverse_breadth_first_edges_generator(root_edges, visitor):
         parent_id = None if edge.parent is None else key(edge.parent)
         child_id = key(edge.spec)
+        if cover == "nodes" and child_id in parents:
+            continue
         edges[parent_id].append(edge)
         if child_id not in parents:
             parents[child_id] = parent_id
 
     return edges, parents
-
-
-def breadth_first_to_tree_nodes(roots, deptype="all", key=id):
-    """This produces a list of edges that forms a tree; every node has no more
-    that one incoming edge."""
-    edges = defaultdict(list)
-
-    for edge in traverse_edges(roots, order="breadth", cover="nodes", deptype=deptype, key=key):
-        parent_id = None if edge.parent is None else key(edge.parent)
-        edges[parent_id].append(edge)
-
-    return edges
 
 
 def traverse_breadth_first_tree_edges(parent_id, edges, parents, key=id, depth=0):
@@ -376,16 +378,7 @@ def traverse_breadth_first_tree_edges(parent_id, edges, parents, key=id, depth=0
         if parents[child_id] != parent_id:
             continue
 
-        # yield from ... in Python 3.
-        for item in traverse_breadth_first_tree_edges(child_id, edges, parents, key, depth + 1):
-            yield item
-
-
-def traverse_breadth_first_tree_nodes(parent_id, edges, key=id, depth=0):
-    for edge in edges[parent_id]:
-        yield (depth, edge)
-        for item in traverse_breadth_first_tree_nodes(key(edge.spec), edges, key, depth + 1):
-            yield item
+        yield from traverse_breadth_first_tree_edges(child_id, edges, parents, key, depth + 1)
 
 
 def traverse_topo_edges_generator(edges, visitor, key=id, root=True, all_edges=False):
@@ -437,10 +430,6 @@ def traverse_topo_edges_generator(edges, visitor, key=id, root=True, all_edges=F
 
 
 # High-level API: traverse_edges, traverse_nodes, traverse_tree.
-
-OrderType = Literal["pre", "post", "breadth", "topo"]
-CoverType = Literal["nodes", "edges", "paths"]
-DirectionType = Literal["children", "parents"]
 
 
 @overload
@@ -513,9 +502,6 @@ def traverse_edges(
             ``nodes`` -- Visit each unique node in the dag only once.
             ``edges`` -- If a node has been visited once but is reached along a new path, it's
             accepted, but not recurisvely followed. This traverses each 'edge' in the DAG once.
-            ``paths`` -- Explore every unique path reachable from the root. This descends into
-            visited subtrees and will accept nodes multiple times if they're reachable by multiple
-            paths.
         direction: ``children`` or ``parents``. If ``children``, does a traversal of this spec's
             children.  If ``parents``, traverses upwards in the DAG towards the root.
         deptype: allowed dependency types
@@ -530,8 +516,6 @@ def traverse_edges(
     """
     # validate input
     if order == "topo":
-        if cover == "paths":
-            raise ValueError("cover=paths not supported for order=topo")
         if visited is not None:
             raise ValueError("visited set not implemented for order=topo")
     elif order not in ("post", "pre", "breadth"):
@@ -625,9 +609,6 @@ def traverse_nodes(
             ``nodes`` -- Visit each unique node in the dag only once.
             ``edges`` -- If a node has been visited once but is reached along a new path, it's
             accepted, but not recurisvely followed. This traverses each 'edge' in the DAG once.
-            ``paths`` -- Explore every unique path reachable from the root. This descends into
-            visited subtrees and will accept nodes multiple times if they're reachable by multiple
-            paths.
         direction: ``children`` or ``parents``. If ``children``, does a traversal of this spec's
             children.  If ``parents``, traverses upwards in the DAG towards the root.
         deptype: allowed dependency types
@@ -657,9 +638,9 @@ def traverse_nodes(
 def traverse_tree(
     specs: Sequence["spack.spec.Spec"],
     cover: CoverType = "nodes",
-    deptype: Union[dt.DepFlag, dt.DepTypes] = "all",
+    direct_deptypes: Union[dt.DepFlag, dt.DepTypes] = "all",
+    transitive_deptypes: Union[dt.DepFlag, dt.DepTypes] = "all",
     key: Callable[["spack.spec.Spec"], Any] = id,
-    depth_first: bool = True,
 ) -> Iterable[Tuple[int, "spack.spec.DependencySpec"]]:
     """
     Generator that yields ``(depth, DependencySpec)`` tuples in the depth-first
@@ -673,29 +654,26 @@ def traverse_tree(
             ``edges`` -- If a node has been visited once but is reached along a
             new path, it's accepted, but not recurisvely followed. This traverses each 'edge' in
             the DAG once.
-            ``paths`` -- Explore every unique path reachable from the root. This descends into
-            visited subtrees and will accept nodes multiple times if they're reachable by multiple
-            paths.
-        deptype: allowed dependency types
+        direct_deptype: what edge types to include from the roots (not transitive).
+        transitive_deptype: what edges types to follow transitively from the roots.
         key: function that takes a spec and outputs a key for uniqueness test.
-        depth_first: Explore the tree in depth-first or breadth-first order. When setting
-            ``depth_first=True`` and ``cover=nodes``, each spec only occurs once at the shallowest
-            level, which is useful when rendering the tree in a terminal.
 
     Returns:
         A generator that yields ``(depth, DependencySpec)`` tuples in such an order that a tree can
         be printed.
     """
-    # BFS only makes sense when going over edges and nodes, for paths the tree is
-    # identical to DFS, which is much more efficient then.
-    if not depth_first and cover == "edges":
-        edges, parents = breadth_first_to_tree_edges(specs, deptype, key)
-        return traverse_breadth_first_tree_edges(None, edges, parents, key)
-    elif not depth_first and cover == "nodes":
-        edges = breadth_first_to_tree_nodes(specs, deptype, key)
-        return traverse_breadth_first_tree_nodes(None, edges, key)
-
-    return traverse_edges(specs, order="pre", cover=cover, deptype=deptype, key=key, depth=True)
+    if not isinstance(direct_deptypes, dt.DepFlag):
+        direct_deptypes = dt.canonicalize(direct_deptypes)
+    if not isinstance(transitive_deptypes, dt.DepFlag):
+        transitive_deptypes = dt.canonicalize(transitive_deptypes)
+    edges, parents = breadth_first_to_tree_edges(
+        specs,
+        direct_type=direct_deptypes,
+        transitive_type=transitive_deptypes,
+        key=key,
+        cover=cover,
+    )
+    return traverse_breadth_first_tree_edges(None, edges, parents, key)
 
 
 def by_dag_hash(s: "spack.spec.Spec") -> str:

@@ -116,9 +116,8 @@ def emulate_env_utility(cmd_name, context: Context, args):
                 status_fn=spack.spec.Spec.install_status,
                 hashlen=7,
                 hashes=True,
-                # This shows more than necessary, but we cannot dynamically change deptypes
-                # in Spec.tree(...).
-                deptypes="all" if context == Context.BUILD else ("build", "test", "link", "run"),
+                direct_deptypes=visitor.direct_deps,
+                transitive_deptypes=dt.LINK | dt.RUN,
             ),
         )
 
