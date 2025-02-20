@@ -21,7 +21,6 @@ import spack.package_base
 import spack.phase_callbacks
 import spack.spec
 import spack.util.prefix
-import spack.version
 from spack import traverse
 from spack.directives import build_system, conflicts, depends_on, variant
 from spack.multimethod import when
@@ -119,6 +118,11 @@ def _conditional_cmake_defaults(pkg: spack.package_base.PackageBase, args: List[
     # https://cmake.org/cmake/help/latest/policy/CMP0042.html
     if pkg.spec.satisfies("platform=darwin") and cmake.satisfies("@3:"):
         args.append(define("CMAKE_POLICY_DEFAULT_CMP0042", "NEW"))
+
+    # CMake 4.0.0 pedantically errors when projects define cmake_minimum_required < 3.5. We
+    # override the project's minimum policy version to 3.5 to avoid this error.
+    if cmake.satisfies("@4.0.0-rc1:"):
+        args.append(define("CMAKE_POLICY_VERSION_MINIMUM", "3.5"))
 
     # Disable find package's config mode for versions of Boost that
     # didn't provide it. See https://github.com/spack/spack/issues/20169
@@ -406,8 +410,6 @@ class CMakeBuilder(BuilderWithDefaults):
             define("CMAKE_PREFIX_PATH", get_cmake_prefix_path(pkg)),
             define("CMAKE_BUILD_TYPE", build_type),
         ]
-        if pkg.spec["cmake"].version >= spack.version.Version("4.0.0-rc1"):
-            args.append(define("CMAKE_POLICY_VERSION_MINIMUM", "3.5"))
 
         if primary_generator == "Unix Makefiles":
             args.append(define("CMAKE_VERBOSE_MAKEFILE", True))
