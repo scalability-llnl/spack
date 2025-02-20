@@ -23,7 +23,15 @@ spack_checksum = SpackCommand("checksum")
 
 
 @pytest.fixture
-def can_fetch_versions(monkeypatch):
+def no_add(monkeypatch):
+    def add_versions_to_pkg(pkg, version_lines, open_in_editor):
+        raise AssertionError("Should not be called")
+
+    monkeypatch.setattr(spack.cmd.checksum, "add_versions_to_pkg", add_versions_to_pkg)
+
+
+@pytest.fixture
+def can_fetch_versions(monkeypatch, no_add):
     """Fake successful version detection."""
 
     def fetch_remote_versions(pkg, concurrency):
@@ -38,10 +46,6 @@ def can_fetch_versions(monkeypatch):
     def url_exists(url, curl=None):
         return True
 
-    def add_versions_to_pkg(pkg, version_lines, open_in_editor):
-        raise AssertionError("Should not be called")
-
-    monkeypatch.setattr(spack.cmd.checksum, "add_versions_to_pkg", add_versions_to_pkg)
     monkeypatch.setattr(
         spack.package_base.PackageBase, "fetch_remote_versions", fetch_remote_versions
     )
@@ -50,7 +54,7 @@ def can_fetch_versions(monkeypatch):
 
 
 @pytest.fixture
-def cannot_fetch_versions(monkeypatch):
+def cannot_fetch_versions(monkeypatch, no_add):
     """Fake unsuccessful version detection."""
 
     def fetch_remote_versions(pkg, concurrency):
@@ -283,11 +287,7 @@ def test_checksum_versions(mock_packages, can_fetch_versions, monkeypatch):
     assert "version(" in output
 
 
-def test_checksum_missing_version(mock_packages, cannot_fetch_versions, monkeypatch):
-    def add_versions_to_pkg(pkg, version_lines, open_in_editor):
-        raise AssertionError("Should not be called")
-
-    monkeypatch.setattr(spack.cmd.checksum, "add_versions_to_pkg", add_versions_to_pkg)
+def test_checksum_missing_version(mock_packages, cannot_fetch_versions):
     output = spack_checksum("preferred-test", "99.99.99", fail_on_error=False)
     assert "Could not find any remote versions" in output
     output = spack_checksum("--add-to-package", "preferred-test", "99.99.99", fail_on_error=False)
@@ -295,9 +295,6 @@ def test_checksum_missing_version(mock_packages, cannot_fetch_versions, monkeypa
 
 
 def test_checksum_deprecated_version(mock_packages, can_fetch_versions):
-    def add_versions_to_pkg(pkg, version_lines, open_in_editor):
-        raise AssertionError("Should not be called")
-
     output = spack_checksum("deprecated-versions", "1.1.0", fail_on_error=False)
     assert "Version 1.1.0 is deprecated" in output
     output = spack_checksum(
