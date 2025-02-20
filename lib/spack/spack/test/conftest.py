@@ -2187,5 +2187,6 @@ def write_config_file(tmpdir):
         config_yaml.ensure()
         with config_yaml.open("w") as f:
             syaml.dump_config(data, f)
+        return config_yaml
 
     return _write
