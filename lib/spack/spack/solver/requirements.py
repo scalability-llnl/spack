@@ -201,11 +201,13 @@ class RequirementParser:
         if kind != RequirementKind.DEFAULT:
             return False
 
-        # Reject default requirements for runtimes and compilers
-        if pkg_name in self.runtime_pkgs:
-            return True
-
-        if pkg_name in self.compiler_pkgs:
+        # Reject requirements with dependencies for runtimes and compilers
+        # These are usually requests on compilers, in the form of %<compiler>
+        involves_dependencies = bool(constraint.dependencies())
+        if involves_dependencies and (
+            pkg_name in self.runtime_pkgs or pkg_name in self.compiler_pkgs
+        ):
+            tty.debug(f"[{__name__}] Rejecting '{constraint}' for compiler package {pkg_name}")
             return True
 
         # Requirements under all: are applied only if they are satisfiable considering only
@@ -216,7 +218,7 @@ class RequirementParser:
             s.validate_or_raise()
         except spack.error.SpackError as e:
             tty.debug(
-                f"[SETUP] Rejecting the default '{constraint}' requirement "
+                f"[{__name__}] Rejecting the default '{constraint}' requirement "
                 f"on '{pkg_name}': {str(e)}",
                 level=2,
             )
