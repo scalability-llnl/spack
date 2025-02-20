@@ -34,18 +34,18 @@ class Metplus(Package):
     variant("makeplots", default=False, description="Enable MakePlots Wrapper.")
     variant("plotdataplane", default=False, description="Generate images from Postscript output.")
 
-    depends_on("python@3.10.4:", when="@6.0.0", type=("run"))
-    depends_on("met@12:+python", when="@6.0.0", type=("run"))
+    depends_on("python@3.10.4:", when="@6:", type=("run"))
+    depends_on("met@12:+python", when="@6:", type=("run"))
     depends_on("met+python", type=("run"))
     # https://metplus.readthedocs.io/en/main_v6.0/Users_Guide/installation.html
-    depends_on("netcdf-c@1.5.4:", when="@6.0.0")
+    depends_on("netcdf-c@1.5.4:", when="@6:")
     depends_on("netcdf-c")
-    depends_on("py-python-dateutil@2.8:", when="@6.0.0", type=("run"))
+    depends_on("py-python-dateutil@2.8:", when="@6:", type=("run"))
     depends_on("py-python-dateutil", type=("run"))
 
-    depends_on("py-cartopy@0.20.3:", when="@6.0.0 +makeplots", type=("run"))
+    depends_on("py-cartopy@0.20.3:", when="@6: +makeplots", type=("run"))
     depends_on("py-cartopy", when="+makeplots", type=("run"))
-    depends_on("py-matplotlib@3.5.2", when="@6.0.0 +cycloneplotter", type=("run"))
+    depends_on("py-matplotlib@3.5.2", when="@6: +cycloneplotter", type=("run"))
     depends_on("py-matplotlib", when="+cycloneplotter", type=("run"))
     depends_on("py-cartopy", when="+cycloneplotter", type=("run"))
 
