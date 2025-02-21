@@ -3080,7 +3080,7 @@ class CompilerParser:
                 )
                 continue
 
-            target = c.target if c.target != "any" else None
+            target = str(c.target) if c.target != "any" else ""
             candidate = KnownCompiler(
                 spec=c.spec, os=c.operating_system, target=target, available=True, compiler_obj=c
             )
