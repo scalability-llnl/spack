@@ -21,6 +21,7 @@ class Sendme(CargoPackage):
     version("0.23.0", tag="v0.23.0", commit="39f6111d8c3a973ea1f54a3c47aad07014de854b")
 
     def test_sanity(self):
+        """Verify that the 'sendme' binary is available"""
         sendme = which(self.prefix.bin.sendme)
         output = sendme("-V", output=str.split, error=str.split)
         assert "sendme" in output, "Expected 'sendme' in the output"
