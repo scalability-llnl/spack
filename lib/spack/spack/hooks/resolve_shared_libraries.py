@@ -66,6 +66,8 @@ ALLOW_UNRESOLVED = [
     "libudev.so.*",
     # cuda driver
     "libcuda.so.*",
+    # intel-oneapi-runtime
+    "libur_loader.so.*",
 ]
 
 

@@ -77,9 +77,7 @@ class RedisAi(MakefilePackage):
     @property
     def torch_dir(self):
         return (
-            join_path(self.spec["py-torch"].package.cmake_prefix_paths[0], "Torch")
-            if self.with_torch
-            else None
+            join_path(self["py-torch"].cmake_prefix_paths[0], "Torch") if self.with_torch else None
         )
 
     @property

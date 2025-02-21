@@ -923,7 +923,7 @@ class FileTypes:
     UNKNOWN = 2
 
 
-NOT_ISO8859_1_TEXT = re.compile(b"[\x00\x7F-\x9F]")
+NOT_ISO8859_1_TEXT = re.compile(b"[\x00\x7f-\x9f]")
 
 
 def file_type(f: IO[bytes]) -> int:

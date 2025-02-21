@@ -18,6 +18,7 @@ class G4vg(CMakePackage):
 
     version("develop", branch="main", get_full_repo=True)
 
+    version("1.0.2", sha256="daeb9263f2741c4a1073eb26f2e9fc10e89207c1ed3425da70db934069ff4160")
     version("1.0.1", sha256="add7ce4bc37889cac2101323a997cea8574b18da6cbeffdab44a2b714d134e99")
 
     variant("debug", default=False, description="Enable runtime debug assertions")

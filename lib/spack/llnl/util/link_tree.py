@@ -41,6 +41,16 @@ class MergeConflict:
         self.src_a = src_a
         self.src_b = src_b
 
+    def __repr__(self) -> str:
+        return f"MergeConflict(dst={self.dst!r}, src_a={self.src_a!r}, src_b={self.src_b!r})"
+
+
+def _samefile(a: str, b: str):
+    try:
+        return os.path.samefile(a, b)
+    except OSError:
+        return False
+
 
 class SourceMergeVisitor(BaseDirectoryVisitor):
     """
@@ -168,16 +178,21 @@ class SourceMergeVisitor(BaseDirectoryVisitor):
             # Don't recurse when dir is ignored.
             return False
         elif self._in_files(proj_rel_path):
-            # Can't create a dir where a file is.
-            _, src_a_root, src_a_relpath = self._file(proj_rel_path)
-            self.fatal_conflicts.append(
-                MergeConflict(
-                    dst=proj_rel_path,
-                    src_a=os.path.join(src_a_root, src_a_relpath),
-                    src_b=os.path.join(root, rel_path),
+            # A file-dir conflict is fatal except if they're the same file (symlinked dir).
+            src_a = os.path.join(*self._file(proj_rel_path))
+            src_b = os.path.join(root, rel_path)
+
+            if not _samefile(src_a, src_b):
+                self.fatal_conflicts.append(
+                    MergeConflict(dst=proj_rel_path, src_a=src_a, src_b=src_b)
                 )
-            )
-            return False
+                return False
+
+            # Remove the link in favor of the dir.
+            existing_proj_rel_path, _, _ = self._file(proj_rel_path)
+            self._del_file(existing_proj_rel_path)
+            self._add_directory(proj_rel_path, root, rel_path)
+            return True
         elif self._in_directories(proj_rel_path):
             # No new directory, carry on.
             return True
@@ -215,7 +230,7 @@ class SourceMergeVisitor(BaseDirectoryVisitor):
         if handle_as_dir:
             return self.before_visit_dir(root, rel_path, depth)
 
-        self.visit_file(root, rel_path, depth)
+        self.visit_file(root, rel_path, depth, symlink=True)
         return False
 
     def visit_file(self, root: str, rel_path: str, depth: int, *, symlink: bool = False) -> None:
@@ -224,29 +239,22 @@ class SourceMergeVisitor(BaseDirectoryVisitor):
         if self.ignore(rel_path):
             pass
         elif self._in_directories(proj_rel_path):
-            # Can't create a file where a dir is; fatal error
-            self.fatal_conflicts.append(
-                MergeConflict(
-                    dst=proj_rel_path,
-                    src_a=os.path.join(*self._directory(proj_rel_path)),
-                    src_b=os.path.join(root, rel_path),
+            # Can't create a file where a dir is, unless they are the same file (symlinked dir),
+            # in which case we simply drop the symlink in favor of the actual dir.
+            src_a = os.path.join(*self._directory(proj_rel_path))
+            src_b = os.path.join(root, rel_path)
+            if not symlink or not _samefile(src_a, src_b):
+                self.fatal_conflicts.append(
+                    MergeConflict(dst=proj_rel_path, src_a=src_a, src_b=src_b)
                 )
-            )
         elif self._in_files(proj_rel_path):
             # When two files project to the same path, they conflict iff they are distinct.
             # If they are the same (i.e. one links to the other), register regular files rather
             # than symlinks. The reason is that in copy-type views, we need a copy of the actual
             # file, not the symlink.
-
             src_a = os.path.join(*self._file(proj_rel_path))
             src_b = os.path.join(root, rel_path)
-
-            try:
-                samefile = os.path.samefile(src_a, src_b)
-            except OSError:
-                samefile = False
-
-            if not samefile:
+            if not _samefile(src_a, src_b):
                 # Distinct files produce a conflict.
                 self.file_conflicts.append(
                     MergeConflict(dst=proj_rel_path, src_a=src_a, src_b=src_b)
@@ -259,7 +267,6 @@ class SourceMergeVisitor(BaseDirectoryVisitor):
                 existing_proj_rel_path, _, _ = self._file(proj_rel_path)
                 self._del_file(existing_proj_rel_path)
                 self._add_file(proj_rel_path, root, rel_path)
-
         else:
             # Otherwise register this file to be linked.
             self._add_file(proj_rel_path, root, rel_path)

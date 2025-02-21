@@ -74,5 +74,10 @@ class Ectrans(CMakePackage):
             self.define_from_variant("ENABLE_FFTW", "fftw"),
             self.define_from_variant("ENABLE_MKL", "mkl"),
             self.define_from_variant("ENABLE_TRANSI", "transi"),
+            # Turn off use of contiguous keyword in Fortran because a number
+            # of compilers have issues with it, and the hardcoded list of "bad"
+            # compilers in ectrans is incomplete and isn't kept up to date
+            # https://github.com/JCSDA/spack-stack/issues/1522
+            "-DECTRANS_HAVE_CONTIGUOUS_ISSUE=ON",
         ]
         return args
