@@ -1337,7 +1337,7 @@ _spack_license() {
     then
         SPACK_COMPREPLY="-h --help --root"
     else
-        SPACK_COMPREPLY="list-files verify"
+        SPACK_COMPREPLY="list-files verify fix"
     fi
 }
 
@@ -1346,6 +1346,10 @@ _spack_license_list_files() {
 }
 
 _spack_license_verify() {
+    SPACK_COMPREPLY="-h --help"
+}
+
+_spack_license_fix() {
     SPACK_COMPREPLY="-h --help"
 }
 
