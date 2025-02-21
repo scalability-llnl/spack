@@ -39,6 +39,13 @@ class Veccore(CMakePackage):
 
     variant("vc", default=False, description="Enable Vc backend")
 
+    # This fixes a typo which is causes recent compilers to fail
+    patch(
+        "https://github.com/root-project/veccore/commit/247b9c6bd48a26b298a73683bb6015b08829ca70.patch?full_index=1",
+        sha256="7ea1b7ade302201fefe0b460ed32e86c39f241e4554e77e19c144985339e47f9",
+        when="@:0.8.1 %clang@19:"
+    )
+
     depends_on("cmake@3.16:", type="build", when="@0.8.1:")
     depends_on("vc@1.2.0:", when="@0.2.0: +vc")
     depends_on("vc@1.3.3:", when="@0.6.0: +vc")
