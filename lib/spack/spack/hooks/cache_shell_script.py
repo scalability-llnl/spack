@@ -49,10 +49,13 @@ def post_install(spec, explicit=None):
         shells_avail.extend(["bat", "pwsh"])
 
     # Load TODO: Write better comment
-    env_mods = uenv.environment_modifications_for_specs(spec)
+    env_mod = uenv.environment_modifications_for_specs(spec)
+
+    env_mod.prepend_path(uenv.spack_loaded_hashes_var, spec.dag_hash())
+
 
     for shell in shells_avail:
-        mods = env_mods.shell_modifications(shell)
+        mods = env_mod.shell_modifications(shell)
 
         shell_script_path = path_to_load_shell_script(spec, shell)
 
@@ -60,10 +63,10 @@ def post_install(spec, explicit=None):
             f.write(mods)
 
     # Unload TODO: Write better comment
-    env_mods = uenv.environment_modifications_for_specs(spec).reversed()
+    env_mod = uenv.environment_modifications_for_specs(spec).reversed()
 
     for shell in shells_avail:
-        mods = env_mods.shell_modifications(shell)
+        mods = env_mod.shell_modifications(shell)
 
         shell_script_path = path_to_unload_shell_script(spec, shell)
 

@@ -664,27 +664,12 @@ class EnvironmentModifications:
 
         for _, actions in sorted(modifications.items()):
             for modifier in actions:
-                modifier.execute(new_env)
                 cache_commands += f"{modifier._cache_str()}\n"
+
         if "MANPATH" in new_env and not new_env["MANPATH"].endswith(os.pathsep):
             new_env["MANPATH"] += os.pathsep
 
-        # cmds = ""
-
-        # for name in sorted(set(modifications)):
-        #     new = new_env.get(name, None)
-        #     old = env.get(name, None)
-        #     if explicit or new != old:
-        #         if new is None:
-        #             cmds += _SHELL_UNSET_STRINGS[shell].format(name)
-        #         else:
-        #             value = new_env[name]
-        #             if shell not in ("bat", "pwsh"):
-        #                 value = shlex.quote(value)
-        #             cmd = _SHELL_SET_STRINGS[shell].format(name, value)
-        #             cmds += cmd
-        # All commands, regardless if there are new or not, need to be saved
-        return cache_commands  # cmds
+        return cache_commands
 
     @staticmethod
     def from_sourcing_file(

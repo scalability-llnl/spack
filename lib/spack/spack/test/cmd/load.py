@@ -37,7 +37,7 @@ def test_load_recursive(install_mockery, mock_fetch, mock_archive, mock_packages
 
         def extract_value(output, variable):
             value = []
-            for line in output:
+            for line in output.splitlines():
                 info = line.split(" ")
                 if info[1] == variable:
                     value.append(info[2])
@@ -48,7 +48,7 @@ def test_load_recursive(install_mockery, mock_fetch, mock_archive, mock_packages
             s.name for s in mpileaks_spec.traverse() if s.prefix == prefix
         )
 
-        paths_shell = extract_value(shell_out.splitlines(), "CMAKE_PREFIX_PATH")
+        paths_shell = extract_value(shell_out, "CMAKE_PREFIX_PATH")
 
         # All but the last two paths are added by spack load; lookup what packages they're from.
         pkgs = [prefix_to_pkg(p) for p in paths_shell]
@@ -63,9 +63,6 @@ def test_load_recursive(install_mockery, mock_fetch, mock_archive, mock_packages
             set(s.name for s in mpileaks_spec[pkg].traverse(direction="parents")) in set(pkgs[:i])
 
         # Lastly, do we keep track that mpileaks was loaded?
-        print(f"shell_out: {shell_out}")
-        print(f"uenv.spack_loaded_hashes_var: {uenv.spack_loaded_hashes_var}")
-        print(f"extract_value(shell_out, uenv.spack_loaded_hashes_var): {extract_value(shell_out, uenv.spack_loaded_hashes_var)}")
         assert (
             extract_value(shell_out, uenv.spack_loaded_hashes_var)[0] == mpileaks_spec.dag_hash()
         )
