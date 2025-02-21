@@ -1,7 +1,10 @@
-# v0.22.4 (2025-02-18)
+# v0.22.5 (2025-02-21)
 
 ## Bugfixes
 - Continue to mark non-roots as implicitly installed on partial env installs (#47183)
+
+## Notes
+- v0.22.4 is skipped to do an error in the release process
 
 # v0.22.3 (2024-11-18)
 
