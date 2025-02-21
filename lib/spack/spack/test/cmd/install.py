@@ -105,7 +105,6 @@ def test_install_package_already_installed(
     assert filename in files
 
     content = filename.open().read()
-    print(content)
     assert 'tests="5"' in content
     assert 'failures="0"' in content
     assert 'errors="0"' in content
