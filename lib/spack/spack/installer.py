@@ -34,11 +34,11 @@ import itertools
 import os
 import shutil
 import sys
-import time
 import tempfile
+import time
 from collections import defaultdict
 from gzip import GzipFile
-from typing import Dict, Iterator, List, Optional, Set, Tuple, Union, Callable
+from typing import Dict, Iterator, List, Optional, Set, Tuple, Union
 
 import llnl.util.filesystem as fs
 import llnl.util.lock as lk
@@ -1248,7 +1248,6 @@ class BuildTask(Task):
         unsigned = install_args.get("unsigned")
         pkg, pkg_id = self.pkg, self.pkg_id
         self.start_time = self.start_time or time.time()
-        action = self.install_action
 
         # Use the binary cache to install if requested,
         # save result to be handled in BuildTask.complete()
