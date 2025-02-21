@@ -345,7 +345,7 @@ class Boost(Package):
 
         if spec.satisfies("platform=windows"):
             # The runtime link must either be shared or static, not both.
-            if "+shared" in spec:
+            if spec.satisfies("+shared"):
                 options.append("runtime-link=shared")
             else:
                 options.append("runtime-link=static")
