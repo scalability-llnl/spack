@@ -6,6 +6,7 @@ ci:
   - build-job:
       tags: [ "macos-sequoia", "apple-clang-16", "aarch64-macos" ]
       after_script-:
-      - - ./bin/spack clean -a
+      - - if [[ -d tmp ]] ; then chmod -R u+w tmp ; else echo tmp not found ; fi
+        - ./bin/spack clean -a
   - build-job-remove:
       image:: macos-run-on-metal
