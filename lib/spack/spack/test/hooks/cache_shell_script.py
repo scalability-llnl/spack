@@ -97,21 +97,22 @@ def test_install_shell_cached(
         else [("sh", "export %s=%s"), ("csh", "setenv %s %s"), ("fish", "set %s %s")]
     ),
 )
-def test_install_with_individual_shell_scripts(
+def test_install_individual_specs_shell_scripts(
     shell, set_command, install_mockery, mock_fetch, mock_archive, mock_packages
 ):  # get better name
     """Test does a thing"""
 
-    callpath_spec = Spec("callpath")
     dyninst_spec = Spec("dyninst")
     mpich_spec = Spec("mpich")
 
-    callpath_spec.concretize()
     dyninst_spec.concretize()
     mpich_spec.concretize()
 
-    install(callpath_spec.name)
+    # Install specs individually
+    install(dyninst_spec.name)
+    install(mpich_spec.name)
 
+    # no overlap in load shell script
     path_to_dyninst = shell_script.path_to_load_shell_script(dyninst_spec, shell)
     path_to_mpich = shell_script.path_to_load_shell_script(mpich_spec, shell)
 
@@ -139,7 +140,7 @@ def test_install_with_individual_shell_scripts(
         else [("sh", "export %s=%s"), ("csh", "setenv %s %s"), ("fish", "set %s %s")]
     ),
 )
-def test_install_multiple_specs(
+def test_install_multiple_specs_shell_scripts(
     shell, set_command, install_mockery, mock_fetch, mock_archive, mock_packages
 ):
     """Test does a thing"""
@@ -153,7 +154,7 @@ def test_install_multiple_specs(
     # Install multiple specs
     install(dyninst_spec.name, hypre_spec.name)
 
-    # no overlap in shell sc
+    # no overlap in load shell script
     path_to_dyninst = shell_script.path_to_load_shell_script(dyninst_spec, shell)
     path_to_hypre = shell_script.path_to_load_shell_script(hypre_spec, shell)
 
