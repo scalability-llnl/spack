@@ -49,3 +49,13 @@ class PySchemaSalad(PythonPackage):
     depends_on("py-types-requests", type="build")
     depends_on("py-types-dataclasses", type="build")
     depends_on("py-types-setuptools", type="build")
+
+    def url_for_version(self, version):
+        url = (
+            "https://files.pythonhosted.org/packages/source/s/schema-salad/schema{}salad-{}.tar.gz"
+        )
+        if version >= Version("8.5.20240503091721"):
+            sep = "_"
+        else:
+            sep = "-"
+        return url.format(sep, version)
