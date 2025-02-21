@@ -65,7 +65,7 @@ class Mesa(MesonPackage):
     # Upperbound on 3.11 because distutils is used for checking py-mako
     depends_on("python@3:3.11", type="build", when="@20:23.3.2")
     depends_on("python@3.12:", type="build", when="@23.3.3:")
-    depends_on("py-packaging", type="build", when="@23.3.3:")
+    depends_on("py-packaging", type="build", when="^python@3.12:")
     depends_on("py-mako@0.8.0:", type="build")
     depends_on("unwind")
     depends_on("expat")
