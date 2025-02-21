@@ -90,9 +90,9 @@ class SstCore(AutotoolsPackage):
 
     # Backport of https://github.com/sstsimulator/sst-core/pull/1110
     with when("+curses @14.0.0"):
-        patch("ncurses_detection.patch", level=0)
+        patch("1110-ncurses_detection.patch", level=0)
         # Seperated out results of ./autogen.sh
-        patch("ncurses_detection_autoreconf.patch", level=0)
+        patch("1110-ncurses_detection_autoreconf.patch", level=0)
 
     # force out-of-source builds
     build_directory = "spack-build"
