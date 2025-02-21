@@ -82,17 +82,17 @@ class SstCore(AutotoolsPackage):
     depends_on("gettext")
     depends_on("ncurses", when="+curses", type=("build", "link"))
 
-    automake_spec = "automake@1.11.1:"
     for version_name in ("master", "develop"):
         depends_on("autoconf@1.68:", type="build", when="@{}".format(version_name))
-        depends_on(automake_spec, type="build", when="@{}".format(version_name))
+        depends_on("automake@1.11.1:", type="build", when="@{}".format(version_name))
         depends_on("libtool@1.2.4:", type="build", when="@{}".format(version_name))
         depends_on("m4", type="build", when="@{}".format(version_name))
 
     # Backport of https://github.com/sstsimulator/sst-core/pull/1110
     with when("+curses @14.0.0"):
         patch("ncurses_detection.patch", level=0)
-        depends_on(automake_spec)
+        # Seperated out results of ./autogen.sh
+        patch("ncurses_detection_autoreconf.patch", level=0)
 
     # force out-of-source builds
     build_directory = "spack-build"
