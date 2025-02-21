@@ -33,11 +33,11 @@ class PySchemaSalad(PythonPackage):
     depends_on("py-ruamel-yaml@0.17.6:0.18", when="@8.4.20231113094720:", type=("build", "run"))
     depends_on("py-rdflib@4.2.2:6", type=("build", "run"))
     depends_on("py-mistune@2.0.3:2.0", type=("build", "run"))
+    depends_on("py-cachecontrol@0.11.7:0.12+filecache", type=("build", "run"))
     depends_on(
-        "py-cachecontrol@0.11.7:0.12+filecache", type=("build", "run")
-    )
-    depends_on(
-        "py-cachecontrol@0.13.1:0.14+filecache", when="@8.7.20240820070935:8.7.20241021092521", type=("build", "run")
+        "py-cachecontrol@0.13.1:0.14+filecache",
+        when="@8.7.20240820070935:8.7.20241021092521",
+        type=("build", "run"),
     )
     depends_on(
         "py-cachecontrol@0.14+filecache", when="@8.8.20241204110045:", type=("build", "run")
