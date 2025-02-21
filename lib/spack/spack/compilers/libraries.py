@@ -137,6 +137,9 @@ def _parse_link_paths(string):
     return implicit_link_dirs
 
 
+
+
+
 class CompilerPropertyDetector:
 
     def __init__(self, compiler_spec: spack.spec.Spec):
@@ -200,7 +203,7 @@ class CompilerPropertyDetector:
             return None
 
         try:
-            tmpdir = tempfile.mkdtemp(prefix="spack-implicit-link-info")
+            tmpdir = tempfile.mkdtemp(prefix="spack-compiler-inspection")
             fout = os.path.join(tmpdir, "output")
             fin = os.path.join(tmpdir, f"main.{ext}")
 
