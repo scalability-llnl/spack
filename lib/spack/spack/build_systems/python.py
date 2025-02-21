@@ -17,8 +17,10 @@ import llnl.util.lang as lang
 import llnl.util.tty as tty
 from llnl.util.filesystem import HeaderList, LibraryList, join_path
 
+import spack.build_environment
 import spack.builder
 import spack.config
+import spack.context
 import spack.deptypes as dt
 import spack.detection
 import spack.multimethod
@@ -238,7 +240,11 @@ class PythonExtension(spack.package_base.PackageBase):
                 purpose=f"checking import of {module}",
                 work_dir="spack-test",
             ):
-                python("-c", f"import {module}")
+                setup_context = spack.build_environment.SetupContext(
+                    self.spec, context=spack.context.Context.RUN
+                )
+                mods = setup_context.get_env_modifications()
+                python("-c", f"import {module}", env=mods)
 
     def update_external_dependencies(self, extendee_spec=None):
         """
