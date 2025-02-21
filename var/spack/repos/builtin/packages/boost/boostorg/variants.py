@@ -74,6 +74,7 @@ def _boost_variant(name, default=None, buildable=None, conflicts=[], requires=[]
         library_names[name] = buildable
 
 
+# fmt: off
 def load():
     # ----------------------------------------------------------------------
     #  Boost-level configurations
@@ -111,13 +112,11 @@ def load():
         multi=False,
         description="C++ standard",
     )
-    # fmt: off
     _boost_variant(
         "debug",
         default=False,
         description="Build in debug mode",
     )
-    # fmt: on
     _boost_variant(
         "icu",
         default=False,
@@ -127,7 +126,6 @@ def load():
         ],
         description="Enable Unicode support via ICU",
     )
-    # fmt: off
     _boost_variant(
         "pic",
         description="Generate binaries with position-independent code (PIC)",
@@ -174,7 +172,6 @@ def load():
         when="@1.69.0:",
         description="Default symbol visibility in compiled libraries",
     )
-    # fmt: off
     _boost_variant(
         "numpy",
         when="@1.63.0:",
@@ -184,7 +181,6 @@ def load():
         ],
         description="Enable numpy support in Boost.Python",
     )
-    # fmt: on
 
     # ----------------------------------------------------------------------
     #  Library-level configurations
@@ -195,7 +191,6 @@ def load():
     #  dependencies and/or because there is a great deal of customization
     #  possible (and it would be difficult to choose sensible defaults).
     # ----------------------------------------------------------------------
-    # fmt: off
     _boost_variant(
         "integer",
         when="@1.9.0:",
@@ -204,7 +199,6 @@ def load():
         ],
         description="Type traits and math functions for integral values",
     )
-    # fmt: on
     _boost_variant(
         "operators",
         when="@1.9.0:",
@@ -232,7 +226,6 @@ def load():
         ],
         description="A complete system for random number generation.",
     )
-    # fmt: off
     _boost_variant(
         "regex",
         when="@1.18.0:",
@@ -242,7 +235,6 @@ def load():
         ],
         description="Perl and POSIX regular expressions",
     )
-    # fmt: on
     _boost_variant(
         "graph",
         when="@1.18.0:",
@@ -259,7 +251,6 @@ def load():
             "Generic components for mathematical graphs (collections of nodes and edges)."
         ),
     )
-    # fmt: off
     _boost_variant(
         "property_map",
         when="@1.19.0:",
@@ -279,7 +270,6 @@ def load():
         ],
         description="C++ wrapper for interacting with Python.",
     )
-    # fmt: off
     _boost_variant(
         "conversion",
         when="@1.20.0:",
@@ -357,7 +347,6 @@ def load():
             "Extensive collection of integer, real, and complex mathematical operations"
         ),
     )
-    # fmt: off
     _boost_variant(
         "octonions",
         when="@1.23.0:",
@@ -433,7 +422,6 @@ def load():
         buildable="@1.29.0:",
         description="Calculate, format, and convert dates and times",
     )
-    # fmt: off
     _boost_variant(
         "format",
         when="@1.29.0:",
@@ -453,7 +441,6 @@ def load():
         ],
         description="Managed signals & slots callback implementation",
     )
-    # fmt: on
     _boost_variant(
         "filesystem",
         when="@1.30.0:",
@@ -504,7 +491,6 @@ def load():
         buildable="@1.33.0:",
         description=("Streams, stream buffers, and i/o filters"),
     )
-    # fmt: off
     _boost_variant(
         "parameter",
         when="@1.33.0:",
@@ -514,7 +500,6 @@ def load():
         ],
         description="Write functions that accept arguments by name.",
     )
-    # fmt: on
     _boost_variant(
         "wave",
         when="@1.33.0:",
@@ -525,7 +510,6 @@ def load():
         ],
         description="Highly configurable implementation of the mandatory C99/C++ preprocessor.",
     )
-    # fmt: off
     _boost_variant(
         "asio",
         when="@1.35.0:",
@@ -538,7 +522,6 @@ def load():
         ],
         description="Portable networking and other low-level I/O.",
     )
-    # fmt: on
     _boost_variant(
         "gil",
         when="@1.35.0:",
@@ -559,7 +542,6 @@ def load():
         ],
         description="Typeof operator emulation",
     )
-    # fmt: off
     _boost_variant(
         "asio",
         when="@1.35.0:",
@@ -572,7 +554,6 @@ def load():
         ],
         description="Portable networking and other low-level I/O.",
     )
-    # fmt: on
     _boost_variant(
         "gil",
         when="@1.35.0:",
@@ -602,7 +583,6 @@ def load():
             "C++ wrapper to the Message Passing Interface for distributed-memory parallelism."
         ),
     )
-    # fmt: off
     _boost_variant(
         "system",
         when="@1.35.0:",
@@ -617,7 +597,6 @@ def load():
             "Transport arbitrary data in exceptions, and exceptions between threads"
         ),
     )
-    # fmt: on
     _boost_variant(
         "unordered",
         when="@1.36.0:",
@@ -632,7 +611,6 @@ def load():
         when="@1.39.0:",
         description="Thread-safe managed signals & slots callback implementation",
     )
-    # fmt: on
     _boost_variant(
         "graph_parallel",
         default=False,
@@ -644,13 +622,11 @@ def load():
         ],
         description="Scalable parallel version of Boost.Graph using MPI multiprocessing",
     )
-    # fmt: off
     _boost_variant(
         "property_tree",
         when="@1.41.0:",
         description="Structured storage of configuration data",
     )
-    # fmt: on
     _boost_variant(
         "uuid",
         when="@1.42.0:",
@@ -670,7 +646,6 @@ def load():
         when="@1.43.0:",
         description="Allow arbitrary arguments in function objects",
     )
-    # fmt: off
     _boost_variant(
         "meta_state_machine",
         when="@1.44.0:",
@@ -686,7 +661,6 @@ def load():
         when="@1.46.0:",
         description="Interval sets and maps",
     )
-    # fmt: on
     _boost_variant(
         "uuid",
         when="@1.42.0:",
@@ -716,13 +690,11 @@ def load():
         ],
         description="Geometric algorithms, primitives, and spatial indices.",
     )
-    # fmt: off
     _boost_variant(
         "phoenix",
         when="@1.47.0:",
         description="Functional programming for C++",
     )
-    # fmt: off
     _boost_variant(
         "ratio",
         when="@1.47.0:",
@@ -732,7 +704,6 @@ def load():
         ],
         description="Compile-time rational arithmetic",
     )
-    # fmt: on
     _boost_variant(
         "container",
         # Can be both header-only and compiled. '+container' indicates the
@@ -742,7 +713,6 @@ def load():
         buildable="@1.56.0:",  # Extended Allocators need to be compiled
         description="Standard library containers and extensions.",
     )
-    # fmt: off
     _boost_variant(
         "locale",
         default=False,
@@ -790,7 +760,6 @@ def load():
         when="@1.50.0:",
         description="Declare and use functions in a local scope",
     )
-    # fmt: on
     _boost_variant(
         "context",
         when="@1.51.0:",
@@ -801,7 +770,6 @@ def load():
         ],
         description="Cooperative multitasking on a single thread",
     )
-    # fmt: off
     _boost_variant(
         "atomic",
         when="@1.53.0:",
@@ -829,7 +797,6 @@ def load():
         ],
         description="Lockfree queue, stack, and SP/SC queue",
     )
-    # fmt: on
     _boost_variant(
         "multiprecision",
         when="@1.53.0:",
@@ -842,7 +809,6 @@ def load():
             "Extended precision arithmetic for floating point, integer, and rational types"
         ),
     )
-    # fmt: off
     _boost_variant(
         "odeint",
         when="@1.53.0:",
@@ -890,7 +856,6 @@ def load():
         when="@1.55.0:",
         description="Macros to identify compilers and their versions",
     )
-    # fmt: off
     _boost_variant(
         "align",
         when="@1.56.0:",
@@ -915,7 +880,6 @@ def load():
         ],
         description="Enhanced exception handling, including source locations",
     )
-    # fmt: on
     _boost_variant(
         "type_index",
         when="@1.56.0:",
@@ -925,7 +889,6 @@ def load():
         ],
         description="Runtime/compile-time copyable type info",
     )
-    # fmt: off
     _boost_variant(
         "endian",
         when="@1.58.0:",
@@ -996,7 +959,6 @@ def load():
         ],
         description="Load plugins from DLLs or DSOs",
     )
-    # fmt: on
     _boost_variant(
         "hana",
         when="@1.61.0:",
@@ -1007,7 +969,6 @@ def load():
         ],
         description="Modern metaprogramming suited for computations on both types and values",
     )
-    # fmt: off
     _boost_variant(
         "metaparse",
         when="@1.61.0:1.65.1",
@@ -1029,7 +990,6 @@ def load():
         ],
         description="Lightweight userland threads",
     )
-    # fmt: off
     _boost_variant(
         "qvm",
         when="@1.62.0:",
@@ -1056,7 +1016,6 @@ def load():
         multi=False,
         description="The backend for Boost.Context",
     )
-    # fmt: off
     _boost_variant(
         "poly_collection",
         when="@1.65.0:",
@@ -1066,14 +1025,12 @@ def load():
         ],
         description="Fast containers of polymorphic objects",
     )
-    # fmt: on
     _boost_variant(
         "stacktrace",
         when="@1.65.0:",
         buildable="@1.65.0:",
         description="Gather, store, copy, and print backtraces",
     )
-    # fmt: off
     _boost_variant(
         "beast",
         when="@1.66.0:",
@@ -1086,7 +1043,6 @@ def load():
         ],
         description="Portable HTTP, WebSocket, and network operations using Boost.Asio",
     )
-    # fmt: on
     _boost_variant(
         "callable_traits",
         when="@1.66.0:",
@@ -1096,7 +1052,6 @@ def load():
         ],
         description="Compile-time inspection and manipulation of callable types",
     )
-    # fmt: off
     _boost_variant(
         "mp11",
         when="@1.66.0:",
@@ -1106,7 +1061,6 @@ def load():
         ],
         description="C++11 metaprogramming",
     )
-    # fmt: on
     _boost_variant(
         "contract",
         when="@1.67.0:",
@@ -1119,7 +1073,6 @@ def load():
             "Contract programming with subcontracting, class invariants, and pre/postconditions."
         ),
     )
-    # fmt: off
     _boost_variant(
         "hof",
         when="@1.67.0:",
@@ -1129,7 +1082,6 @@ def load():
         ],
         description="Higher-order functions",
     )
-    # fmt: on
     _boost_variant(
         "yap",
         when="@1.68.0:",
@@ -1140,7 +1092,6 @@ def load():
         ],
         description="An expression template library for C++14 and later.",
     )
-    # fmt: off
     _boost_variant(
         "parameter_python",
         default=False,
@@ -1201,7 +1152,6 @@ def load():
             "Deterministic failure handling, partially simulating lightweight exceptions."
         ),
     )
-    # fmt: off
     _boost_variant(
         "string_ref",
         when="@1.71.0:",
@@ -1219,7 +1169,6 @@ def load():
         ],
         description="A never-valueless, strong-guarantee tagged union",
     )
-    # fmt: on
     _boost_variant(
         "nowide",
         default=False,
@@ -1231,7 +1180,6 @@ def load():
         ],
         description="Standard library functions with UTF-8 API on Windows",
     )
-    # fmt: off
     _boost_variant(
         "static_string",
         when="@1.73.0:",
@@ -1241,7 +1189,6 @@ def load():
         ],
         description="A fixed-capacity, dynamically-sized string",
     )
-    # fmt: on
     _boost_variant(
         "stl_interfaces",
         when="@1.74.0:",
@@ -1274,7 +1221,6 @@ def load():
         ],
         description="Lightweight error-handling",
     )
-    # fmt: off
     _boost_variant(
         "pfr",
         when="@1.75.0:",
@@ -1285,7 +1231,6 @@ def load():
         ],
         description="Basic reflection for user-defined types",
     )
-    # fmt: on
     _boost_variant(
         "describe",
         when="@1.77.0:",
@@ -1313,7 +1258,6 @@ def load():
         conflicts=[
             {"when": "cxxstd=98", "msg": "Boost.PropertyMapParallel requires cxxstd >= 03"}
         ],
-        # fmt: off
         requires=[
             {
                 "spec": "+graph_parallel",
@@ -1324,7 +1268,6 @@ def load():
                 "msg": "Boost.PropertyMap (Parallel) requires Boost.PropertyMap"
             }
         ],
-        # fmt: on
         description="Parallel extensions to Property Map for use with Parallel Graph",
     )
     _boost_variant(
@@ -1335,11 +1278,9 @@ def load():
             {"when": "cxxstd=98", "msg": "Boost.URL requires cxxstd >= 11"},
             {"when": "cxxstd=03", "msg": "Boost.URL requires cxxstd >= 11"},
         ],
-        # fmt: off
         requires=[
             {"spec": "+variant2", "msg": "Boost.url requires Boost.variant2"},
         ],
-        # fmt: on
         description="Portable model for parsing URLs and URIs",
     )
     _boost_variant(
@@ -1379,14 +1320,11 @@ def load():
             {"when": "cxxstd=11", "msg": "Boost.Redis requires cxxstd >= 17"},
             {"when": "cxxstd=14", "msg": "Boost.Redis requires cxxstd >= 17"},
         ],
-        # fmt: off
         requires=[
             {"spec": "+asio", "msg": "Boost.Redis requires Boost.Asio"},
         ],
-        # fmt: on
         description="Redis async client library built on top of Boost.Asio.",
     )
-    # fmt: off
     _boost_variant(
         "cobalt",
         default=False,
@@ -1405,20 +1343,17 @@ def load():
             "Simple single-threaded asynchronicity akin to node.js and asyncio in python"
         ),
     )
-    # fmt: on
     _boost_variant(
         "charconv",
         when="@1.85.0:",
         buildable="@1.85.0:",
         description="An implementation of C++20's <charconv> in C++11.",
     )
-    # fmt: off
     _boost_variant(
         "scope",
         when="@1.85.0:",
         description="Scope guards and a unique_resource wrapper",
     )
-    # fmt: on
     _boost_variant(
         "parser",
         when="@1.87.0:",
