@@ -202,7 +202,3 @@ class MirrorError(SpackError):
 
     def __init__(self, msg, long_msg=None):
         super().__init__(msg, long_msg)
-
-
-class RemoteFileError(SpackError):
-    """Problem locating remote file(s)."""

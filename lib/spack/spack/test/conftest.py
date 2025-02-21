@@ -30,7 +30,15 @@ import archspec.cpu.schema
 import llnl.util.lang
 import llnl.util.lock
 import llnl.util.tty as tty
-from llnl.util.filesystem import copy_tree, mkdirp, remove_linked_tree, touchp, working_dir
+from llnl.util.filesystem import (
+    copy,
+    copy_tree,
+    join_path,
+    mkdirp,
+    remove_linked_tree,
+    touchp,
+    working_dir,
+)
 
 import spack.binary_distribution
 import spack.bootstrap.core
@@ -64,6 +72,7 @@ import spack.version
 from spack.fetch_strategy import URLFetchStrategy
 from spack.installer import PackageInstaller
 from spack.main import SpackCommand
+from spack.util.remote_file_cache import raw_github_gitlab_url
 from spack.util.pattern import Bunch
 
 from ..enums import ConfigScopePriority
@@ -1896,35 +1905,21 @@ def mock_curl_configs(mock_config_data, monkeypatch):
 
 
 @pytest.fixture(scope="function")
-def mock_spider_configs(mock_config_data, monkeypatch):
-    """
-    Mock retrieval of configuration file URLs from the web by grabbing
-    them from the test data configuration directory.
-    """
-    config_data_dir, config_files = mock_config_data
+def mock_fetch_url_text(tmpdir, mock_config_data, monkeypatch):
+    """Mock spack.util.web.fetch_url_text."""
 
-    def _spider(*args, **kwargs):
-        root_urls = args[0]
-        if not root_urls:
-            return [], set()
+    stage_dir, config_files = mock_config_data
 
-        root_urls = [root_urls] if isinstance(root_urls, str) else root_urls
+    def _fetch_text_file(url, dest_dir):
+        raw_url = raw_github_gitlab_url(url)
+        mkdirp(dest_dir)
+        basename = os.path.basename(raw_url)
+        src = join_path(stage_dir, basename)
+        dest = join_path(dest_dir, basename)
+        copy(src, dest)
+        return dest
 
-        # Any URL with an extension will be treated like a file; otherwise,
-        # it is considered a directory/folder and we'll grab all available
-        # files.
-        urls = []
-        for url in root_urls:
-            if os.path.splitext(url)[1]:
-                urls.append(url)
-            else:
-                urls.extend([os.path.join(url, f) for f in config_files])
-
-        return [], set(urls)
-
-    monkeypatch.setattr(spack.util.web, "spider", _spider)
-
-    yield
+    monkeypatch.setattr(spack.util.web, "fetch_url_text", _fetch_text_file)
 
 
 @pytest.fixture(scope="function")

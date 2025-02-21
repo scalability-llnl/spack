@@ -62,7 +62,6 @@ import spack.schema.packages
 import spack.schema.repos
 import spack.schema.upstreams
 import spack.schema.view
-import spack.util.path
 import spack.util.remote_file_cache as rfc_util
 import spack.util.spack_yaml as syaml
 from spack.util.cpus import cpus_available

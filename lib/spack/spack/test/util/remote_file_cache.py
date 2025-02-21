@@ -6,73 +6,65 @@ import os
 import pytest
 
 import llnl.util.tty as tty
-from llnl.util.filesystem import join_path, mkdirp, touchp
+from llnl.util.filesystem import copy, join_path, mkdirp
 
 import spack.config
-import spack.error
 import spack.util.remote_file_cache as rfc_util
+import spack.util.web
 
 github_url = "https://github.com/fake/fake/{0}/develop"
 gitlab_url = "https://gitlab.fake.io/user/repo/-/blob/config/defaults"
 
 
-@pytest.fixture(scope="function")
-def mock_collect_urls(mock_config_data, monkeypatch):
-    """Mock the collection of URLs to avoid mocking spider."""
-
-    _, config_files = mock_config_data
-
-    def _collect(base_url, extension):
-        if not base_url:
-            return []
-
-        ext = os.path.splitext(base_url)[1]
-        if ext:
-            return [base_url] if ext == ".yaml" else []
-
-        return [join_path(base_url, f) for f in config_files]
-
-    monkeypatch.setattr(rfc_util, "collect_urls", _collect)
-
-    yield
+@pytest.mark.parametrize(
+    "path,err",
+    [
+        ("ssh://git@github.com:spack/", "Unsupported URL scheme"),
+        ("bad:///this/is/a/file/url/include.yaml", "Invalid URL scheme"),
+    ],
+)
+def test_rfc_local_path_bad_scheme(path, err):
+    with pytest.raises(ValueError, match=err):
+        _ = rfc_util.local_path(path, "")
 
 
 @pytest.mark.parametrize(
-    "url,isfile",
-    [
-        (github_url.format("tree"), False),
-        (f"{github_url.format('blob')}/README.md", True),
-        (f"{github_url.format('blob')}/etc/fake/defaults/packages.yaml", True),
-        (gitlab_url, False),
-        (None, False),
-    ],
+    "path", ["/a/b/c/d/e/config.py", "file:///this/is/a/file/url/include.yaml"]
 )
-def test_collect_urls(mutable_empty_config, mock_spider_configs, url, isfile):
-    with spack.config.override("config:url_fetch_method", "curl"):
-        urls = rfc_util.collect_urls(url, ".yaml")
-        if url:
-            if isfile:
-                expected = 1 if url.endswith(".yaml") else 0
-                assert len(urls) == expected
-            else:
-                # Expect multiple configuration files for a "directory"
-                assert len(urls) > 1
-        else:
-            assert not urls
+def test_rfc_local_path_file(path):
+    actual = path.split("://")[1] if ":" in path else path
+    assert rfc_util.local_path(path, "") == actual
+
+
+def test_rfc_remote_local_path_no_dest():
+    path = f"{gitlab_url}/packages.yaml"
+    with pytest.raises(ValueError, match="Requires the destination argument"):
+        _ = rfc_util.local_path(path, "")
 
 
 @pytest.mark.parametrize(
-    "url,isfile,fail",
+    "url,sha256,err,msg",
     [
-        (github_url.format("tree"), False, False),
-        (gitlab_url, False, False),
-        (f"{github_url.format('blob')}/README.md", True, True),
-        (f"{gitlab_url}/compilers.yaml", True, False),
-        (None, False, True),
+        (
+            f"{join_path(github_url.format('tree'), 'config.yaml')}",
+            "",
+            ValueError,
+            "Requires sha256",
+        ),
+        (
+            f"{gitlab_url}/compilers.yaml",
+            "e91148ed5a0da7844e9f3f9cfce0fa60cce509461886bc3b006ee9eb711f69df",
+            None,
+            "",
+        ),
+        (f"{gitlab_url}/packages.yaml", "abcdef", ValueError, "does not match"),
+        (f"{github_url.format('blob')}/README.md", "", OSError, "No such"),
+        (github_url.format("tree"), "", OSError, "No such"),
+        ("", "", ValueError, "argument is required"),
     ],
 )
-def test_fetch_remote_configs(
-    tmpdir, mutable_empty_config, mock_collect_urls, mock_curl_configs, url, isfile, fail
+def test_rfc_remote_local_path(
+    tmpdir, mutable_empty_config, mock_fetch_url_text, url, sha256, err, msg
 ):
     def _has_content(filename):
         # The first element of all configuration files for this test happen to
@@ -86,51 +78,18 @@ def test_fetch_remote_configs(
         tty.debug(f"Expected {element} in '{filename}'")
         return False
 
-    dest_dir = join_path(tmpdir.strpath, "cache")
+    def _dest_dir():
+        return join_path(tmpdir.strpath, "cache")
 
-    if fail:
-        msg = "Cannot retrieve"
-        error = ValueError if url is None else spack.error.RemoteFileError
+    if err is not None:
         with spack.config.override("config:url_fetch_method", "curl"):
-            with pytest.raises(error, match=msg):
-                rfc_util.fetch_remote_files(url, ".yaml", dest_dir)
+            with pytest.raises(err, match=msg):
+                rfc_util.local_path(url, sha256, _dest_dir)
     else:
         with spack.config.override("config:url_fetch_method", "curl"):
-            path = rfc_util.fetch_remote_files(url, ".yaml", dest_dir)
+            path = rfc_util.local_path(url, sha256, _dest_dir)
             assert os.path.exists(path)
-            if isfile and os.path.isfile(path):
-                # Ensure correct file is "fetched"
-                assert os.path.basename(path) == os.path.basename(url)
-                # Ensure contents of the file has expected config element
-                assert _has_content(path)
-            else:
-                for filename in os.listdir(path):
-                    assert _has_content(join_path(path, filename))
-
-
-def test_fetch_remote_configs_skip(
-    tmpdir, mutable_empty_config, mock_collect_urls, mock_curl_configs
-):
-    """Ensure skip fetching remote config file if it already exists."""
-
-    dest_dir = join_path(tmpdir.strpath, "cache")
-    filename = "compilers.yaml"
-    url = f"{gitlab_url}/{filename}"
-
-    # Create the stage directory with an empty configuration file
-    dest_path = rfc_util.local_cache_path(dest_dir, url)
-
-    mkdirp(os.path.dirname(dest_path))
-    join_path(dest_path, filename)
-    touchp(dest_path)
-
-    with spack.config.override("config:url_fetch_method", "curl"):
-        cached_path = rfc_util.fetch_remote_files(url, filename, dest_dir, True)
-        # The resulting path must be a file under the destination directory
-        assert cached_path.startswith(dest_dir)
-        assert os.path.isfile(cached_path)
-
-        # And the file must be empty (i.e., not replaced)
-        with open(cached_path, "r", encoding="utf-8") as fd:
-            lines = fd.readlines()
-            assert not lines
+            # Ensure correct file is "fetched"
+            assert os.path.basename(path) == os.path.basename(url)
+            # Ensure contents of the file contains expected config element
+            assert _has_content(path)

@@ -1191,7 +1191,7 @@ spack:
 
 def test_with_config_bad_include_create(environment_from_manifest):
     """Confirm missing required include raises expected exception."""
-    err = "Required path does not exist"
+    err = "does not exist"
     with pytest.raises(ValueError, match=err):
         environment_from_manifest(
             """
@@ -4263,14 +4263,22 @@ def test_unify_when_possible_works_around_conflicts():
 
 
 def test_env_include_packages_url(
-    tmpdir, mutable_empty_config, mock_spider_configs, mock_curl_configs
+    tmpdir, mutable_empty_config, mock_fetch_url_text, mock_curl_configs
 ):
     """Test inclusion of a (GitHub) URL."""
     develop_url = "https://github.com/fake/fake/blob/develop/"
     default_packages = develop_url + "etc/fake/defaults/packages.yaml"
+    sha256 = "a422e35b3a18869d0611a4137b37314131749ecdc070a7cd7183f488da81201a"
     spack_yaml = tmpdir.join("spack.yaml")
     with spack_yaml.open("w") as f:
-        f.write("spack:\n  include:\n    - {0}\n".format(default_packages))
+        f.write(
+            f"""\
+spack:
+  include:
+  - path: {default_packages}
+    sha256: {sha256}
+"""
+        )
     assert os.path.isfile(spack_yaml.strpath)
 
     with spack.config.override("config:url_fetch_method", "curl"):

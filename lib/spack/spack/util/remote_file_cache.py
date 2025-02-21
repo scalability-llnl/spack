@@ -13,7 +13,6 @@ from typing import Callable, Optional
 import llnl.util.tty as tty
 from llnl.util.filesystem import copy, join_path, mkdirp
 
-import spack.error
 import spack.util.crypto
 from spack.util.path import canonicalize_path
 from spack.util.url import validate_scheme
@@ -48,13 +47,12 @@ def fetch_remote_text_file(url: str, dest_dir: str) -> str:
         Path to the fetched file
 
     Raises:
-        spack.error.RemoteFileError: if there is a problem fetching remote file
-        ValueError: if the URL and or sha256 are not provided
+        ValueError: if there are missing required arguments
     """
     from spack.util.web import fetch_url_text  # circular import
 
     if not url:
-        raise ValueError(f"Cannot retrieve the remote file without the URL")
+        raise ValueError("Cannot retrieve the remote file without the URL")
 
     raw_url = raw_github_gitlab_url(url)
     tty.debug(f"Fetching file from {raw_url} into {dest_dir}")
@@ -62,7 +60,7 @@ def fetch_remote_text_file(url: str, dest_dir: str) -> str:
     return fetch_url_text(raw_url, dest_dir=dest_dir)
 
 
-def local_path(raw_path: str, sha256: str, make_dest: Callable[[], str]) -> Optional[str]:
+def local_path(raw_path: str, sha256: str, make_dest: Optional[Callable[[], str]] = None) -> str:
     """Determine the actual path and, if remote, stage its contents locally.
 
     Args:
@@ -73,28 +71,27 @@ def local_path(raw_path: str, sha256: str, make_dest: Callable[[], str]) -> Opti
     Returns: resolved, normalized local path or None
 
     Raises:
-        ValueError: missing arguments or unsupported remote file scheme
+        ValueError: missing or mismatched arguments, unsupported URL scheme
     """
+    if not raw_path:
+        raise ValueError("path argument is required to cache remote files")
+
     # Allow paths (and URLs) to contain spack config/environment variables,
     # etc.
     path = canonicalize_path(raw_path)
     url = urllib.parse.urlparse(path)
 
-    # Path isn't remote so return absolute path with substitutions.
-    if url.scheme == "":
-        return os.path.normpath(path)
+    # Path isn't remote so return absolute, normalized path with substitutions.
+    if url.scheme in ["", "file"]:
+        return path
 
     # If scheme is not valid, path is not a url
     # of a type Spack is generally aware
     if validate_scheme(url.scheme):
-        # Transform file:// URLs to direct includes.
-        if url.scheme == "file":
-            return os.path.normpath(urllib.request.url2pathname(url.path))
-
         # Fetch files from supported URL schemes.
         if url.scheme in ("http", "https", "ftp"):
             if make_dest is None:
-                raise ValueError("make_dest argument is required to cache remote files")
+                raise ValueError("Requires the destination argument to cache remote files")
 
             # Stage the remote configuration file
             tmpdir = tempfile.mkdtemp()
@@ -104,15 +101,13 @@ def local_path(raw_path: str, sha256: str, make_dest: Callable[[], str]) -> Opti
                 # Ensure the sha256 is expected.
                 checksum = spack.util.crypto.checksum(hashlib.sha256, staged_path)
                 if sha256 and checksum != sha256:
-                    raise spack.error.RemoteFileError(
-                        f"Sha256 ('{checksum}') does not match expected ('{sha256}')"
+                    raise ValueError(
+                        f"Actual sha256 ('{checksum}') does not match expected ('{sha256}')"
                     )
 
                 # Help the user by reporting the required checksum.
                 if not sha256:
-                    raise spack.error.RemoteFileError(
-                        f"Requires sha256 ('{checksum}') to be specified."
-                    )
+                    raise ValueError(f"Requires sha256 ('{checksum}') to cache remote files.")
 
                 # Copy the file to the destination directory
                 dest_dir = join_path(make_dest(), checksum)
@@ -124,14 +119,14 @@ def local_path(raw_path: str, sha256: str, make_dest: Callable[[], str]) -> Opti
                 tty.debug(f"Cached {raw_path} in {cache_path}")
 
                 # Stash the associated URL to aid with debugging
-                with open(join_path(dest_dir, "source_url.txt", encoding="utf-8"), "w") as f:
+                with open(join_path(dest_dir, "source_url.txt"), "w", encoding="utf-8") as f:
                     f.write(f"{raw_path}\n")
 
                 return cache_path
 
-            except (spack.error.RemoteFileError, ValueError) as err:
+            except ValueError as err:
                 tty.warn(f"Unable to cache {raw_path}: {str(err)}")
-                return None
+                raise
 
             finally:
                 shutil.rmtree(tmpdir)
