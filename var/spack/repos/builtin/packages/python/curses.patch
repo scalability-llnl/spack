@@ -1,0 +1,13 @@
+diff --git a/setup.py b/setup.py
+index 85a2b26357..8c83b9f175 100644
+--- a/setup.py
++++ b/setup.py
+@@ -1088,7 +1088,7 @@ def detect_readline_curses(self):
+             if ret == 0:
+                 with open(tmpfile) as fp:
+                     for ln in fp:
+-                        if 'curses' in ln:
++                        if 'libcurses' in ln or 'libncurses' in ln:
+                             readline_termcap_library = re.sub(
+                                 r'.*lib(n?cursesw?)\.so.*', r'\1', ln
+                             ).rstrip()
