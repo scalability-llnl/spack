@@ -62,7 +62,7 @@ class Mesa(MesonPackage):
     depends_on("cmake", type="build")
     depends_on("flex", type="build")
     depends_on("gettext", type="build")
-    depends_on("python@3:", type="build")
+    depends_on("python@3.6:", type="build")
     depends_on("py-packaging", type="build", when="^python@3.12:")
     depends_on("py-mako@0.8.0:", type="build")
     depends_on("unwind")
