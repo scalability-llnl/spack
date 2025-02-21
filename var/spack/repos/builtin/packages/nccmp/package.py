@@ -38,10 +38,11 @@ class Nccmp(CMakePackage):
             args.append(self.define("CMAKE_C_FLAGS", " ".join(cflags)))
 
         nc = self.spec["netcdf-c"]
-        if "~shared" in nc:
+        if nc.satisfies("~shared"):
             nc_flags = Executable("nc-config")("--static", "--libs", output=str).strip()
             args.append(self.define("CMAKE_EXE_LINKER_FLAGS", nc_flags))
-            if "+mpi" in nc:
-                args.append(self.define("CMAKE_C_COMPILER", self.spec["mpi"].mpicc))
+
+        if nc.satisfies("+mpi"):
+            args.append(self.define("CMAKE_C_COMPILER", self.spec["mpi"].mpicc))
 
         return args

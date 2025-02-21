@@ -28,7 +28,7 @@ class LlvmDetection(PackageBase):
         reject = re.compile(
             r"-(vscode|cpp|cl|ocl|gpu|tidy|rename|scan-deps|format|refactor|offload|"
             r"check|query|doc|move|extdef|apply|reorder|change-namespace|"
-            r"include-fixer|import-test|dap|server)"
+            r"include-fixer|import-test|dap|server|PerfectShuffle)"
         )
         return [x for x in exes_in_prefix if not reject.search(x)]
 
