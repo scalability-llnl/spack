@@ -16,6 +16,7 @@ class Arrow(CMakePackage, CudaPackage):
 
     license("Apache-2.0")
 
+    version("19.0.1", sha256="4c898504958841cc86b6f8710ecb2919f96b5e10fa8989ac10ac4fca8362d86a")
     version("18.0.0", sha256="9c473f2c9914c59ab571761c9497cf0e5cfd3ea335f7782ccc6121f5cb99ae9b")
     version("16.1.0", sha256="9762d9ecc13d09de2a03f9c625a74db0d645cb012de1e9a10dfed0b4ddc09524")
     version("15.0.2", sha256="4735b349845bff1fe95ed11abbfed204eb092cabc37523aa13a80cb830fe5b5e")
@@ -41,8 +42,8 @@ class Arrow(CMakePackage, CudaPackage):
     version("0.9.0", sha256="65f89a3910b6df02ac71e4d4283db9b02c5b3f1e627346c7b6a5982ae994af91")
     version("0.8.0", sha256="c61a60c298c30546fc0b418a35be66ef330fb81b06c49928acca7f1a34671d54")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     depends_on("boost@1.60: +filesystem +system")
     depends_on("brotli", when="+brotli")

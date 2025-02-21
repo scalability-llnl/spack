@@ -19,6 +19,7 @@ class PyPyarrow(PythonPackage, CudaPackage):
 
     license("Apache-2.0")
 
+    version("19.0.1", sha256="3bf266b485df66a400f282ac0b6d1b500b9d2ae73314a153dbe97d6d5cc8a99e")
     version("16.1.0", sha256="15fbb22ea96d11f0b5768504a3f961edab25eaf4197c341720c4a387f6c60315")
     version("15.0.2", sha256="9c9bc803cb3b7bfacc1e96ffbfd923601065d9d3f911179d81e72d99fd74a3d9")
     version("14.0.2", sha256="36cef6ba12b499d864d1def3e990f97949e0b79400d08b7cf74504ffbd3eb025")
@@ -36,39 +37,54 @@ class PyPyarrow(PythonPackage, CudaPackage):
     version("0.11.0", sha256="07a6fd71c5d7440f2c42383dd2c5daa12d7f0a012f1e88288ed08a247032aead")
     version("0.9.0", sha256="7db8ce2f0eff5a00d6da918ce9f9cfec265e13f8a119b4adb1595e5b19fd6242")
 
-    depends_on("cxx", type="build")  # generated
+    # Starting with pyarrow 17+, backend support is built if arrow was built with it
+    with when("@:16"):
+        variant("parquet", default=False, description="Build with Parquet support")
+        variant("orc", default=False, description="Build with orc support")
+        variant("dataset", default=False, description="Build with Dataset support")
 
-    variant("parquet", default=False, description="Build with Parquet support")
-    variant("orc", default=False, description="Build with orc support")
-    variant("dataset", default=False, description="Build with Dataset support")
+        conflicts("~parquet", when="+dataset")
 
-    conflicts("~parquet", when="+dataset")
+    depends_on("cxx", type="build")
 
-    depends_on("cmake@3.0.0:", type="build")
-    depends_on("pkgconfig", type="build")
-    depends_on("python@3.8:", type=("build", "run"), when="@13:")
-    depends_on("python@3.7:", type=("build", "run"), when="@7:")
-    depends_on("python@3.6:", type=("build", "run"), when="@3:")
-    depends_on("python@3.5:", type=("build", "run"), when="@0.17:")
-    depends_on("py-setuptools", type="build")
-    depends_on("py-setuptools@40.1.0:", type="build", when="@10.0.1:")
-    depends_on("py-setuptools@38.6.0:", type="build", when="@7:")
-    depends_on("py-setuptools-scm@:7", type="build", when="@0.15:")
-    depends_on("py-cython", type="build")
-    depends_on("py-cython@0.29.31:", type="build", when="@14:")
-    depends_on("py-cython@0.29.31:2", type="build", when="@12:13")
-    depends_on("py-cython@0.29.22:2", type="build", when="@8:11")
-    depends_on("py-cython@0.29:2", type="build", when="@0.15:7")
-    depends_on("py-cython@:2", type="build", when="@:0.14")
-    # in newer pip versions --install-option does not exist
-    depends_on("py-pip@:23.0", type="build")
+    with default_args(type="build"):
+        # CMakeLists.txt
+        depends_on("cmake@3.16:", when="@13:")
+        depends_on("cmake@3.5:", when="@11:")
+        depends_on("cmake@3.2:", when="@0.17:")
+        depends_on("cmake@2.7:")
 
-    depends_on("py-numpy@1.16.6:", type=("build", "run"), when="@3:")
-    # Prior to python 3.9 numpy must be >=0.14,<1.25
-    depends_on("py-numpy@0.14:1.24", when="^python@:3.8", type=("build", "run"))
-    depends_on("py-numpy@1.25:", when="^python@3.9:", type=("build", "run"))
-    # https://github.com/apache/arrow/issues/39532
-    depends_on("py-numpy@:1", when="@:15", type=("build", "run"))
+        # cmake_modules and pyarrow/__init__.py
+        depends_on("pkgconfig")
+
+        # pyproject.toml, setup.py
+        depends_on("py-cython@0.29.31:", when="@14:")
+        depends_on("py-cython@0.29.31:2", when="@12:13")
+        depends_on("py-cython@0.29.22:2", when="@8:11")
+        depends_on("py-cython@0.29:2", when="@0.15:7")
+        depends_on("py-cython@:2", when="@:0.14")
+        depends_on("py-setuptools-scm@8:+toml", when="@17:")
+        depends_on("py-setuptools-scm", when="@16")
+        depends_on("py-setuptools-scm@:7", when="@0.15:15")
+        depends_on("py-setuptools@64:", when="@17:")
+        depends_on("py-setuptools@40.1:", when="@10.0.1:")
+        depends_on("py-setuptools@38.6:", when="@7:")
+        depends_on("py-setuptools")
+
+    arrow_versions = ("@19.0.1",)
+    for v in arrow_versions:
+        depends_on("arrow+python" + v, when=v)
+
+    # Historical dependencies
+    # In newer pip versions --install-option does not exist
+    depends_on("py-pip@:23.0", when="@:16", type="build")
+
+    with default_args(type=("build", "run")):
+        # pyproject.toml, setup.py
+        depends_on("py-numpy@1.16.6:", when="@3:17")
+        depends_on("py-numpy@1.14:", when="@0.11:")
+        depends_on("py-numpy@1.10:")
+        depends_on("py-numpy@:1", when="@:15")
 
     arrow_versions = (
         "@0.9.0",
@@ -102,6 +118,7 @@ class PyPyarrow(PythonPackage, CudaPackage):
         env.set("PYARROW_WITH_ORC", self.spec.satisfies("+orc"))
         env.set("PYARROW_WITH_DATASET", self.spec.satisfies("+dataset"))
 
+    @when("@:16")
     def install_options(self, spec, prefix):
         args = []
         if spec.satisfies("+parquet"):
