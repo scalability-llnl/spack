@@ -2,16 +2,20 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import hashlib
 import os.path
+import shutil
+import tempfile
 import urllib.parse
 import urllib.request
-from typing import Callable
+from typing import Callable, Optional
 
 import llnl.util.tty as tty
-from llnl.util.filesystem import join_path
+from llnl.util.filesystem import copy, join_path, mkdirp
 
 import spack.error
-from spack.util.path import substitute_path_variables
+import spack.util.crypto
+from spack.util.path import canonicalize_path
 from spack.util.url import validate_scheme
 
 
@@ -33,138 +37,106 @@ def raw_github_gitlab_url(url: str) -> str:
     return url
 
 
-def collect_urls(base_url: str, extension: str) -> list:
-    """Return a list of URLs with the provided extension.
+def fetch_remote_text_file(url: str, dest_dir: str) -> str:
+    """Retrieve the text file from the url into the destination directory.
 
     Arguments:
-        base_url: URL for a configuration (yaml) file or a directory
-            containing yaml file(s)
-        extension: desired file extension
+        url: URL for the remote text file
+        dest_dir: destination directory in which to stage the file locally
 
     Returns:
-        List of file(s) or empty list if none
-    """
-    import spack.util.web as web_util  # circular import
-
-    if not base_url:
-        return []
-
-    if extension and base_url.endswith(extension):
-        return [base_url]
-
-    # Collect relevant URLs within the base_url "directory".
-    _, links = web_util.spider(base_url, 0)
-    return [link for link in links if link.endswith(extension)]
-
-
-def local_cache_path(dest_dir: str, url: str) -> str:
-    """Derive the local cache path from the destination directory and url.
-
-    Args:
-        url: URL for the file or a directory containing the desired file(s)
-        dest_dir: destination directory in which to cache the file(s) locally
-
-    Returns: path to the local path equivalent of the url
-    """
-    return join_path(dest_dir, url.replace(":/", ""))
-
-
-def fetch_remote_files(url: str, extension: str, dest_dir: str, skip_existing: bool = True) -> str:
-    """Retrieve file(s) with the provided extension from the specified URL.
-
-    Arguments:
-        url: URL for the file or a directory containing the desired file(s)
-        extension: desired extension of retrieved file(s) (e.g., ".yaml")
-        dest_dir: destination directory in which to cache the files locally
-        skip_existing: Skip files that already exist in dest_dir if
-            ``True``; otherwise, replace those files
-
-    Returns:
-        Path to the corresponding file if URL is or contains a
-        single file and it is the only file in the destination directory or
-        the root (dest_dir) directory if multiple configuration files exist
-        or are retrieved.
+        Path to the fetched file
 
     Raises:
-        spack.error.RemoteFileError: if there is a problem fetching remote file(s)
-        ValueError: if the URL is not provided
+        spack.error.RemoteFileError: if there is a problem fetching remote file
+        ValueError: if the URL and or sha256 are not provided
     """
-    import spack.util.web as web_util  # circular import
-
-    def _fetch_file(url, dest):
-        raw = raw_github_gitlab_url(url)
-        tty.debug(f"Reading config from url {raw} into {dest}")
-        return web_util.fetch_url_text(raw, dest_dir=dest)
+    from spack.util.web import fetch_url_text  # circular import
 
     if not url:
-        raise ValueError(f"Cannot retrieve a remote {extension} file without the URL")
+        raise ValueError(f"Cannot retrieve the remote file without the URL")
 
-    # Return the local path to the cached file OR to the directory containing
-    # the cached files.
-    links = collect_urls(url, extension)
+    raw_url = raw_github_gitlab_url(url)
+    tty.debug(f"Fetching file from {raw_url} into {dest_dir}")
 
-    paths = []
-    for file_url in links:
-        local_path = local_cache_path(dest_dir, file_url)
-        if skip_existing and os.path.isfile(local_path):
-            tty.warn(
-                f"Will not (re-)fetch file from {file_url} since it already "
-                f"exists at {local_path}."
-            )
-            path = local_path
-        else:
-            path = _fetch_file(file_url, os.path.dirname(local_path))
-
-        if path:
-            paths.append(path)
-
-    if paths:
-        result = os.path.dirname(paths[0]) if len(paths) > 1 else paths[0]
-        return result
-        # return dest_dir if len(paths) > 1 else paths[0]
-
-    raise spack.error.RemoteFileError(f"Cannot retrieve remote ({extension}) file(s) from {url}")
+    return fetch_url_text(raw_url, dest_dir=dest_dir)
 
 
-def local_path(raw_path: str, make_stage: Callable[[], str]) -> str:
+def local_path(raw_path: str, sha256: str, make_dest: Callable[[], str]) -> Optional[str]:
     """Determine the actual path and, if remote, stage its contents locally.
 
     Args:
         raw_path: raw path with possible variables needing substitution
-        make_stage: function to create a stage for remote files, if needed (e.g., `mkdtemp`)
+        sha256: the expected sha256 for the file
+        make_dest: function to create a stage for remote files, if needed (e.g., `mkdtemp`)
 
-    Returns: resolved local path
+    Returns: resolved, normalized local path or None
 
     Raises:
-        ValueError: unsupported remote file scheme
+        ValueError: missing arguments or unsupported remote file scheme
     """
     # Allow paths (and URLs) to contain spack config/environment variables,
     # etc.
-    path = substitute_path_variables(raw_path)
+    path = canonicalize_path(raw_path)
     url = urllib.parse.urlparse(path)
+
+    # Path isn't remote so return absolute path with substitutions.
+    if url.scheme == "":
+        return os.path.normpath(path)
 
     # If scheme is not valid, path is not a url
     # of a type Spack is generally aware
     if validate_scheme(url.scheme):
         # Transform file:// URLs to direct includes.
         if url.scheme == "file":
-            path = urllib.request.url2pathname(url.path)
+            return os.path.normpath(urllib.request.url2pathname(url.path))
 
-        # Any other URL should be fetched.
-        elif url.scheme in ("http", "https", "ftp"):
-            if make_stage is None:
-                raise ValueError("Local stage directory is required to cache remote files")
+        # Fetch files from supported URL schemes.
+        if url.scheme in ("http", "https", "ftp"):
+            if make_dest is None:
+                raise ValueError("make_dest argument is required to cache remote files")
 
-            # Stage any remote configuration file(s)
-            stage_dir = make_stage()
+            # Stage the remote configuration file
+            tmpdir = tempfile.mkdtemp()
             try:
-                staged_path = fetch_remote_files(path, ".yaml", str(stage_dir), skip_existing=True)
-            except (spack.error.RemoteFileError, ValueError):
-                staged_path = None
+                staged_path = fetch_remote_text_file(path, tmpdir)
 
-            path = staged_path
+                # Ensure the sha256 is expected.
+                checksum = spack.util.crypto.checksum(hashlib.sha256, staged_path)
+                if sha256 and checksum != sha256:
+                    raise spack.error.RemoteFileError(
+                        f"Sha256 ('{checksum}') does not match expected ('{sha256}')"
+                    )
 
-        elif url.scheme:
-            raise ValueError(f"Unsupported URL scheme ({url.scheme}) for include: {path}")
+                # Help the user by reporting the required checksum.
+                if not sha256:
+                    raise spack.error.RemoteFileError(
+                        f"Requires sha256 ('{checksum}') to be specified."
+                    )
 
-    return path
+                # Copy the file to the destination directory
+                dest_dir = join_path(make_dest(), checksum)
+                if not os.path.exists(dest_dir):
+                    mkdirp(dest_dir)
+
+                cache_path = join_path(dest_dir, os.path.basename(staged_path))
+                copy(staged_path, cache_path)
+                tty.debug(f"Cached {raw_path} in {cache_path}")
+
+                # Stash the associated URL to aid with debugging
+                with open(join_path(dest_dir, "source_url.txt", encoding="utf-8"), "w") as f:
+                    f.write(f"{raw_path}\n")
+
+                return cache_path
+
+            except (spack.error.RemoteFileError, ValueError) as err:
+                tty.warn(f"Unable to cache {raw_path}: {str(err)}")
+                return None
+
+            finally:
+                shutil.rmtree(tmpdir)
+
+        raise ValueError(f"Unsupported URL scheme ({url.scheme}) in {raw_path}")
+
+    else:
+        raise ValueError(f"Invalid URL scheme ({url.scheme}) in {raw_path}")
