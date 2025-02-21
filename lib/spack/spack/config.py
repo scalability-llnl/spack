@@ -823,6 +823,7 @@ def _add_platform_scope(
 class IncludePath(NamedTuple):
     path: str
     when: str
+    sha256: str
     optional: bool
 
 
@@ -836,12 +837,13 @@ def included_path(entry: Union[str, dict]) -> IncludePath:
         not conditionally included
     """
     if isinstance(entry, str):
-        return IncludePath(path=entry, when="", optional=False)
+        return IncludePath(path=entry, sha256="", when="", optional=False)
 
     path = entry["path"]
+    sha256 = entry.get("sha256", "")
     when = entry.get("when", "")
     optional = entry.get("optional", False)
-    return IncludePath(path=path, when=when, optional=optional)
+    return IncludePath(path=path, sha256=sha256, when=when, optional=optional)
 
 
 def include_path_scope(include: IncludePath) -> Optional[ConfigScope]:
@@ -861,11 +863,9 @@ def include_path_scope(include: IncludePath) -> Optional[ConfigScope]:
     import spack.spec
 
     if (not include.when) or spack.spec.eval_conditional(include.when):
-        # canonicalize_path does variable expansion and resolves relative paths
-        include_path = spack.util.path.canonicalize_path(include.path)
-        config_path = rfc_util.local_path(include_path, _include_cache_location)
+        config_path = rfc_util.local_path(include.path, include.sha256, _include_cache_location)
         if not config_path:
-            raise ConfigFileError(f"Unable to fetch remote configuration {config_path}")
+            raise ConfigFileError(f"Unable to fetch remote configuration from {include.path}")
 
         if os.path.isdir(config_path):
             # directories are treated as regular ConfigScopes
@@ -880,7 +880,8 @@ def include_path_scope(include: IncludePath) -> Optional[ConfigScope]:
             return SingleFileScope(config_name, config_path, spack.schema.merged.schema)
 
         if not include.optional:
-            raise ValueError(f"Required path does not exist: {include.path}")
+            path = f" at ({config_path})" if config_path != include.path else ""
+            raise ValueError(f"Required path ({include.path}) does not exist{path}")
 
     return None
 

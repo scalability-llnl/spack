@@ -260,8 +260,6 @@ def canonicalize_path(path: str, default_wd: Optional[str] = None) -> str:
 
     path = substitute_path_variables(path)
 
-    # TODO: Can't use spack.util.url.local_file_path() without immediate
-    # TODO:  circular import so handle it here until there is a better solution.
     url = urllib.parse.urlparse(path)
     url_path = urllib.request.url2pathname(url.path)
     if url.scheme and url.scheme != "file":
