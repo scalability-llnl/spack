@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,7 @@ class PyIpyrad(PythonPackage):
 
     license("GPL-3.0-only")
 
+    version("0.9.102", sha256="2a8dc210d69cdedd34ac92715f23a9c3b7b4593a97b0d16851a566eacf33ef42")
     version("0.9.93", sha256="7f42396c0baa284dde0e9896270006f3c7e2211fa93bb149decccd39b4ab557e")
     version("0.9.92", sha256="f9cb5eca40d5fc1d93364815af7608d0b2e89fcf675724541a50e7159617395f")
     version("0.9.91", sha256="0308b829a8995db90608e8f45b76709d394d9153ec5edee568acdd41ecfab59c")

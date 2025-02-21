@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,7 @@ class RCurl(RPackage):
 
     license("MIT")
 
+    version("6.2.0", sha256="0399bb6bcad5f31ad2a2a7165ff8c976111707125ca0a9c4b8ccf40bb5eb1635")
     version("5.2.1", sha256="4a7a4d8c08aa1bca2fcd9c58ade7b4b0ea2ed9076d0521071be29baac8adfa90")
     version("5.0.0", sha256="d7f3cac9b513914ffa8f6f64e6fa5dd96c8273378ace6b0c16b71bc6ba59c9b2")
     version("4.3.3", sha256="3567b6acad40dad68acfe07511c853824839d451a50219a96dd6d125ed617c9e")
@@ -64,3 +64,11 @@ class RCurl(RPackage):
     depends_on("r@3.0.0:", type=("build", "run"))
     depends_on("curl", when="@4.3:")
     depends_on("curl@:7.63", when="@:4.0")
+
+    # https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=282908
+    requires("curl@:8.10", when="@:5.2.1")
+
+    # (Jan 2025) MacOS ships a very buggy libcurl 8.7.1 so we avoid this until apple updates it
+    # See: https://github.com/jeroen/curl/issues/376
+    # from: https://github.com/jeroen/curl/blob/v6.2.0/configure#L18
+    depends_on("curl@8.8.0:", when="@6.2.0: platform=darwin")

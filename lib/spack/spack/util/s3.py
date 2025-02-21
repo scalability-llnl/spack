@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -25,7 +24,7 @@ def get_s3_session(url, method="fetch"):
     from botocore.exceptions import ClientError
 
     # Circular dependency
-    from spack.mirror import MirrorCollection
+    from spack.mirrors.mirror import MirrorCollection
 
     global s3_client_cache
 
@@ -87,7 +86,7 @@ def _parse_s3_endpoint_url(endpoint_url):
 def get_mirror_s3_connection_info(mirror, method):
     """Create s3 config for session/client from a Mirror instance (or just set defaults
     when no mirror is given.)"""
-    from spack.mirror import Mirror
+    from spack.mirrors.mirror import Mirror
 
     s3_connection = {}
     s3_client_args = {"use_ssl": spack.config.get("config:verify_ssl")}

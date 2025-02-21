@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,7 +12,7 @@ class Ecbuild(CMakePackage):
     homepage = "https://github.com/ecmwf/ecbuild"
     url = "https://github.com/ecmwf/ecbuild/archive/refs/tags/3.6.1.tar.gz"
 
-    maintainers("skosukhin", "climbfuji", "victoria-cherkas", "dominichofer")
+    maintainers("skosukhin", "climbfuji", "victoria-cherkas")
 
     license("Apache-2.0")
 

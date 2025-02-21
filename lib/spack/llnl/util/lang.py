@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -863,8 +862,10 @@ def elide_list(line_list: List[str], max_num: int = 10) -> List[str]:
 
 if sys.version_info >= (3, 9):
     PatternStr = re.Pattern[str]
+    PatternBytes = re.Pattern[bytes]
 else:
     PatternStr = typing.Pattern[str]
+    PatternBytes = typing.Pattern[bytes]
 
 
 def fnmatch_translate_multiple(named_patterns: Dict[str, str]) -> str:

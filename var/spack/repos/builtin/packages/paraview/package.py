@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -35,10 +34,11 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
 
     version("master", branch="master", submodules=True)
     version(
-        "5.13.1",
-        sha256="a16503ce37b999c2967d84234596e7bf67ac98221851a288bb1399c7e1dc2004",
+        "5.13.2",
+        sha256="4e116250f8e1a9c480f97c5696c9cd72b4d4998b039ca46da8b224f27445f13e",
         preferred=True,
     )
+    version("5.13.1", sha256="a16503ce37b999c2967d84234596e7bf67ac98221851a288bb1399c7e1dc2004")
     version("5.13.0", sha256="886f530bebd6b24c6a7f8a5f4b1afa72c53d4737ccaa4b5fd5946b4e5a758c91")
     version("5.12.1", sha256="927f880c13deb6dde4172f4727d2b66f5576e15237b35778344f5dd1ddec863e")
     version("5.12.0", sha256="d289afe7b48533e2ca4a39a3b48d3874bfe67cf7f37fdd2131271c57e64de20d")
@@ -386,7 +386,7 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
 
     def url_for_version(self, version):
         _urlfmt = "http://www.paraview.org/files/v{0}/ParaView-v{1}{2}.tar.{3}"
-        """Handle ParaView version-based custom URLs."""
+        # Handle ParaView version-based custom URLs
         if version < Version("5.1.0"):
             return _urlfmt.format(version.up_to(2), version, "-source", "gz")
         elif version < Version("5.6.1"):

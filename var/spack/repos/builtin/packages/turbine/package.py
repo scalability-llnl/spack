@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -64,7 +63,7 @@ class Turbine(AutotoolsPackage):
         ]
 
         if self.spec.satisfies("^intel-oneapi-mpi"):
-            args.append("--with-mpi=" + self.spec["intel-oneapi-mpi"].package.component_prefix)
+            args.append("--with-mpi=" + self["intel-oneapi-mpi"].component_prefix)
         else:
             args.append("--with-mpi=" + self.spec["mpi"].prefix)
 

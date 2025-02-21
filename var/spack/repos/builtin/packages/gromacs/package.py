@@ -1,11 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
-
-import llnl.util.filesystem as fs
 
 import spack.build_systems.cmake
 from spack.package import *
@@ -52,6 +49,7 @@ class Gromacs(CMakePackage, CudaPackage):
     # 2025 is supported.
     version("main", branch="main")
     version("master", branch="main", deprecated=True)
+    version("2024.4", sha256="ac618ece2e58afa86b536c5a2c4fcb937f0760318f12d18f10346b6bdebd86a8")
     version("2024.3", sha256="bbda056ee59390be7d58d84c13a9ec0d4e3635617adf2eb747034922cba1f029")
     version("2024.2", sha256="802a7e335f2e895770f57b159e4ec368ebb0ff2ce6daccf706c6e8025c36852b")
     version("2024.1", sha256="937d8f12a36fffbf2af7add71adbb5aa5c5537892d46c9a76afbecab1aa0aac7")
@@ -261,9 +259,10 @@ class Gromacs(CMakePackage, CudaPackage):
         deprecated=True,
     )
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build", when="@:4.5.5")  # No core Fortran code since 4.6
+    depends_on("fortran", type="build", when="+cp2k")  # Need Fortan compiler for CP2K
 
     variant(
         "mpi", default=True, description="Activate MPI support (disable for Thread-MPI support)"
@@ -357,6 +356,9 @@ class Gromacs(CMakePackage, CudaPackage):
     )
 
     variant("openmp", default=True, description="Enables OpenMP at configure time")
+    conflicts(
+        "+openmp", when="%apple-clang", msg="OpenMP not available for the Apple clang compiler"
+    )
     variant("openmp_max_threads", default="none", description="Max number of OpenMP threads")
     conflicts(
         "+openmp_max_threads", when="~openmp", msg="OpenMP is off but OpenMP Max threads is set"
@@ -431,7 +433,7 @@ class Gromacs(CMakePackage, CudaPackage):
     # and switching tags.
 
     # Versions without minor release number, such as `2023` and `2021`,
-    # require exact specifcation using `@=`, starting from Spack v0.20.0,
+    # require exact specification using `@=`, starting from Spack v0.20.0,
     # see https://github.com/spack/spack/releases/tag/v0.20.0
 
     plumed_patches = {
@@ -473,7 +475,7 @@ class Gromacs(CMakePackage, CudaPackage):
     variant(
         "intel_provided_gcc",
         default=False,
-        description="Use this if Intel compiler is installed through spack."
+        description="Use this if Intel compiler is installed through spack. "
         + "The g++ location is written to icp{c,x}.cfg",
     )
 
@@ -582,7 +584,7 @@ class Gromacs(CMakePackage, CudaPackage):
             )
 
         if self.spec.satisfies("+plumed"):
-            self.spec["plumed"].package.apply_patch(self)
+            self["plumed"].apply_patch(self)
 
         if self.spec.satisfies("%nvhpc"):
             # Disable obsolete workaround
@@ -657,7 +659,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
         not be intended with ``--test``.
         """
         if self.pkg.run_tests:
-            with fs.working_dir(self.build_directory):
+            with working_dir(self.build_directory):
                 make("tests")
 
     def check(self):
@@ -666,7 +668,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
         Override the standard CMakeBuilder behavior. GROMACS has both `test`
         and `check` targets, but we are only interested in the latter.
         """
-        with fs.working_dir(self.build_directory):
+        with working_dir(self.build_directory):
             if self.generator == "Unix Makefiles":
                 make("check")
             elif self.generator == "Ninja":
@@ -910,7 +912,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
             options.append(f"-DNVSHMEM_ROOT={nvshmem_root}")
 
         if self.spec["lapack"].name in INTEL_MATH_LIBRARIES:
-            # fftw-api@3 is provided by intel-mkl or intel-parllel-studio
+            # fftw-api@3 is provided by intel-mkl or intel-parallel-studio
             # we use the mkl interface of gromacs
             options.append("-DGMX_FFT_LIBRARY=mkl")
             if self.spec.satisfies("@:2022"):

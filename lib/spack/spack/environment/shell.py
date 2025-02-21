@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -11,6 +10,7 @@ from llnl.util.tty.color import colorize
 
 import spack.environment as ev
 import spack.repo
+import spack.schema.environment
 import spack.store
 from spack.util.environment import EnvironmentModifications
 
@@ -157,6 +157,11 @@ def activate(
     # MANPATH, PYTHONPATH, etc. All variables that end in PATH (case-sensitive)
     # become PATH variables.
     #
+
+    env_vars_yaml = env.manifest.configuration.get("env_vars", None)
+    if env_vars_yaml:
+        env_mods.extend(spack.schema.environment.parse(env_vars_yaml))
+
     try:
         if view and env.has_view(view):
             with spack.store.STORE.db.read_transaction():
@@ -189,6 +194,10 @@ def deactivate() -> EnvironmentModifications:
 
     if active is None:
         return env_mods
+
+    env_vars_yaml = active.manifest.configuration.get("env_vars", None)
+    if env_vars_yaml:
+        env_mods.extend(spack.schema.environment.parse(env_vars_yaml).reversed())
 
     active_view = os.getenv(ev.spack_env_view_var)
 

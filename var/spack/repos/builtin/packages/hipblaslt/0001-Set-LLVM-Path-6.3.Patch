@@ -1,0 +1,53 @@
+diff --git a/library/CMakeLists.txt b/library/CMakeLists.txt
+index 865dcd9..0ca1815 100644
+--- a/library/CMakeLists.txt
++++ b/library/CMakeLists.txt
+@@ -72,6 +72,7 @@ include(src/CMakeLists.txt)
+ # Create hipBLASLt library
+ add_library(hipblaslt ${hipblaslt_source} ${hipblaslt_headers_public})
+ add_library(roc::hipblaslt ALIAS hipblaslt)
++target_include_directories( hipblaslt PRIVATE ${MSGPACK_DIR}/include )
+ 
+ # Target compile definitions
+ if(NOT BUILD_CUDA)
+@@ -154,7 +155,7 @@ if( LEGACY_HIPBLAS_DIRECT )
+   )
+ else()
+   target_include_directories(hipblaslt
+-                             PUBLIC  $<BUILD_INTERFACE:${HIPBLAS-COMMON_INCLUDE_DIRS}>
++                             PUBLIC  ${HIPBLAS-COMMON_INCLUDE_DIRS}
+   )
+ endif()
+ 
+diff --git a/tensilelite/Tensile/Common.py b/tensilelite/Tensile/Common.py
+index 6b5cdc8..9f28e46 100644
+--- a/tensilelite/Tensile/Common.py
++++ b/tensilelite/Tensile/Common.py
+@@ -277,6 +277,8 @@ globalParameters["LazyLibraryLoading"] = False # Load library and code object fi
+ globalParameters["UseUserArgs"] = False
+ 
+ globalParameters["RotatingBufferSize"] = 0 # Size in MB
++globalParameters["LLVMPath"] = os.environ.get("LLVM_PATH")
++globalParameters["ROCmSMIPath"] = os.environ.get("ROCM_SMI_PATH")
+ globalParameters["RotatingMode"] = 0 # Default is 0, allocated in order A0B0C0D0..ANBNCNDN. 1 is in order A0 pad B0 pad .... AN pad BN pad.
+                                      # Mode 0 requires memcpy everytime when the problem changes to reset the data, but mode 1 doesn't.
+ 
+@@ -1576,7 +1578,7 @@ def assignGlobalParameters( config ):
+   if os.name == "nt":
+     globalParameters["ROCmAgentEnumeratorPath"] = locateExe(globalParameters["ROCmBinPath"], "hipinfo.exe")
+   else:
+-    globalParameters["ROCmAgentEnumeratorPath"] = locateExe(globalParameters["ROCmBinPath"], "rocm_agent_enumerator")
++    globalParameters["ROCmAgentEnumeratorPath"] = os.environ.get("ROCM_AGENT_ENUMERATOR_PATH")
+ 
+   if "CxxCompiler" in config:
+     globalParameters["CxxCompiler"] = config["CxxCompiler"]
+@@ -1602,8 +1604,7 @@ def assignGlobalParameters( config ):
+       compiler = "clang++" if globalParameters["CxxCompiler"] == "hipcc" else "amdclang++"
+       globalParameters["AssemblerPath"] = locateExe(os.path.join(globalParameters["ROCmPath"], bin_path), compiler)
+ 
+-  globalParameters["ROCmSMIPath"] = locateExe(globalParameters["ROCmBinPath"], "rocm-smi")
+-  globalParameters["ROCmLdPath"]  = locateExe(os.path.join(globalParameters["ROCmPath"], "llvm/bin"), "ld.lld")
++  globalParameters["ROCmLdPath"]  = locateExe(os.path.join(globalParameters["LLVMPath"], "bin"), "ld.lld")
+ 
+   globalParameters["ExtractKernelPath"] = locateExe(os.path.join(globalParameters["ROCmPath"], "hip/bin"), "extractkernel")
+ 

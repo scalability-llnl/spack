@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,10 +16,10 @@ class Rocsparse(CMakePackage):
 
     homepage = "https://github.com/ROCm/rocSPARSE"
     git = "https://github.com/ROCm/rocSPARSE.git"
-    url = "https://github.com/ROCm/rocSPARSE/archive/rocm-6.1.1.tar.gz"
+    url = "https://github.com/ROCm/rocSPARSE/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
-    maintainers("cgmb", "srekolam", "renjithravindrankannath")
+    maintainers("cgmb", "srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["librocsparse"]
 
     amdgpu_targets = ROCmPackage.amdgpu_targets
@@ -39,6 +38,10 @@ class Rocsparse(CMakePackage):
     conflicts("+asan", when="os=centos8")
 
     license("MIT")
+    version("6.3.2", sha256="665a85517d50e5ef37b1f953ccb17108d6a5cb30db21c5364bd50a41d44c61f2")
+    version("6.3.1", sha256="95c9dcc8421711f2f203a34c2830c5ac504e127922e0a83dbc68bccd5509c72f")
+    version("6.3.0", sha256="38aaf1cc55f57566a3056a970f73f40a9a4930583d6e57fc9c7745a127029227")
+    version("6.2.4", sha256="1f86c2d439e777cd17724269da66997d351b3a1b83f44143361e9c77d80e2370")
     version("6.2.1", sha256="4691d689db0a03fc950dbc9d88471752f6d17f5382a4bd2f7e23dfb43fc7074c")
     version("6.2.0", sha256="d07357d180423cedbabc849983a2d4d79b0e9f4c9b5e07d4993043e646fe6df9")
     version("6.1.2", sha256="e8989c28085275e7c044b19fd2bc86d8493ce6a1b8545126f787722c535fe6eb")
@@ -82,6 +85,10 @@ class Rocsparse(CMakePackage):
         "6.1.2",
         "6.2.0",
         "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
+        "6.3.2",
     ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"rocprim@{ver}", when=f"@{ver}")
@@ -284,7 +291,7 @@ class Rocsparse(CMakePackage):
         if self.spec.satisfies("^cmake@3.21.0:3.21.2"):
             args.append(self.define("__skip_rocmclang", "ON"))
 
-        if self.spec.satisfies("@5.2.0:"):
+        if self.spec.satisfies("@5.2.0:6.3.1"):
             args.append(self.define("BUILD_FILE_REORG_BACKWARD_COMPATIBILITY", True))
 
         if self.spec.satisfies("@5.3.0:"):

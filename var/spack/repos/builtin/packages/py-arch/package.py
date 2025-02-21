@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -32,7 +31,7 @@ class PyArch(PythonPackage):
     # "numpy>=2.0.0rc1,<3" ???
     # https://github.com/bashtage/arch/blob/9ced09e2566c0ebcad962d2441b1e79e2aaa7c9f/requirements.txt#L1
     # numpy>=1.22.3 ???
-    depends_on("py-numpy@1.22.3", type=("build", "run"))
+    depends_on("py-numpy@1.22.3:", type=("build", "run"))
 
     depends_on("py-scipy@1.8:", type="run")
     depends_on("py-pandas@1.4:", type="run")

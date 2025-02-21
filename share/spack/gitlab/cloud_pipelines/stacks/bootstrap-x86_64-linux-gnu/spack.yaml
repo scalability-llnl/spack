@@ -1,0 +1,35 @@
+spack:
+  view: false
+
+  packages:
+    all:
+      require: target=x86_64_v3
+
+  config:
+    deprecated: true  # allow old python versions
+
+  specs:
+  - clingo-bootstrap +optimized ^python@3.13
+  - clingo-bootstrap +optimized ^python@3.12
+  - clingo-bootstrap +optimized ^python@3.11
+  - clingo-bootstrap +optimized ^python@3.10
+  - clingo-bootstrap +optimized ^python@3.9
+  - clingo-bootstrap +optimized ^python@3.8
+  - clingo-bootstrap +optimized ^python@3.7
+  - clingo-bootstrap +optimized ^python@3.6
+
+  - clingo-bootstrap@spack +optimized ^python@3.13
+  - clingo-bootstrap@spack +optimized ^python@3.12
+  - clingo-bootstrap@spack +optimized ^python@3.11
+  - clingo-bootstrap@spack +optimized ^python@3.10
+  - clingo-bootstrap@spack +optimized ^python@3.9
+  - clingo-bootstrap@spack +optimized ^python@3.8
+  - clingo-bootstrap@spack +optimized ^python@3.7
+  - clingo-bootstrap@spack +optimized ^python@3.6
+
+  ci:
+    pipeline-gen:
+    - build-job:
+        image:
+          name: ghcr.io/spack/ubuntu-24.04:v2024-09-05-v2
+          entrypoint: ['']

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,7 +18,8 @@ class Cpuinfo(CMakePackage):
     license("BSD-2-Clause")
 
     version("main", branch="main")
-    version("2024-09-06", commit="094fc30b9256f54dad5ad23bcbfb5de74781422f")  # py-torch@2.5.1:
+    version("2024-09-26", commit="1e83a2fdd3102f65c6f1fb602c1b320486218a99")  # py-torch@2.6:
+    version("2024-09-06", commit="094fc30b9256f54dad5ad23bcbfb5de74781422f")  # py-torch@2.5.1
     version("2024-08-30", commit="fa1c679da8d19e1d87f20175ae1ec10995cd3dd3")  # py-torch@2.5.0
     version("2023-11-04", commit="d6860c477c99f1fce9e28eb206891af3c0e1a1d7")  # py-torch@2.3:2.4
     version("2023-01-13", commit="6481e8bef08f606ddd627e4d3be89f64d62e1b8a")  # py-torch@2.1:2.2

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,11 +10,12 @@ class Chameleon(CMakePackage, CudaPackage):
     """Dense Linear Algebra for Scalable Multi-core Architectures and GPGPUs"""
 
     homepage = "https://gitlab.inria.fr/solverstack/chameleon"
-    url = "https://gitlab.inria.fr/api/v4/projects/616/packages/generic/source/v1.2.0/chameleon-1.2.0.tar.gz"
+    url = "https://gitlab.inria.fr/api/v4/projects/616/packages/generic/source/v1.3.0/chameleon-1.3.0.tar.gz"
     git = "https://gitlab.inria.fr/solverstack/chameleon.git"
     maintainers("fpruvost")
 
     version("master", branch="master", submodules=True)
+    version("1.3.0", sha256="2725d2d2a9885e619e0c8d41306b9b9dc6d5df635b710cf8d077a14803ea26cd")
     version("1.2.0", sha256="b8988ecbff19c603ae9f61441653c21bba18d040bee9bb83f7fc9077043e50b4")
     version("1.1.0", sha256="e64d0438dfaf5effb3740e53f3ab017d12744b85a138b2ef702a81df559126df")
 

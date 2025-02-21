@@ -1,11 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
+import warnings
 
-import spack.main
 from spack.package import *
 
 
@@ -73,11 +72,12 @@ class Gasnet(Package, CudaPackage, ROCmPackage):
         deprecated=True,
         sha256="117f5fdb16e53d0fa8a47a1e28cccab1d8020ed4f6e50163d985dc90226aaa2c",
     )
+    # Do NOT add older versions here.
+    # GASNet-EX releases over 2 years old are not supported.
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
-    # Do NOT add older versions here.
-    # GASNet-EX releases over 2 years old are not supported.
+    depends_on("gmake", type="build")
 
     # The optional network backends:
     variant(
@@ -147,7 +147,7 @@ class Gasnet(Package, CudaPackage, ROCmPackage):
                 git = which("git")
                 git("describe", "--long", "--always", output="version.git")
             except ProcessError:
-                spack.main.send_warning_to_tty("Omitting version stamp due to git error")
+                warnings.warn("Omitting version stamp due to git error")
 
         # The GASNet-EX library has a highly multi-dimensional configure space,
         # to accomodate the varying behavioral requirements of each client runtime.

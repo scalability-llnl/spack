@@ -1,15 +1,14 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 """Schema for Cray descriptive manifest: this describes a set of
-   installed packages on the system and also specifies dependency
-   relationships between them (so this provides more information than
-   external entries in packages configuration).
+installed packages on the system and also specifies dependency
+relationships between them (so this provides more information than
+external entries in packages configuration).
 
-   This does not specify a configuration - it is an input format
-   that is consumed and transformed into Spack DB records.
+This does not specify a configuration - it is an input format
+that is consumed and transformed into Spack DB records.
 """
 from typing import Any, Dict
 

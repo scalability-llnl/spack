@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -51,6 +50,7 @@ class PyIpython(PythonPackage):
     version("5.8.0", sha256="4bac649857611baaaf76bc82c173aa542f7486446c335fe1a6c05d0d491c8906")
     version("5.1.0", sha256="7ef4694e1345913182126b219aaa4a0047e191af414256da6772cf249571b961")
 
+    depends_on("python@3.10:", when="@8.19:", type=("build", "run"))
     depends_on("python@3.9:", when="@8.13.1:", type=("build", "run"))
     depends_on("python@3.8: +sqlite3", when="@8:", type=("build", "run"))
     depends_on("py-setuptools@61.2:", when="@8.22:", type="build")

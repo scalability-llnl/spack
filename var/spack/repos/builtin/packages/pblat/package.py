@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,7 +8,7 @@ from spack.package import *
 class Pblat(MakefilePackage):
     """Parallelized blat with multi-threads support"""
 
-    homepage = "http://icebert.github.io/pblat/"
+    homepage = "https://icebert.github.io/pblat/"
     url = "https://github.com/icebert/pblat/archive/refs/tags/2.5.1.tar.gz"
 
     # `pblat` shares the license for Jim Kent's `blat`. For-profit users must visit:

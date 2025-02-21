@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -7,15 +6,21 @@ from spack.package import *
 
 
 class Bfs(MakefilePackage):
-    """A breadth-first version of the UNIX find command."""
+    """BFS is a breadth-first variant of the UNIX find command that offers
+    consistent, intuitive behavior and improved performance."""
 
     homepage = "https://github.com/tavianator/bfs"
     url = "https://github.com/tavianator/bfs/archive/refs/tags/3.0.1.tar.gz"
+    git = "https://github.com/tavianator/bfs.git"
 
     maintainers("alecbcs")
 
     license("0BSD")
 
+    sanity_check_is_file = ["bin/bfs"]
+
+    version("main", branch="main")
+    version("4.0.5", sha256="f7d9ebff00d9a010a5d6cc9b7bf1933095d7e5c0b11a8ec48c96c7ed8f993e5f")
     version("4.0.4", sha256="209da9e9f43d8fe30fd689c189ea529e9d6b5358ce84a63a44721003aea3e1ca")
     version("4.0.1", sha256="8117b76b0a967887278a11470cbfa9e7aeae98f11a7eeb136f456ac462e5ba23")
     version("3.1.1", sha256="d73f345c1021e0630e0db930a3fa68dd1f968833037d8471ee1096e5040bf91b")
@@ -24,12 +29,16 @@ class Bfs(MakefilePackage):
     version("3.0.2", sha256="d3456a9aeecc031064db0dbe012e55a11eb97be88d0ab33a90e570fe66457f92")
     version("3.0.1", sha256="a38bb704201ed29f4e0b989fb2ab3791ca51c3eff90acfc31fff424579bbf962")
 
+    # Build dependencies
     depends_on("c", type="build")
 
+    # System dependencies
     depends_on("acl", when="platform=linux")
     depends_on("attr", when="platform=linux")
     depends_on("libcap", when="platform=linux")
-    depends_on("liburing", when="platform=linux @3.1:")
+    depends_on("liburing@2.4:", when="platform=linux @3.1:")
+
+    # Required dependencies
     depends_on("oniguruma")
 
     @run_before("build", when="@4:")
@@ -40,6 +49,7 @@ class Bfs(MakefilePackage):
         configure_exe(*args)
 
     def install(self, spec, prefix):
+        """Install the package."""
         if spec.satisfies("@:3"):
             make("install", f"PREFIX={prefix}")
         else:

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Set, unset or modify environment variables."""
@@ -8,7 +7,6 @@ import contextlib
 import inspect
 import json
 import os
-import os.path
 import pickle
 import re
 import shlex
@@ -185,7 +183,7 @@ def dump_environment(path: Path, environment: Optional[MutableMapping[str, str]]
     hidden_vars = {"PS1", "PWD", "OLDPWD", "TERM_SESSION_ID"}
 
     file_descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-    with os.fdopen(file_descriptor, "w") as env_file:
+    with os.fdopen(file_descriptor, "w", encoding="utf-8") as env_file:
         for var, val in sorted(use_env.items()):
             env_file.write(
                 "".join(

@@ -1,8 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
+import pickle
 import stat
 
 import pytest
@@ -10,6 +10,7 @@ import pytest
 from llnl.util.symlink import readlink
 
 import spack.cmd.modules
+import spack.concretize
 import spack.config
 import spack.error
 import spack.modules
@@ -18,10 +19,8 @@ import spack.modules.tcl
 import spack.package_base
 import spack.package_prefs
 import spack.repo
-import spack.spec
 from spack.installer import PackageInstaller
 from spack.modules.common import UpstreamModuleIndex
-from spack.spec import Spec
 
 pytestmark = [
     pytest.mark.not_on_windows("does not run on windows"),
@@ -61,7 +60,7 @@ def mock_package_perms(monkeypatch):
 def test_modules_written_with_proper_permissions(
     mock_module_filename, mock_package_perms, mock_packages, config
 ):
-    spec = spack.spec.Spec("mpileaks").concretized()
+    spec = spack.concretize.concretize_one("mpileaks")
 
     # The code tested is common to all module types, but has to be tested from
     # one. Tcl picked at random
@@ -75,7 +74,7 @@ def test_modules_written_with_proper_permissions(
 def test_modules_default_symlink(
     module_type, mock_packages, mock_module_filename, mock_module_defaults, config
 ):
-    spec = spack.spec.Spec("mpileaks@2.3").concretized()
+    spec = spack.concretize.concretize_one("mpileaks@2.3")
     mock_module_defaults(spec.format("{name}{@version}"), True)
 
     generator_cls = spack.modules.module_types[module_type]
@@ -181,7 +180,7 @@ module_index:
 @pytest.mark.regression("14347")
 def test_load_installed_package_not_in_repo(install_mockery, mock_fetch, monkeypatch):
     """Test that installed packages that have been removed are still loadable"""
-    spec = Spec("trivial-install-test-package").concretized()
+    spec = spack.concretize.concretize_one("trivial-install-test-package")
     PackageInstaller([spec.package], explicit=True).install()
     spack.modules.module_types["tcl"](spec, "default", True).write()
 
@@ -225,3 +224,10 @@ def test_check_module_set_name(mutable_config):
 
     with pytest.raises(spack.error.ConfigError, match=msg):
         spack.cmd.modules.check_module_set_name("third")
+
+
+@pytest.mark.parametrize("module_type", ["tcl", "lmod"])
+def test_module_writers_are_pickleable(default_mock_concretization, module_type):
+    s = default_mock_concretization("mpileaks")
+    writer = spack.modules.module_types[module_type](s, "default")
+    assert pickle.loads(pickle.dumps(writer)).spec == s

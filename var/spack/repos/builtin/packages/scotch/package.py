@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,7 @@ class Scotch(CMakePackage, MakefilePackage):
 
     maintainers("pghysels")
 
+    version("7.0.6", sha256="b44acd0d2f53de4b578fa3a88944cccc45c4d2961cd8cefa9b9a1d5431de8e2b")
     version("7.0.4", sha256="8ef4719d6a3356e9c4ca7fefd7e2ac40deb69779a5c116f44da75d13b3d2c2c3")
     version("7.0.3", sha256="5b5351f0ffd6fcae9ae7eafeccaa5a25602845b9ffd1afb104db932dd4d4f3c5")
     version("7.0.1", sha256="0618e9bc33c02172ea7351600fce4fccd32fe00b3359c4aabb5e415f17c06fed")
@@ -122,8 +122,8 @@ class Scotch(CMakePackage, MakefilePackage):
 
 
 class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
+
     def cmake_args(self):
-        spec = self.spec
         args = [
             self.define_from_variant("BUILD_LIBSCOTCHMETIS", "metis"),
             self.define_from_variant("INSTALL_METIS_HEADERS", "metis"),
@@ -134,7 +134,10 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
             self.define_from_variant("MPI_THREAD_MULTIPLE", "mpi_thread"),
         ]
 
-        if "+int64" in spec:
+        if self.pkg.version > Version("7.0.4"):
+            args.append(self.define("ENABLE_TESTS", self.pkg.run_tests))
+
+        if "+int64" in self.spec:
             args.append("-DINTSIZE=64")
 
         return args

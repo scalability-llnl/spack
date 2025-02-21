@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -149,6 +148,7 @@ class PyPillow(PyPillowBase):
     homepage = "https://python-pillow.org/"
     pypi = "pillow/pillow-10.2.0.tar.gz"
 
+    version("11.1.0", sha256="368da70808b36d73b4b390a8ffac11069f8a5c85f29eff1f1b01bcf3ef5b2a20")
     version("11.0.0", sha256="72bacbaf24ac003fea9bff9837d1eedb6088758d41e100c1552930151f677739")
     version("10.4.0", sha256="166c1cd4d24309b30d61f79f4a9114b7b2313d7450912277855ff5dfd7cd4a06")
     version("10.3.0", sha256="9d2455fbf44c914840c793e89aa82d0e1763a14253a000743719ae5946814b2d")
@@ -166,14 +166,31 @@ class PyPillow(PyPillowBase):
     version("9.0.0", sha256="ee6e2963e92762923956fe5d3479b1fdc3b76c83f290aad131a2f98c3df0593e")
     version("8.4.0", sha256="b8e2f83c56e141920c39464b852de3719dfbfb6e3c99a2d8da0edf4fb33176ed")
     version("8.0.0", sha256="59304c67d12394815331eda95ec892bf54ad95e0aa7bc1ccd8e0a4a5a25d4bf3")
-    version("7.2.0", sha256="97f9e7953a77d5a70f49b9a48da7776dc51e9b738151b22dacf101641594a626")
-    version("7.0.0", sha256="4d9ed9a64095e031435af120d3c910148067087541131e82b3e8db302f4c8946")
-    version("6.2.2", sha256="db9ff0c251ed066d367f53b64827cc9e18ccea001b986d08c265e53625dab950")
-    version("6.2.1", sha256="bf4e972a88f8841d8fdc6db1a75e0f8d763e66e3754b03006cbc3854d89f1cb1")
+    version(
+        "7.2.0",
+        sha256="97f9e7953a77d5a70f49b9a48da7776dc51e9b738151b22dacf101641594a626",
+        deprecated=True,
+    )
+    version(
+        "7.0.0",
+        sha256="4d9ed9a64095e031435af120d3c910148067087541131e82b3e8db302f4c8946",
+        deprecated=True,
+    )
+    version(
+        "6.2.2",
+        sha256="db9ff0c251ed066d367f53b64827cc9e18ccea001b986d08c265e53625dab950",
+        deprecated=True,
+    )
+    version(
+        "6.2.1",
+        sha256="bf4e972a88f8841d8fdc6db1a75e0f8d763e66e3754b03006cbc3854d89f1cb1",
+        deprecated=True,
+    )
 
     depends_on("c", type="build")
 
     for ver in [
+        "11.1.0",
         "11.0.0",
         "10.4.0",
         "10.3.0",

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,7 @@ class PyXesmf(PythonPackage):
 
     license("MIT")
 
+    version("0.8.8", sha256="8588f83007ce7011379991f516be3691df6fb30486741f0e1c33aa962056ea33")
     version("0.8.4", sha256="c5a2c4b3e8dbbc9fccd5772a940f9067d68e824215ef87ba222b06718c4eeb56")
 
     with default_args(type="build"):
@@ -22,9 +22,9 @@ class PyXesmf(PythonPackage):
 
     with default_args(type=("build", "run")):
         depends_on("py-cf-xarray@0.5.1:")
-        # TODO: add optional dependency
-        # https://github.com/esmf-org/esmf/tree/develop/src/addon/esmpy
-        # depends_on("py-esmpy@8:")
+
+        # esmf +python is only handled correctly in spack for 8.4+
+        depends_on("esmf@8.4.0: +python")
         depends_on("py-numba@0.55.2:")
         depends_on("py-numpy@1.16:")
         depends_on("py-shapely")

@@ -66,7 +66,7 @@ jobs:
           ./share/spack/qa/validate_last_exit.ps1
           spack -d audit externals
           ./share/spack/qa/validate_last_exit.ps1
-    - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
+    - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b
       if: ${{ inputs.with_coverage == 'true' && runner.os != 'Windows' }}
       with:
         name: coverage-audits-${{ matrix.system.os }}

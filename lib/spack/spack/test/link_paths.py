@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -30,7 +29,7 @@ def allow_nonexistent_paths(monkeypatch):
 
 
 def check_link_paths(filename, paths):
-    with open(os.path.join(datadir, filename)) as file:
+    with open(os.path.join(datadir, filename), encoding="utf-8") as file:
         output = file.read()
     detected_paths = _parse_non_system_link_dirs(output)
 

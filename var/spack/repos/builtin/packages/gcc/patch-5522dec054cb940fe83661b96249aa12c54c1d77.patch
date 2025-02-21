@@ -1,0 +1,111 @@
+From 5522dec054cb940fe83661b96249aa12c54c1d77 Mon Sep 17 00:00:00 2001
+From: Andre Vieira <andre.simoesdiasvieira@arm.com>
+Date: Fri, 8 Apr 2022 15:12:23 +0100
+Subject: [PATCH] aarch64: PR target/105157 Increase number of cores
+ TARGET_CPU_DEFAULT can encode
+
+This addresses the compile-time increase seen in the PR target/105157. This was
+being caused by selecting the wrong core tuning, as when we added the latest
+AArch64 the TARGET_CPU_generic tuning was pushed beyond the 0x3f mask we used
+to encode both target cpu and attributes into TARGET_CPU_DEFAULT.
+
+gcc/ChangeLog:
+
+	PR target/105157
+	* config.gcc: Shift ext_mask by TARGET_CPU_NBITS.
+	* config/aarch64/aarch64.h (TARGET_CPU_NBITS): New macro.
+	(TARGET_CPU_MASK): Likewise.
+	(TARGET_CPU_DEFAULT): Use TARGET_CPU_NBITS.
+	* config/aarch64/aarch64.cc (aarch64_get_tune_cpu): Use TARGET_CPU_MASK.
+	(aarch64_get_arch): Likewise.
+	(aarch64_override_options): Use TARGET_CPU_NBITS.
+---
+ gcc/config.gcc                |  2 +-
+ gcc/config/aarch64/aarch64.cc | 14 +++++++++-----
+ gcc/config/aarch64/aarch64.h  |  8 +++++++-
+ 3 files changed, 17 insertions(+), 7 deletions(-)
+
+diff --git a/gcc/config.gcc b/gcc/config.gcc
+index 7b58e1314ff0dc57701a77a7433de1a6e263c259..5382788e267214ccc1015d0bed85b718ebf00011 100644
+--- a/gcc/config.gcc
++++ b/gcc/config.gcc
+@@ -4261,7 +4261,7 @@ case "${target}" in
+ 				ext_val=`echo $ext_val | sed -e 's/[a-z0-9]\+//'`
+ 			  done
+ 
+-			  ext_mask="(("$ext_mask") << 6)"
++			  ext_mask="(("$ext_mask") << TARGET_CPU_NBITS)"
+ 			  if [ x"$base_id" != x ]; then
+ 				target_cpu_cname="TARGET_CPU_$base_id | $ext_mask"
+ 			  fi
+diff --git a/gcc/config/aarch64/aarch64.c b/gcc/config/aarch64/aarch64.c
+index 3e2a6fb64725d4e37ddd89f6987795733cfff35c..cf62bdd023b5799284fdcc337a50c01ccd21493f 100644
+--- a/gcc/config/aarch64/aarch64.c
++++ b/gcc/config/aarch64/aarch64.c
+@@ -18053,6 +18053,9 @@ aarch64_validate_mtune (const char *str, const struct processor **res)
+   return false;
+ }
+ 
++static_assert (TARGET_CPU_generic < TARGET_CPU_MASK,
++	       "TARGET_CPU_NBITS is big enough");
++
+ /* Return the CPU corresponding to the enum CPU.
+    If it doesn't specify a cpu, return the default.  */
+ 
+@@ -18062,12 +18065,12 @@ aarch64_get_tune_cpu (enum aarch64_processor cpu)
+   if (cpu != aarch64_none)
+     return &all_cores[cpu];
+ 
+-  /* The & 0x3f is to extract the bottom 6 bits that encode the
+-     default cpu as selected by the --with-cpu GCC configure option
++  /* The & TARGET_CPU_MASK is to extract the bottom TARGET_CPU_NBITS bits that
++     encode the default cpu as selected by the --with-cpu GCC configure option
+      in config.gcc.
+      ???: The whole TARGET_CPU_DEFAULT and AARCH64_CPU_DEFAULT_FLAGS
+      flags mechanism should be reworked to make it more sane.  */
+-  return &all_cores[TARGET_CPU_DEFAULT & 0x3f];
++  return &all_cores[TARGET_CPU_DEFAULT & TARGET_CPU_MASK];
+ }
+ 
+ /* Return the architecture corresponding to the enum ARCH.
+@@ -18079,7 +18082,8 @@ aarch64_get_arch (enum aarch64_arch arch)
+   if (arch != aarch64_no_arch)
+     return &all_architectures[arch];
+ 
+-  const struct processor *cpu = &all_cores[TARGET_CPU_DEFAULT & 0x3f];
++  const struct processor *cpu
++    = &all_cores[TARGET_CPU_DEFAULT & TARGET_CPU_MASK];
+ 
+   return &all_architectures[cpu->arch];
+ }
+@@ -18166,7 +18170,7 @@ aarch64_override_options (void)
+ 	{
+ 	  /* Get default configure-time CPU.  */
+ 	  selected_cpu = aarch64_get_tune_cpu (aarch64_none);
+-	  aarch64_isa_flags = TARGET_CPU_DEFAULT >> 6;
++	  aarch64_isa_flags = TARGET_CPU_DEFAULT >> TARGET_CPU_NBITS;
+ 	}
+ 
+       if (selected_tune)
+diff --git a/gcc/config/aarch64/aarch64.h b/gcc/config/aarch64/aarch64.h
+index efa46ac0b8799b5849b609d591186e26e5cb37ff..359b6e8561faa38f53a806b8c114c83ae37e7e17 100644
+--- a/gcc/config/aarch64/aarch64.h
++++ b/gcc/config/aarch64/aarch64.h
+@@ -813,10 +813,16 @@ enum target_cpus
+   TARGET_CPU_generic
+ };
+ 
++/* Define how many bits are used to represent the CPU in TARGET_CPU_DEFAULT.
++   This needs to be big enough to fit the value of TARGET_CPU_generic.
++   All bits after this are used to represent the AARCH64_CPU_DEFAULT_FLAGS.  */
++#define TARGET_CPU_NBITS 8
++#define TARGET_CPU_MASK ((1 << TARGET_CPU_NBITS) - 1)
++
+ /* If there is no CPU defined at configure, use generic as default.  */
+ #ifndef TARGET_CPU_DEFAULT
+ #define TARGET_CPU_DEFAULT \
+-  (TARGET_CPU_generic | (AARCH64_CPU_DEFAULT_FLAGS << 6))
++  (TARGET_CPU_generic | (AARCH64_CPU_DEFAULT_FLAGS << TARGET_CPU_NBITS))
+ #endif
+ 
+ /* If inserting NOP before a mult-accumulate insn remember to adjust the

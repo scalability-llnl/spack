@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import pickle
@@ -13,7 +12,7 @@ from spack.main import SpackCommand
 build_env = SpackCommand("build-env")
 
 
-@pytest.mark.parametrize("pkg", [("zlib",), ("zlib", "--")])
+@pytest.mark.parametrize("pkg", [("pkg-c",), ("pkg-c", "--")])
 @pytest.mark.usefixtures("config", "mock_packages", "working_env")
 def test_it_just_runs(pkg):
     build_env(*pkg)
@@ -39,8 +38,8 @@ _out_file = "env.out"
 @pytest.mark.usefixtures("config", "mock_packages", "working_env")
 def test_dump(shell_as, shell, tmpdir):
     with tmpdir.as_cwd():
-        build_env("--dump", _out_file, "zlib")
-        with open(_out_file) as f:
+        build_env("--dump", _out_file, "pkg-c")
+        with open(_out_file, encoding="utf-8") as f:
             if shell == "pwsh":
                 assert any(line.startswith("$Env:PATH") for line in f.readlines())
             elif shell == "bat":
@@ -52,7 +51,7 @@ def test_dump(shell_as, shell, tmpdir):
 @pytest.mark.usefixtures("config", "mock_packages", "working_env")
 def test_pickle(tmpdir):
     with tmpdir.as_cwd():
-        build_env("--pickle", _out_file, "zlib")
+        build_env("--pickle", _out_file, "pkg-c")
         environment = pickle.load(open(_out_file, "rb"))
         assert isinstance(environment, dict)
         assert "PATH" in environment

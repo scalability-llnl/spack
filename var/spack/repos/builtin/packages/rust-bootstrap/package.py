@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import platform
@@ -23,6 +22,17 @@ class RustBootstrap(Package):
     # should update these binary releases as bootstrapping requirements are
     # modified by new releases of Rust.
     rust_releases = {
+        "1.82.0": {
+            "darwin": {
+                "x86_64": "b1a289cabc523f259f65116a41374ac159d72fbbf6c373bd5e545c8e835ceb6a",
+                "aarch64": "49b6d36b308addcfd21ae56c94957688338ba7b8985bff57fc626c8e1b32f62c",
+            },
+            "linux": {
+                "x86_64": "0265c08ae997c4de965048a244605fb1f24a600bbe35047b811c638b8fcf676b",
+                "aarch64": "d7db04fce65b5f73282941f3f1df5893be9810af17eb7c65b2e614461fe31a48",
+                "powerpc64le": "44f3a1e70be33f91927ae8d89a11843a79b8b6124d62a9ddd9030a5275ebc923",
+            },
+        },
         "1.81.0": {
             "darwin": {
                 "x86_64": "f74d8ad24cc3cbfb825da98a08d98319565e4d18ec2c3e9503bf0a33c81ba767",
@@ -133,6 +143,12 @@ class RustBootstrap(Package):
         if os in rust_releases[release] and target in rust_releases[release][os]:
             version(release, sha256=rust_releases[release][os][target])
 
+    # rust-ldd and libLLVM both depend on zlib, which is not vendored.
+    depends_on("zlib-api")
+    depends_on("zlib-ng +shared", when="^[virtuals=zlib-api] zlib-ng")
+    depends_on("zlib +shared", when="^[virtuals=zlib-api] zlib")
+    depends_on("patchelf@0.13:", when="platform=linux", type="build")
+
     def url_for_version(self, version):
         if self.os not in ("linux", "darwin"):
             return None
@@ -150,6 +166,15 @@ class RustBootstrap(Package):
 
         url = "https://static.rust-lang.org/dist/rust-{0}-{1}-{2}.tar.gz"
         return url.format(version, target, os)
+
+    @run_before("install", when="platform=linux")
+    def fixup_rpaths(self):
+        # set rpaths of libLLVM.so and rust-ldd to zlib's lib directory
+        rpaths = self.spec["zlib-api"].libs.directories
+
+        for binary in find(self.stage.source_path, ["libLLVM.so.*", "rust-lld"]):
+            patchelf = Executable("patchelf")
+            patchelf("--add-rpath", ":".join(rpaths), binary)
 
     def install(self, spec, prefix):
         install_script = Executable("./install.sh")

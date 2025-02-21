@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,11 @@ class PyNumcodecs(PythonPackage):
 
     version("main", branch="main", submodules=True)
     version("master", branch="main", submodules=True, deprecated=True)
+    version(
+        "0.15.0",
+        sha256="52fb0c20d99845ef600eb3f8c8ad3e22fe2cb4f2a53394d331210af7cc3375ca",
+        preferred=True,
+    )
     version("0.13.0", sha256="ba4fac7036ea5a078c7afe1d4dffeb9685080d42f19c9c16b12dad866703aa2e")
     version("0.12.1", sha256="05d91a433733e7eef268d7e80ec226a0232da244289614a8f3826901aec1098e")
     version("0.12.0", sha256="6388e5f4e94d18a7165fbd1c9d3637673b74157cff8bc644005f9e2a4c717d6e")
@@ -50,7 +54,7 @@ class PyNumcodecs(PythonPackage):
     depends_on("py-entrypoints", when="@0.10.1:0.11", type=("build", "run"))
     depends_on("py-msgpack", type=("build", "run"), when="+msgpack")
 
-    patch("apple-clang-12.patch", when="%apple-clang@12:")
+    patch("apple-clang-12.patch", when="%apple-clang@12: @:0.13")
 
     # TODO: this package should really depend on blosc, zstd, lz4, zlib, but right now it vendors
     # those libraries without any way to use the system versions.

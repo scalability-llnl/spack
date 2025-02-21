@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,6 +25,10 @@ class Tree(Package):
     version("2.0.2", sha256="7d693a1d88d3c4e70a73e03b8dbbdc12c2945d482647494f2f5bd83a479eeeaf")
     version("1.8.0", sha256="715d5d4b434321ce74706d0dd067505bb60c5ea83b5f0b3655dae40aa6f9b7c2")
     version("1.7.0", sha256="6957c20e82561ac4231638996e74f4cfa4e6faabc5a2f511f0b4e3940e8f7b12")
+
+    depends_on("c", type="build")
+
+    depends_on("gmake", type="build")
 
     @when("@2:")
     def install(self, spec, prefix):

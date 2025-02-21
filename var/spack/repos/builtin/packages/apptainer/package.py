@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -29,13 +28,17 @@ class Apptainer(SingularityBase):
     url = "https://github.com/apptainer/apptainer/releases/download/v1.0.2/apptainer-1.0.2.tar.gz"
     git = "https://github.com/apptainer/apptainer.git"
 
+    maintainers("wdconinc")
+
     license(
         "BSD-3-Clause AND BSD-3-Clause-LBNL"
         " AND BSD-2-Clause AND Apache-2.0 AND MIT AND MPL-2.0 AND Unlicense",
         checked_by="tgamblin",
     )
 
-    version("main", branch="main")
+    version("main", branch="main", get_full_repo=True)  # apptainer version uses git describe
+    version("1.3.6", sha256="b5343369e7fdf67572f887d81f8d2b938f099fb39c876d96430d747935960d51")
+    version("1.3.5", sha256="fe1c977da952edf1056915b2df67ae2203ef06065d4e4901a237c902329306b2")
     version("1.3.4", sha256="c6ccfdd7c967e5c36dde8711f369c4ac669a16632b79fa0dcaf7e772b7a47397")
     version("1.3.3", sha256="94a274ab4898cdb131f4e3867c4e15f7e16bc2823303d2afcbafee0242f0838d")
     version("1.3.2", sha256="483910727e1a15843b93d9f2db1fc87e27804de9c74da13cc32cd4bd0d35e079")

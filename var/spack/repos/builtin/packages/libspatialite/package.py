@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -43,7 +42,7 @@ class Libspatialite(AutotoolsPackage):
     depends_on("geos@:3.9", when="@:5.0.0")
     depends_on("iconv")
     depends_on("librttopo", when="@5.0.1:")
-    depends_on("libxml2")
+    depends_on("libxml2+http")
     depends_on("minizip", when="@5.0.0:")
     depends_on("proj")
     depends_on("proj@:5", when="@:4")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -74,6 +73,7 @@ class Vecgeom(CMakePackage, CudaPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")
     depends_on("cxx", type="build")
 
     _cxxstd_values = (conditional("11", "14", when="@:1.1"), "17", conditional("20", when="@1.2:"))
@@ -97,17 +97,11 @@ class Vecgeom(CMakePackage, CudaPackage):
 
     conflicts("+cuda", when="@:1.1.5")
 
-    # Fix missing CMAKE_CUDA_STANDARD
+    # Fix empty -Xcompiler= with nvcc
     patch(
-        "https://gitlab.cern.ch/VecGeom/VecGeom/-/commit/7094dd180ef694f2abb7463cafcedfb8b8ed30a1.diff",
-        sha256="34f1a6899616e40bce33d80a38a9b409f819cbaab07b2e3be7f4ec4bedb52b29",
-        when="@1.1.7 +cuda",
-    )
-    # Fix installed target properties to not propagate flags to nvcc
-    patch(
-        "https://gitlab.cern.ch/VecGeom/VecGeom/-/commit/ac398bd109dd9175e4a898cd4b62571a3cc88252.diff",
-        sha256="a9ba136d3ed4282ec950069da2199f22beadea27d89a4264d8773ba329e253df",
-        when="@1.1.18 +cuda ^cuda@:11.4",
+        "https://gitlab.cern.ch/VecGeom/VecGeom/-/commit/0bf9b675ab70eb5cb9409ff73c1152fd1326dbf4.diff",
+        sha256="f172b0a9ee1de4931b106d8500d1a60d5688c9bce324cf12ca107ec866a16c56",
+        when="@1.2.7:1.2.10 +cuda ^cuda@:11",
     )
 
     def std_when(values):

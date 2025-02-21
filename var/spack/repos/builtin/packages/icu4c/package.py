@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class Icu4c(AutotoolsPackage, MSBuildPackage):
 
     license("Unicode-TOU")
 
+    version("76.1", sha256="dfacb46bfe4747410472ce3e1144bf28a102feeaa4e3875bac9b4c6cf30f4f3e")
+    version("75.1", sha256="cb968df3e4d2e87e8b11c49a5d01c787bd13b9545280fc6642f826527618caef")
     version("74.2", sha256="68db082212a96d6f53e35d60f47d38b962e9f9d207a74cfac78029ae8ff5e08c")
     version("67.1", sha256="94a80cd6f251a53bd2a997f6f1b5ac6653fe791dfab66e1eb0227740fb86d5dc")
     version("66.1", sha256="52a3f2209ab95559c1cf0a14f24338001f389615bf00e2585ef3dbc43ecf0a2e")
@@ -41,7 +42,7 @@ class Icu4c(AutotoolsPackage, MSBuildPackage):
             variant(
                 "cxxstd",
                 default="11",
-                values=("11", "14", "17"),
+                values=(conditional("11", "14", when="@:74"), "17"),
                 multi=False,
                 description="Use the specified C++ standard when building",
             )
@@ -71,11 +72,15 @@ class Icu4c(AutotoolsPackage, MSBuildPackage):
         return url.format(version.dashed, version.underscored)
 
     def flag_handler(self, name, flags):
-        if name == "cxxflags":
+        if name == "cxxflags" and not self.spec.platform == "windows":
             # Control of the C++ Standard is via adding the required "-std"
             # flag to CXXFLAGS in env
             flags.append(getattr(self.compiler, f"cxx{self.spec.variants['cxxstd'].value}_flag"))
         return (None, flags, None)
+
+    @property
+    def libs(self):
+        return find_libraries("libicu*", root=self.prefix, recursive=True)
 
 
 class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
@@ -120,7 +125,7 @@ class MSBuildBuilder(spack.build_systems.msbuild.MSBuildBuilder):
     @property
     def build_directory(self):
         solution_path = pathlib.Path(self.pkg.stage.source_path)
-        if self.spec.satsifies("@:67"):
+        if self.spec.satisfies("@:67"):
             solution_path = solution_path / "icu"
         solution_path = solution_path / "source" / "allinone"
         return str(solution_path)

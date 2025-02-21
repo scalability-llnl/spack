@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,7 @@ class Ndiff(Package):
     version("1.00", sha256="d4be3ab38e4b87da8d689fe47413e01a7bfdf8c8627bfb673aac37953a463a92")
 
     depends_on("c", type="build")  # generated
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         configure("--prefix=%s" % prefix)

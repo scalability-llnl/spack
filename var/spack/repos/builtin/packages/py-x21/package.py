@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -30,6 +29,7 @@ class PyX21(PythonPackage):
         version(
             "0.2.6-py3.8",
             sha256="bbbfdb6b56562ecc81f0dc39e009713157011fbb50d47353eb25f633acf77204",
+            deprecated=True,
         )
         version(
             "0.2.6-py3.9",
@@ -43,6 +43,7 @@ class PyX21(PythonPackage):
         version(
             "0.2.6-py3.8",
             sha256="64275052bcda784395bc613f750b8b5a6b1ddbfa4e7a590cb8e209543f0ca0c4",
+            deprecated=True,
         )
         version(
             "0.2.6-py3.9",

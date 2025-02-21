@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,7 @@ class PyJupyterlab(PythonPackage):
 
     homepage = "https://github.com/jupyterlab/jupyterlab"
     pypi = "jupyterlab/jupyterlab-2.2.7.tar.gz"
+    tags = ["build-tools"]
 
     license("BSD-3-Clause")
 
@@ -51,7 +51,8 @@ class PyJupyterlab(PythonPackage):
     depends_on("py-packaging", when="@3:", type=("build", "run"))
     depends_on("py-traitlets", when="@4:", type=("build", "run"))
     depends_on("py-tornado@6.2:", when="@4:", type=("build", "run"))
-    depends_on("py-tomli", when="@3.4.7: ^python@:3.10", type=("build", "run"))
+    depends_on("py-tomli", when="@4: ^python@:3.10", type=("build", "run"))
+    depends_on("py-tomli", when="@3.4.7:3", type=("build", "run"))
 
     with when("@:3"):
         depends_on("py-setuptools", when="@:3", type=("build", "run"))

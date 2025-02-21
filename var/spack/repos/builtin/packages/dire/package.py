@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -29,6 +28,7 @@ class Dire(Package):
     depends_on("lhapdf")
     depends_on("hepmc")
     depends_on("pythia8@8.226:")
+    depends_on("gmake", type="build")
 
     conflicts("^pythia8@8.301:", msg="Dire is included in Pythia8 since version 8.301")
 

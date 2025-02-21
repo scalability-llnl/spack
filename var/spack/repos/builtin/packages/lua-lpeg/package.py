@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -35,6 +34,11 @@ class LuaLpeg(LuaPackage):
     )
 
     depends_on("lua-lang@:5.1.9", when="@:0.12.1 ^[virtuals=lua-lang] lua")
+
+    @property
+    def libs(self):
+        libraries = [f"**/lua/{self.spec['lua-lang'].version.up_to(2)}/lpeg"]
+        return find_libraries(libraries, root=self.prefix)
 
 
 class LuaBuilder(spack.build_systems.lua.LuaBuilder):

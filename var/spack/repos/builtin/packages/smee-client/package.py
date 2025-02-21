@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,7 @@ class SmeeClient(Package):
 
     license("ISC")
 
+    version("2.0.4", sha256="b0c959f52e384bbd3f913955cb68102fef11d85b7cc8e5a83404ee325f1ccfe4")
     version("2.0.3", sha256="98ca658cf3214c5116651f2a788c793bc2fe76543f24ada20e8751fcf1de8e1a")
     version("1.2.3", sha256="b9afff843fc7a3c2b5d6659acf45357b5db7a739243b99f6d18a9b110981a328")
 

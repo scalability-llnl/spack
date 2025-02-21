@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -36,6 +35,7 @@ class Atlas(Package):
 
     depends_on("c", type="build")  # generated
     depends_on("fortran", type="build")  # generated
+    depends_on("gmake", type="build")
 
     # not all packages (e.g. Trilinos@12.6.3) stopped using deprecated in 3.6.0
     # Lapack routines. Stick with 3.5.0 until this is fixed.

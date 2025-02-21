@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -131,7 +130,7 @@ def test_create_template(mock_test_repo, args, name, expected):
     filename = repo.filename_for_package_name(name)
     assert os.path.exists(filename)
 
-    with open(filename, "r") as package_file:
+    with open(filename, "r", encoding="utf-8") as package_file:
         content = package_file.read()
         for entry in expected:
             assert entry in content

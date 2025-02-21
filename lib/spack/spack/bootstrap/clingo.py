@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Bootstrap concrete specs for clingo
@@ -28,9 +27,9 @@ from .config import spec_for_current_python
 class ClingoBootstrapConcretizer:
     def __init__(self, configuration):
         self.host_platform = spack.platforms.host()
-        self.host_os = self.host_platform.operating_system("frontend")
+        self.host_os = self.host_platform.default_operating_system()
         self.host_target = archspec.cpu.host().family
-        self.host_architecture = spack.spec.ArchSpec.frontend_arch()
+        self.host_architecture = spack.spec.ArchSpec.default_arch()
         self.host_architecture.target = str(self.host_target)
         self.host_compiler = self._valid_compiler_or_raise()
         self.host_python = self.python_external_spec()

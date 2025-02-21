@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import spack.build_systems.cmake
@@ -25,6 +24,7 @@ class QuantumEspresso(CMakePackage, Package):
     license("GPL-2.0-only")
 
     version("develop", branch="develop")
+    version("7.4.1", sha256="6ef9c53dbf0add2a5bf5ad2a372c0bff935ad56c4472baa001003e4f932cab97")
     version("7.4", sha256="b15dcfe25f4fbf15ccd34c1194021e90996393478226e601d876f7dea481d104")
     version("7.3.1", sha256="2c58b8fadfe4177de5a8b69eba447db5e623420b070dea6fd26c1533b081d844")
     version("7.3", sha256="edc2a0f3315c69966df4f82ec86ab9f682187bc9430ef6d2bacad5f27f08972c")
@@ -52,6 +52,7 @@ class QuantumEspresso(CMakePackage, Package):
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
     depends_on("fortran", type="build")  # generated
+    depends_on("gmake", type="build")
 
     resource(
         name="environ",
@@ -499,18 +500,6 @@ class GenericBuilder(spack.build_systems.generic.GenericBuilder):
     def install(self, pkg, spec, prefix):
         prefix_path = prefix.bin if "@:5.4.0" in spec else prefix
         options = ["-prefix={0}".format(prefix_path)]
-
-        # This additional flag is needed anytime the target architecture
-        # does not match the host architecture, which results in a binary that
-        # configure cannot execute on the login node. This is how we detect
-        # cross compilation: If the platform is NOT either Linux or Darwin
-        # and the target=backend, that we are in the cross-compile scenario
-        # scenario. This should cover Cray, BG/Q, and other custom platforms.
-        # The other option is to list out all the platform where you would be
-        # cross compiling explicitly.
-        if not (spec.satisfies("platform=linux") or spec.satisfies("platform=darwin")):
-            if spec.satisfies("target=backend"):
-                options.append("--host")
 
         # QE autoconf compiler variables has some limitations:
         # 1. There is no explicit MPICC variable so we must re-purpose

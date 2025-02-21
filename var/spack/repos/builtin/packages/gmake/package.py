@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -97,5 +96,14 @@ class Gmake(Package, GNUMirrorPackage):
 
     def setup_dependent_package(self, module, dspec):
         module.make = MakeExecutable(
-            self.spec.prefix.bin.make, determine_number_of_jobs(parallel=dspec.package.parallel)
+            self.spec.prefix.bin.make,
+            jobs=determine_number_of_jobs(parallel=dspec.package.parallel),
         )
+
+    @property
+    def libs(self):
+        return LibraryList([])
+
+    @property
+    def headers(self):
+        return HeaderList([])

@@ -1,16 +1,15 @@
 packages:
-  # EXTERNALS
   cray-mpich:
     buildable: false
     externals:
-    - spec: cray-mpich@8.1.25 %cce@15.0.1
-      prefix: /opt/cray/pe/mpich/8.1.25/ofi/cray/10.0
+    - spec: cray-mpich@8.1.30 %cce
+      prefix: /opt/cray/pe/mpich/8.1.30/ofi/cray/18.0
       modules:
-      - cray-mpich/8.1.25
+      - cray-mpich/8.1.30
   cray-libsci:
     buildable: false
     externals:
-    - spec: cray-libsci@23.02.1.1 %cce@15.0.1
-      prefix: /opt/cray/pe/libsci/23.02.1.1/CRAY/9.0/x86_64/
+    - spec: cray-libsci@24.07.0 %cce
+      prefix: /opt/cray/pe/libsci/24.07.0/CRAY/18.0/x86_64/
       modules:
-      - cray-libsci/23.02.1.1
+      - cray-libsci/24.07.0

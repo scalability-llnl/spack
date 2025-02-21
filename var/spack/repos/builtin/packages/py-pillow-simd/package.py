@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,10 +22,14 @@ class PyPillowSimd(PyPillowBase):
         "9.0.0.post1", sha256="918541cfaa90ba3c0e1bae5da31ba1b1f52b09c0009bd90183b787af4e018263"
     )
     version(
-        "7.0.0.post3", sha256="c27907af0e7ede1ceed281719e722e7dbf3e1dbfe561373978654a6b64896cb7"
+        "7.0.0.post3",
+        sha256="c27907af0e7ede1ceed281719e722e7dbf3e1dbfe561373978654a6b64896cb7",
+        deprecated=True,
     )
     version(
-        "6.2.2.post1", sha256="d29b673ac80091797f1e8334458be307e4ac4ab871b0e495cfe56cb7b1d7704e"
+        "6.2.2.post1",
+        sha256="d29b673ac80091797f1e8334458be307e4ac4ab871b0e495cfe56cb7b1d7704e",
+        deprecated=True,
     )
 
     depends_on("c", type="build")  # generated

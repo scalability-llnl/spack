@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -58,8 +57,7 @@ class Fxt(AutotoolsPackage):
                 subprocess.check_call("./autogen.sh")
             else:
                 raise RuntimeError(
-                    "Neither configure nor autogen.sh script exist.\
-                FxT Cannot configure."
+                    "Neither configure nor autogen.sh script exist. FxT Cannot configure."
                 )
 
     def configure_args(self):

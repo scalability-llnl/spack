@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Tools to produce reports of spec installations"""
@@ -191,9 +190,9 @@ class BuildInfoCollector(InfoCollector):
     def fetch_log(self, pkg):
         try:
             if os.path.exists(pkg.install_log_path):
-                stream = gzip.open(pkg.install_log_path, "rt")
+                stream = gzip.open(pkg.install_log_path, "rt", encoding="utf-8")
             else:
-                stream = open(pkg.log_path)
+                stream = open(pkg.log_path, encoding="utf-8")
             with stream as f:
                 return f.read()
         except OSError:

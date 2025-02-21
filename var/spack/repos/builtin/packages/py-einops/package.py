@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,7 @@ class PyEinops(PythonPackage):
     license("MIT")
     maintainers("adamjstewart")
 
+    version("0.8.1", sha256="de5d960a7a761225532e0f1959e5315ebeafc0cd43394732f103ca44b9837e84")
     version("0.8.0", sha256="63486517fed345712a8385c100cb279108d9d47e6ae59099b07657e983deae85")
     version("0.7.0", sha256="b2b04ad6081a3b227080c9bf5e3ace7160357ff03043cd66cc5b2319eb7031d1")
     version("0.6.1", sha256="f95f8d00f4ded90dbc4b19b6f98b177332614b0357dde66997f3ae5d474dc8c8")

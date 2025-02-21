@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,7 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
     test_requires_compiler = True
 
     version("master", branch="master")
+    version("2.9.0", sha256="ff77fd3726b3dfec3bfb55790b06480aa5cc384396c2db35c56fdae4a82c641c")
     version("2.8.0", sha256="f4e5e75350743fe57f49b615247da2cc875e5193cc90c11b43554a7c82cc4348")
     version("2.7.2", sha256="729bc1a70e518a7422fe7a3a54537a4741035a77be3349f66eac5c362576d560")
     version("2.7.1", sha256="d9c8711c047a38cae16efde74bee2eb3333217fd2711e1e9b8606cbbb4ae1a50")
@@ -80,18 +80,22 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
         "cuda_arch=none", when="+cuda", msg="magma: Please indicate a CUDA arch value or values"
     )
 
-    # currently not compatible with CUDA-11
+    # Versions before 2.5.3 were not compatible with CUDA-11
     # https://bitbucket.org/icl/magma/issues/22/cuda-11-changes-issue
     # https://bitbucket.org/icl/magma/issues/25/error-cusparsesolveanalysisinfo_t-does-not
     conflicts("^cuda@11:", when="@:2.5.3")
 
-    # currently not compatible with CUDA-12.6
+    # 2.8.0 release not compatible with CUDA-12.6
     # https://github.com/icl-utk-edu/magma/issues/7
     conflicts("^cuda@12.6:", when="@:2.8.0")
 
-    # Many cuda_arch values are not yet recognized by MAGMA's CMakeLists.txt
-    for target in [10, 11, 12, 13, 21, 32, 52, 53, 61, 62, 72, 86]:
-        conflicts(f"cuda_arch={target}")
+    # Many cuda_arch values were not recognized by MAGMA's CMakeLists.txt
+    with when("@:2.8"):
+        # All cuda_arch values are supported in 2.9.0 release
+        for target in [10, 11, 12, 13, 21, 32, 52, 53, 61, 62, 72, 86]:
+            conflicts(
+                f"cuda_arch={target}", msg=f"magma: cuda_arch={target} needs a version > 2.8.0"
+            )
 
     # Some cuda_arch values had support added recently
     conflicts("cuda_arch=37", when="@:2.5", msg="magma: cuda_arch=37 needs a version > 2.5")
@@ -206,7 +210,6 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
         with working_dir(test_dir):
             pkg_config_path = self.prefix.lib.pkgconfig
             with spack.util.environment.set_env(PKG_CONFIG_PATH=pkg_config_path):
-
                 make("c")
                 tests = [
                     ("example_sparse", "sparse solver"),

@@ -1,12 +1,11 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
 
 
-class Libxau(AutotoolsPackage, XorgPackage):
+class Libxau(AutotoolsPackage, MesonPackage, XorgPackage):
     """The libXau package contains a library implementing the X11
     Authorization Protocol. This is useful for restricting client
     access to the display."""
@@ -18,6 +17,9 @@ class Libxau(AutotoolsPackage, XorgPackage):
 
     maintainers("wdconinc")
 
+    build_system("autotools", conditional("meson", when="@1.0.12:"), default="autotools")
+
+    version("1.0.12", sha256="2402dd938da4d0a332349ab3d3586606175e19cb32cb9fe013c19f1dc922dcee")
     version("1.0.11", sha256="3a321aaceb803577a4776a5efe78836eb095a9e44bbc7a465d29463e1a14f189")
     version("1.0.10", sha256="51a54da42475d4572a0b59979ec107c27dacf6c687c2b7b04e5cf989a7c7e60c")
     version("1.0.9", sha256="1f123d8304b082ad63a9e89376400a3b1d4c29e67e3ea07b3f659cccca690eea")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -33,7 +32,8 @@ class PyPyvista(PythonPackage):
     depends_on("pil", type=("build", "run"))
     depends_on("py-pooch", when="@0.37:", type=("build", "run"))
     depends_on("py-scooby@0.5.1:", type=("build", "run"))
-    depends_on("vtk+python", type=("build", "run"))
+    # https://github.com/pyvista/pyvista/issues/6857
+    depends_on("vtk@:9.3+python", type=("build", "run"))
     depends_on("py-typing-extensions", when="^python@:3.7", type=("build", "run"))
 
     # Historical dependencies

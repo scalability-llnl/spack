@@ -1,11 +1,9 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
 import base64
-import email.message
 import hashlib
 import io
 import json
@@ -20,49 +18,7 @@ from urllib.request import Request
 import spack.oci.oci
 from spack.oci.image import Digest
 from spack.oci.opener import OCIAuthHandler
-
-
-class MockHTTPResponse(io.IOBase):
-    """This is a mock HTTP response, which implements part of http.client.HTTPResponse"""
-
-    def __init__(self, status, reason, headers=None, body=None):
-        self.msg = None
-        self.version = 11
-        self.url = None
-        self.headers = email.message.EmailMessage()
-        self.status = status
-        self.code = status
-        self.reason = reason
-        self.debuglevel = 0
-        self._body = body
-
-        if headers is not None:
-            for key, value in headers.items():
-                self.headers[key] = value
-
-    @classmethod
-    def with_json(cls, status, reason, headers=None, body=None):
-        """Create a mock HTTP response with JSON string as body"""
-        body = io.BytesIO(json.dumps(body).encode("utf-8"))
-        return cls(status, reason, headers, body)
-
-    def read(self, *args, **kwargs):
-        return self._body.read(*args, **kwargs)
-
-    def getheader(self, name, default=None):
-        self.headers.get(name, default)
-
-    def getheaders(self):
-        return self.headers.items()
-
-    def fileno(self):
-        return 0
-
-    def getcode(self):
-        return self.status
-
-    def info(self):
-        return self.headers
+from spack.test.conftest import MockHTTPResponse
 
 
 class MiddlewareError(Exception):

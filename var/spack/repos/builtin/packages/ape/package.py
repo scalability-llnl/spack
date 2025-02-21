@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,7 @@ class Ape(Package):
     depends_on("gsl")
     depends_on("libxc@:4", when="@2.3.0:")
     depends_on("libxc@:2.2.2", when="@:2.2.1")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         args = []

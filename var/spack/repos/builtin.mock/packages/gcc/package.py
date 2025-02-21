@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -37,6 +36,6 @@ class Gcc(CompilerPackage, Package):
     def install(self, spec, prefix):
         # Create the minimal compiler that will fool `spack compiler find`
         mkdirp(prefix.bin)
-        with open(prefix.bin.gcc, "w") as f:
+        with open(prefix.bin.gcc, "w", encoding="utf-8") as f:
             f.write('#!/bin/bash\necho "%s"' % str(spec.version))
         set_executable(prefix.bin.gcc)
