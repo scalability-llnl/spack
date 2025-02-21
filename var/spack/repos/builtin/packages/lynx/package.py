@@ -13,11 +13,19 @@ class Lynx(AutotoolsPackage):
 
     license("GPL-2.0-only")
 
+    version("2.9.2", sha256="99f8f28f860094c533100d1cedf058c27fb242ce25e991e2d5f30ece4457a3bf")
     version("2.8.9.1", sha256="a46e4167b8f02c066d2fe2eafcc5603367be0e3fe2e59e9fc4eb016f306afc8e")
 
     depends_on("c", type="build")  # generated
+    depends_on("ncurses", type=("build", "run"))
+    depends_on("openssl", type=("build", "run"))
 
-    depends_on("ncurses")
+    def configure_args(self):
+        args = []
+
+        args.append("--with-ssl")
+
+        return args
 
     def url_for_version(self, version):
         version_str = version.string
