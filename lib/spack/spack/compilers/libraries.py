@@ -138,9 +138,7 @@ def _parse_link_paths(string):
 
 
 
-
-
-class CompilerPropertyDetector:
+class CompilerExecutor:
 
     def __init__(self, compiler_spec: spack.spec.Spec):
         assert compiler_spec.concrete, "only concrete compiler specs are allowed"
@@ -235,14 +233,22 @@ class CompilerPropertyDetector:
     def compiler_verbose_output(self) -> Optional[str]:
         return self.cache.get(self.spec).c_compiler_output
 
-    def default_dynamic_linker(self) -> Optional[str]:
-        output = self.compiler_verbose_output()
 
+class CompilerPropertyDetector:
+    def __init__(self, compiler: spack.spec.Spec):
+        self._executor = CompilerExecutor(compiler)
+        self._compiler = compiler
+
+
+
+class CompilerDynamicLinkerDetector(CompilerPropertyDetector):
+    def default_dynamic_linker(self) -> Optional[str]:
+        output = self._executor.compiler_verbose_output() 
         if not output:
             return None
-
         return spack.util.libc.parse_dynamic_linker(output)
 
+class CompilerLibcDetector(CompilerDynamicLinkerDetector):
     def default_libc(self) -> Optional[spack.spec.Spec]:
         """Determine libc targeted by the compiler from link line"""
         # technically this should be testing the target platform of the compiler, but we don't have
@@ -257,19 +263,33 @@ class CompilerPropertyDetector:
 
         return spack.util.libc.libc_from_dynamic_linker(dynamic_linker)
 
+
+class CompilerRPathDetector(CompilerDynamicLinkerDetector):
     def implicit_rpaths(self) -> List[str]:
-        output = self.compiler_verbose_output()
+        output = self._executor.compiler_verbose_output()
         if output is None:
             return []
 
         link_dirs = parse_non_system_link_dirs(output)
-        all_required_libs = list(self.spec.package.required_libs) + ["libc", "libc++", "libstdc++"]
+        all_required_libs = list(self._compiler.package.required_libs) + ["libc", "libc++", "libstdc++"]
         dynamic_linker = self.default_dynamic_linker()
         result = DefaultDynamicLinkerFilter(dynamic_linker)(
             paths_containing_libs(link_dirs, all_required_libs)
         )
         return list(result)
+    
 
+class CompilerMSCDetector(CompilerPropertyDetector):
+    pass
+
+class CompilerMFCDetector(CompilerPropertyDetector):
+    pass
+    
+class LinuxCompilerInspector(CompilerLibcDetector, CompilerRPathDetector):
+    pass
+
+class MSVCCompilerInspector(CompilerMFCDetector, CompilerMSCDetector):
+    pass
 
 class DefaultDynamicLinkerFilter:
     """Remove rpaths to directories that are default search paths of the dynamic linker."""
@@ -314,7 +334,7 @@ def dynamic_linker_filter_for(node: spack.spec.Spec) -> Optional[DefaultDynamicL
     compiler = compiler_spec(node)
     if compiler is None:
         return None
-    detector = CompilerPropertyDetector(compiler)
+    detector = CompilerDynamicLinkerDetector(compiler)
     dynamic_linker = detector.default_dynamic_linker()
     if dynamic_linker is None:
         return None
