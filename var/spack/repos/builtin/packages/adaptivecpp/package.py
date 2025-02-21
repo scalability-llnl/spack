@@ -11,70 +11,57 @@ from llnl.util import filesystem
 from spack.package import *
 
 
-class Hipsycl(CMakePackage, ROCmPackage):
-    """hipSYCL is an implementation of the SYCL standard programming model
-    over NVIDIA CUDA/AMD HIP"""
+class Adaptivecpp(CMakePackage, ROCmPackage):
+    """AdaptiveCpp is an implementation of SYCL and C++ standard parallelism for CPUs and GPUs
+    from all vendors: The independent, community-driven compiler for C++-based heterogeneous
+    programming models.
+    Lets applications adapt themselves to all the hardware in the system - even at runtime!
 
-    homepage = "https://github.com/illuhad/hipSYCL"
-    url = "https://github.com/illuhad/hipSYCL/archive/v0.8.0.tar.gz"
-    git = "https://github.com/illuhad/hipSYCL.git"
+    This package has been previously known as hipSYCL and, briefly, Open SYCL.
+    """
+
+    homepage = "https://adaptivecpp.github.io/"
+    url = "https://github.com/AdaptiveCpp/AdaptiveCpp/archive/refs/tags/v24.10.0.tar.gz"
+    git = "https://github.com/AdaptiveCpp/AdaptiveCpp.git"
 
     provides("sycl")
 
     license("BSD-2-Clause")
 
-    with default_args(deprecated=True):
-        # Use `adaptivecpp` for these versions
-        version("stable", branch="stable", submodules=True)
-        version("24.06.0", commit="fc51dae9006d6858fc9c33148cc5f935bb56b075", submodules=True)
-        version("24.02.0", commit="974adc33ea5a35dd8b5be68c7a744b37482b8b64", submodules=True)
-        version("23.10.0", commit="3952b468c9da89edad9dff953cdcab0a3c3bf78c", submodules=True)
-        version("develop", branch="develop", submodules=True)
-    version("0.9.4", commit="99d9e24d462b35e815e0e59c1b611936c70464ae", submodules=True)
-    version("0.9.4", commit="99d9e24d462b35e815e0e59c1b611936c70464ae", submodules=True)
-    version("0.9.3", commit="51507bad524c33afe8b124804091b10fa25618dc", submodules=True)
-    version("0.9.2", commit="49fd02499841ae884c61c738610e58c27ab51fdb", submodules=True)
-    version("0.9.1", commit="fe8465cd5399a932f7221343c07c9942b0fe644c", submodules=True)
-    version("0.8.0", commit="2daf8407e49dd32ebd1c266e8e944e390d28b22a", submodules=True)
+    with default_args(submodules=True):
+        version("stable", branch="stable")
+        version("develop", branch="develop")
+        version("24.10.0", commit="7677cf6eefd8ab46d66168cd07ab042109448124")
+        # AdaptiveCpp only officially supports the latest version
+        # but we don't deprecate everything else just yet
+        version("24.06.0", commit="fc51dae9006d6858fc9c33148cc5f935bb56b075")
+        version("24.02.0", commit="974adc33ea5a35dd8b5be68c7a744b37482b8b64")
+        version("23.10.0", commit="3952b468c9da89edad9dff953cdcab0a3c3bf78c")
 
     variant("cuda", default=False, description="Enable CUDA backend for SYCL kernels")
     variant("rocm", default=False, description="Enable ROCM backend for SYCL kernels")
 
     depends_on("cmake@3.5:", type="build")
-    depends_on("boost +filesystem", when="@:0.8")
-    depends_on("boost@1.67.0:1.69.0 +filesystem +fiber +context cxxstd=17", when="@0.9.1:")
+    depends_on("cmake@3.9:", type="build", when="@24.06:")
+    depends_on("cmake@3.10:", type="build", when="@24.10:")
+
+    depends_on("boost@1.67: +filesystem +fiber +context cxxstd=17", when="@23.10:")
     depends_on("python@3:")
     depends_on("llvm@8: +clang", when="~cuda")
     depends_on("llvm@9: +clang", when="+cuda")
-    # hipSYCL 0.8.0 supported only LLVM 8-10:
-    # (https://github.com/AdaptiveCpp/AdaptiveCpp/blob/v0.8.0/CMakeLists.txt#L29-L37)
-    depends_on("llvm@8:10", when="@0.8.0")
     # https://github.com/spack/spack/issues/45029 and https://github.com/spack/spack/issues/43142
     conflicts("^gcc@12", when="@23.10.0")
-    # https://github.com/OpenSYCL/OpenSYCL/pull/918 was introduced after 0.9.4
-    conflicts("^gcc@12.2.0", when="@:0.9.4")
     # LLVM PTX backend requires cuda7:10.1 (https://tinyurl.com/v82k5qq)
-    depends_on("cuda@9:10.1", when="@0.8.1: +cuda ^llvm@9")
-    depends_on("cuda@9:", when="@0.8.1: +cuda ^llvm@10:")
-    # hipSYCL@:0.8.0 requires cuda@9:10.0 due to a known bug
-    depends_on("cuda@9:10.0", when="@:0.8.0 +cuda")
+    depends_on("cuda@9:10.1", when="@23.10.0: +cuda ^llvm@9")
+    depends_on("cuda@9:", when="@23.10.0: +cuda ^llvm@10:")
 
-    conflicts(
-        "%gcc@:4",
-        when="@:0.9.0",
-        msg="hipSYCL needs proper C++14 support to be built, %gcc is too old",
-    )
-    conflicts(
-        "%gcc@:8",
-        when="@0.9.1:",
-        msg="hipSYCL needs proper C++17 support to be built, %gcc is too old",
-    )
+    conflicts("%gcc@:8", msg="AdaptiveCpp needs proper C++17 support to be built, %gcc is too old")
     conflicts(
         "^llvm build_type=Debug",
         when="+cuda",
-        msg="LLVM debug builds don't work with hipSYCL CUDA backend; for "
+        msg="LLVM debug builds don't work with AdaptiveCpp CUDA backend; for "
         "further info please refer to: "
-        "https://github.com/illuhad/hipSYCL/blob/master/doc/install-cuda.md",
+        "https://github.com/AdaptiveCpp/AdaptiveCpp/blob/master/doc/install-cuda.md",
     )
     # https://github.com/spack/spack/issues/46681
     conflicts("^llvm@19", when="@24.02.0:24.06.0")
@@ -85,7 +72,7 @@ class Hipsycl(CMakePackage, ROCmPackage):
             "-DWITH_CPU_BACKEND:Bool=TRUE",
             "-DWITH_ROCM_BACKEND:Bool={0}".format("TRUE" if spec.satisfies("+rocm") else "FALSE"),
             "-DWITH_CUDA_BACKEND:Bool={0}".format("TRUE" if spec.satisfies("+cuda") else "FALSE"),
-            # prevent hipSYCL's cmake to look for other LLVM installations
+            # prevent AdaptiveCpp's cmake to look for other LLVM installations
             # if the specified one isn't compatible
             "-DDISABLE_LLVM_VERSION_CHECK:Bool=TRUE",
         ]
@@ -137,7 +124,7 @@ class Hipsycl(CMakePackage, ROCmPackage):
             config_file_paths = filesystem.find(self.prefix, filename)
             if len(config_file_paths) != 1:
                 raise InstallError(
-                    "installed hipSYCL must provide a unique compiler driver"
+                    "installed AdaptiveCpp must provide a unique compiler driver"
                     "configuration file ({0}), found: {1}".format(filename, config_file_paths)
                 )
             config_file_path = config_file_paths[0]
