@@ -4859,12 +4859,12 @@ def reconstruct_virtuals_on_edges(spec):
                 )
                 continue
 
-            for name, when_deps in parent_pkg.dependencies_by_name(when=True).items():
-                if not spack.repo.PATH.is_virtual(name):
-                    continue
-
-                if any(edge.parent.satisfies(x) for x in when_deps):
-                    virtuals_needed[parent_key].add(name)
+            virtuals_needed[parent_key] = {
+                name
+                for name, when_deps in parent_pkg.dependencies_by_name(when=True).items()
+                if spack.repo.PATH.is_virtual(name)
+                and any(edge.parent.satisfies(x) for x in when_deps)
+            }
 
         if not virtuals_needed[parent_key]:
             continue
