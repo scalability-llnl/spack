@@ -4845,36 +4845,49 @@ def reconstruct_virtuals_on_edges(spec):
         spec: spec on which we want to reconstruct virtuals
     """
     # Collect all possible virtuals
-    possible_virtuals = collections.defaultdict(set)
-    for node in spec.traverse():
-        key = node.dag_hash()
-        try:
-            node_pkg = node.package
-        except Exception as e:
-            warnings.warn(f"cannot reconstruct virtual dependencies on {node.name}: {e}")
-            continue
-
-        for name, when_deps in node_pkg.dependencies_by_name(when=True).items():
-            if not spack.repo.PATH.is_virtual(name):
+    virtuals_needed, virtuals_provided = {}, {}
+    for edge in spec.traverse_edges(cover="edges", root=False):
+        parent_key = edge.parent.dag_hash()
+        if parent_key not in virtuals_needed:
+            # Construct which virtuals are needed by parent
+            virtuals_needed[parent_key] = set()
+            try:
+                parent_pkg = edge.parent.package
+            except Exception as e:
+                warnings.warn(
+                    f"cannot reconstruct virtual dependencies on {edge.parent.name}: {e}"
+                )
                 continue
 
-            if any(node.satisfies(x) for x in when_deps):
-                possible_virtuals[key].add(name)
+            for name, when_deps in parent_pkg.dependencies_by_name(when=True).items():
+                if not spack.repo.PATH.is_virtual(name):
+                    continue
 
-    for edge in spec.traverse_edges(cover="edges"):
-        if edge.parent is None:
+                if any(edge.parent.satisfies(x) for x in when_deps):
+                    virtuals_needed[parent_key].add(name)
+
+        if not virtuals_needed[parent_key]:
             continue
 
-        key = edge.parent.dag_hash()
-        try:
-            provided_virtuals = {x.name for x in edge.spec.package.virtuals_provided}
-        except Exception as e:
-            warnings.warn(f"cannot reconstruct virtual dependencies on {edge.parent.name}: {e}")
+        child_key = edge.spec.dag_hash()
+        if child_key not in virtuals_provided:
+            virtuals_provided[child_key] = set()
+            try:
+                child_pkg = edge.spec.package
+            except Exception as e:
+                warnings.warn(
+                    f"cannot reconstruct virtual dependencies on {edge.parent.name}: {e}"
+                )
+                continue
+            virtuals_provided[child_key] = {x.name for x in child_pkg.virtuals_provided}
+
+        if not virtuals_provided[child_key]:
             continue
 
-        virtuals_to_add = possible_virtuals[key] & provided_virtuals
+        virtuals_to_add = virtuals_needed[parent_key] & virtuals_provided[child_key]
         if not virtuals_to_add:
             continue
+
         edge.update_virtuals(virtuals_to_add)
 
 
