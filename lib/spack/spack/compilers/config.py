@@ -125,7 +125,7 @@ def all_compilers(scope: Optional[str] = None, init_config: bool = True) -> List
 
 
 def _init_packages_yaml(
-    configuration: spack.config.ConfigurationType, *, scope: Optional[str]
+    configuration: spack.config.Configuration, *, scope: Optional[str]
 ) -> None:
     # Try importing from compilers.yaml
     legacy_compilers = CompilerFactory.from_compilers_yaml(configuration, scope=scope)
@@ -151,7 +151,7 @@ def _init_packages_yaml(
 
 
 def all_compilers_from(
-    configuration: spack.config.ConfigurationType, scope: Optional[str] = None
+    configuration: spack.config.Configuration, scope: Optional[str] = None
 ) -> List[spack.spec.Spec]:
     """Returns all the compilers from the current global configuration.
 
@@ -167,7 +167,7 @@ def all_compilers_from(
 class CompilerRemover:
     """Removes compiler from configuration."""
 
-    def __init__(self, configuration: spack.config.ConfigurationType) -> None:
+    def __init__(self, configuration: spack.config.Configuration) -> None:
         self.configuration = configuration
         self.marked_packages_yaml: List[Tuple[str, Any]] = []
 
@@ -272,7 +272,7 @@ class CompilerFactory:
 
     @staticmethod
     def from_packages_yaml(
-        configuration: spack.config.ConfigurationType, *, scope: Optional[str] = None
+        configuration: spack.config.Configuration, *, scope: Optional[str] = None
     ) -> List[spack.spec.Spec]:
         """Returns the compiler specs defined in the "packages" section of the configuration"""
         compilers = []
@@ -361,7 +361,7 @@ class CompilerFactory:
 
     @staticmethod
     def from_compilers_yaml(
-        configuration: spack.config.ConfigurationType, *, scope: Optional[str] = None
+        configuration: spack.config.Configuration, *, scope: Optional[str] = None
     ) -> List[spack.spec.Spec]:
         """Returns the compiler specs defined in the "compilers" section of the configuration"""
         result: List[spack.spec.Spec] = []
