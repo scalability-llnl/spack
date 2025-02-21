@@ -4885,10 +4885,8 @@ def reconstruct_virtuals_on_edges(spec):
             continue
 
         virtuals_to_add = virtuals_needed[parent_key] & virtuals_provided[child_key]
-        if not virtuals_to_add:
-            continue
-
-        edge.update_virtuals(virtuals_to_add)
+        if virtuals_to_add:
+            edge.update_virtuals(virtuals_to_add)
 
 
 class SpecfileReaderBase:
