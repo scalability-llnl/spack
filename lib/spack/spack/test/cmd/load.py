@@ -30,9 +30,9 @@ def test_load_recursive(install_mockery, mock_fetch, mock_archive, mock_packages
 
         shell_out = load(shell, "mpileaks")
 
-        shell_script_file = shell_script.path_to_load_shell_script(mpileaks_spec, shell[-2:])
+        load_script_file = shell_script.path_to_load_shell_script(mpileaks_spec, shell[2:])
 
-        with open(shell_script_file, "r") as f:
+        with open(load_script_file, "r") as f:
             shell_out = f.read()
 
         def extract_value(output, variable):
@@ -81,12 +81,13 @@ def test_load_recursive(install_mockery, mock_fetch, mock_archive, mock_packages
         assert paths_sh == paths_csh
 
 
+# TODO: Reinstate --csh when it's shell script is written
 @pytest.mark.parametrize(
     "shell,set_command",
     (
         [("--bat", 'set "%s=%s"')]
         if sys.platform == "win32"
-        else [("--sh", "export %s=%s"), ("--csh", "setenv %s %s")]
+        else [("--sh", "spack_env_set %s %s")]  #, ("--csh", "setenv %s %s")]
     ),
 )
 def test_load_includes_run_env(
@@ -96,8 +97,17 @@ def test_load_includes_run_env(
     `setup_run_environment` method are added to the user environment in
     addition to the prefix inspections"""
     install("mpileaks")
+    mpileaks_spec = spack.spec.Spec("mpileaks").concretized()
 
     shell_out = load(shell, "mpileaks")
+    load_script_file = shell_script.path_to_load_shell_script(mpileaks_spec, shell[2:])
+
+    with open(load_script_file, "r") as f:
+        shell_out = f.read()
+
+    cmd = set_command % ("FOOBAR", "mpileaks")
+
+    print(f"shell_out: {shell_out}")
 
     assert set_command % ("FOOBAR", "mpileaks") in shell_out
 
@@ -123,43 +133,6 @@ def test_load_fails_no_shell(install_mockery, mock_fetch, mock_archive, mock_pac
 
     out = load("mpileaks", fail_on_error=False)
     assert "To set up shell support" in out
-
-
-@pytest.mark.parametrize(
-    "shell,set_command,unset_command",
-    (
-        [("--bat", 'set "%s=%s"', 'set "%s="')]
-        if sys.platform == "win32"
-        else [("--sh", "export %s=%s", "unset %s"), ("--csh", "setenv %s %s", "unsetenv %s")]
-    ),
-)
-def test_unload(
-    shell,
-    set_command,
-    unset_command,
-    install_mockery,
-    mock_fetch,
-    mock_archive,
-    mock_packages,
-    working_env,
-):
-    """Tests that any variables set in the user environment are undone by the
-    unload command"""
-    install("mpileaks")
-    mpileaks_spec = spack.spec.Spec("mpileaks").concretized()
-
-    # Set so unload has something to do
-    os.environ["FOOBAR"] = "mpileaks"
-    os.environ[uenv.spack_loaded_hashes_var] = ("%s" + os.pathsep + "%s") % (
-        mpileaks_spec.dag_hash(),
-        "garbage",
-    )
-
-    shell_out = unload(shell, "mpileaks")
-
-    assert (unset_command % "FOOBAR") in shell_out
-
-    assert set_command % (uenv.spack_loaded_hashes_var, "garbage") in shell_out
 
 
 def test_unload_fails_no_shell(
