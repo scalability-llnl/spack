@@ -19,7 +19,7 @@ class PyPerfdump(CMakePackage):
     version("1.1", sha256="d2d96e2bd8ba2616ea4a44233ea240a529788390a5c22d35f9de79a22647370d")
 
     variant("mpi", default=False, description="Use MPI")
-    variant("hdf5", default=True, description="Enable HDF5 output")
+    variant("hdf5", default=False, description="Enable HDF5 output")
 
     depends_on("cmake@3.15:", type="build")
     depends_on("cxx", type="build")
