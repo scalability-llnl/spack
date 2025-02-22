@@ -12,7 +12,7 @@ class Samurai(CMakePackage):
     homepage = "https://github.com/hpc-maths/samurai"
     git = "https://github.com/hpc-maths/samurai.git"
 
-    version("master", git=url)
+    version("master", branch="master")
 
     depends_on("xtl@0.7.4")
     # depends_on("xsimd@11.0.0")
