@@ -14,6 +14,13 @@ class Samurai(CMakePackage):
 
     version("master", branch="master")
 
+    variant("mpi", default=False, description="Enable MPI support")
+    variant("openmp", default=False, description="Enable OpenMP support")
+    # variant("demos", default=False, description="Build Demos")
+    # variant("benchmarks", default=False,description="Build benchmarks")
+    variant("tests", default=False, description="Build tests")
+    variant("check_nan", default=False, description="Check for Nan in computations")
+    
     depends_on("xtl@0.7.4")
     # depends_on("xsimd@11.0.0")
     depends_on("xtensor@0.24.1 ~tbb")
@@ -30,13 +37,6 @@ class Samurai(CMakePackage):
     depends_on("petsc~mpi", when="~mpi")
     depends_on("petsc+mpi", when="+mpi")
     depends_on("boost+serialization+mpi", when="+mpi")
-
-    variant("mpi", default=False, description="Enable MPI support")
-    variant("openmp", default=False, description="Enable OpenMP support")
-    # variant("demos", default=False, description="Build Demos")
-    # variant("benchmarks", default=False,description="Build benchmarks")
-    variant("tests", default=False, description="Build tests")
-    variant("check_nan", default=False, description="Check for Nan in computations")
 
     def setup_dependent_build_environment(self, env, dependent_spec):
         include_path = self.spec.prefix.include
