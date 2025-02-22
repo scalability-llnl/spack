@@ -13,13 +13,16 @@ class Sendme(CargoPackage):
     homepage = "https://www.iroh.computer/sendme"
     git = "https://github.com/n0-computer/sendme.git"
 
-    maintainers("n0-computer")
+    maintainers("draguve")
 
     license("Apache-2.0 OR MIT")
 
     version("main", branch="main")
     version("0.23.0", tag="v0.23.0", commit="39f6111d8c3a973ea1f54a3c47aad07014de854b")
 
+    sanity_check_is_file = [join_path("bin", "sendme")]
+
+    @run_after("install")
     def test_sanity(self):
         """Verify that the 'sendme' binary is available"""
         sendme = which(self.prefix.bin.sendme)
