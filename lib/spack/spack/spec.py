@@ -2116,14 +2116,12 @@ class Spec:
     def short_spec(self):
         """Returns a version of the spec with the dependencies hashed
         instead of completely enumerated."""
-        return self.format("{name}{@version} {variants}{ arch=architecture}{/hash:7}")
+        return self.format("{name}{@version}{variants}{ arch=architecture}{/hash:7}")
 
     @property
     def cshort_spec(self):
         """Returns an auto-colorized version of ``self.short_spec``."""
-        spec_format = "{name}{@version}{%compiler.name}{@compiler.version}"
-        spec_format += "{variants}{ arch=architecture}{/hash:7}"
-        return self.cformat(spec_format)
+        return self.cformat("{name}{@version}{variants}{ arch=architecture}{/hash:7}")
 
     @property
     def prefix(self) -> spack.util.prefix.Prefix:
@@ -5330,8 +5328,7 @@ class UnconstrainableDependencySpecError(spack.error.SpecError):
 
 class AmbiguousHashError(spack.error.SpecError):
     def __init__(self, msg, *specs):
-        spec_fmt = "{namespace}.{name}{@version}{%compiler}{compiler_flags}"
-        spec_fmt += "{variants}{ arch=architecture}{/hash:7}"
+        spec_fmt = "{namespace}.{name}{@version}{variants}{ arch=architecture}{/hash:7}"
         specs_str = "\n  " + "\n  ".join(spec.format(spec_fmt) for spec in specs)
         super().__init__(msg + specs_str)
 
