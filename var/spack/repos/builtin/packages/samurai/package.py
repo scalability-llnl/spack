@@ -57,7 +57,7 @@ class Samurai(CMakePackage):
             options.append(self.define("HDF5_IS_PARALLEL", True))
 
         # OpenMP support
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             options.append(self.define_from_variant("WITH_OPENMP", "openmp"))
 
         return options
