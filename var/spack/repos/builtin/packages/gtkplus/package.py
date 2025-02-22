@@ -88,7 +88,7 @@ class Gtkplus(AutotoolsPackage, MesonPackage):
     depends_on("cups", when="+cups")
     depends_on("libxfixes", when="@:2")
 
-    conflicts("%gcc@14:", when="@:3.24.29")
+    conflicts("%gcc@14:", when="@:3.24.35")
 
     patch("no-demos.patch", when="@2.0:2")
 
