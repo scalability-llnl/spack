@@ -2197,3 +2197,13 @@ def write_config_file(tmpdir):
         return config_yaml
 
     return _write
+
+
+def _include_cache_root():
+    return join_path(str(tempfile.mkdtemp()), "user_cache", "includes")
+
+
+@pytest.fixture()
+def mock_include_cache(monkeypatch):
+    """Override the include cache directory so tests don't pollute user cache."""
+    monkeypatch.setattr(spack.config, "_include_cache_location", _include_cache_root)

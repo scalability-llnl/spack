@@ -4262,8 +4262,10 @@ def test_unify_when_possible_works_around_conflicts():
     assert len([x for x in e.all_specs() if x.satisfies("mpich")]) == 1
 
 
+# Using mock_include_cache to ensure the "remote" file is cached in a temporary
+# location and not polluting the user cache.
 def test_env_include_packages_url(
-    tmpdir, mutable_empty_config, mock_fetch_url_text, mock_curl_configs
+    tmpdir, mutable_empty_config, mock_fetch_url_text, mock_curl_configs, mock_include_cache
 ):
     """Test inclusion of a (GitHub) URL."""
     develop_url = "https://github.com/fake/fake/blob/develop/"
@@ -4279,12 +4281,12 @@ spack:
     sha256: {sha256}
 """
         )
-    assert os.path.isfile(spack_yaml.strpath)
 
     with spack.config.override("config:url_fetch_method", "curl"):
         env = ev.Environment(tmpdir.strpath)
         ev.activate(env)
 
+        # Make sure a setting from test/data/config/packages.yaml is present
         cfg = spack.config.get("packages")
         assert "mpich" in cfg["all"]["providers"]["mpi"]
 
