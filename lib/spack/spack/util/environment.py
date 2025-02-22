@@ -294,6 +294,9 @@ class NameValueModifier:
         """Apply the modification to the mapping passed as input"""
         raise NotImplementedError("must be implemented by derived classes")
 
+    def __hash__(self):
+        return hash((self.name, self.value, self.separator))
+
 
 class SetEnv(NameValueModifier):
     __slots__ = ("force", "raw")
