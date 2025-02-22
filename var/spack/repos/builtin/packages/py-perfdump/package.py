@@ -35,10 +35,8 @@ class PyPerfdump(CMakePackage):
     def cmake_args(self):
         spec = self.spec
         args = [
-            "-DCMAKE_INSTALL_RPATH={0}".format(spec.prefix.lib),
             self.define_from_variant("USE_MPI", "mpi"),
             self.define_from_variant("ENABLE_HDF5", "hdf5"),
-            "-DPython_ROOT_DIR={0}".format(spec["python"].prefix),
             self.define("PAPI_PREFIX", spec["papi"].prefix),
         ]
         if spec.satisfies("+mpi"):
