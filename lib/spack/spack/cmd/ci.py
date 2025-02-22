@@ -399,6 +399,10 @@ def ci_rebuild(args):
         for match in matches:
             tty.msg("    {0}".format(match["mirror_url"]))
 
+        job_info_file = os.path.join(job_log_dir, "job_metadata.txt")
+        with open(job_info_file, "a+") as fd:
+            fd.write("NOT_BUILT: found match in cache\n")
+
         # Now we are done and successful
         return 0
 

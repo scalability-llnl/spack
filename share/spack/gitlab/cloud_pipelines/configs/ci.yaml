@@ -29,6 +29,8 @@ ci:
           --prefix /home/software/spack:${CI_PROJECT_DIR}/opt/spack
           --log install_times.json
           ${SPACK_ARTIFACTS_ROOT}/user_data/install_times.json || true
+      - - . ${CI_PROJECT_DIR}/share/spack/gitlab/cloud_pipelines/scripts/common/oom-check.sh || true
+
       variables:
         CI_JOB_SIZE: "default"
         SPACK_BUILD_JOBS: "4"
