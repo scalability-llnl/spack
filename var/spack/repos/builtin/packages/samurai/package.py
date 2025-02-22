@@ -10,7 +10,7 @@ class Samurai(CMakePackage):
     mesh refinement and operators on it"""
 
     homepage = "https://github.com/hpc-maths/samurai"
-    url = "https://github.com/hpc-maths/samurai.git"
+    git = "https://github.com/hpc-maths/samurai.git"
 
     version("master", git=url)
 
