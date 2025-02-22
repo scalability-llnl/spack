@@ -78,7 +78,7 @@ class PyGurobipy(PythonPackage):
             expand=False,
         )
     else:
-        conflicts("target={arch}:", msg="py-gurobi is not available for {arch}")
+        conflicts(f"target={arch}:", msg=f"py-gurobi is not available for {arch}")
 
     conflicts("target=ppc64:", msg="gurobipy wheels are not available for powerpc")
     conflicts("target=ppc64le:", msg="gurobipy wheels are not available for powerpc")
