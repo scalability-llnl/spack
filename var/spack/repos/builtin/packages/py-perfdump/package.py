@@ -42,7 +42,7 @@ class PyPerfdump(CMakePackage):
             self.define("PAPI_PREFIX", spec["papi"].prefix),
         ]
         if spec.satisfies("+mpi"):
-            args.append("-DMPI_HOME={0}".format(spec["mpi"].prefix))
+            args.append(self.define("MPI_HOME", spec["mpi"].prefix))
         if spec.satisfies("+hdf5"):
             args.append("-DHDF5_ROOT={0}".format(spec["hdf5"].prefix))
         return args
