@@ -52,7 +52,7 @@ class Samurai(CMakePackage):
         options.append(self.define_from_variant("SAMURAI_CHECK_NAN", "check_nan"))
 
         # MPI support
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             options.append(self.define_from_variant("WITH_MPI", "mpi"))
             options.append(self.define("HDF5_IS_PARALLEL", True))
 
