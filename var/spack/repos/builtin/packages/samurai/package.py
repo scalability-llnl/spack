@@ -20,7 +20,7 @@ class Samurai(CMakePackage):
     # variant("benchmarks", default=False,description="Build benchmarks")
     variant("tests", default=False, description="Build tests")
     variant("check_nan", default=False, description="Check for Nan in computations")
-    
+
     depends_on("xtl@0.7.4")
     # depends_on("xsimd@11.0.0")
     depends_on("xtensor@0.24.1 ~tbb")
