@@ -1243,7 +1243,7 @@ class BuildTask(Task):
 
         assert not self.started, "Cannot start a task that has already been started."
         self.started = True
-        
+
         install_args = self.request.install_args
         unsigned = install_args.get("unsigned")
         pkg, pkg_id = self.pkg, self.pkg_id
@@ -1265,7 +1265,7 @@ class BuildTask(Task):
                 tty.msg(f"No binary for {pkg_id} found: installing from source")
 
         pkg.run_tests = tests is True or tests and pkg.name in tests
-        
+
         # if there's an error result, don't start a new process, and leave
         if self.error_result is not None:
             return
@@ -1320,7 +1320,6 @@ class BuildTask(Task):
         assert (
             self.started or self.no_op
         ), "Can't call `complete()` before `start()` or identified no-operation task"
-        install_args = self.request.install_args
         pkg = self.pkg
 
         self.status = BuildStatus.INSTALLING
