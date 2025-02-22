@@ -36,7 +36,7 @@ class PyPerfdump(CMakePackage):
         spec = self.spec
         args = [
             "-DCMAKE_INSTALL_RPATH={0}".format(spec.prefix.lib),
-            "-DUSE_MPI:BOOL={0}".format("ON" if "+mpi" in spec else "OFF"),
+            self.define_from_variant("USE_MPI", "mpi"),
             "-DENABLE_HDF5:BOOL={0}".format("ON" if "+hdf5" in spec else "OFF"),
             "-DPython_ROOT_DIR={0}".format(spec["python"].prefix),
             "-DPAPI_PREFIX={0}".format(spec["papi"].prefix),
