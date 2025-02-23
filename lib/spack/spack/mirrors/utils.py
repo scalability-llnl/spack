@@ -210,9 +210,31 @@ class MirrorStats:
     def error(self):
         self.errors.add(self.current_spec)
 
+    # TODO: AQ, Merge a given MirrorStats object to this one. Return just one MirrorStats
+    def merge(self, ext_mirror_stat: "MirrorStats") -> "MirrorStats":
+        # For the sake of parallelism we need a way to reduce/merge different
+        # MirrorStats objects.
+        self.present.update(ext_mirror_stat.present)
+        self.new.update(ext_mirror_stat.new)
+        self.errors.update(ext_mirror_stat.errors)
+
+        if self.current_spec != None and ext_mirror_stat.current_spec != None:
+            # If we already have a current_spec it needs to be tallied
+            # and then the new one set (via next_spec)
+            self.next_spec(ext_mirror_stat.current_spec)
+        elif self.current_spec != None and ext_mirror_stat.current_spec == None:
+            # If we have a current_spec, and there's no new one coming, leave things alone
+            pass
+        else:
+            # In anycase where current_spec is None, use the incoming mirror_stat current. 
+            self.current_spec = ext_mirror_stat.current_spec
+
+        self.added_resources.update(ext_mirror_stat.added_resources)
+        self.existing_resources.update(ext_mirror_stat.existing_resources)
+
 
 def create_mirror_from_package_object(
-    pkg_obj, mirror_cache: "spack.caches.MirrorCache", mirror_stats: MirrorStats
+    pkg_obj, mirror_cache: "spack.caches.MirrorCache", mirror_stats: "MirrorStats"
 ) -> bool:
     """Add a single package object to a mirror.
 
@@ -247,6 +269,44 @@ def create_mirror_from_package_object(
                 return False
     return True
 
+# TODO: AQ
+# I need a function that does the same thing as create_mirror_from_package_object(), but uses an
+# empty (fresh) spack mirror_stats object, and returns that, then we need a method in the mirror_stat object that will merge two mirror_stats
+def cache_single_package(pkg_obj, mirror_cache: "spack.caches.MirrorCache") -> "MirrorStats":
+    """Cache a single package object, and return the MirrorStats object.
+
+    The package object is only required to have an associated spec
+    with a concrete version.
+
+    Args:
+        pkg_obj (spack.package_base.PackageBase): package object with to be added.
+        mirror_cache: mirror where to add the spec.
+
+    Return:
+        mirror_stats: statistics on the current mirror
+    """
+    # Create an empty MirrorStats object we will later combine with others
+    mirror_stats = MirrorStats()
+    tty.msg("Adding package {} to mirror".format(pkg_obj.spec.format("{name}{@version}")))
+    max_retries = 3
+    for num_retries in range(max_retries):
+        try:
+            # Includes patches and resources
+            with pkg_obj.stage as pkg_stage:
+                pkg_stage.cache_mirror(mirror_cache, mirror_stats)
+            break
+        except Exception as e:
+            if num_retries + 1 == max_retries:
+                if spack.config.get("config:debug"):
+                    traceback.print_exc()
+                else:
+                    tty.warn(
+                        "Error while fetching %s" % pkg_obj.spec.format("{name}{@version}"), str(e)
+                    )
+                mirror_stats.error()
+                return mirror_stats
+    return mirror_stats
+    
 
 def require_mirror_name(mirror_name):
     """Find a mirror by name and raise if it does not exist"""
