@@ -1,0 +1,13 @@
+diff --git a/src/cgnstools/tkogl/tkogl.c b/src/cgnstools/tkogl/tkogl.c
+index 506599d..71b4fb8 100644
+--- a/src/cgnstools/tkogl/tkogl.c
++++ b/src/cgnstools/tkogl/tkogl.c
+@@ -25,7 +25,7 @@
+ #if ! defined(__WIN32__) && ! defined(_WIN32)
+ /* For TkWmAddToColormapWindows. */
+ #define _TKPORT /* Typical installations cannot find tkPort.h. */
+-#include <tk-private/generic/tkInt.h>
++#include <tkInt.h>
+ #endif
+
+ #ifndef CONST
