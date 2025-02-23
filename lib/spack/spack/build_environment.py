@@ -1234,6 +1234,10 @@ class SetupContext:
             if os.path.isdir(bin_dir):
                 env.prepend_path("PATH", bin_dir)
 
+        for cp_dir in spack.build_systems.cmake.get_cmake_prefix_path(dep.package):
+            env.append_path("CMAKE_PREFIX_PATH", cp_dir)
+        env.prune_duplicate_paths("CMAKE_PREFIX_PATH")
+
 
 def _setup_pkg_and_run(
     serialized_pkg: "spack.subprocess_context.PackageInstallContext",
