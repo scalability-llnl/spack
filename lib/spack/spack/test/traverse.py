@@ -233,20 +233,12 @@ def test_breadth_first_versus_depth_first_tree(abstract_specs_chain):
 
     # BFS should find all nodes as direct deps
     assert [
-        (depth, edge.spec.name)
-        for (depth, edge) in traverse.traverse_tree([s], cover="nodes", depth_first=False)
+        (depth, edge.spec.name) for (depth, edge) in traverse.traverse_tree([s], cover="nodes")
     ] == [(0, "chain-a"), (1, "chain-b"), (1, "chain-c"), (1, "chain-d")]
-
-    # DFS will disover all nodes along the chain a -> b -> c -> d.
-    assert [
-        (depth, edge.spec.name)
-        for (depth, edge) in traverse.traverse_tree([s], cover="nodes", depth_first=True)
-    ] == [(0, "chain-a"), (1, "chain-b"), (2, "chain-c"), (3, "chain-d")]
 
     # When covering all edges, we should never exceed depth 2 in BFS.
     assert [
-        (depth, edge.spec.name)
-        for (depth, edge) in traverse.traverse_tree([s], cover="edges", depth_first=False)
+        (depth, edge.spec.name) for (depth, edge) in traverse.traverse_tree([s], cover="edges")
     ] == [
         (0, "chain-a"),
         (1, "chain-b"),
@@ -256,36 +248,21 @@ def test_breadth_first_versus_depth_first_tree(abstract_specs_chain):
         (1, "chain-d"),
     ]
 
-    # In DFS we see the chain again.
-    assert [
-        (depth, edge.spec.name)
-        for (depth, edge) in traverse.traverse_tree([s], cover="edges", depth_first=True)
-    ] == [
-        (0, "chain-a"),
-        (1, "chain-b"),
-        (2, "chain-c"),
-        (3, "chain-d"),
-        (1, "chain-c"),
-        (1, "chain-d"),
-    ]
-
 
 @pytest.mark.parametrize("cover", ["nodes", "edges"])
-@pytest.mark.parametrize("depth_first", [True, False])
-def test_tree_traversal_with_key(cover, depth_first, abstract_specs_chain):
+def test_tree_traversal_with_key(cover, abstract_specs_chain):
     """Compare two multisource traversals of the same DAG. In one case the DAG consists of unique
     Spec instances, in the second case there are identical copies of nodes and edges. Traversal
     should be equivalent when nodes are identified by dag_hash."""
     a = abstract_specs_chain["chain-a"]
     c = abstract_specs_chain["chain-c"]
-    kwargs = {"cover": cover, "depth_first": depth_first}
     dag_hash = lambda s: s.dag_hash()
 
     # Traverse DAG spanned by a unique set of Spec instances
-    first = traverse.traverse_tree([a, c], key=id, **kwargs)
+    first = traverse.traverse_tree([a, c], key=id, cover=cover)
 
     # Traverse equivalent DAG with copies of Spec instances included, keyed by dag hash.
-    second = traverse.traverse_tree([a, c.copy()], key=dag_hash, **kwargs)
+    second = traverse.traverse_tree([a, c.copy()], key=dag_hash, cover=cover)
 
     # Check that the same nodes are discovered at the same depth
     node_at_depth_first = [(depth, dag_hash(edge.spec)) for (depth, edge) in first]
@@ -297,33 +274,13 @@ def test_breadth_first_versus_depth_first_printing(abstract_specs_chain):
     """Test breadth-first versus depth-first tree printing."""
     s = abstract_specs_chain["chain-a"]
 
-    args = {"format": "{name}", "color": False}
-
-    dfs_tree_nodes = """\
-chain-a
-    ^chain-b
-        ^chain-c
-            ^chain-d
-"""
-    assert s.tree(depth_first=True, **args) == dfs_tree_nodes
-
     bfs_tree_nodes = """\
 chain-a
     ^chain-b
     ^chain-c
     ^chain-d
 """
-    assert s.tree(depth_first=False, **args) == bfs_tree_nodes
-
-    dfs_tree_edges = """\
-chain-a
-    ^chain-b
-        ^chain-c
-            ^chain-d
-    ^chain-c
-    ^chain-d
-"""
-    assert s.tree(depth_first=True, cover="edges", **args) == dfs_tree_edges
+    assert s.tree(format="{name}", color=False) == bfs_tree_nodes
 
     bfs_tree_edges = """\
 chain-a
@@ -333,7 +290,7 @@ chain-a
         ^chain-d
     ^chain-d
 """
-    assert s.tree(depth_first=False, cover="edges", **args) == bfs_tree_edges
+    assert s.tree(cover="edges", format="{name}", color=False) == bfs_tree_edges
 
 
 @pytest.fixture()

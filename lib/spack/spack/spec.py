@@ -1382,10 +1382,9 @@ def tree(
     cover: spack.traverse.CoverType = "nodes",
     indent: int = 0,
     format: str = DEFAULT_FORMAT,
-    deptypes: Union[dt.DepFlag, dt.DepTypes] = dt.ALL,
+    direct_deptypes: Union[dt.DepFlag, dt.DepTypes] = dt.ALL,
+    transitive_deptypes: Union[dt.DepFlag, dt.DepTypes] = dt.ALL,
     show_types: bool = False,
-    depth_first: bool = False,
-    recurse_dependencies: bool = True,
     status_fn: Optional[Callable[["Spec"], InstallStatus]] = None,
     prefix: Optional[Callable[["Spec"], str]] = None,
     key: Callable[["Spec"], Any] = id,
@@ -1405,8 +1404,6 @@ def tree(
         format: format to be used to print each node
         deptypes: dependency types to be represented in the tree
         show_types: if True, show the (merged) dependency type of a node
-        depth_first: if True, traverse the DAG depth first when representing it as a tree
-        recurse_dependencies: if True, recurse on dependencies
         status_fn: optional callable that takes a node as an argument and return its
             installation status
         prefix: optional callable that takes a node as an argument and return its
@@ -1417,19 +1414,18 @@ def tree(
     if color is None:
         color = clr.get_color_when()
 
-    # reduce deptypes over all in-edges when covering nodes
-    if show_types and cover == "nodes":
-        deptype_lookup: Dict[str, dt.DepFlag] = collections.defaultdict(dt.DepFlag)
-        for edge in spack.traverse.traverse_edges(
-            specs, cover="edges", deptype=deptypes, root=False
-        ):
-            deptype_lookup[edge.spec.dag_hash()] |= edge.depflag
+    # When showing dependency types, we need to show the edge to which it applies
+    cover = "edges" if show_types else cover
 
     # SupportsRichComparisonT issue with List[Spec]
     sorted_specs: List["Spec"] = sorted(specs)  # type: ignore[type-var]
 
     for d, dep_spec in spack.traverse.traverse_tree(
-        sorted_specs, cover=cover, deptype=deptypes, depth_first=depth_first, key=key
+        sorted_specs,
+        cover=cover,
+        direct_deptypes=direct_deptypes,
+        transitive_deptypes=transitive_deptypes,
+        key=key,
     ):
         node = dep_spec.spec
 
@@ -1453,24 +1449,13 @@ def tree(
             out += clr.colorize("@K{%s}  ", color=color) % node.dag_hash(hashlen)
 
         if show_types:
-            if cover == "nodes":
-                depflag = deptype_lookup[dep_spec.spec.dag_hash()]
-            else:
-                # when covering edges or paths, we show dependency
-                # types only for the edge through which we visited
-                depflag = dep_spec.depflag
-
-            type_chars = dt.flag_to_chars(depflag)
+            type_chars = dt.flag_to_chars(dep_spec.depflag)
             out += "[%s]  " % type_chars
 
         out += "    " * d
         if d > 0:
             out += "^"
         out += node.format(format, color=color) + "\n"
-
-        # Check if we wanted just the first line
-        if not recurse_dependencies:
-            break
 
     return out
 
@@ -4202,10 +4187,9 @@ class Spec:
         cover: spack.traverse.CoverType = "nodes",
         indent: int = 0,
         format: str = DEFAULT_FORMAT,
-        deptypes: Union[dt.DepTypes, dt.DepFlag] = dt.ALL,
+        direct_deptypes: Union[dt.DepTypes, dt.DepFlag] = dt.NONE,
+        transitive_deptypes: Union[dt.DepTypes, dt.DepFlag] = dt.ALL,
         show_types: bool = False,
-        depth_first: bool = False,
-        recurse_dependencies: bool = True,
         status_fn: Optional[Callable[["Spec"], InstallStatus]] = None,
         prefix: Optional[Callable[["Spec"], str]] = None,
         key=id,
@@ -4224,10 +4208,9 @@ class Spec:
             cover: either "nodes" or "edges"
             indent: extra indentation for the tree being printed
             format: format to be used to print each node
-            deptypes: dependency types to be represented in the tree
+            direct_deptypes: edge types to follow to depth 1
+            transitive_deptypes: edge types to follow to arbitrary depth
             show_types: if True, show the (merged) dependency type of a node
-            depth_first: if True, traverse the DAG depth first when representing it as a tree
-            recurse_dependencies: if True, recurse on dependencies
             status_fn: optional callable that takes a node as an argument and return its
                 installation status
             prefix: optional callable that takes a node as an argument and return its
@@ -4242,10 +4225,9 @@ class Spec:
             cover=cover,
             indent=indent,
             format=format,
-            deptypes=deptypes,
+            direct_deptypes=direct_deptypes,
+            transitive_deptypes=transitive_deptypes,
             show_types=show_types,
-            depth_first=depth_first,
-            recurse_dependencies=recurse_dependencies,
             status_fn=status_fn,
             prefix=prefix,
             key=key,

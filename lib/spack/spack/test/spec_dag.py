@@ -730,9 +730,9 @@ class TestSpecDag:
     def test_spec_tree_respect_deptypes(self):
         # Version-test-root uses version-test-pkg as a build dependency
         s = spack.concretize.concretize_one("version-test-root")
-        out = s.tree(deptypes="all")
+        out = s.tree(transitive_deptypes="all")
         assert "version-test-pkg" in out
-        out = s.tree(deptypes=("link", "run"))
+        out = s.tree(transitive_deptypes=("link", "run"))
         assert "version-test-pkg" not in out
 
     @pytest.mark.parametrize(
@@ -778,27 +778,59 @@ class TestSpecDag:
         assert len(mpileaks["libelf"].edges_from_dependents(depflag=dt.LINK)) == 2
 
 
-def test_tree_cover_nodes_reduce_deptype():
-    """Test that tree output with deptypes sticks to the sub-dag of interest, instead of looking
-    at in-edges from nodes not reachable from the root."""
+def test_mixed_deptype_tree():
+    """Test whether the correct sub-dag is displayed as tree when following selected deptypes"""
     a, b, c, d = Spec("a"), Spec("b"), Spec("c"), Spec("d")
-    a.add_dependency_edge(d, depflag=dt.BUILD, virtuals=())
-    a.add_dependency_edge(b, depflag=dt.LINK, virtuals=())
-    b.add_dependency_edge(d, depflag=dt.LINK, virtuals=())
-    c.add_dependency_edge(d, depflag=dt.RUN | dt.TEST, virtuals=())
+    a.add_dependency_edge(c, depflag=dt.BUILD, virtuals=())
+    a.add_dependency_edge(b, depflag=dt.LINK | dt.TEST, virtuals=())
+    b.add_dependency_edge(c, depflag=dt.LINK, virtuals=())
+    b.add_dependency_edge(d, depflag=dt.BUILD | dt.RUN, virtuals=())
     assert (
-        a.tree(cover="nodes", show_types=True)
+        a.tree(direct_deptypes=dt.BUILD, transitive_deptypes=dt.NONE, show_types=True)
         == """\
 [    ]  a
-[ l  ]      ^b
-[bl  ]      ^d
+[b   ]      ^c
 """
     )
     assert (
-        c.tree(cover="nodes", show_types=True)
+        a.tree(direct_deptypes=dt.LINK, transitive_deptypes=dt.NONE, show_types=True)
         == """\
-[    ]  c
-[  rt]      ^d
+[    ]  a
+[ l t]      ^b
+"""
+    )
+    assert (
+        a.tree(direct_deptypes=dt.NONE, transitive_deptypes=dt.LINK, show_types=True)
+        == """\
+[    ]  a
+[ l t]      ^b
+[ l  ]          ^c
+"""
+    )
+    assert (
+        a.tree(direct_deptypes=dt.NONE, transitive_deptypes=dt.LINK | dt.RUN, show_types=True)
+        == """\
+[    ]  a
+[ l t]      ^b
+[ l  ]          ^c
+[b r ]          ^d
+"""
+    )
+    assert (
+        a.tree(direct_deptypes=dt.BUILD, transitive_deptypes=dt.LINK, show_types=True)
+        == """\
+[    ]  a
+[ l t]      ^b
+[ l  ]          ^c
+[b   ]      ^c
+"""
+    )
+    assert (
+        a.tree(direct_deptypes=dt.BUILD | dt.TEST, transitive_deptypes=dt.RUN, show_types=True)
+        == """\
+[    ]  a
+[ l t]      ^b
+[b   ]      ^c
 """
     )
 
