@@ -36,6 +36,8 @@ class Chafa(AutotoolsPackage):
     variant("avif", default=False, when="+tools", description="Enable AVIF loader")
     variant("jxl", default=False, when="@1.14.1: +tools", description="Enable JPEG XL loader")
 
+    conflicts("~shared~static")
+
     depends_on("c", type="build")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
