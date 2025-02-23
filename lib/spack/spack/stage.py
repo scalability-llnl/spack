@@ -176,13 +176,14 @@ def _resolve_paths(candidates):
 
 # Cached stage path root
 _stage_root = None
+_default_stage_config = ["$tmpdir/$user/spack-stage", "$user_cache_path/stage"]
 
 
 def get_stage_root():
     global _stage_root
 
     if _stage_root is None:
-        candidates = spack.config.get("config:build_stage")
+        candidates = spack.config.get("config:build_stage", _default_stage_config)
         if isinstance(candidates, str):
             candidates = [candidates]
 

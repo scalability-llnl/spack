@@ -688,11 +688,12 @@ class Configuration:
             return
 
         parts = process_config_path(path)
-        section = parts.pop(0)
+        section = parts[0]
 
         section_data = self.get_config(section, scope=scope)
 
-        data = section_data
+        full_data = {section: section_data}
+        data = full_data
         while len(parts) > 1:
             key = parts.pop(0)
 
@@ -715,7 +716,7 @@ class Configuration:
         # update new value
         data[parts[0]] = value
 
-        self.update_config(section, section_data, scope=scope)
+        self.update_config(section, full_data[section], scope=scope)
 
     def __iter__(self):
         """Iterate over scopes in this configuration."""
