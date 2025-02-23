@@ -150,7 +150,7 @@ def mock_git_version_info(git, tmpdir, override_git_repos_cache_path):
     version tags on multiple branches, and version order is not equal to time
     order or topological order.
     """
-    repo_path = str(tmpdir.mkdir("git_repo"))
+    repo_path = str(tmpdir.mkdir("git_version_info_repo"))
     filename = "file.txt"
 
     def commit(message):
@@ -223,6 +223,84 @@ def mock_git_version_info(git, tmpdir, override_git_repos_cache_path):
         commit("fourth 1.x commit")
         commits.append(latest_commit())
         git("tag", "1.2")  # test robust parsing to different syntax, no v
+
+        # The commits are ordered with the last commit first in the list
+        commits = list(reversed(commits))
+
+    # Return the git directory to install, the filename used, and the commits
+    yield repo_path, filename, commits
+
+
+@pytest.fixture
+def mock_git_package_changes(git, tmpdir, override_git_repos_cache_path):
+    """Create a mock git repo with known structure of package edits
+
+    The structure of commits in this repo is as follows::
+
+       o diff-test: modification to make manual download package
+       |
+       o diff-test: add v1.2 (from a git ref)
+       |
+       o diff-test: add v1.1 (from source tarball)
+       |
+       o diff-test: new package (testing multiple added versions)
+
+    The repo consists of a single package.py file for DiffTest.
+
+    Important attributes of the repo for test coverage are: multiple package
+    versions are added with some coming from a tarball and some from git refs.
+    """
+    repo_path = str(tmpdir.mkdir("git_package_changes_repo"))
+    filename = "var/spack/repos/builtin/packages/diff-test/package.py"
+
+    def commit(message):
+        global commit_counter
+        git(
+            "commit",
+            "--no-gpg-sign",
+            "--date",
+            "2020-01-%02d 12:0:00 +0300" % commit_counter,
+            "-am",
+            message,
+        )
+        commit_counter += 1
+
+    with working_dir(repo_path):
+        git("init")
+
+        git("config", "user.name", "Spack")
+        git("config", "user.email", "spack@spack.io")
+
+        commits = []
+
+        def latest_commit():
+            return git("rev-list", "-n1", "HEAD", output=str, error=str).strip()
+
+        os.makedirs(os.path.dirname(filename))
+
+        # add pkg-a as a new package to the repository
+        shutil.copy2(f"{spack.paths.test_path}/data/conftest/diff-test/package-0.txt", filename)
+        git("add", filename)
+        commit("diff-test: new package")
+        commits.append(latest_commit())
+
+        # add v2.1.5 to pkg-a
+        shutil.copy2(f"{spack.paths.test_path}/data/conftest/diff-test/package-1.txt", filename)
+        git("add", filename)
+        commit("diff-test: add v2.1.5")
+        commits.append(latest_commit())
+
+        # add v2.1.6 to pkg-a
+        shutil.copy2(f"{spack.paths.test_path}/data/conftest/diff-test/package-2.txt", filename)
+        git("add", filename)
+        commit("diff-test: add v2.1.6")
+        commits.append(latest_commit())
+
+        # convert pkg-a to a manual download package
+        shutil.copy2(f"{spack.paths.test_path}/data/conftest/diff-test/package-3.txt", filename)
+        git("add", filename)
+        commit("diff-test: modification to make manual download package")
+        commits.append(latest_commit())
 
         # The commits are ordered with the last commit first in the list
         commits = list(reversed(commits))

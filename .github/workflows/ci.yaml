@@ -76,10 +76,11 @@ jobs:
 
   prechecks:
     needs: [ changes ]
-    uses: ./.github/workflows/valid-style.yml
+    uses: ./.github/workflows/prechecks.yml
     secrets: inherit
     with:
       with_coverage: ${{ needs.changes.outputs.core }}
+      with_packages: ${{ needs.changes.outputs.packages }}
 
   import-check:
     needs: [ changes ]
@@ -93,7 +94,7 @@ jobs:
     - name: Success
       run: |
         if [ "${{ needs.prechecks.result }}" == "failure" ] || [ "${{ needs.prechecks.result }}" == "canceled" ]; then
-          echo "Unit tests failed." 
+          echo "Unit tests failed."
           exit 1
         else
           exit 0
@@ -101,6 +102,7 @@ jobs:
 
   coverage:
     needs: [ unit-tests, prechecks ]
+    if: ${{ needs.changes.outputs.core }}
     uses: ./.github/workflows/coverage.yml
     secrets: inherit
 
@@ -113,10 +115,10 @@ jobs:
     - name: Status summary
       run: |
         if [ "${{ needs.unit-tests.result }}" == "failure" ] || [ "${{ needs.unit-tests.result }}" == "canceled" ]; then
-          echo "Unit tests failed." 
+          echo "Unit tests failed."
           exit 1
         elif [ "${{ needs.bootstrap.result }}" == "failure" ] || [ "${{ needs.bootstrap.result }}" == "canceled" ]; then
-          echo "Bootstrap tests failed." 
+          echo "Bootstrap tests failed."
           exit 1
         else
           exit 0
