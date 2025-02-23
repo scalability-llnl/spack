@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import os
+
 import spack.build_systems.cmake
 import spack.build_systems.makefile
 from spack.package import *
@@ -63,6 +65,7 @@ class Scotch(CMakePackage, MakefilePackage):
         when="@7.0.1",
         description="Link error handling library to libscotch/libptscotch",
     )
+    variant("fismahigh", default=False, description="Apply patching for FISMA-high compliance")
 
     # Does not build with flex 2.6.[23]
     depends_on("flex@:2.6.1,2.6.4:", type="build")
@@ -119,6 +122,12 @@ class Scotch(CMakePackage, MakefilePackage):
             zlibs = self.spec["zlib-api"].libs
 
         return scotchlibs + zlibs
+
+    @when("+fismahigh")
+    def patch(self):
+        for path in ["ci/analysis.sh", "src/misc/scotch_5.1.12_openmpi.spec"]:
+            if os.path.exists(path):
+                os.remove(path)
 
 
 class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
