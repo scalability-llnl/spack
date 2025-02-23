@@ -13,6 +13,7 @@ class Samurai(CMakePackage):
     git = "https://github.com/hpc-maths/samurai.git"
 
     version("master", branch="master")
+    version("0.21.1", tag="v0.21.1", commit="29798bd9592e5b80674c49080a242378a61878c3")
 
     variant("mpi", default=False, description="Enable MPI support")
     variant("openmp", default=False, description="Enable OpenMP support")
