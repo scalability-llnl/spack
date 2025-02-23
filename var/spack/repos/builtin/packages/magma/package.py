@@ -16,7 +16,7 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
     homepage = "https://icl.utk.edu/magma/"
     git = "https://github.com/icl-utk-edu/magma"
     url = "https://icl.utk.edu/projectsfiles/magma/downloads/magma-2.2.0.tar.gz"
-    maintainers("stomov", "luszczek", "G-Ragghianti")
+    maintainers("luszczek", "G-Ragghianti")
 
     tags = ["e4s"]
 
@@ -210,7 +210,9 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
         with working_dir(test_dir):
             pkg_config_path = self.prefix.lib.pkgconfig
             with spack.util.environment.set_env(PKG_CONFIG_PATH=pkg_config_path):
-                make("c")
+                make = self.spec["gmake"].command
+                CC = "hipcc" if self.spec.satisfies("+rocm") else self.compiler.cc
+                make("c", f"CC={CC}")
                 tests = [
                     ("example_sparse", "sparse solver"),
                     ("example_sparse_operator", "sparse operator"),
@@ -234,6 +236,7 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
         with working_dir(test_dir):
             pkg_config_path = self.prefix.lib.pkgconfig
             with spack.util.environment.set_env(PKG_CONFIG_PATH=pkg_config_path):
+                make = self.spec["gmake"].command
                 make("fortran")
                 example_f = which("example_f")
                 example_f()
