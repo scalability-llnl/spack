@@ -179,6 +179,10 @@ config:
   package_lock_timeout: null
 
 
+  # pager(s) to use for commands with potentially long output (e.g., spack info)
+  pager:
+    - less -FXRS
+
   # Control how shared libraries are located at runtime on Linux. See the
   # the Spack documentation for details.
   shared_linking:

@@ -4,12 +4,14 @@
 
 import argparse
 import difflib
+import functools
 import importlib
 import os
 import re
+import subprocess
 import sys
 from collections import Counter
-from typing import List, Optional, Union
+from typing import Callable, List, Optional, Union
 
 import llnl.string
 import llnl.util.tty as tty
@@ -30,6 +32,7 @@ import spack.spec_parser
 import spack.store
 import spack.traverse as traverse
 import spack.user_environment as uenv
+import spack.util.executable as exe
 import spack.util.spack_json as sjson
 import spack.util.spack_yaml as syaml
 
@@ -718,3 +721,123 @@ class CommandNotFoundError(spack.error.SpackError):
             long_msg += "\n  ".join(similar)
 
         super().__init__(msg, long_msg)
+
+
+def find_pager(pager_candidates: List[str]) -> Optional[List[str]]:
+    """Find a pager from spack configuration.
+
+    Arguments:
+        pager_candidates: list of candidate commands with optional arguments, e.g. "less -FXRS"
+
+    Returns:
+        Arguments, including the found command, to launch the pager, or None if not found.
+    """
+    for pager in pager_candidates:
+        # split each string in the list of pagers into args
+        argv = pager.split()
+        if not argv:
+            continue
+
+        # try to find the requested pager command
+        command, *args = argv
+        path = exe.which_string(command)
+        if not path:
+            continue
+
+        # return the execv args we need to launch this thing
+        return [command] + args
+
+    return None
+
+
+def spack_pager_candidates() -> List[str]:
+    """Get a list of pager candidates by consulting environment and config.
+
+    Order of precedence is:
+
+    1. ``SPACK_PAGER``: pager just for spack
+    2. ``PAGER``: user's preferred pager, from their environment
+    3. ``config:pager``: list of pager candidates in config
+
+    """
+    pager_candidates = []
+
+    spack_pager = os.environ.get("SPACK_PAGER")
+    if spack_pager:
+        pager_candidates.append(spack_pager)
+
+    pager = os.environ.get("PAGER")
+    if pager:
+        pager_candidates.append(pager)
+
+    config_pagers = spack.config.get("config:pager")
+    if config_pagers:
+        pager_candidates.extend(config_pagers)
+
+    return pager_candidates
+
+
+def paged(command_function: Callable) -> Callable:
+    """Decorator for commands whose output should be sent to a pager by default.
+
+    This will launch a subprocess for, e.g., ``less``, and will redirect ``stdout`` to it, as
+    ``git`` does for commands like ``git log``.
+
+    The command will attempt to maintain colored output while paging, so you need a pager
+    that supports color, like ``less -R``. Spack defaults to using ``less -FXRS`` if it's
+    found, and nothing if not. You probably *do not* want to use ``more`` or any other
+    non-color-capable pager.
+    """
+    pager_execv_args = find_pager(spack_pager_candidates())
+    if not pager_execv_args:
+        return command_function
+
+    @functools.wraps(command_function)
+    def wrapper(*args, **kwargs):
+        # figure out if we're running the command with --help
+        is_help = False
+        if args and isinstance(args[-1], argparse.Namespace):
+            is_help = args[-1].help
+
+        # don't page if not a tty, and don't page help output
+        if not sys.stdout.isatty() or is_help:
+            return command_function(*args, **kwargs)
+
+        # Flush any buffered output before redirection.
+        sys.stdout.flush()
+
+        # save original stdout and original color setting
+        original_stdout_fd = os.dup(sys.stdout.fileno())
+        original_stdout_isatty = sys.stdout.isatty
+
+        # launch the pager
+        proc = subprocess.Popen(pager_execv_args, stdin=subprocess.PIPE)
+
+        try:
+            # Redirect stdout's file descriptor to the pager's stdin.
+            os.dup2(proc.stdin.fileno(), sys.stdout.fileno())
+
+            # make spack think the pager is a tty
+            sys.stdout.isatty = lambda: True
+
+            # run the decorated function
+            result = command_function(*args, **kwargs)
+
+            # Flush any remaining output.
+            sys.stdout.flush()
+
+            return result
+
+        finally:
+            # quit cheating on isatty
+            sys.stdout.isatty = original_stdout_isatty
+
+            # restore stdout
+            os.dup2(original_stdout_fd, sys.stdout.fileno())
+            os.close(original_stdout_fd)
+
+            # Close the pager's stdin and wait for it to finish.
+            proc.stdin.close()
+            proc.wait()
+
+    return wrapper

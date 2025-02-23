@@ -371,6 +371,12 @@ def make_argument_parser(**kwargs):
         help="when to colorize output (default: auto)",
     )
     parser.add_argument(
+        "--no-pager",
+        action="store_true",
+        default=False,
+        help="do not run any output through a pager",
+    )
+    parser.add_argument(
         "-c",
         "--config",
         default=None,
@@ -531,6 +537,10 @@ def setup_main_options(args):
 
     if args.timestamp:
         tty.set_timestamp(True)
+
+    # override pager configuration (note ::)
+    if args.no_pager:
+        spack.config.set("config::pager", [], scope="command_line")
 
     # override lock configuration if passed on command line
     if args.locks is not None:

@@ -11,6 +11,7 @@ import llnl.util.tty.color as color
 from llnl.util.tty.colify import colify
 
 import spack.builder
+import spack.cmd
 import spack.deptypes as dt
 import spack.fetch_strategy as fs
 import spack.install_test
@@ -481,6 +482,7 @@ def print_licenses(pkg, args):
             color.cprint(line)
 
 
+@spack.cmd.paged
 def info(parser, args):
     spec = spack.spec.Spec(args.package)
     pkg_cls = spack.repo.PATH.get_pkg_class(spec.fullname)

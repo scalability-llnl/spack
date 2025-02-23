@@ -10,6 +10,7 @@ from typing import List
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
 
+import spack.cmd
 import spack.config
 import spack.environment as ev
 import spack.error
@@ -169,6 +170,7 @@ def print_flattened_configuration(*, blame: bool) -> None:
     syaml.dump_config(flattened, stream=sys.stdout, default_flow_style=False, blame=blame)
 
 
+@spack.cmd.paged
 def config_get(args):
     """Dump merged YAML configuration for a specific section.
 
@@ -178,6 +180,7 @@ def config_get(args):
     print_configuration(args, blame=False)
 
 
+@spack.cmd.paged
 def config_blame(args):
     """Print out line-by-line blame of merged YAML."""
     print_configuration(args, blame=True)
