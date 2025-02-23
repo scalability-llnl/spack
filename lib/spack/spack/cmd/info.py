@@ -5,6 +5,7 @@
 import sys
 import textwrap
 from itertools import zip_longest
+from typing import Callable, Dict, TypeVar
 
 import llnl.util.tty as tty
 import llnl.util.tty.color as color
@@ -14,11 +15,12 @@ import spack.builder
 import spack.deptypes as dt
 import spack.fetch_strategy as fs
 import spack.install_test
+import spack.package_base
 import spack.repo
 import spack.spec
 import spack.variant
 from spack.cmd.common import arguments
-from spack.package_base import preferred_version
+from spack.util.typing import SupportsRichComparison
 
 description = "get detailed information on a particular package"
 section = "basic"
@@ -338,12 +340,12 @@ def _fmt_variant(variant, max_name_default_len, indent, when=None, out=None):
 def _print_variants_header(pkg):
     """output variants"""
 
+    color.cprint("")
+    color.cprint(section_title("Variants:"))
+
     if not pkg.variants:
         print("    None")
         return
-
-    color.cprint("")
-    color.cprint(section_title("Variants:"))
 
     # Calculate the max length of the "name [default]" part of the variant display
     # This lets us know where to print variant values.
@@ -356,12 +358,33 @@ def _print_variants_header(pkg):
     return max_name_default_len
 
 
-def print_variants_grouped_by_when(pkg):
-    max_name_default_len = _print_variants_header(pkg)
+K = TypeVar("K", bound=SupportsRichComparison)
+V = TypeVar("V")
+
+
+def print_grouped_by_when(
+    header: str, when_indexed_dictionary: Dict, fmt_first_field: Callable, fmt_definition: Callable
+):
+    """Generic method to print metadata grouped by when conditions."""
+
+    color.cprint("")
+    color.cprint(section_title(f"{header}:"))
+
+    if not when_indexed_dictionary:
+        print("    None")
+        return
+
+    # Calculate the max length of the first field of the definition. Lets us know how
+    # much to pad other fields on the first line.
+    max_first_field_len = max(
+        color.clen(fmt_first_field(definition))
+        for subkey in spack.package_base._subkeys(when_indexed_dictionary)
+        for _, definition in spack.package_base._definitions(when_indexed_dictionary, subkey)
+    )
 
     indent = 4
-    for when, variants_by_name in pkg.variant_items():
-        padded_values = max_name_default_len + 4
+    for when, by_name in when_indexed_dictionary.items():
+        padded_values = max_first_field_len + 4
         start_indent = indent
 
         if when != spack.spec.Spec():
@@ -373,8 +396,12 @@ def print_variants_grouped_by_when(pkg):
             padded_values -= 2
             start_indent += 2
 
-        for name, variant in sorted(variants_by_name.items()):
-            _fmt_variant(variant, padded_values, start_indent, None, out=sys.stdout)
+        for subkey, definition in sorted(by_name.items()):
+            fmt_definition(definition, padded_values, start_indent, when=None, out=sys.stdout)
+
+
+def print_variants_grouped_by_when(pkg):
+    print_grouped_by_when("Variants", pkg.variants, _fmt_name_and_default, _fmt_variant)
 
 
 def print_variants_by_name(pkg):
@@ -413,7 +440,7 @@ def print_versions(pkg, args):
     else:
         pad = padder(pkg.versions, 4)
 
-        preferred = preferred_version(pkg)
+        preferred = spack.package_base.preferred_version(pkg)
 
         def get_url(version):
             try:
