@@ -172,6 +172,10 @@ class VersionType(SupportsRichComparison):
 
     """
 
+    def negate(self) -> "VersionType":
+        """Return a VersionType representating the negation of this VersionType."""
+        raise NotImplementedError
+
     def intersection(self, other: "VersionType") -> "VersionType":
         """Any versions contained in both self and other, or empty VersionList if no overlap."""
         raise NotImplementedError
@@ -1255,6 +1259,45 @@ def _prev_version(v: StandardVersion) -> StandardVersion:
     # Avoid constructing a string here for performance. Instead, pass "" to
     # StandardVersion to lazily stringify.
     return StandardVersion("", (release, prerelease), separators)
+
+
+class NegatedVersion(VersionType):
+    """A negated ConcreteVersion, ClosedOpenRange, or VersionList.
+
+    Negated versions are not concrete. They represent the set of all versions that *don't*
+    match their contained version expression. Examples:
+
+    * ``@!5.2``: not the version range ``5.2``, so ``5.3`` would match but not ``5.2``,
+      ``5.2.1``, etc.
+
+    * ``!@5.2``: same as above (you can put the ``!`` before or after ``@`` -- see below for how
+      this only really matters for lists).
+
+    * ``@!=5.2``: not *exactly* version ``5.2`` (so ``5.2.1`` would be ok).
+
+    * ``@!5.2:6.4``: anything outside the range ``5.2:6.4``
+
+    * ``!@5.2:6.4``: same as above.
+
+    * ``@5.2:6.4,7.2,!8.1``: anything in the range ``5.2:6.4``, the version ``7.2``,
+      or any version matching ``!8.1``. Note that this simpifies to ``!8.1`` -- it's
+      not so useful to use negated versions in lists.
+
+    Note that you cannot currently have a negated VersionList.
+    """
+
+
+    #depends_on("", when="")
+
+    #drop("dependencies", "gcc", when="@4.2,4.5,4.6")
+
+
+    def __init__(self, version: VersionType):
+        self.version = version
+
+
+
+
 
 
 def Version(string: Union[str, int]) -> ConcreteVersion:
