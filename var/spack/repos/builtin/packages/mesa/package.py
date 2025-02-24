@@ -26,6 +26,7 @@ class Mesa(MesonPackage):
         sha256="cd3d6c60121dea73abbae99d399dc2facaecde1a8c6bd647e6d85410ff4b577b",
         preferred=True,
     )
+    version("23.3.3", sha256="518307c0057fa3cee8b58df78be431d4df5aafa7edc60d09278b2d7a0a80f3b4")
     version("23.2.1", sha256="64de0616fc2d801f929ab1ac2a4f16b3e2783c4309a724c8a259b20df8bbc1cc")
     version("23.1.9", sha256="295ba27c28146ed09214e8ce79afa1659edf9d142decc3c91f804552d64f7510")
     version("23.0.3", sha256="386362a5d80df3b096636b67f340e1ce67b705b44767d5bdd11d2ed1037192d5")
@@ -61,8 +62,8 @@ class Mesa(MesonPackage):
     depends_on("cmake", type="build")
     depends_on("flex", type="build")
     depends_on("gettext", type="build")
-    # Upperbound on 3.11 because distutils is used for checking py-mako
-    depends_on("python@3:3.11", type="build")
+    depends_on("python@3.6:", type="build")
+    depends_on("py-packaging", type="build", when="^python@3.12:")
     depends_on("py-mako@0.8.0:", type="build")
     depends_on("unwind")
     depends_on("expat")
