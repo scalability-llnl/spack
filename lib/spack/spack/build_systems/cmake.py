@@ -170,7 +170,7 @@ def get_cmake_prefix_path(pkg: spack.package_base.PackageBase) -> List[str]:
     edges = traverse.traverse_topo_edges_generator(
         traverse.with_artificial_edges([pkg.spec]),
         visitor=traverse.MixedDepthVisitor(
-            direct=dt.BUILD | dt.TEST, transitive=dt.LINK, key=traverse.by_dag_hash
+            direct=dt.BUILD | dt.TEST, transitive=dt.LINK | dt.RUN, key=traverse.by_dag_hash
         ),
         key=traverse.by_dag_hash,
         root=False,
