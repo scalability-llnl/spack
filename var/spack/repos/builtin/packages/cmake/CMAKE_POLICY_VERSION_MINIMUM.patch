@@ -1,0 +1,561 @@
+From 6cd10ffed786b998e5b6f12557b6733fc325b558 Mon Sep 17 00:00:00 2001
+From: Brad King <brad.king@kitware.com>
+Date: Thu, 20 Feb 2025 15:31:18 -0500
+Subject: [PATCH 1/4] Tests: Cover CMAKE_POLICY_VERSION_MINIMUM as cache entry
+
+---
+ .../cmake_minimum_required/PolicyVersionVar-stderr.txt   | 4 ++++
+ ...olicyVersionVariable.cmake => PolicyVersionVar.cmake} | 2 +-
+ ...ableBad-result.txt => PolicyVersionVarBad-result.txt} | 0
+ .../PolicyVersionVarBad-stderr.txt                       | 9 +++++++++
+ ...ersionVariableBad.cmake => PolicyVersionVarBad.cmake} | 1 -
+ .../PolicyVersionVariable-stderr.txt                     | 3 ---
+ .../PolicyVersionVariableBad-stderr.txt                  | 5 -----
+ Tests/RunCMake/cmake_minimum_required/RunCMakeTest.cmake | 4 ++--
+ 8 files changed, 16 insertions(+), 12 deletions(-)
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionVar-stderr.txt
+ rename Tests/RunCMake/cmake_minimum_required/{PolicyVersionVariable.cmake => PolicyVersionVar.cmake} (76%)
+ rename Tests/RunCMake/cmake_minimum_required/{PolicyVersionVariableBad-result.txt => PolicyVersionVarBad-result.txt} (100%)
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBad-stderr.txt
+ rename Tests/RunCMake/cmake_minimum_required/{PolicyVersionVariableBad.cmake => PolicyVersionVarBad.cmake} (50%)
+ delete mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionVariable-stderr.txt
+ delete mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionVariableBad-stderr.txt
+
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionVar-stderr.txt b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVar-stderr.txt
+new file mode 100644
+index 00000000000..75d5a7ef65c
+--- /dev/null
++++ b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVar-stderr.txt
+@@ -0,0 +1,4 @@
++^CMAKE_POLICY_VERSION_MINIMUM='3\.10'
++CMAKE_MINIMUM_REQUIRED_VERSION='3\.1'
++CMP0071='NEW'
++CMP0072=''$
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionVariable.cmake b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVar.cmake
+similarity index 76%
+rename from Tests/RunCMake/cmake_minimum_required/PolicyVersionVariable.cmake
+rename to Tests/RunCMake/cmake_minimum_required/PolicyVersionVar.cmake
+index 553fc94d145..c8975ddfcd1 100644
+--- a/Tests/RunCMake/cmake_minimum_required/PolicyVersionVariable.cmake
++++ b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVar.cmake
+@@ -1,4 +1,4 @@
+-set(CMAKE_POLICY_VERSION_MINIMUM 3.10)
++message("CMAKE_POLICY_VERSION_MINIMUM='${CMAKE_POLICY_VERSION_MINIMUM}'")
+ cmake_minimum_required(VERSION 3.1...3.4)
+ message("CMAKE_MINIMUM_REQUIRED_VERSION='${CMAKE_MINIMUM_REQUIRED_VERSION}'")
+ foreach(policy CMP0071 CMP0072)
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionVariableBad-result.txt b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBad-result.txt
+similarity index 100%
+rename from Tests/RunCMake/cmake_minimum_required/PolicyVersionVariableBad-result.txt
+rename to Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBad-result.txt
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBad-stderr.txt b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBad-stderr.txt
+new file mode 100644
+index 00000000000..ff6997d2975
+--- /dev/null
++++ b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBad-stderr.txt
+@@ -0,0 +1,9 @@
++^CMake Error at CMakeLists\.txt:1 \(cmake_minimum_required\):
++  Invalid CMAKE_POLICY_VERSION_MINIMUM value "\.\.\.3\.10"\.  A numeric
++  major\.minor\[\.patch\[\.tweak\]\] must be given\.
+++
++CMake Error at PolicyVersionVarBad\.cmake:1 \(cmake_minimum_required\):
++  Invalid CMAKE_POLICY_VERSION_MINIMUM value "\.\.\.3\.10"\.  A numeric
++  major\.minor\[\.patch\[\.tweak\]\] must be given\.
++Call Stack \(most recent call first\):
++  CMakeLists\.txt:[0-9]+ \(include\)$
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionVariableBad.cmake b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBad.cmake
+similarity index 50%
+rename from Tests/RunCMake/cmake_minimum_required/PolicyVersionVariableBad.cmake
+rename to Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBad.cmake
+index 763997b40ff..c602a4aebad 100644
+--- a/Tests/RunCMake/cmake_minimum_required/PolicyVersionVariableBad.cmake
++++ b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBad.cmake
+@@ -1,2 +1 @@
+-set(CMAKE_POLICY_VERSION_MINIMUM ...3.10)
+ cmake_minimum_required(VERSION 3.1...3.4)
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionVariable-stderr.txt b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVariable-stderr.txt
+deleted file mode 100644
+index 4f161bf0847..00000000000
+--- a/Tests/RunCMake/cmake_minimum_required/PolicyVersionVariable-stderr.txt
++++ /dev/null
+@@ -1,3 +0,0 @@
+-^CMAKE_MINIMUM_REQUIRED_VERSION='3\.1'
+-CMP0071='NEW'
+-CMP0072=''$
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionVariableBad-stderr.txt b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVariableBad-stderr.txt
+deleted file mode 100644
+index 3a59bb77a63..00000000000
+--- a/Tests/RunCMake/cmake_minimum_required/PolicyVersionVariableBad-stderr.txt
++++ /dev/null
+@@ -1,5 +0,0 @@
+-^CMake Error at PolicyVersionVariableBad\.cmake:2 \(cmake_minimum_required\):
+-  Invalid CMAKE_POLICY_VERSION_MINIMUM value "\.\.\.3\.10"\.  A numeric
+-  major\.minor\[\.patch\[\.tweak\]\] must be given\.
+-Call Stack \(most recent call first\):
+-  CMakeLists\.txt:[0-9]+ \(include\)$
+diff --git a/Tests/RunCMake/cmake_minimum_required/RunCMakeTest.cmake b/Tests/RunCMake/cmake_minimum_required/RunCMakeTest.cmake
+index d91f1715465..0d2d0f615a9 100644
+--- a/Tests/RunCMake/cmake_minimum_required/RunCMakeTest.cmake
++++ b/Tests/RunCMake/cmake_minimum_required/RunCMakeTest.cmake
+@@ -7,5 +7,5 @@ run_cmake(BeforeVersionDeprecated)
+ run_cmake(Range)
+ run_cmake(RangeBad)
+ run_cmake(Unknown)
+-run_cmake(PolicyVersionVariable)
+-run_cmake(PolicyVersionVariableBad)
++run_cmake_with_options(PolicyVersionVar -DCMAKE_POLICY_VERSION_MINIMUM=3.10)
++run_cmake_with_options(PolicyVersionVarBad -DCMAKE_POLICY_VERSION_MINIMUM=...3.10)
+-- 
+GitLab
+
+
+From 729470ff6da7509eac65aea762b08a9dfde713b4 Mon Sep 17 00:00:00 2001
+From: Brad King <brad.king@kitware.com>
+Date: Thu, 20 Feb 2025 15:36:52 -0500
+Subject: [PATCH 2/4] Tests: Cover CMAKE_POLICY_VERSION_MINIMUM in script mode
+
+---
+ .../PolicyVersionVarBadScript-result.txt                   | 1 +
+ .../PolicyVersionVarBadScript-stderr.txt                   | 7 +++++++
+ .../cmake_minimum_required/PolicyVersionVarBadScript.cmake | 1 +
+ .../PolicyVersionVarScript-stderr.txt                      | 4 ++++
+ .../cmake_minimum_required/PolicyVersionVarScript.cmake    | 1 +
+ Tests/RunCMake/cmake_minimum_required/RunCMakeTest.cmake   | 2 ++
+ 6 files changed, 16 insertions(+)
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBadScript-result.txt
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBadScript-stderr.txt
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBadScript.cmake
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionVarScript-stderr.txt
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionVarScript.cmake
+
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBadScript-result.txt b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBadScript-result.txt
+new file mode 100644
+index 00000000000..d00491fd7e5
+--- /dev/null
++++ b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBadScript-result.txt
+@@ -0,0 +1 @@
++1
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBadScript-stderr.txt b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBadScript-stderr.txt
+new file mode 100644
+index 00000000000..e07ff1529ef
+--- /dev/null
++++ b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBadScript-stderr.txt
+@@ -0,0 +1,7 @@
++^CMake Error at [^
++]*/PolicyVersionVarBad\.cmake:1 \(cmake_minimum_required\):
++  Invalid CMAKE_POLICY_VERSION_MINIMUM value "\.\.\.3\.10"\.  A numeric
++  major\.minor\[\.patch\[\.tweak\]\] must be given\.
++Call Stack \(most recent call first\):
++  [^
++]*/PolicyVersionVarBadScript\.cmake:1 \(include\)$
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBadScript.cmake b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBadScript.cmake
+new file mode 100644
+index 00000000000..8ae5e2ac033
+--- /dev/null
++++ b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBadScript.cmake
+@@ -0,0 +1 @@
++include(${CMAKE_CURRENT_LIST_DIR}/PolicyVersionVarBad.cmake)
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarScript-stderr.txt b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarScript-stderr.txt
+new file mode 100644
+index 00000000000..75d5a7ef65c
+--- /dev/null
++++ b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarScript-stderr.txt
+@@ -0,0 +1,4 @@
++^CMAKE_POLICY_VERSION_MINIMUM='3\.10'
++CMAKE_MINIMUM_REQUIRED_VERSION='3\.1'
++CMP0071='NEW'
++CMP0072=''$
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarScript.cmake b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarScript.cmake
+new file mode 100644
+index 00000000000..e1583547399
+--- /dev/null
++++ b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarScript.cmake
+@@ -0,0 +1 @@
++include(${CMAKE_CURRENT_LIST_DIR}/PolicyVersionVar.cmake)
+diff --git a/Tests/RunCMake/cmake_minimum_required/RunCMakeTest.cmake b/Tests/RunCMake/cmake_minimum_required/RunCMakeTest.cmake
+index 0d2d0f615a9..865440dbd75 100644
+--- a/Tests/RunCMake/cmake_minimum_required/RunCMakeTest.cmake
++++ b/Tests/RunCMake/cmake_minimum_required/RunCMakeTest.cmake
+@@ -8,4 +8,6 @@ run_cmake(Range)
+ run_cmake(RangeBad)
+ run_cmake(Unknown)
+ run_cmake_with_options(PolicyVersionVar -DCMAKE_POLICY_VERSION_MINIMUM=3.10)
++run_cmake_script(PolicyVersionVarScript -DCMAKE_POLICY_VERSION_MINIMUM=3.10)
+ run_cmake_with_options(PolicyVersionVarBad -DCMAKE_POLICY_VERSION_MINIMUM=...3.10)
++run_cmake_script(PolicyVersionVarBadScript -DCMAKE_POLICY_VERSION_MINIMUM=...3.10)
+-- 
+GitLab
+
+
+From 04721acc6c8d1f68f82a20aac900e795c680084e Mon Sep 17 00:00:00 2001
+From: Brad King <brad.king@kitware.com>
+Date: Thu, 20 Feb 2025 16:20:09 -0500
+Subject: [PATCH 3/4] Tests: Cover CMAKE_POLICY_VERSION_MINIMUM in initial
+ cache script
+
+---
+ .../PolicyVersionVarBadCache-result.txt                    | 1 +
+ .../PolicyVersionVarBadCache-stderr.txt                    | 7 +++++++
+ .../cmake_minimum_required/PolicyVersionVarBadCache.cmake  | 0
+ .../PolicyVersionVarCache-stderr.txt                       | 4 ++++
+ .../cmake_minimum_required/PolicyVersionVarCache.cmake     | 0
+ Tests/RunCMake/cmake_minimum_required/RunCMakeTest.cmake   | 3 +++
+ 6 files changed, 15 insertions(+)
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBadCache-result.txt
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBadCache-stderr.txt
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBadCache.cmake
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionVarCache-stderr.txt
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionVarCache.cmake
+
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBadCache-result.txt b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBadCache-result.txt
+new file mode 100644
+index 00000000000..d00491fd7e5
+--- /dev/null
++++ b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBadCache-result.txt
+@@ -0,0 +1 @@
++1
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBadCache-stderr.txt b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBadCache-stderr.txt
+new file mode 100644
+index 00000000000..808a6e1044a
+--- /dev/null
++++ b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBadCache-stderr.txt
+@@ -0,0 +1,7 @@
++^CMake Error at PolicyVersionVarBad\.cmake:1 \(cmake_minimum_required\):
++  Invalid CMAKE_POLICY_VERSION_MINIMUM value "\.\.\.3\.10"\.  A numeric
++  major\.minor\[\.patch\[\.tweak\]\] must be given\.
+++
++CMake Error at CMakeLists\.txt:1 \(cmake_minimum_required\):
++  Invalid CMAKE_POLICY_VERSION_MINIMUM value "\.\.\.3\.10"\.  A numeric
++  major\.minor\[\.patch\[\.tweak\]\] must be given\.$
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBadCache.cmake b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarBadCache.cmake
+new file mode 100644
+index 00000000000..e69de29bb2d
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarCache-stderr.txt b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarCache-stderr.txt
+new file mode 100644
+index 00000000000..75d5a7ef65c
+--- /dev/null
++++ b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarCache-stderr.txt
+@@ -0,0 +1,4 @@
++^CMAKE_POLICY_VERSION_MINIMUM='3\.10'
++CMAKE_MINIMUM_REQUIRED_VERSION='3\.1'
++CMP0071='NEW'
++CMP0072=''$
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarCache.cmake b/Tests/RunCMake/cmake_minimum_required/PolicyVersionVarCache.cmake
+new file mode 100644
+index 00000000000..e69de29bb2d
+diff --git a/Tests/RunCMake/cmake_minimum_required/RunCMakeTest.cmake b/Tests/RunCMake/cmake_minimum_required/RunCMakeTest.cmake
+index 865440dbd75..b4cc911b339 100644
+--- a/Tests/RunCMake/cmake_minimum_required/RunCMakeTest.cmake
++++ b/Tests/RunCMake/cmake_minimum_required/RunCMakeTest.cmake
+@@ -7,7 +7,10 @@ run_cmake(BeforeVersionDeprecated)
+ run_cmake(Range)
+ run_cmake(RangeBad)
+ run_cmake(Unknown)
++
+ run_cmake_with_options(PolicyVersionVar -DCMAKE_POLICY_VERSION_MINIMUM=3.10)
++run_cmake_with_options(PolicyVersionVarCache -DCMAKE_POLICY_VERSION_MINIMUM=3.10 -C ${CMAKE_CURRENT_LIST_DIR}/PolicyVersionVar.cmake)
+ run_cmake_script(PolicyVersionVarScript -DCMAKE_POLICY_VERSION_MINIMUM=3.10)
+ run_cmake_with_options(PolicyVersionVarBad -DCMAKE_POLICY_VERSION_MINIMUM=...3.10)
++run_cmake_with_options(PolicyVersionVarBadCache -DCMAKE_POLICY_VERSION_MINIMUM=...3.10 -C ${CMAKE_CURRENT_LIST_DIR}/PolicyVersionVarBad.cmake)
+ run_cmake_script(PolicyVersionVarBadScript -DCMAKE_POLICY_VERSION_MINIMUM=...3.10)
+-- 
+GitLab
+
+
+From 33856b1d62e5311f456c458295ccc900eb9a38f0 Mon Sep 17 00:00:00 2001
+From: Brad King <brad.king@kitware.com>
+Date: Thu, 20 Feb 2025 16:30:51 -0500
+Subject: [PATCH 4/4] Add CMAKE_POLICY_VERSION_MINIMUM environment variable
+
+Extend commit 1a35351125 (Add CMAKE_POLICY_VERSION_MINIMUM to help
+configure outdated projects, 2025-02-13, v4.0.0-rc1~12^2) with an
+environment variable to initialize the cache entry.  That will make it
+easier to use when `cmake` is invoked under layers of scripting.
+
+Closes: #26715
+---
+ Help/envvar/CMAKE_POLICY_VERSION_MINIMUM.rst      | 11 +++++++++++
+ Help/manual/cmake-env-variables.7.rst             |  1 +
+ Help/release/4.0.rst                              |  2 ++
+ Help/variable/CMAKE_POLICY_VERSION_MINIMUM.rst    |  4 ++++
+ Source/cmake.cxx                                  | 15 +++++++++++++++
+ Tests/EnforceConfig.cmake.in                      |  1 +
+ .../PolicyVersionEnvVar-stderr.txt                |  4 ++++
+ .../PolicyVersionEnvVar.cmake                     |  1 +
+ .../PolicyVersionEnvVarBad-result.txt             |  1 +
+ .../PolicyVersionEnvVarBad-stderr.txt             | 10 ++++++++++
+ .../PolicyVersionEnvVarBad.cmake                  |  1 +
+ .../PolicyVersionEnvVarBadCache-result.txt        |  1 +
+ .../PolicyVersionEnvVarBadCache-stderr.txt        |  9 +++++++++
+ .../PolicyVersionEnvVarBadCache.cmake             |  0
+ .../PolicyVersionEnvVarBadScript-result.txt       |  1 +
+ .../PolicyVersionEnvVarBadScript-stderr.txt       |  7 +++++++
+ .../PolicyVersionEnvVarBadScript.cmake            |  1 +
+ .../PolicyVersionEnvVarCache-stderr.txt           |  4 ++++
+ .../PolicyVersionEnvVarCache.cmake                |  0
+ .../PolicyVersionEnvVarScript-stderr.txt          |  4 ++++
+ .../PolicyVersionEnvVarScript.cmake               |  1 +
+ .../cmake_minimum_required/RunCMakeTest.cmake     | 10 ++++++++++
+ 22 files changed, 89 insertions(+)
+ create mode 100644 Help/envvar/CMAKE_POLICY_VERSION_MINIMUM.rst
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVar-stderr.txt
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVar.cmake
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBad-result.txt
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBad-stderr.txt
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBad.cmake
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBadCache-result.txt
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBadCache-stderr.txt
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBadCache.cmake
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBadScript-result.txt
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBadScript-stderr.txt
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBadScript.cmake
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarCache-stderr.txt
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarCache.cmake
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarScript-stderr.txt
+ create mode 100644 Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarScript.cmake
+
+diff --git a/Help/envvar/CMAKE_POLICY_VERSION_MINIMUM.rst b/Help/envvar/CMAKE_POLICY_VERSION_MINIMUM.rst
+new file mode 100644
+index 00000000000..0521f5cce73
+--- /dev/null
++++ b/Help/envvar/CMAKE_POLICY_VERSION_MINIMUM.rst
+@@ -0,0 +1,11 @@
++CMAKE_POLICY_VERSION_MINIMUM
++----------------------------
++
++.. versionadded:: 4.0
++
++.. include:: ENV_VAR.txt
++
++The default value for :variable:`CMAKE_POLICY_VERSION_MINIMUM` when there
++is no explicit configuration given on the first run while creating a new
++build tree.  On later runs in an existing build tree the value persists in
++the cache as :variable:`CMAKE_POLICY_VERSION_MINIMUM`.
+diff --git a/Help/manual/cmake-env-variables.7.rst b/Help/manual/cmake-env-variables.7.rst
+index 140fc83a542..198e71fa5b6 100644
+--- a/Help/manual/cmake-env-variables.7.rst
++++ b/Help/manual/cmake-env-variables.7.rst
+@@ -27,6 +27,7 @@ Environment Variables that Change Behavior
+    /envvar/CMAKE_INCLUDE_PATH
+    /envvar/CMAKE_LIBRARY_PATH
+    /envvar/CMAKE_MAXIMUM_RECURSION_DEPTH
++   /envvar/CMAKE_POLICY_VERSION_MINIMUM
+    /envvar/CMAKE_PREFIX_PATH
+    /envvar/CMAKE_PROGRAM_PATH
+    /envvar/CMAKE_TLS_VERIFY
+diff --git a/Help/release/4.0.rst b/Help/release/4.0.rst
+index a7a78603cc0..91227988c8a 100644
+--- a/Help/release/4.0.rst
++++ b/Help/release/4.0.rst
+@@ -75,6 +75,8 @@ Variables
+ * The :variable:`CMAKE_POLICY_VERSION_MINIMUM` variable was added to
+   help packagers and end users try to configure existing projects that
+   have not been updated to work with supported CMake versions.
++  The :envvar:`CMAKE_POLICY_VERSION_MINIMUM` environment variable was
++  added to initialize it.
+ 
+ * The :variable:`CMAKE_XCODE_SCHEME_LLDB_INIT_FILE` variable and corresponding
+   :prop_tgt:`XCODE_SCHEME_LLDB_INIT_FILE` target property were added to tell
+diff --git a/Help/variable/CMAKE_POLICY_VERSION_MINIMUM.rst b/Help/variable/CMAKE_POLICY_VERSION_MINIMUM.rst
+index cf48ecfe9b0..d1fa143a2bf 100644
+--- a/Help/variable/CMAKE_POLICY_VERSION_MINIMUM.rst
++++ b/Help/variable/CMAKE_POLICY_VERSION_MINIMUM.rst
+@@ -16,6 +16,10 @@ to externally set policies for which a project has not itself been updated:
+   ``-DCMAKE_POLICY_VERSION_MINIMUM=3.5``, to try configuring a project
+   that has not been updated to set at least that policy version itself.
+ 
++  Alternatively, users may set the :envvar:`CMAKE_POLICY_VERSION_MINIMUM`
++  environment variable to initialize the cache entry in new build trees
++  automatically.
++
+ * Projects may set this variable before a call to :command:`add_subdirectory`
+   that adds a third-party project in order to set its policy version without
+   modifying third-party code.
+diff --git a/Source/cmake.cxx b/Source/cmake.cxx
+index 0bee1cc3cc4..934f6355a75 100644
+--- a/Source/cmake.cxx
++++ b/Source/cmake.cxx
+@@ -547,6 +547,21 @@ void cmake::PrintPresetEnvironment()
+ // Parse the args
+ bool cmake::SetCacheArgs(std::vector<std::string> const& args)
+ {
++  static std::string const kCMAKE_POLICY_VERSION_MINIMUM =
++    "CMAKE_POLICY_VERSION_MINIMUM";
++  if (!this->State->GetInitializedCacheValue(kCMAKE_POLICY_VERSION_MINIMUM)) {
++    cm::optional<std::string> policyVersion =
++      cmSystemTools::GetEnvVar(kCMAKE_POLICY_VERSION_MINIMUM);
++    if (policyVersion && !policyVersion->empty()) {
++      this->AddCacheEntry(
++        kCMAKE_POLICY_VERSION_MINIMUM, *policyVersion,
++        "Override policy version for cmake_minimum_required calls.",
++        cmStateEnums::STRING);
++      this->State->SetCacheEntryProperty(kCMAKE_POLICY_VERSION_MINIMUM,
++                                         "ADVANCED", "1");
++    }
++  }
++
+   auto DefineLambda = [](std::string const& entry, cmake* state) -> bool {
+     std::string var;
+     std::string value;
+diff --git a/Tests/EnforceConfig.cmake.in b/Tests/EnforceConfig.cmake.in
+index fd785a52949..f9f476d556c 100644
+--- a/Tests/EnforceConfig.cmake.in
++++ b/Tests/EnforceConfig.cmake.in
+@@ -36,6 +36,7 @@ unset(ENV{CMAKE_GENERATOR_INSTANCE})
+ unset(ENV{CMAKE_GENERATOR_PLATFORM})
+ unset(ENV{CMAKE_GENERATOR_TOOLSET})
+ unset(ENV{CMAKE_EXPORT_COMPILE_COMMANDS})
++unset(ENV{CMAKE_POLICY_VERSION_MINIMUM})
+ 
+ # Verify that our module implementations do not recurse too much.
+ set(ENV{CMAKE_MAXIMUM_RECURSION_DEPTH} 100)
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVar-stderr.txt b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVar-stderr.txt
+new file mode 100644
+index 00000000000..75d5a7ef65c
+--- /dev/null
++++ b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVar-stderr.txt
+@@ -0,0 +1,4 @@
++^CMAKE_POLICY_VERSION_MINIMUM='3\.10'
++CMAKE_MINIMUM_REQUIRED_VERSION='3\.1'
++CMP0071='NEW'
++CMP0072=''$
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVar.cmake b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVar.cmake
+new file mode 100644
+index 00000000000..e1583547399
+--- /dev/null
++++ b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVar.cmake
+@@ -0,0 +1 @@
++include(${CMAKE_CURRENT_LIST_DIR}/PolicyVersionVar.cmake)
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBad-result.txt b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBad-result.txt
+new file mode 100644
+index 00000000000..d00491fd7e5
+--- /dev/null
++++ b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBad-result.txt
+@@ -0,0 +1 @@
++1
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBad-stderr.txt b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBad-stderr.txt
+new file mode 100644
+index 00000000000..1ddab391ab6
+--- /dev/null
++++ b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBad-stderr.txt
+@@ -0,0 +1,10 @@
++^CMake Error at CMakeLists\.txt:1 \(cmake_minimum_required\):
++  Invalid CMAKE_POLICY_VERSION_MINIMUM value "\.\.\.3\.10"\.  A numeric
++  major\.minor\[\.patch\[\.tweak\]\] must be given\.
+++
++CMake Error at PolicyVersionVarBad\.cmake:1 \(cmake_minimum_required\):
++  Invalid CMAKE_POLICY_VERSION_MINIMUM value "\.\.\.3\.10"\.  A numeric
++  major\.minor\[\.patch\[\.tweak\]\] must be given\.
++Call Stack \(most recent call first\):
++  PolicyVersionEnvVarBad\.cmake:[0-9]+ \(include\)
++  CMakeLists\.txt:[0-9]+ \(include\)$
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBad.cmake b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBad.cmake
+new file mode 100644
+index 00000000000..8ae5e2ac033
+--- /dev/null
++++ b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBad.cmake
+@@ -0,0 +1 @@
++include(${CMAKE_CURRENT_LIST_DIR}/PolicyVersionVarBad.cmake)
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBadCache-result.txt b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBadCache-result.txt
+new file mode 100644
+index 00000000000..d00491fd7e5
+--- /dev/null
++++ b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBadCache-result.txt
+@@ -0,0 +1 @@
++1
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBadCache-stderr.txt b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBadCache-stderr.txt
+new file mode 100644
+index 00000000000..cb46948329a
+--- /dev/null
++++ b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBadCache-stderr.txt
+@@ -0,0 +1,9 @@
++^CMake Error at PolicyVersionVarBad\.cmake:1 \(cmake_minimum_required\):
++  Invalid CMAKE_POLICY_VERSION_MINIMUM value "\.\.\.3\.10"\.  A numeric
++  major\.minor\[\.patch\[\.tweak\]\] must be given\.
++Call Stack \(most recent call first\):
++  PolicyVersionEnvVarBad\.cmake:[0-9]+ \(include\)
+++
++CMake Error at CMakeLists\.txt:1 \(cmake_minimum_required\):
++  Invalid CMAKE_POLICY_VERSION_MINIMUM value "\.\.\.3\.10"\.  A numeric
++  major\.minor\[\.patch\[\.tweak\]\] must be given\.$
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBadCache.cmake b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBadCache.cmake
+new file mode 100644
+index 00000000000..e69de29bb2d
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBadScript-result.txt b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBadScript-result.txt
+new file mode 100644
+index 00000000000..d00491fd7e5
+--- /dev/null
++++ b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBadScript-result.txt
+@@ -0,0 +1 @@
++1
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBadScript-stderr.txt b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBadScript-stderr.txt
+new file mode 100644
+index 00000000000..b808e08407e
+--- /dev/null
++++ b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBadScript-stderr.txt
+@@ -0,0 +1,7 @@
++^CMake Error at [^
++]*/PolicyVersionVarBad\.cmake:1 \(cmake_minimum_required\):
++  Invalid CMAKE_POLICY_VERSION_MINIMUM value "\.\.\.3\.10"\.  A numeric
++  major\.minor\[\.patch\[\.tweak\]\] must be given\.
++Call Stack \(most recent call first\):
++  [^
++]*/PolicyVersionEnvVarBadScript\.cmake:[0-9]+ \(include\)$
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBadScript.cmake b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBadScript.cmake
+new file mode 100644
+index 00000000000..8ae5e2ac033
+--- /dev/null
++++ b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarBadScript.cmake
+@@ -0,0 +1 @@
++include(${CMAKE_CURRENT_LIST_DIR}/PolicyVersionVarBad.cmake)
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarCache-stderr.txt b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarCache-stderr.txt
+new file mode 100644
+index 00000000000..75d5a7ef65c
+--- /dev/null
++++ b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarCache-stderr.txt
+@@ -0,0 +1,4 @@
++^CMAKE_POLICY_VERSION_MINIMUM='3\.10'
++CMAKE_MINIMUM_REQUIRED_VERSION='3\.1'
++CMP0071='NEW'
++CMP0072=''$
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarCache.cmake b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarCache.cmake
+new file mode 100644
+index 00000000000..e69de29bb2d
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarScript-stderr.txt b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarScript-stderr.txt
+new file mode 100644
+index 00000000000..75d5a7ef65c
+--- /dev/null
++++ b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarScript-stderr.txt
+@@ -0,0 +1,4 @@
++^CMAKE_POLICY_VERSION_MINIMUM='3\.10'
++CMAKE_MINIMUM_REQUIRED_VERSION='3\.1'
++CMP0071='NEW'
++CMP0072=''$
+diff --git a/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarScript.cmake b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarScript.cmake
+new file mode 100644
+index 00000000000..e1583547399
+--- /dev/null
++++ b/Tests/RunCMake/cmake_minimum_required/PolicyVersionEnvVarScript.cmake
+@@ -0,0 +1 @@
++include(${CMAKE_CURRENT_LIST_DIR}/PolicyVersionVar.cmake)
+diff --git a/Tests/RunCMake/cmake_minimum_required/RunCMakeTest.cmake b/Tests/RunCMake/cmake_minimum_required/RunCMakeTest.cmake
+index b4cc911b339..88714477b7b 100644
+--- a/Tests/RunCMake/cmake_minimum_required/RunCMakeTest.cmake
++++ b/Tests/RunCMake/cmake_minimum_required/RunCMakeTest.cmake
+@@ -14,3 +14,13 @@ run_cmake_script(PolicyVersionVarScript -DCMAKE_POLICY_VERSION_MINIMUM=3.10)
+ run_cmake_with_options(PolicyVersionVarBad -DCMAKE_POLICY_VERSION_MINIMUM=...3.10)
+ run_cmake_with_options(PolicyVersionVarBadCache -DCMAKE_POLICY_VERSION_MINIMUM=...3.10 -C ${CMAKE_CURRENT_LIST_DIR}/PolicyVersionVarBad.cmake)
+ run_cmake_script(PolicyVersionVarBadScript -DCMAKE_POLICY_VERSION_MINIMUM=...3.10)
++
++set(ENV{CMAKE_POLICY_VERSION_MINIMUM} 3.10)
++run_cmake(PolicyVersionEnvVar)
++run_cmake_with_options(PolicyVersionEnvVarCache -C ${CMAKE_CURRENT_LIST_DIR}/PolicyVersionEnvVar.cmake)
++run_cmake_script(PolicyVersionEnvVarScript)
++set(ENV{CMAKE_POLICY_VERSION_MINIMUM} ...3.10)
++run_cmake(PolicyVersionEnvVarBad)
++run_cmake_with_options(PolicyVersionEnvVarBadCache -C ${CMAKE_CURRENT_LIST_DIR}/PolicyVersionEnvVarBad.cmake)
++run_cmake_script(PolicyVersionEnvVarBadScript)
++unset(ENV{CMAKE_POLICY_VERSION_MINIMUM})
+-- 
+GitLab
+
