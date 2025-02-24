@@ -44,14 +44,8 @@ class Xolotl(CMakePackage, CudaPackage):
     depends_on("plsm +openmp", when="+openmp")
 
     for cuda_arch in CudaPackage.cuda_arch_values:
-        depends_on(
-            f"petsc+cuda cuda_arch={cuda_arch}",
-            when=f"+cuda cuda_arch={cuda_arch}",
-        )
-        depends_on(
-            f"plsm+cuda cuda_arch={cuda_arch}",
-            when=f"+cuda cuda_arch={cuda_arch}",
-        )
+        depends_on(f"petsc+cuda cuda_arch={cuda_arch}", when=f"+cuda cuda_arch={cuda_arch}")
+        depends_on(f"plsm+cuda cuda_arch={cuda_arch}", when=f"+cuda cuda_arch={cuda_arch}")
 
     variant("papi", default=False, description="Activates PAPI perfHandler")
     depends_on("papi", when="+papi")
