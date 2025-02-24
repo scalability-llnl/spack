@@ -62,6 +62,9 @@ class CMakeBuilder(CMakeBuilder):
             self.define("PNG_STATIC", "static" in self.spec.variants["libs"].value),
             self.define_from_variant("CMAKE_POSITION_INDEPENDENT_CODE", "pic"),
         ]
+        zlib_lib = self.spec["zlib-api"].libs
+        if zlib_lib:
+            args.append(self.define("ZLIB_LIBRARY", zlib_lib[0]))
         if self.spec.satisfies("platform=darwin target=aarch64:"):
             args.append("-DPNG_ARM_NEON=off")
         return args
