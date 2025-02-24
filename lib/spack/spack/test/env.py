@@ -16,6 +16,7 @@ import spack.solver.asp
 import spack.spec
 from spack.environment.environment import (
     EnvironmentManifestFile,
+    GitRepoChangeDetector,
     SpackEnvironmentViewError,
     _error_on_nonempty_view_dir,
 )
@@ -805,6 +806,37 @@ def test_deconcretize_then_concretize_does_not_error(mutable_mock_env_path, mock
     assert len(e.concrete_roots()) == 3
     all_root_hashes = {x.dag_hash() for x in e.concrete_roots()}
     assert len(all_root_hashes) == 2
+
+
+class TestGitRepoChangeDetector:
+    def test_detect_git_change(self, mutable_mock_git_repo):
+        repo_path, managed_file = mutable_mock_git_repo
+        git_change_detector = GitRepoChangeDetector.from_src_dir(repo_path)
+        # If no prior recorded state exists the default should be to
+        # indicate that a rebuild is required.
+        assert git_change_detector.update_current()
+
+        git_change_detector.update_prior()
+
+        # Now that prior has updated, and no change has occurred since
+        # then, we should go back to reporting no change.
+        assert not git_change_detector.update_current()
+
+        with fs.working_dir(repo_path):
+            with open(managed_file, "a", encoding="utf-8") as f:
+                f.write("extra content")
+
+        # A change has occurred since the last time we updated our
+        # prior state: it should be indicated that a rebuild is needed
+        assert git_change_detector.update_current()
+
+        git_change_detector.update_prior()
+
+        assert not git_change_detector.update_current()
+
+    def test_not_a_git_repo(self, tmpdir):
+        not_a_git_repo = tmpdir.mkdir("env_dir").strpath
+        assert not GitRepoChangeDetector.from_src_dir(not_a_git_repo)
 
 
 @pytest.mark.regression("44216")
