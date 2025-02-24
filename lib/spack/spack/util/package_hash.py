@@ -26,10 +26,18 @@ class RemoveDocstrings(ast.NodeTransformer):
     def remove_docstring(self, node):
         def unused_string(node):
             """Criteria for unassigned body strings."""
-            return isinstance(node, ast.Expr) and isinstance(node.value, ast.Str)
+            if isinstance(node, ast.Expr):
+                if isinstance(node.value, ast.Constant) and isinstance(node.value.value, str):
+                    return True
+                # Python 3.8 changed Str to Constant
+                if type(node.value).__name__ == "Str":
+                    return True
+            return False
 
         if node.body:
             node.body = [child for child in node.body if not unused_string(child)]
+        if not node.body:
+            node.body = [ast.Pass()]
 
         self.generic_visit(node)
         return node
