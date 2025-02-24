@@ -798,7 +798,7 @@ class DependencySpec:
         self.depflag = new
         return True
 
-    def update_virtuals(self, virtuals: Tuple[str, ...]) -> bool:
+    def update_virtuals(self, virtuals: Iterable[str]) -> bool:
         """Update the list of provided virtuals"""
         old = self.virtuals
         self.virtuals = tuple(sorted(set(virtuals).union(self.virtuals)))
@@ -4838,14 +4838,10 @@ def merge_abstract_anonymous_specs(*abstract_specs: Spec):
     return merged_spec
 
 
-def reconstruct_virtuals_on_edges(spec):
-    """Reconstruct virtuals on edges. Used to read from old DB and reindex.
-
-    Args:
-        spec: spec on which we want to reconstruct virtuals
-    """
-    # Collect all possible virtuals
-    virtuals_needed, virtuals_provided = {}, {}
+def reconstruct_virtuals_on_edges(spec: Spec) -> None:
+    """Reconstruct virtuals on edges. Used to read from old DB and reindex."""
+    virtuals_needed: Dict[str, Set[str]] = {}
+    virtuals_provided: Dict[str, Set[str]] = {}
     for edge in spec.traverse_edges(cover="edges", root=False):
         parent_key = edge.parent.dag_hash()
         if parent_key not in virtuals_needed:
@@ -4859,12 +4855,12 @@ def reconstruct_virtuals_on_edges(spec):
                 )
                 continue
 
-            virtuals_needed[parent_key] = {
+            virtuals_needed[parent_key].update(
                 name
                 for name, when_deps in parent_pkg.dependencies_by_name(when=True).items()
                 if spack.repo.PATH.is_virtual(name)
                 and any(edge.parent.satisfies(x) for x in when_deps)
-            }
+            )
 
         if not virtuals_needed[parent_key]:
             continue
@@ -4879,7 +4875,7 @@ def reconstruct_virtuals_on_edges(spec):
                     f"cannot reconstruct virtual dependencies on {edge.parent.name}: {e}"
                 )
                 continue
-            virtuals_provided[child_key] = {x.name for x in child_pkg.virtuals_provided}
+            virtuals_provided[child_key].update(x.name for x in child_pkg.virtuals_provided)
 
         if not virtuals_provided[child_key]:
             continue
