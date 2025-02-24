@@ -77,6 +77,9 @@ spack:
       require:
       - lammps_sizes=bigbig +molecule +kspace +rigid +asphere +opt +openmp +openmp-package fft=mkl ^intel-oneapi-mkl
       - one_of: [+intel target=x86_64_v4, target=x86_64_v3]
+    bison:
+      require:
+      - "%gcc"
     libfabric:
       buildable: true
       externals:
@@ -112,11 +115,14 @@ spack:
       externals:
       - prefix: /opt/slurm
         spec: slurm@22.05.8 +pmix
+      require:
+      - +pmix
     wrf:
       require:
       - wrf@4 build_type=dm+sm
     all:
-      compiler: [oneapi, gcc]
+      require:
+      - "%oneapi"
       permissions:
         read: world
         write: user
