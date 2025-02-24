@@ -46,6 +46,7 @@ import spack.phase_callbacks
 import spack.repo
 import spack.spec
 import spack.store
+import spack.traverse
 import spack.url
 import spack.util.environment
 import spack.util.path
@@ -1290,7 +1291,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         deps = []
 
         # If the extendee is in the spec's deps already, return that.
-        for dep in self.spec.traverse(deptype=("link", "run")):
+        for dep in self.spec.traverse(deptype=("link", "run"), key=spack.traverse.by_dag_hash):
             if dep.name in self.extendees:
                 deps.append(dep)
 
