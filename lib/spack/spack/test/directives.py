@@ -182,8 +182,9 @@ class Y(Package):
 
 
 @pytest.fixture
-def _create_test_repo(tmpdir, mutable_config):
-    yield create_test_repo(tmpdir, [_pkgx, _pkgy])
+def _create_test_repo(tmpdir, mutable_config, request):
+    pkgs = request.param
+    yield create_test_repo(tmpdir, pkgs)
 
 
 @pytest.fixture
@@ -192,6 +193,7 @@ def test_repo(_create_test_repo, monkeypatch, mock_stage):
         yield mock_repo_path
 
 
+@pytest.mark.parametrize("_create_test_repo", [(_pkgx, _pkgy)], indirect=True)
 @pytest.mark.parametrize(
     "spec_str,distribute_src,distribute_bin",
     [
@@ -230,3 +232,152 @@ def test_redistribute_override_when():
     spack.directives._execute_redistribute(cls, source=None, binary=False, when="@1.0")
     assert cls.disable_redistribute[spec_key].binary
     assert cls.disable_redistribute[spec_key].source
+
+
+_pkgx = (
+    "x",
+    """\
+from spack.package import *
+
+class X(Package):
+    version("1.3")
+    version("1.2")
+    remove_all_versions()
+""",
+)
+
+
+@pytest.mark.parametrize("_create_test_repo", [(_pkgx,)], indirect=True)
+def test_remove_all_versions(test_repo):
+    cls = spack.repo.PATH.get_pkg_class(_pkgx[0])
+    assert len(cls.versions) == 0
+
+
+_pkgx = (
+    "x",
+    """\
+from spack.package import *
+
+class X(Package):
+    version("1.3")
+    version("1.2")
+    version("1.1")
+    [remove_version(ver) for ver in ["1.3", "1.1"]]
+""",
+)
+
+
+@pytest.mark.parametrize("_create_test_repo", [(_pkgx,)], indirect=True)
+def test_remove_version(test_repo):
+    cls = spack.repo.PATH.get_pkg_class(_pkgx[0])
+    assert cls.versions == {spack.version.Version("1.2"): {}}
+
+
+_pkgx = (
+    "x",
+    """\
+from spack.package import *
+
+class X(Package):
+    version("1.0")
+    conflicts("%gcc", when="@1.0")
+    conflicts("%clang")
+    remove_all_conflicts()
+""",
+)
+
+
+@pytest.mark.parametrize("_create_test_repo", [(_pkgx,)], indirect=True)
+def test_remove_all_conflicts(test_repo):
+    cls = spack.repo.PATH.get_pkg_class(_pkgx[0])
+    assert len(cls.conflicts) == 0
+
+
+_pkgx = (
+    "x",
+    """\
+from spack.package import *
+
+class X(Package):
+    version("1.0")
+    conflicts("%gcc", when="@1.0")
+    conflicts("%clang")
+    conflicts("^hdf5", when="@1.0")
+    remove_conflict("%clang")
+    remove_conflict("^hdf5", when="@1.0")
+""",
+)
+
+
+@pytest.mark.parametrize("_create_test_repo", [(_pkgx,)], indirect=True)
+def test_remove_conflict(test_repo):
+    cls = spack.repo.PATH.get_pkg_class(_pkgx[0])
+    assert cls.conflicts == {spack.spec.Spec("@1.0"): [(spack.spec.Spec("%gcc"), None)]}
+
+
+_pkgx = (
+    "x",
+    """\
+from spack.package import *
+
+class X(Package):
+    version("1.0")
+    conflicts("mpi", when="@3:")
+    remove_conflict("mpi", when="@5:")
+""",
+)
+
+
+@pytest.mark.parametrize("_create_test_repo", [(_pkgx,)], indirect=True)
+def test_remove_conflict_range(test_repo):
+    cls = spack.repo.PATH.get_pkg_class(_pkgx[0])
+    assert cls.conflicts == {spack.spec.Spec("@3:4"): [(spack.spec.Spec("mpi"), None)]}
+
+
+_pkgx = (
+    "x",
+    """\
+from spack.package import *
+
+class X(Package):
+    version("1.0")
+    depends_on("hdf5")
+    depends_on("mpi")
+    remove_all_depends_on()
+""",
+)
+
+
+@pytest.mark.parametrize("_create_test_repo", [(_pkgx,)], indirect=True)
+def test_remove_all_depends_on(test_repo):
+    cls = spack.repo.PATH.get_pkg_class(_pkgx[0])
+    assert len(cls.dependencies) == 0
+
+
+@pytest.mark.parametrize(
+    "_create_test_repo",
+    [
+        (
+            (
+                "x",
+                """\
+from spack.package import *
+
+class X(Package):
+    version("1.0")
+    depends_on("hdf5")
+    depends_on("mpi", when="@1.0")
+    depends_on("netcdf-c", when="@1.0")
+    remove_depends_on("hdf5")
+    remove_depends_on("netcdf-c", when="@1.0")
+""",
+            ),
+        )
+    ],
+    indirect=True,
+)
+def test_remove_depends_on(test_repo):
+    cls = spack.repo.PATH.get_pkg_class(_pkgx[0])
+    assert len(cls.dependencies) == 1
+    assert len(cls.dependencies[spack.spec.Spec("@1.0")]) == 1
+    assert "mpi" in cls.dependencies[spack.spec.Spec("@1.0")]
