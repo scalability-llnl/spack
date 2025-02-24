@@ -18,7 +18,12 @@ class PyAmrex(CMakePackage, PythonExtension, CudaPackage, ROCmPackage):
     license("BSD-3-Clause-LBNL")
 
     version("develop", branch="development")
-    version("24.10", sha256="dc1752ed3fbd5113dcfdbddcfe6c3c458e572b288ac9d41ed3ed7db130591d74")
+    version("25.02", sha256="c743086b317f9fa90639d825db32a92376cde8dc5e1eab47a4c6a82af36d5b5c")
+    version(
+        "24.10",
+        sha256="dc1752ed3fbd5113dcfdbddcfe6c3c458e572b288ac9d41ed3ed7db130591d74",
+        deprecated=True,
+    )
     version(
         "24.08",
         sha256="e7179d88261f64744f392a2194ff2744fe323fe0e21d0742ba60458709a1b47e",
@@ -36,7 +41,7 @@ class PyAmrex(CMakePackage, PythonExtension, CudaPackage, ROCmPackage):
         deprecated=True,
     )
 
-    for v in ["24.10", "24.08", "24.04", "24.03"]:
+    for v in ["25.02", "24.10", "24.08", "24.04", "24.03"]:
         depends_on("amrex@{0}".format(v), when="@{0}".format(v), type=("build", "link"))
 
     variant(
@@ -67,6 +72,7 @@ class PyAmrex(CMakePackage, PythonExtension, CudaPackage, ROCmPackage):
 
     depends_on("cmake@3.20:3", type="build", when="@:24.08")
     depends_on("cmake@3.24:3", type="build", when="@24.09:")
+    depends_on("pkgconfig", type="build")  # amrex +fft
     depends_on("python@3.8:", type=("build", "run"))
     depends_on("py-mpi4py@2.1.0:", type=("build", "run"), when="+mpi")
     depends_on("py-numpy@1.15:", type=("build", "run"))

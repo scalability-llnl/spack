@@ -10,11 +10,12 @@ class PyPicmistandard(PythonPackage):
 
     homepage = "https://picmi-standard.github.io"
     git = "https://github.com/picmi-standard/picmi.git"
-    pypi = "picmistandard/picmistandard-0.30.0.tar.gz"
+    pypi = "picmistandard/picmistandard-0.33.0.tar.gz"
 
     maintainers("ax3l", "dpgrote", "RemiLehe")
 
     version("master", branch="master")
+    version("0.33.0", sha256="bdab1643385d85da1462ba8cebc4460dd87c735946f4766181714d7cb8cf2188")
     version("0.30.0", sha256="28b892b242e0cc044ad987d6bdc12811fe4a478d5096d6bc5989038ee9d9dab6")
     version("0.29.0", sha256="dc0bf3ddd3635df9935ac569b3085de387150c4f8e9851897078bb12d123dde8")
     version("0.28.0", sha256="aa980b0fb49fc3ff9c7e32b5927b3700c4660aefbf96567bac1f8c9c93bb7831")
