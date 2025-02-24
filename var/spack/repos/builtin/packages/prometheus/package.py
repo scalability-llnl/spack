@@ -35,7 +35,6 @@ class Prometheus(MakefilePackage):
     depends_on("npm", type="build", when="@2.30.0:")
     depends_on("yarn@1", type="build", when="@:2.29.2")
 
-
     def build(self, spec, prefix):
         make("build", parallel=False)
 
