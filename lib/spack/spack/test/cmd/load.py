@@ -105,10 +105,6 @@ def test_load_includes_run_env(
     with open(load_script_file, "r") as f:
         shell_out = f.read()
 
-    cmd = set_command % ("FOOBAR", "mpileaks")
-
-    print(f"shell_out: {shell_out}")
-
     assert set_command % ("FOOBAR", "mpileaks") in shell_out
 
 

@@ -16,6 +16,7 @@ export SHARE_DIR=$(cd "$QA_DIR/.." && pwd)
 export SPACK_ROOT=$(cd "$QA_DIR/../../.." && pwd)
 
 . "$QA_DIR/test-framework.sh"
+. "$SHARE_DIR/shell_commands.sh"
 
 # -----------------------------------------------------------------------
 # Instead of invoking the module commands, we print the
@@ -103,15 +104,15 @@ contains "usage: spack module " spack -m module --help
 contains "usage: spack module " spack -m module
 
 title 'Testing `spack load`'
-contains "export PATH=$(spack -m location -i shell-b)/bin" spack -m load --sh shell-b
+contains "source $(spack -m location -i shell-b)/.spack/load.sh" spack -m load --sh shell-b
 succeeds spack -m load shell-b
 LIST_CONTENT=`spack -m load shell-b; spack load --list`
 contains "shell-b@" echo $LIST_CONTENT
 does_not_contain "shell-a@" echo $LIST_CONTENT
 fails spack -m load -l
 # test a variable MacOS clears and one it doesn't for recursive loads
-contains "export PATH=$(spack -m location -i shell-a)/bin" spack -m load --sh shell-a
-contains "export PATH=$(spack -m location -i shell-b)/bin" spack -m load --sh shell-b
+contains "source $(spack -m location -i shell-a)/.spack/load.sh" spack -m load --sh shell-a
+contains "source $(spack -m location -i shell-b)/.spack/load.sh" spack -m load --sh shell-b
 succeeds spack -m load shell-a
 fails spack -m load d
 contains "usage: spack load " spack -m load -h

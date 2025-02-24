@@ -36,7 +36,9 @@ _value_in_varname () {
 #
 # Return whether the variable varname is unset or set to the empty string.
 _spack_env_varname_is_empty() {
-    eval "test -z \"\${$1}\""
+    varname="$1"
+
+    eval "test -z \"\${${varname}}\""
 }
 
 # _spack_env_set varname value
@@ -69,7 +71,7 @@ _spack_env_append() {
 
     $(_separator_exists $sep)
 
-    if _spack_env_var_empty "$varname"; then
+    if _spack_env_varname_is_empty "$varname"; then
         eval "$varname=\"\${value}\""
     else
         $(_value_in_varname $varname $value $sep)
