@@ -81,6 +81,8 @@ class Cgns(CMakePackage):
     # copied from https://github.com/CGNS/CGNS/pull/757
     # (adjusted an include from tk-private/generic/tkInt.h to tkInt.h)
     patch("gcc14.patch", when="@:4.4.0 %gcc@14:")
+    # "wrong" include for spack (tk-private) from the patch above made it into the official version
+    patch("cgns-4.5-tk-private.patch", when="@4.5.0")
 
     def cmake_args(self):
         spec = self.spec
