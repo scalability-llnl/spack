@@ -4615,17 +4615,6 @@ class VariantMap(lang.HashableMap):
 
         return changed
 
-    @property
-    def concrete(self):
-        """Returns True if the spec is concrete in terms of variants.
-
-        Returns:
-            bool: True or False
-        """
-        return self.spec._concrete or all(
-            v in self for v in spack.repo.PATH.get_pkg_class(self.spec.fullname).variant_names()
-        )
-
     def copy(self) -> "VariantMap":
         clone = VariantMap(self.spec)
         for name, variant in self.items():

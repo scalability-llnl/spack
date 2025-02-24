@@ -685,22 +685,6 @@ class TestVariantMapTest:
         c["shared"] = BoolValuedVariant("shared", True)
         assert str(c) == "+shared feebar=foo foo=bar,baz foobar=fee"
 
-    def test_concrete(self, mock_packages, config) -> None:
-        spec = Spec("pkg-a")
-        assert not VariantMap(spec).concrete
-
-        # concrete if associated spec is concrete
-        spec = spack.concretize.concretize_one(spec)
-        assert VariantMap(spec).concrete
-
-        # concrete if all variants are present (even if spec not concrete)
-        spec._mark_concrete(False)
-        assert spec.variants.concrete
-
-        # remove a variant to test the condition
-        del spec.variants["foo"]
-        assert not spec.variants.concrete
-
 
 def test_disjoint_set_initialization_errors():
     # Constructing from non-disjoint sets should raise an exception
