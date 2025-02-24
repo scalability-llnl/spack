@@ -373,6 +373,8 @@ def _install_from_cache(
     )
     if not installed_from_cache:
         return False
+    with t.measure("post-install"):
+        spack.hooks.post_install(pkg.spec, explicit)
     t.stop()
 
     pkg_id = package_id(pkg.spec)
@@ -381,7 +383,6 @@ def _install_from_cache(
     _write_timer_json(pkg, t, True)
     _print_timer(pre=_log_prefix(pkg.name), pkg_id=pkg_id, timer=t)
     _print_installed_pkg(pkg.spec.prefix)
-    spack.hooks.post_install(pkg.spec, explicit)
     return True
 
 
@@ -2367,9 +2368,8 @@ class BuildProcessInstaller:
                 self._real_install()
 
             # Run post install hooks before build stage is removed.
-            self.timer.start("post-install")
-            spack.hooks.post_install(self.pkg.spec, self.explicit)
-            self.timer.stop("post-install")
+            with self.timer.measure("post-install"):
+                spack.hooks.post_install(self.pkg.spec, self.explicit)
 
             # Stop the timer and save results
             self.timer.stop()
