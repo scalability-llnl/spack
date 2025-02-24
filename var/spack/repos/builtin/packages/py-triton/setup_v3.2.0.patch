@@ -1,0 +1,36 @@
+diff --git i/pyproject.toml w/pyproject.toml
+index e1ecf8228..35c5426c3 100644
+--- i/pyproject.toml
++++ w/pyproject.toml
+@@ -1,5 +1,5 @@
+ [build-system]
+-requires = ["setuptools>=40.8.0", "wheel", "cmake>=3.18", "ninja>=1.11.1"]
++requires = ["setuptools>=40.8.0", "cmake>=3.18", "ninja>=1.11.1"]
+ 
+ [tool.yapf]
+ based_on_style = "pep8"
+diff --git i/python/pyproject.toml w/python/pyproject.toml
+index d96af50a5..8ca340be9 100644
+--- i/python/pyproject.toml
++++ w/python/pyproject.toml
+@@ -1,6 +1,6 @@
+ 
+ [build-system]
+-requires = ["setuptools>=40.8.0", "wheel", "cmake>=3.18", "ninja>=1.11.1", "pybind11>=2.13.1"]
++requires = ["setuptools>=40.8.0", "cmake>=3.18", "ninja>=1.11.1", "pybind11>=2.13.1"]
+ 
+ # We're incrementally switching from autopep8 to ruff.
+ [tool.autopep8]
+diff --git i/python/setup.py w/python/setup.py
+index 725ba0213..89e86824b 100644
+--- i/python/setup.py
++++ w/python/setup.py
+@@ -24,7 +24,7 @@ from dataclasses import dataclass
+ from distutils.command.install import install
+ from setuptools.command.develop import develop
+ from setuptools.command.egg_info import egg_info
+-from wheel.bdist_wheel import bdist_wheel
++from setuptools.command.bdist_wheel import bdist_wheel
+ 
+ import pybind11
+ 
