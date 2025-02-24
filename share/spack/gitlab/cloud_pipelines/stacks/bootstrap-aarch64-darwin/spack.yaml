@@ -1,6 +1,9 @@
 spack:
   view: false
 
+  concretizer:
+    unify: false
+
   packages:
     all:
       require: target=aarch64
