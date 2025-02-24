@@ -1078,8 +1078,8 @@ class Database:
         except BaseException as e:
             tty.debug(e)
             # Clean up temp file if something goes wrong.
-            if os.path.exists(temp_file):
-                os.remove(temp_file)
+            if temp_file.exists():
+                temp_file.unlink()
             raise
 
     def _read(self):
