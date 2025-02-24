@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,16 +12,28 @@ class Xios(Package):
     """XML-IO-SERVER library for IO management of climate models."""
 
     homepage = "https://forge.ipsl.jussieu.fr/ioserver/wiki"
-
-    version("develop", svn="http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk")
     version(
-        "2.5", revision=1860, svn="http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-2.5"
+        "2.6",
+        revision=2714,
+        svn="https://forge.ipsl.jussieu.fr/ioserver/svn/XIOS2/branches/xios-2.6",
     )
     version(
-        "2.0", revision=1627, svn="http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-2.0"
+        "2.5",
+        revision=1860,
+        svn="https://forge.ipsl.jussieu.fr/ioserver/svn/XIOS2/branches/xios-2.5",
+        deprecated=True,
     )
     version(
-        "1.0", revision=910, svn="http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-1.0"
+        "2.0",
+        revision=1627,
+        svn="https://forge.ipsl.jussieu.fr/ioserver/svn/XIOS2/branches/xios-2.0",
+        deprecated=True,
+    )
+    version(
+        "1.0",
+        revision=910,
+        svn="http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-1.0",
+        deprecated=True,
     )
 
     variant(
@@ -38,9 +49,13 @@ class Xios(Package):
     patch("bld_extern_1.0.patch", when="@:1.0")
 
     # Workaround bug #17782 in llvm, where reading a double
-    # followed by a character is broken (e.g. duration '1d'):
+    # followed by a character is broken (e.g. duration '1d')
+    # https://bugs.llvm.org/show_bug.cgi?id=17782
+    # Verified and still needed 2025-02-18
     patch("llvm_bug_17782.patch", when="@1.1: %apple-clang")
     patch("llvm_bug_17782.patch", when="@1.1: %clang")
+
+    patch("earcut_missing_include_2.6.patch", when="@2.6:")
 
     depends_on("netcdf-c+mpi")
     depends_on("netcdf-fortran")
@@ -132,7 +147,7 @@ OASIS_LIB=""
 %FCOMPILER      {MPIFC}
 %LINKER         {MPIFC}
 
-%BASE_CFLAGS    -ansi -w -D_GLIBCXX_USE_CXX11_ABI=0 \
+%BASE_CFLAGS    -std=c++11 -w -D_GLIBCXX_USE_CXX11_ABI=0 \
                 -I{BOOST_INC_DIR} -I{BLITZ_INC_DIR}
 %PROD_CFLAGS    -O3 -DBOOST_DISABLE_ASSERTS
 %DEV_CFLAGS     -g -O2
@@ -203,6 +218,8 @@ OASIS_LIB=""
             "--%s" % spec.variants["mode"].value,
             "--arch",
             "SPACK",
+            "--use_extern_boost",
+            "--use_extern_blitz",
             "--netcdf_lib",
             "netcdf4_par",
             "--job",

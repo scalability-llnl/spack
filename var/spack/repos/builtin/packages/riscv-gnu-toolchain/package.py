@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -170,9 +169,11 @@ class RiscvGnuToolchain(AutotoolsPackage):
         """
         with working_dir(self.stage.source_path):
             # modify Makefile not to git init submodules.
-            cmd = "/bin/sed -i.bak -r \
-            '/^# Rule for auto init submodules/,/git submodule update.*$/d' \
-            Makefile"
+            cmd = (
+                "/bin/sed -i.bak -r "
+                "'/^# Rule for auto init submodules/,/git submodule update.*$/d' "
+                "Makefile"
+            )
             p = Popen(shlex.split(cmd))
             p.wait()
             p.communicate()

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Here we consolidate the logic for creating an abstract description
@@ -32,7 +31,7 @@ import contextlib
 import copy
 import datetime
 import inspect
-import os.path
+import os
 import re
 import string
 from typing import List, Optional
@@ -48,6 +47,7 @@ import spack.environment
 import spack.error
 import spack.paths
 import spack.projections as proj
+import spack.schema
 import spack.schema.environment
 import spack.spec
 import spack.store
@@ -216,7 +216,7 @@ def root_path(name, module_set_name):
     roots = spack.config.get(f"modules:{module_set_name}:roots", {})
 
     # Merge config values into the defaults so we prefer configured values
-    roots = spack.config.merge_yaml(defaults, roots)
+    roots = spack.schema.merge_yaml(defaults, roots)
 
     path = roots.get(name, os.path.join(spack.paths.share_path, name))
     return spack.util.path.canonicalize_path(path)
@@ -227,7 +227,7 @@ def generate_module_index(root, modules, overwrite=False):
     if overwrite or not os.path.exists(index_path):
         entries = syaml.syaml_dict()
     else:
-        with open(index_path) as index_file:
+        with open(index_path, encoding="utf-8") as index_file:
             yaml_content = syaml.load(index_file)
             entries = yaml_content["module_index"]
 
@@ -236,7 +236,7 @@ def generate_module_index(root, modules, overwrite=False):
         entries[m.spec.dag_hash()] = entry
     index = {"module_index": entries}
     llnl.util.filesystem.mkdirp(root)
-    with open(index_path, "w") as index_file:
+    with open(index_path, "w", encoding="utf-8") as index_file:
         syaml.dump(index, default_flow_style=False, stream=index_file)
 
 
@@ -256,7 +256,7 @@ def read_module_index(root):
     index_path = os.path.join(root, "module-index.yaml")
     if not os.path.exists(index_path):
         return {}
-    with open(index_path) as index_file:
+    with open(index_path, encoding="utf-8") as index_file:
         return _read_module_index(index_file)
 
 
@@ -330,17 +330,16 @@ class BaseConfiguration:
     default_projections = {"all": "{name}/{version}-{compiler.name}-{compiler.version}"}
 
     def __init__(self, spec: spack.spec.Spec, module_set_name: str, explicit: bool) -> None:
-        # Module where type(self) is defined
-        m = inspect.getmodule(self)
-        assert m is not None  # make mypy happy
-        self.module = m
         # Spec for which we want to generate a module file
         self.spec = spec
         self.name = module_set_name
         self.explicit = explicit
-        # Dictionary of configuration options that should be applied
-        # to the spec
+        # Dictionary of configuration options that should be applied to the spec
         self.conf = merge_config_rules(self.module.configuration(self.name), self.spec)
+
+    @property
+    def module(self):
+        return inspect.getmodule(self)
 
     @property
     def projections(self):
@@ -605,7 +604,7 @@ class BaseContext(tengine.Context):
             return msg
 
         if os.path.exists(pkg.install_configure_args_path):
-            with open(pkg.install_configure_args_path) as args_file:
+            with open(pkg.install_configure_args_path, encoding="utf-8") as args_file:
                 return spack.util.path.padding_filter(args_file.read())
 
         # Returning a false-like value makes the default templates skip
@@ -624,10 +623,10 @@ class BaseContext(tengine.Context):
         """List of environment modifications to be processed."""
         # Modifications guessed by inspecting the spec prefix
         prefix_inspections = syaml.syaml_dict()
-        spack.config.merge_yaml(
+        spack.schema.merge_yaml(
             prefix_inspections, spack.config.get("modules:prefix_inspections", {})
         )
-        spack.config.merge_yaml(
+        spack.schema.merge_yaml(
             prefix_inspections,
             spack.config.get(f"modules:{self.conf.name}:prefix_inspections", {}),
         )
@@ -775,10 +774,6 @@ class BaseModuleFileWriter:
     ) -> None:
         self.spec = spec
 
-        # This class is meant to be derived. Get the module of the
-        # actual writer.
-        self.module = inspect.getmodule(self)
-        assert self.module is not None  # make mypy happy
         m = self.module
 
         # Create the triplet of configuration/layout/context
@@ -815,6 +810,10 @@ class BaseModuleFileWriter:
             msg += "Did you forget to define it in the class?"
             name = type(self).__name__
             raise ModulercHeaderNotDefined(msg.format(name))
+
+    @property
+    def module(self):
+        return inspect.getmodule(self)
 
     def _get_template(self):
         """Gets the template that will be rendered for this spec."""
@@ -900,7 +899,7 @@ class BaseModuleFileWriter:
         # Render the template
         text = template.render(context)
         # Write it to file
-        with open(self.layout.filename, "w") as f:
+        with open(self.layout.filename, "w", encoding="utf-8") as f:
             f.write(text)
 
         # Set the file permissions of the module to match that of the package
@@ -939,7 +938,7 @@ class BaseModuleFileWriter:
 
         if modulerc_exists:
             # retrieve modulerc content
-            with open(modulerc_path) as f:
+            with open(modulerc_path, encoding="utf-8") as f:
                 content = f.readlines()
                 content = "".join(content).split("\n")
                 # remove last empty item if any
@@ -974,7 +973,7 @@ class BaseModuleFileWriter:
             elif content != self.modulerc_header:
                 # ensure file ends with a newline character
                 content.append("")
-                with open(modulerc_path, "w") as f:
+                with open(modulerc_path, "w", encoding="utf-8") as f:
                     f.write("\n".join(content))
 
     def remove(self):

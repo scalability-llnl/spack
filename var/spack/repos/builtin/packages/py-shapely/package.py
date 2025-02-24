@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,7 @@ class PyShapely(PythonPackage):
     license("BSD-3-Clause")
 
     version("main", branch="main")
+    version("2.0.7", sha256="28fe2997aab9a9dc026dc6a355d04e85841546b2a5d232ed953e3321ab958ee5")
     version("2.0.6", sha256="997f6159b1484059ec239cacaa53467fd8b5564dabe186cd84ac2944663b0bf6")
     version("2.0.5", sha256="bff2366bc786bfa6cb353d6b47d0443c570c32776612e527ee47b6df63fcfe32")
     version("2.0.4", sha256="5dc736127fac70009b8d309a0eeb74f3e08979e530cf7017f2f507ef62e6cfb8")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,11 +17,17 @@ class PyNanobind(PythonPackage):
     url = "https://github.com/wjakob/nanobind/archive/refs/tags/v1.2.0.tar.gz"
     git = "https://github.com/wjakob/nanobind.git"
 
-    maintainers("chrisrichardson", "garth-wells", "ma595")
+    maintainers("chrisrichardson", "garth-wells")
 
     license("BSD-3-Clause")
 
     version("master", branch="master", submodules=True)
+    version(
+        "2.5.0", tag="v2.5.0", commit="4ccbe6e005fc017652312305f280742da49d3dd5", submodules=True
+    )
+    version(
+        "2.4.0", tag="v2.4.0", commit="0f9ce749b257fdfe701edb3cf6f7027ba029434a", submodules=True
+    )
     version(
         "2.2.0", tag="v2.2.0", commit="784efa2a0358a4dc5432c74f5685ee026e20f2b6", submodules=True
     )

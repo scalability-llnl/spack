@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -88,6 +87,8 @@ class Gtkplus(AutotoolsPackage, MesonPackage):
     depends_on("gettext", when="@3:")
     depends_on("cups", when="+cups")
     depends_on("libxfixes", when="@:2")
+
+    conflicts("%gcc@14:", when="@:3.24.35")
 
     patch("no-demos.patch", when="@2.0:2")
 

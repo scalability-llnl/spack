@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -802,17 +801,17 @@ class CompilerConfigFactory:
     def _extract_os_and_target(spec: "spack.spec.Spec"):
         if not spec.architecture:
             host_platform = spack.platforms.host()
-            operating_system = host_platform.operating_system("default_os")
-            target = host_platform.target("default_target")
+            operating_system = host_platform.default_operating_system()
+            target = host_platform.default_target()
         else:
             target = spec.architecture.target
             if not target:
-                target = spack.platforms.host().target("default_target")
+                target = spack.platforms.host().default_target()
 
             operating_system = spec.os
             if not operating_system:
                 host_platform = spack.platforms.host()
-                operating_system = host_platform.operating_system("default_os")
+                operating_system = host_platform.default_operating_system()
         return operating_system, target
 
 

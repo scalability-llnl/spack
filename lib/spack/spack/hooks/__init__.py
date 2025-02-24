@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """This package contains modules with hooks for various stages in the
@@ -35,6 +34,7 @@ class _HookRunner:
         "spack.hooks.drop_redundant_rpaths",
         "spack.hooks.absolutify_elf_sonames",
         "spack.hooks.permissions_setters",
+        "spack.hooks.resolve_shared_libraries",
         # after all mutations to the install prefix, write metadata
         "spack.hooks.write_install_manifest",
         # after all metadata is written

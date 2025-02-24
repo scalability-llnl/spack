@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,12 +20,7 @@ from spack.util.executable import CommandNotFoundError
 
 datadir = os.path.join(spack_root, "lib", "spack", "spack", "test", "data", "compression")
 
-ext_archive = {}
-[
-    ext_archive.update({ext: ".".join(["Foo", ext])})
-    for ext in llnl.url.ALLOWED_ARCHIVE_TYPES
-    if "TAR" not in ext
-]
+ext_archive = {ext: f"Foo.{ext}" for ext in llnl.url.ALLOWED_ARCHIVE_TYPES if "TAR" not in ext}
 # Spack does not use Python native handling for tarballs or zip
 # Don't test tarballs or zip in native test
 native_archive_list = [
@@ -66,7 +60,7 @@ def test_native_unpacking(tmpdir_factory, archive_file_and_extension):
         util(archive_file)
         files = os.listdir(os.getcwd())
         assert len(files) == 1
-        with open(files[0], "r") as f:
+        with open(files[0], "r", encoding="utf-8") as f:
             contents = f.read()
         assert "TEST" in contents
 
@@ -87,7 +81,7 @@ def test_system_unpacking(tmpdir_factory, archive_file_and_extension, compr_supp
         util(archive_file)
         files = os.listdir(os.getcwd())
         assert len(files) == 1
-        with open(files[0], "r") as f:
+        with open(files[0], "r", encoding="utf-8") as f:
             contents = f.read()
         assert "TEST" in contents
 

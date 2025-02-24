@@ -8,7 +8,6 @@ unzip, , , Compress/Decompress archives
 bzip2, , , Compress/Decompress archives
 xz, , , Compress/Decompress archives
 zstd, , Optional, Compress/Decompress archives
-file, , , Create/Use Buildcaches
 lsb-release, , , Linux: identify operating system version
 gnupg2, , , Sign/Verify Buildcaches
 git, , , Manage Software Repositories

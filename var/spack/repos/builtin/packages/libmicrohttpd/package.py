@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class Libmicrohttpd(AutotoolsPackage):
 
     license("LGPL-2.1-or-later")
 
+    version("1.0.1", sha256="a89e09fc9b4de34dde19f4fcb4faaa1ce10299b9908db1132bbfa1de47882b94")
+    version("0.9.77", sha256="9e7023a151120060d2806a6ea4c13ca9933ece4eacfc5c9464d20edddb76b0a0")
     version("0.9.76", sha256="f0b1547b5a42a6c0f724e8e1c1cb5ce9c4c35fb495e7d780b9930d35011ceb4c")
     version("0.9.75", sha256="9278907a6f571b391aab9644fd646a5108ed97311ec66f6359cebbedb0a4e3bb")
     version("0.9.74", sha256="42035d0261373324bfb434018f4ab892514b10253d1af232e41b4cc2c11e650b")
@@ -27,7 +28,7 @@ class Libmicrohttpd(AutotoolsPackage):
     version("0.9.70", sha256="90d0a3d396f96f9bc41eb0f7e8187796049285fabef82604acd4879590977307")
     version("0.9.50", sha256="d1b6385068abded29b6470e383287aa7705de05ae3c08ad0bf5747ac4dc6ebd7")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     variant("https", default=False, description="HTTPS support with GnuTLS")
 

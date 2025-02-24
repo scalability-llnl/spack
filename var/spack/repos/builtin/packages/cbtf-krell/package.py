@@ -1,11 +1,9 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import spack.store
 from spack.package import *
-from spack.pkg.builtin.boost import Boost
 
 
 class CbtfKrell(CMakePackage):
@@ -49,12 +47,19 @@ class CbtfKrell(CMakePackage):
     variant(
         "crayfe",
         default=False,
-        description="build only the FE tool using the runtime_dir \
-                         to point to target build.",
+        description="build only the FE tool using the runtime_dir to point to target build.",
+    )
+
+    # Fix build errors with gcc >= 10
+    patch(
+        "https://github.com/OpenSpeedShop/cbtf-krell/commit/7d47761c6cd9110883bff9ca1e694af1475676f5.patch?full_index=1",
+        sha256="64ed80d18163ca04a67be4a13ac2d2553243fc24c6274d26981472e6e2050b8a",
     )
 
     # Dependencies for cbtf-krell
     depends_on("cmake@3.0.2:", type="build")
+
+    depends_on("gotcha")
 
     # For rpcgen
     depends_on("rpcsvc-proto", type="build")
@@ -66,16 +71,11 @@ class CbtfKrell(CMakePackage):
     depends_on("binutils@2.32")
 
     # For boost
-    depends_on("boost@1.70.0:")
-
-    # TODO: replace this with an explicit list of components of Boost,
-    # for instance depends_on('boost +filesystem')
-    # See https://github.com/spack/spack/pull/22303 for reference
-    depends_on(Boost.with_default_variants)
+    depends_on("boost@1.70.0:+filesystem+graph+program_options+python+test+thread")
 
     # For Dyninst
-    depends_on("dyninst@10.1.0", when="@develop")
-    depends_on("dyninst@10.1.0", when="@1.9.3:9999")
+    depends_on("dyninst@10.1.0:", when="@develop")
+    depends_on("dyninst@10.1.0:", when="@1.9.3:9999")
 
     # For MRNet
     depends_on("mrnet@5.0.1-3:+lwthreads", when="@develop", type=("build", "link", "run"))

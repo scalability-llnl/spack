@@ -1,10 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
-import spack.config
 from spack.package import *
 
 
@@ -65,7 +63,7 @@ class Gem5(SConsPackage):
     def build_args(self, spec, prefix):
         args = []
         args.append("build/ALL/gem5.opt")
-        args.append(f"-j{spack.config.determine_number_of_jobs(parallel=True)}")
+        args.append(f"-j{determine_number_of_jobs(parallel=True)}")
         args.append("--ignore-style")
 
         return args

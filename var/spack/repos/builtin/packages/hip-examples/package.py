@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -34,6 +33,7 @@ class HipExamples(Package):
     for ver in ["5.6.1", "5.6.0", "5.5.1", "5.5.0", "5.4.3"]:
         depends_on("hip@" + ver, when="@" + ver)
         depends_on("rocm-openmp-extras@" + ver, when="@" + ver)
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         stage = os.getcwd()

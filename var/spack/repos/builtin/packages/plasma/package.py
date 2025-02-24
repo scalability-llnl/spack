@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import spack.build_systems.cmake
@@ -121,7 +120,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
                     options.append(self.define("{}_PROVIDER".format(lib), provider))
         if "cray-libsci" in self.spec:
             for lib in ("CBLAS", "LAPACKE"):
-                libsci_prefix = self.spec["cray-libsci"].package.external_prefix
+                libsci_prefix = self["cray-libsci"].external_prefix
                 options.append(self.define("{}_PROVIDER".format(lib), "generic"))
                 options.append(
                     self.define("{}_INCLUDE_DIRS".format(lib), join_path(libsci_prefix, "include"))

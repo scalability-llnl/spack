@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -30,4 +29,5 @@ class PyParso(PythonPackage):
         depends_on("python@:3.12", when="@:0.8.3")
         # https://github.com/davidhalter/parso/commit/285492f4ed25f145859630ee6c5625e60aff6e2e
         depends_on("python@:3.11", when="@:0.8.2")
+
     depends_on("py-setuptools", type="build")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,7 +21,7 @@ def validate_scheme(scheme):
     helps mostly in validation of paths vs urls, as Windows paths such as
     C:/x/y/z (with backward not forward slash) may parse as a URL with scheme
     C and path /x/y/z."""
-    return scheme in ("file", "http", "https", "ftp", "s3", "gs", "ssh", "git")
+    return scheme in ("file", "http", "https", "ftp", "s3", "gs", "ssh", "git", "oci")
 
 
 def local_file_path(url):

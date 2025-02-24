@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -42,7 +41,11 @@ def providers(parser, args):
     specs = spack.cmd.parse_specs(args.virtual_package)
 
     # Check prerequisites
-    non_virtual = [str(s) for s in specs if not s.virtual or s.name not in valid_virtuals]
+    non_virtual = [
+        str(s)
+        for s in specs
+        if not spack.repo.PATH.is_virtual(s.name) or s.name not in valid_virtuals
+    ]
     if non_virtual:
         msg = "non-virtual specs cannot be part of the query "
         msg += "[{0}]\n".format(", ".join(non_virtual))

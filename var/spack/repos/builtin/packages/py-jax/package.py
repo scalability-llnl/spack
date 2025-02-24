@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -8,22 +7,26 @@ from spack.package import *
 
 
 class PyJax(PythonPackage):
-    """JAX is Autograd and XLA, brought together for high-performance
-    machine learning research. With its updated version of Autograd,
-    JAX can automatically differentiate native Python and NumPy
-    functions. It can differentiate through loops, branches,
-    recursion, and closures, and it can take derivatives of
-    derivatives of derivatives. It supports reverse-mode
-    differentiation (a.k.a. backpropagation) via grad as well as
-    forward-mode differentiation, and the two can be composed
-    arbitrarily to any order."""
+    """Differentiate, compile, and transform Numpy code.
 
-    homepage = "https://github.com/google/jax"
+    JAX is a Python library for accelerator-oriented array computation and program transformation,
+    designed for high-performance numerical computing and large-scale machine learning.
+    """
+
+    homepage = "https://github.com/jax-ml/jax"
     pypi = "jax/jax-0.4.27.tar.gz"
 
     license("Apache-2.0")
     maintainers("adamjstewart", "jonas-eschle")
 
+    # version("0.5.0", sha256="49df70bf293a345a7fb519f71193506d37a024c4f850b358042eb32d502c81c8")
+    # version("0.4.38", sha256="43bae65881628319e0a2148e8f81a202fbc2b8d048e35c7cb1df2416672fa4a8")
+    # version("0.4.37", sha256="7774f3d9e23fe199c65589c680c5a5be87a183b89598421a632d8245222b637b")
+    # version("0.4.36", sha256="088bff0575d01fc82682a9af4eb07433d60de7e5164686bd2cea3439492e608a")
+    # version("0.4.35", sha256="c0c986993026b10bf6f607fecb7417377460254640766ce40f1fef3fd139c12e")
+    # version("0.4.34", sha256="44196854f40c5f9cea3142824b9f1051f85afc3fcf7593ec5479fc8db01c58db")
+    # version("0.4.33", sha256="f0d788692fc0179653066c9e1c64e57311b8c15a389837fd7baf328abefcbb92")
+    # version("0.4.32", sha256="eb703909968da161894fb6135a931c5f3d2aab64fff7cba5fcb803ce6d968e08")
     version("0.4.31", sha256="fd2d470643a0073d822737f0788f71391656af7e62cc5b2e7995ee390ceac287")
     version("0.4.30", sha256="94d74b5b2db0d80672b61d83f1f63ebf99d2ab7398ec12b2ca0c9d1e97afe577")
     version("0.4.29", sha256="12904571eaefddcdc8c3b8d4936482b783d5a216e99ef5adcd3522fdfb4fc186")
@@ -60,9 +63,11 @@ class PyJax(PythonPackage):
         # setup.py
         depends_on("python@3.10:", when="@0.4.31:")
         depends_on("python@3.9:", when="@0.4.14:")
+        depends_on("py-ml-dtypes@0.4:", when="@0.4.29,0.4.35:")
         depends_on("py-ml-dtypes@0.2:", when="@0.4.14:")
         depends_on("py-ml-dtypes@0.1:", when="@0.4.9:")
         depends_on("py-ml-dtypes@0.0.3:", when="@0.4.7:")
+        depends_on("py-numpy@1.25:", when="@0.5:")
         depends_on("py-numpy@1.24:", when="@0.4.31:")
         depends_on("py-numpy@1.22:", when="@0.4.14:")
         depends_on("py-numpy@1.21:", when="@0.4.7:")
@@ -70,6 +75,7 @@ class PyJax(PythonPackage):
         # https://github.com/google/jax/issues/19246
         depends_on("py-numpy@:1", when="@:0.4.25")
         depends_on("py-opt-einsum")
+        depends_on("py-scipy@1.11.1:", when="@0.5:")
         depends_on("py-scipy@1.10:", when="@0.4.31:")
         depends_on("py-scipy@1.9:", when="@0.4.19:")
         depends_on("py-scipy@1.7:", when="@0.4.7:")
@@ -78,6 +84,14 @@ class PyJax(PythonPackage):
         # jax/_src/lib/__init__.py
         # https://github.com/google/jax/commit/8be057de1f50756fe7522f7e98b2f30fad56f7e4
         for v in [
+            # "0.5.0",
+            # "0.4.38",
+            # "0.4.37",
+            # "0.4.36",
+            # "0.4.35",
+            # "0.4.34",
+            # "0.4.33",
+            # "0.4.32",
             "0.4.31",
             "0.4.30",
             "0.4.29",
@@ -111,6 +125,13 @@ class PyJax(PythonPackage):
             depends_on(f"py-jaxlib@:{v}", when=f"@{v}")
 
         # See _minimum_jaxlib_version in jax/version.py
+        # depends_on("py-jaxlib@0.5:", when="@0.5:")
+        # depends_on("py-jaxlib@0.4.38:", when="@0.4.38:")
+        # depends_on("py-jaxlib@0.4.36:", when="@0.4.36:")
+        # depends_on("py-jaxlib@0.4.35:", when="@0.4.35:")
+        # depends_on("py-jaxlib@0.4.34:", when="@0.4.34:")
+        # depends_on("py-jaxlib@0.4.33:", when="@0.4.33:")
+        # depends_on("py-jaxlib@0.4.32:", when="@0.4.32:")
         depends_on("py-jaxlib@0.4.30:", when="@0.4.31:")
         depends_on("py-jaxlib@0.4.27:", when="@0.4.28:")
         depends_on("py-jaxlib@0.4.23:", when="@0.4.27:")
@@ -125,5 +146,4 @@ class PyJax(PythonPackage):
         depends_on("py-jaxlib@0.4.1:", when="@0.4.2:")
 
         # Historical dependencies
-        depends_on("py-ml-dtypes@0.4:", when="@0.4.29")
         depends_on("py-importlib-metadata@4.6:", when="@0.4.11:0.4.30 ^python@:3.9")

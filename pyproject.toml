@@ -1,6 +1,7 @@
 [project]
 name="spack"
 description="The spack package manager"
+requires-python=">=3.6"
 dependencies=[
   "clingo",
   "setuptools",
@@ -67,9 +68,42 @@ features = [
   "ci",
 ]
 
+[tool.ruff]
+line-length = 99
+extend-include = ["bin/spack"]
+extend-exclude = ["lib/spack/external", "*.pyi"]
+
+[tool.ruff.format]
+skip-magic-trailing-comma = true
+
+[tool.ruff.lint]
+extend-select = ["I"]
+ignore = ["E731", "E203"]
+
+[tool.ruff.lint.isort]
+split-on-trailing-comma = false
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "archspec",
+    "llnl",
+    "spack",
+    "first-party",
+    "local-folder",
+]
+
+[tool.ruff.lint.isort.sections]
+spack = ["spack"]
+archspec = ["archspec"]
+llnl = ["llnl"]
+
+[tool.ruff.lint.per-file-ignores]
+"var/spack/repos/*/package.py" = ["F403", "F405", "F811", "F821"]
+"*-ci-package.py" = ["F403", "F405", "F821"]
+
 [tool.black]
 line-length = 99
-target-version = ['py36', 'py37', 'py38', 'py39', 'py310']
 include = '(lib/spack|var/spack/repos)/.*\.pyi?$|bin/spack$'
 extend-exclude = 'lib/spack/external'
 skip_magic_trailing_comma = true
@@ -92,7 +126,6 @@ src_paths = "lib"
 honor_noqa = true
 
 [tool.mypy]
-python_version = 3.7
 files = ['lib/spack/llnl/**/*.py', 'lib/spack/spack/**/*.py', './var/spack/repos/builtin/packages/*/package.py']
 mypy_path = ['bin', 'lib/spack', 'lib/spack/external', 'var/spack/repos/builtin']
 allow_redefinition = true

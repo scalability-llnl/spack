@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -50,7 +49,7 @@ class Pdftk(MakefilePackage):
         vars = [
             ("VERSUFF", "-%s" % gcc_version),
             ("CXX", compiler.cxx),
-            ("GCJ", spec["eclipse-gcj-parser"].package.gcj),
+            ("GCJ", self["eclipse-gcj-parser"].gcj),
             ("GCJH", join_path(gcc_base, "bin", "gcjh")),
             ("GJAR", join_path(gcc_base, "bin", "gjar")),
             ("LIBGCJ", join_path(gcc_base, "share", "java", "libgcj-{0}.jar".format(gcc_version))),

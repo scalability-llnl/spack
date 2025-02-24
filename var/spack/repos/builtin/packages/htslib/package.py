@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,7 @@ class Htslib(AutotoolsPackage):
 
     license("MIT AND BSD-3-Clause-Modification")
 
+    version("1.21", sha256="84b510e735f4963641f26fd88c8abdee81ff4cb62168310ae716636aac0f1823")
     version("1.20", sha256="e52d95b14da68e0cfd7d27faf56fef2f88c2eaf32a2be51c72e146e3aa928544")
     version("1.19.1", sha256="222d74d3574fb67b158c6988c980eeaaba8a0656f5e4ffb76b5fa57f035933ec")
     version("1.19", sha256="8751c40c4fa7d1f23a6864c5b20a73744f8be68239535ae7729c5f7d394d0736")

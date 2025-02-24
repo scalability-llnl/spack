@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -260,7 +259,7 @@ class Xrootd(CMakePackage):
         else:
             # The user has selected a (new?) legal value that we've
             # forgotten to deal with here.
-            tty.die(
+            raise InstallError(
                 "INTERNAL ERROR: cannot accommodate unexpected variant ",
                 "cxxstd={0}".format(self.spec.variants["cxxstd"].value),
             )

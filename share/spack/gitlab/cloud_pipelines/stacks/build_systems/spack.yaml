@@ -13,6 +13,7 @@ spack:
       - openjpeg  # CMakePackage
       - r-rcpp  # RPackage
       - ruby-rake  # RubyPackage
+      - perl-data-dumper # PerlPackage
     - arch:
       - '%gcc'
 

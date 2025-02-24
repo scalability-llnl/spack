@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """This package implements Spack environments.
@@ -482,6 +481,7 @@ from .environment import (
     display_specs,
     environment_dir_from_name,
     environment_from_name_or_dir,
+    environment_path_scopes,
     exists,
     initialize_environment_dir,
     installed_specs,
@@ -518,6 +518,7 @@ __all__ = [
     "display_specs",
     "environment_dir_from_name",
     "environment_from_name_or_dir",
+    "environment_path_scopes",
     "exists",
     "initialize_environment_dir",
     "installed_specs",

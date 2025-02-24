@@ -1,5 +1,4 @@
-.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-   Spack Project Developers. See the top-level COPYRIGHT file for details.
+.. Copyright Spack Project Developers. See COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -57,13 +56,13 @@ If you look at the ``perl`` package, you'll see:
 
 .. code-block:: python
 
-   phases = ["configure", "build", "install"]
+   phases = ("configure", "build", "install")
 
 Similarly, ``cmake`` defines:
 
 .. code-block:: python
 
-   phases = ["bootstrap", "build", "install"]
+   phases = ("bootstrap", "build", "install")
 
 If we look at the ``cmake`` example, this tells Spack's ``PackageBase``
 class to run the ``bootstrap``, ``build``, and ``install`` functions

@@ -1,12 +1,12 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems import autotools, cmake
 from spack.package import *
 
 
-class Libxc(AutotoolsPackage, CudaPackage):
+class Libxc(AutotoolsPackage, CudaPackage, CMakePackage):
     """Libxc is a library of exchange-correlation functionals for
     density-functional theory."""
 
@@ -14,6 +14,10 @@ class Libxc(AutotoolsPackage, CudaPackage):
     url = "https://gitlab.com/libxc/libxc/-/archive/6.1.0/libxc-6.1.0.tar.gz"
 
     license("MPL-2.0-no-copyleft-exception")
+
+    maintainers("RMeli")
+
+    build_system(conditional("cmake", when="@7.0.0:"), "autotools", default="cmake")
 
     version("7.0.0", sha256="8d4e343041c9cd869833822f57744872076ae709a613c118d70605539fb13a77")
     version("6.2.2", sha256="d1b65ef74615a1e539d87a0e6662f04baf3a2316706b4e2e686da3193b26b20f")
@@ -35,12 +39,21 @@ class Libxc(AutotoolsPackage, CudaPackage):
     version("2.2.2", sha256="6ffaad40505dbe8f155049448554b54ea31d31babf74ccf6b7935bfe55eeafd8")
     version("2.2.1", sha256="c8577ba1ddd5c28fd0aa7c579ae65ab990eb7cb51ecf9f8175f9251f6deb9a06")
 
-    depends_on("c", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
-
     variant("shared", default=True, description="Build shared libraries")
     variant("kxc", default=False, when="@5:", description="Build with third derivatives")
     variant("lxc", default=False, when="@5:", description="Build with fourth derivatives")
+    variant(
+        "fortran",
+        default=True,
+        description="Build Fortran 2003 interface",
+        when="build_system=cmake",
+    )
+
+    generator("ninja")
+
+    depends_on("c", type="build")
+    depends_on("fortran", type="build", when="build_system=autotools")
+    depends_on("fortran", type="build", when="build_system=cmake +fortran")
 
     conflicts("+shared +cuda", msg="Only ~shared supported with +cuda")
     conflicts("+cuda", when="@:4", msg="CUDA support only in libxc 5.0.0 and above")
@@ -88,6 +101,9 @@ class Libxc(AutotoolsPackage, CudaPackage):
 
         return find_libraries(libraries, root=self.prefix, shared=shared, recursive=True)
 
+
+class AutotoolsBuilder(autotools.AutotoolsBuilder):
+
     def setup_build_environment(self, env):
         # microarchitecture-specific optimization flags should be controlled
         # by Spack, otherwise we may end up with contradictory or invalid flags
@@ -95,7 +111,7 @@ class Libxc(AutotoolsPackage, CudaPackage):
 
         # https://gitlab.com/libxc/libxc/-/issues/430 (configure script does not ensure C99)
         # TODO: Switch to cmake since this is better supported
-        env.append_flags("CFLAGS", self.compiler.c99_flag)
+        env.append_flags("CFLAGS", self.pkg.compiler.c99_flag)
         if self.spec.satisfies("%intel"):
             if which("xiar"):
                 env.set("AR", "xiar")
@@ -138,3 +154,18 @@ class Libxc(AutotoolsPackage, CudaPackage):
         # libxc provides a testsuite, but many tests fail
         # http://www.tddft.org/pipermail/libxc/2013-February/000032.html
         pass
+
+
+class CMakeBuilder(cmake.CMakeBuilder):
+
+    def cmake_args(self):
+        spec = self.spec
+        args = [
+            self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
+            self.define_from_variant("ENABLE_FORTRAN", "fortran"),
+            self.define_from_variant("ENABLE_CUDA", "cuda"),
+            self.define("DISABLE_KXC", spec.satisfies("~kxc")),
+            self.define("DISABLE_LXC", spec.satisfies("~lxc")),
+            self.define("BUILD_TESTING", self.pkg.run_tests),
+        ]
+        return args

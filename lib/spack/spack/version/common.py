@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,7 +10,7 @@ import spack.error
 COMMIT_VERSION = re.compile(r"^[a-f0-9]{40}$")
 
 # Infinity-like versions. The order in the list implies the comparison rules
-infinity_versions = ["stable", "trunk", "head", "master", "main", "develop"]
+infinity_versions = ["stable", "nightly", "trunk", "head", "master", "main", "develop"]
 
 iv_min_len = min(len(s) for s in infinity_versions)
 

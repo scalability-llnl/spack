@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -146,7 +145,7 @@ def test_spec_parse_error():
         spec("1.15:")
 
     # make sure the error is formatted properly
-    error_msg = "unexpected tokens in the spec string\n1.15:\n    ^"
+    error_msg = "unexpected characters in the spec string\n1.15:\n    ^"
     assert error_msg in str(e.value)
 
 

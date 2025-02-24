@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class Openfast(CMakePackage):
 
     version("develop", branch="dev")
     version("master", branch="main")
+    version("4.0.2", tag="v4.0.2")
+    version("3.5.5", tag="v3.5.5")
     version("3.5.4", tag="v3.5.4")
     version("3.5.3", tag="v3.5.3")
     version("3.4.1", tag="v3.4.1")
@@ -36,6 +37,10 @@ class Openfast(CMakePackage):
     version("2.0.0", tag="v2.0.0")
     version("1.0.0", tag="v1.0.0")
 
+    with default_args(deprecated=True):
+        version("4.0.1", tag="v4.0.1")
+        version("4.0.0", tag="v4.0.0")
+
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
     depends_on("fortran", type="build")  # generated
@@ -51,6 +56,7 @@ class Openfast(CMakePackage):
     variant("netcdf", default=False, description="Enable NetCDF support")
     variant("rosco", default=False, description="Build ROSCO controller")
     variant("fastfarm", default=False, description="Enable FAST.Farm capabilities")
+    variant("fpe-trap", default=False, description="Enable FPE trap in compiler options")
 
     depends_on("blas")
     depends_on("lapack")
@@ -80,6 +86,7 @@ class Openfast(CMakePackage):
                 self.define_from_variant("BUILD_OPENFAST_CPP_DRIVER", "cxx"),
                 self.define_from_variant("CMAKE_POSITION_INDEPENDENT_CODE", "pic"),
                 self.define_from_variant("BUILD_FASTFARM", "fastfarm"),
+                self.define_from_variant("FPE_TRAP_ENABLED", "fpe-trap"),
             ]
         )
 

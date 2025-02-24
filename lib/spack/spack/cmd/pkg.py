@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -150,7 +149,7 @@ def pkg_source(args):
         content = ph.canonical_source(spec)
     else:
         message = "Source for %s:" % filename
-        with open(filename) as f:
+        with open(filename, encoding="utf-8") as f:
             content = f.read()
 
     if sys.stdout.isatty():

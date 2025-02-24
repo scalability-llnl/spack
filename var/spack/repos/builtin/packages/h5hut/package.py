@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,11 +11,11 @@ class H5hut(AutotoolsPackage):
     High-Performance I/O Library for Particle-based Simulations."""
 
     homepage = "https://amas.psi.ch/H5hut/"
-    url = "https://amas.web.psi.ch/Downloads/H5hut/H5hut-2.0.0rc3.tar.gz"
+    url = "https://amas.web.psi.ch/Downloads/H5hut/H5hut-0.0.0.tar.gz"
     git = "https://gitlab.psi.ch/H5hut/src.git"
+    maintainers("biddisco")
 
-    version("2.0.0rc3", sha256="1ca9a9478a99e1811ecbca3c02cc49258050d339ffb1a170006eab4ab2a01790")
-
+    version("2.0.0rc7", sha256="bc058c4817c356b7b7acfe386c586923103b90bdfa83575db3a91754767e6fab")
     version("master", branch="master")
 
     depends_on("c", type="build")  # generated
@@ -48,7 +47,11 @@ class H5hut(AutotoolsPackage):
 
     def flag_handler(self, name, flags):
         build_system_flags = []
-        if name == "cflags" and self.spec["hdf5"].satisfies("@1.12:"):
+        if (
+            name == "cflags"
+            and self.spec.satisfies("@:1")
+            and self.spec["hdf5"].satisfies("@1.12:")
+        ):
             build_system_flags = ["-DH5_USE_110_API"]
         return flags, None, build_system_flags
 

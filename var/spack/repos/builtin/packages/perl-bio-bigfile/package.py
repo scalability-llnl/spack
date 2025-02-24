@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -68,9 +67,9 @@ class PerlBioBigfile(PerlPackage):
     def setup_build_environment(self, env):
         # These variables are exected by by the Build.PL file
         # even though we override the results via PERL_MB_OPT
-        kent = self.spec["kentutils"]
-        env.set("KENT_SRC", kent.prefix)
-        env.set("MACHTYPE", kent.package.machtype)
+        kent_pkg = self["kentutils"]
+        env.set("KENT_SRC", kent_pkg.prefix)
+        env.set("MACHTYPE", kent_pkg.machtype)
 
         # Overriding this explicitly as an environmental variable
         # as the Build.PL script doesn't honnor the command line

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -126,7 +125,7 @@ def develop(parser, args):
     version = spec.versions.concrete_range_as_version
     if not version:
         # look up the maximum version so infintiy versions are preferred for develop
-        version = max(spec.package_class.versions.keys())
+        version = max(spack.repo.PATH.get_pkg_class(spec.fullname).versions.keys())
         tty.msg(f"Defaulting to highest version: {spec.name}@{version}")
     spec.versions = spack.version.VersionList([version])
 

@@ -1,0 +1,59 @@
+diff --git a/tools/chapel-py/setup.py b/tools/chapel-py/setup.py
+index bee452790c..58ec46d7e6 100644
+--- a/tools/chapel-py/setup.py
++++ b/tools/chapel-py/setup.py
+@@ -46,7 +46,37 @@ host_cc = str(chpl_variables.get("CHPL_HOST_CC"))
+ host_cxx = str(chpl_variables.get("CHPL_HOST_CXX"))
+
+ host_bin_subdir = str(chpl_variables.get("CHPL_HOST_BIN_SUBDIR"))
++
++# construct the chpl_lib_path from chpl_home, or use the configured-prefix if it exists
++
+ chpl_lib_path = os.path.join(chpl_home, "lib", "compiler", host_bin_subdir)
++chpl_install_lib_path = None
++if os.path.exists(os.path.join(chpl_home, "configured-prefix")):
++    with open(os.path.join(chpl_home, "CMakeLists.txt"), "r") as f:
++        # read CMakeLists.txt to get the CHPL_MAJOR_VERSION and CHPL_MINOR_VERSION
++        # and then construct the path from that
++        chpl_major_version = None
++        chpl_minor_version = None
++        for line in f:
++            if "set(CHPL_MAJOR_VERSION" in line:
++                chpl_major_version = line.split()[1].strip(')')
++            if "set(CHPL_MINOR_VERSION" in line:
++                chpl_minor_version = line.split()[1].strip(')')
++            if chpl_major_version is not None and chpl_minor_version is not None:
++                break
++    assert(chpl_major_version is not None and chpl_minor_version is not None)
++    chpl_version_string = "{}.{}".format(chpl_major_version, chpl_minor_version)
++    chpl_prefix = None
++    with open(os.path.join(chpl_home, "configured-prefix"), "r") as f:
++        chpl_prefix = f.read().strip()
++    assert(chpl_prefix is not None)
++    chpl_install_lib_path = os.path.join(
++        chpl_prefix,
++        "lib",
++        "chapel",
++        chpl_version_string,
++        "compiler"
++        )
+
+ CXXFLAGS = []
+ if have_llvm and have_llvm != "none":
+@@ -64,10 +94,14 @@ CXXFLAGS += ["-std=c++17", "-I{}/frontend/include".format(chpl_home)]
+ LDFLAGS = []
+ LDFLAGS += [
+     "-L{}".format(chpl_lib_path),
++    "-Wl,-rpath,{}".format(chpl_lib_path),
+     "-lChplFrontendShared",
+-    "-Wl,-rpath",
+-    chpl_lib_path,
+ ]
++if chpl_install_lib_path is not None:
++    LDFLAGS += [
++        "-L{}".format(chpl_install_lib_path),
++        "-Wl,-rpath,{}".format(chpl_install_lib_path),
++    ]
+
+ if str(chpl_variables.get("CHPL_SANITIZE")) == "address":
+     if str(chpl_variables.get("CHPL_HOST_PLATFORM")) == "darwin":

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -32,6 +31,17 @@ class GoBootstrap(Package):
     # should update these binary releases on a yearly schedule as
     # bootstrapping requirements are modified by new releases of go.
     go_releases = {
+        "1.22.12": {
+            "darwin": {
+                "amd64": "e7bbe07e96f0bd3df04225090fe1e7852ed33af37c43a23e16edbbb3b90a5b7c",
+                "arm64": "416c35218edb9d20990b5d8fc87be655d8b39926f15524ea35c66ee70273050d",
+            },
+            "linux": {
+                "amd64": "4fa4f869b0f7fc6bb1eb2660e74657fbf04cdd290b5aef905585c86051b34d43",
+                "arm64": "fd017e647ec28525e86ae8203236e0653242722a7436929b1f775744e26278e7",
+                "ppc64le": "9573d30003b0796717a99d9e2e96c48fddd4fc0f29d840f212c503b03d7de112",
+            },
+        },
         "1.20.6": {
             "darwin": {
                 "amd64": "98a09c085b4c385abae7d35b9155195d5e584d14988347ac7f18e4cbe3b5ef3d",

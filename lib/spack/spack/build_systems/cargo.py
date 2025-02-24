@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -8,6 +7,8 @@ import llnl.util.filesystem as fs
 import spack.builder
 import spack.package_base
 import spack.phase_callbacks
+import spack.spec
+import spack.util.prefix
 from spack.directives import build_system, depends_on
 from spack.multimethod import when
 
@@ -50,6 +51,17 @@ class CargoBuilder(BuilderWithDefaults):
 
     phases = ("build", "install")
 
+    #: Names associated with package methods in the old build-system format
+    legacy_methods = ("check", "installcheck")
+
+    #: Names associated with package attributes in the old build-system format
+    legacy_attributes = (
+        "build_args",
+        "check_args",
+        "build_directory",
+        "install_time_test_callbacks",
+    )
+
     #: Callback names for install-time test
     install_time_test_callbacks = ["check"]
 
@@ -57,6 +69,12 @@ class CargoBuilder(BuilderWithDefaults):
     def build_directory(self):
         """Return the directory containing the main Cargo.toml."""
         return self.pkg.stage.source_path
+
+    @property
+    def std_build_args(self):
+        """Standard arguments for ``cargo build`` provided as a property for
+        convenience of package writers."""
+        return ["-j", str(self.pkg.module.make_jobs)]
 
     @property
     def build_args(self):
@@ -68,12 +86,21 @@ class CargoBuilder(BuilderWithDefaults):
         """Argument for ``cargo test`` during check phase"""
         return []
 
-    def build(self, pkg, spec, prefix):
+    def setup_build_environment(self, env):
+        env.set("CARGO_HOME", self.stage.path)
+
+    def build(
+        self, pkg: CargoPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Runs ``cargo install`` in the source directory"""
         with fs.working_dir(self.build_directory):
-            pkg.module.cargo("install", "--root", "out", "--path", ".", *self.build_args)
+            pkg.module.cargo(
+                "install", "--root", "out", "--path", ".", *self.std_build_args, *self.build_args
+            )
 
-    def install(self, pkg, spec, prefix):
+    def install(
+        self, pkg: CargoPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Copy build files into package prefix."""
         with fs.working_dir(self.build_directory):
             fs.install_tree("out", prefix)

@@ -1,24 +1,31 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
 import re
 
 from spack.package import *
 
 
-class Fzf(MakefilePackage):
-    """fzf is a general-purpose command-line fuzzy finder."""
+class Fzf(GoPackage):
+    """A general-purpose command-line fuzzy finder that provides fast, interactive
+    filtering for files, processes, git commits, and more. It supports fuzzy
+    search with real-time preview and various input sources."""
 
     homepage = "https://github.com/junegunn/fzf"
     url = "https://github.com/junegunn/fzf/archive/v0.54.0.tar.gz"
+    git = "https://github.com/junegunn/fzf.git"
 
     maintainers("alecbcs")
 
-    executables = ["^fzf$"]
-
     license("MIT")
 
+    sanity_check_is_file = ["bin/fzf"]
+
+    # Versions from newest to oldest
+    version("master", branch="master")
+    version("0.60.0", sha256="69255fd9301e491b6ac6788bf1caf5d4f70d9209b4b8ab70ceb1caf6a69b5c16")
+    version("0.57.0", sha256="d4e8e25fad2d3f75943b403c40b61326db74b705bf629c279978fdd0ceb1f97c")
     version("0.56.2", sha256="1d67edb3e3ffbb14fcbf786bfcc0b5b8d87db6a0685135677b8ef4c114d2b864")
     version("0.55.0", sha256="805383f71bca7f8fb271ecd716852aea88fd898d5027d58add9e43df6ea766da")
     version("0.54.3", sha256="6413f3916f8058b396820f9078b1336d94c72cbae39c593b1d16b83fcc4fdf74")
@@ -33,39 +40,45 @@ class Fzf(MakefilePackage):
     version("0.41.1", sha256="982682eaac377c8a55ae8d7491fcd0e888d6c13915d01da9ebb6b7c434d7f4b5")
     version("0.40.0", sha256="9597f297a6811d300f619fff5aadab8003adbcc1566199a43886d2ea09109a65")
 
-    depends_on("go@1.17:", type="build")
-    depends_on("go@1.20:", type="build", when="@0.49.0:")
-
+    # Variants
     variant("vim", default=False, description="Install vim plugins for fzf")
+
+    # Build dependencies
+    depends_on("go@1.20:", type="build", when="@0.49.0:")
+    depends_on("go@1.17:", type="build")
+
+    executables = ["^fzf$"]
 
     @classmethod
     def determine_version(cls, exe):
+        """Determine version of installed fzf executable."""
         output = Executable(exe)("--version", output=str, error=str)
         match = re.match(r"(^[\d.]+)", output)
         return match.group(1) if match else None
 
     def url_for_version(self, version):
+        """Generate download URL for a specific version."""
         base = "refs/tags/v" if self.spec.satisfies("@:0.53.0") else ""
         return f"https://github.com/junegunn/fzf/archive/{base}{version}.tar.gz"
 
     def setup_build_environment(self, env):
-        # Point GOPATH at the top of the staging dir for the build step.
-        env.prepend_path("GOPATH", self.stage.path)
+        """Set up the build environment for fzf."""
+        # Setup build env from GoPackage builder
+        super().setup_build_environment(env)
 
-        # Set required environment variables since we
-        # are not using git to pull down the repository.
+        # Set required environment variables for non-git builds
         env.set("FZF_VERSION", self.spec.version)
         env.set("FZF_REVISION", "tarball")
 
-    def install(self, spec, prefix):
-        make("install")
+    @run_after("install")
+    def install_completions(self):
+        mkdirp(bash_completion_path(self.prefix))
+        mkdirp(zsh_completion_path(self.prefix))
 
-        mkdir(prefix.bin)
-        install("bin/fzf", prefix.bin)
+        install("shell/completion.bash", bash_completion_path(self.prefix) / "fzf.bash")
+        install("shell/completion.zsh", zsh_completion_path(self.prefix) / "_fzf")
 
-        mkdirp(prefix.share.fzf.shell)
-        install_tree("shell", prefix.share.fzf.shell)
-
-        if spec.satisfies("+vim"):
-            mkdirp(prefix.share.fzf.plugins)
-            install("plugin/fzf.vim", prefix.share.fzf.plugins)
+    @run_after("install", when="+vim")
+    def install_vim_plugin(self):
+        mkdirp(self.prefix.share.fzf.plugins)
+        install("plugin/fzf.vim", self.prefix.share.fzf.plugins)

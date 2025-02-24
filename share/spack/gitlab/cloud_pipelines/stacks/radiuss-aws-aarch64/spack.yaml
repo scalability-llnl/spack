@@ -29,7 +29,6 @@ spack:
 
   - target:
     - 'target=aarch64'
-    - 'target=neoverse_n1'
 
   specs:
 

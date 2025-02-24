@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -54,30 +53,35 @@ class Lcals(MakefilePackage):
         if self.compiler.name == "intel":
             if arch == "MIC":
                 cxxflags += "-DLCALS_PLATFORM_X86_SSE -DLCALS_COMPILER_ICC "
-                cxx_compile += "-g -O3 -mmic -vec-report3 "
-                " -inline-max-total-size=10000 -inline-forceinline -ansi-alias"
+                cxx_compile += (
+                    "-g -O3 -mmic -vec-report3 "
+                    " -inline-max-total-size=10000 -inline-forceinline -ansi-alias"
+                )
             elif microarch == "sse" and arch == "x86":
                 cxxflags += "-DLCALS_PLATFORM_X86_SSE -DLCALS_COMPILER_ICC "
-                cxx_compile += "-O3 -msse4.1 -inline-max-total-size=10000"
-                " -inline-forceinline -ansi-alias -std=c++0x "
+                cxx_compile += (
+                    "-O3 -msse4.1 -inline-max-total-size=10000"
+                    " -inline-forceinline -ansi-alias -std=c++0x "
+                )
             elif microarch == "avx" and arch == "x86":
                 cxxflags += "-DLCALS_PLATFORM_X86_AVX -DLCALS_COMPILER_ICC "
-                cxx_compile += "-O3 -mavx -inline-max-total-size=10000"
-                " -inline-forceinline -ansi-alias -std=c++0x"
+                cxx_compile += (
+                    "-O3 -mavx -inline-max-total-size=10000"
+                    " -inline-forceinline -ansi-alias -std=c++0x"
+                )
             cxxflags += self.compiler.openmp_flag
         elif self.compiler.name == "gcc":
             if arch == "MIC" or (microarch == "sse" and arch == "x86"):
                 cxxflags += "-DLCALS_PLATFORM_X86_SSE -DLCALS_COMPILER_GNU "
-                cxx_compile += "-Ofast -msse4.1 -finline-functions"
-                " -finline-limit=10000 -std=c++11 "
+                cxx_compile += (
+                    "-Ofast -msse4.1 -finline-functions" " -finline-limit=10000 -std=c++11 "
+                )
             elif microarch == "avx" and arch == "x86":
                 cxxflags += "-DLCALS_PLATFORM_X86_AVX -DLCALS_COMPILER_GNU "
-                cxx_compile += "-Ofast -mavx -finline-functions"
-                " -finline-limit=10000 -std=c++11"
+                cxx_compile += "-Ofast -mavx -finline-functions" " -finline-limit=10000 -std=c++11"
             elif arch == "aarch64":
                 cxxflags += "-DLCALS_COMPILER_GNU "
-                cxx_compile += "-Ofast -finline-functions"
-                " -finline-limit=10000 -std=c++11"
+                cxx_compile += "-Ofast -finline-functions" " -finline-limit=10000 -std=c++11"
             cxxflags += self.compiler.openmp_flag
 
         targets.append("LCALS_ARCH=")

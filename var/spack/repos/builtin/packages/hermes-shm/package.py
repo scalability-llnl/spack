@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -51,8 +50,7 @@ class HermesShm(CMakePackage):
     depends_on("mochi-thallium+cereal@0.10.1", when="+mochi")
     depends_on("cereal", when="+cereal")
     depends_on(
-        "boost@1.7: +context +fiber +coroutine +regex +system \
-    +filesystem +serialization +pic +math",
+        "boost@1.7:+context+fiber+coroutine+regex+system+filesystem+serialization+pic+math",
         when="+boost",
     )
     depends_on("mpi", when="+mpiio")

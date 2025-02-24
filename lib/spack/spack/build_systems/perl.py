@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -11,8 +10,11 @@ from llnl.util.lang import memoized
 import spack.builder
 import spack.package_base
 import spack.phase_callbacks
-from spack.directives import build_system, extends
+import spack.spec
+import spack.util.prefix
+from spack.directives import build_system, depends_on, extends
 from spack.install_test import SkipTest, test_part
+from spack.multimethod import when
 from spack.util.executable import Executable
 
 from ._checks import BuilderWithDefaults, execute_build_time_tests
@@ -29,7 +31,9 @@ class PerlPackage(spack.package_base.PackageBase):
 
     build_system("perl")
 
-    extends("perl", when="build_system=perl")
+    with when("build_system=perl"):
+        extends("perl")
+        depends_on("gmake", type="build")
 
     @property
     @memoized
@@ -147,7 +151,9 @@ class PerlBuilder(BuilderWithDefaults):
         """
         return []
 
-    def configure(self, pkg, spec, prefix):
+    def configure(
+        self, pkg: PerlPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Run Makefile.PL or Build.PL with arguments consisting of
         an appropriate installation base directory followed by the
         list returned by :py:meth:`~.PerlBuilder.configure_args`.
@@ -171,7 +177,9 @@ class PerlBuilder(BuilderWithDefaults):
             repl = "#!/usr/bin/env perl"
             filter_file(pattern, repl, "Build", backup=False)
 
-    def build(self, pkg, spec, prefix):
+    def build(
+        self, pkg: PerlPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Builds a Perl package."""
         self.build_executable()
 
@@ -182,6 +190,8 @@ class PerlBuilder(BuilderWithDefaults):
         """Runs built-in tests of a Perl package."""
         self.build_executable("test")
 
-    def install(self, pkg, spec, prefix):
+    def install(
+        self, pkg: PerlPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Installs a Perl package."""
         self.build_executable("install")

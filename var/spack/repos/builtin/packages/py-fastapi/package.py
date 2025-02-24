@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,7 @@ class PyFastapi(PythonPackage):
 
     version("0.115.4", sha256="db653475586b091cb8b2fec2ac54a680ac6a158e07406e1abae31679e8826349")
     version("0.110.2", sha256="b53d673652da3b65e8cd787ad214ec0fe303cad00d2b529b86ce7db13f17518d")
+    version("0.109.2", sha256="f3817eac96fe4f65a2ebb4baa000f394e55f5fccdaf7f75250804bc58f354f73")
     with default_args(deprecated=True):
         # https://nvd.nist.gov/vuln/detail/CVE-2024-24762
         version(

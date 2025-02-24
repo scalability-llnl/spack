@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,7 @@ class PySphinxRtdDarkMode(PythonPackage):
 
     license("MIT")
 
+    version("1.3.0", sha256="0272bf3d9ef620921adc67e5634a66969419e744da84ea18830adacfdb160ea8")
     version("1.2.4", sha256="935bc1f3e62fc76eadd7d2760ac7f48bab907a97e44beda749a48a2706aeed63")
 
     depends_on("py-setuptools", type="build")

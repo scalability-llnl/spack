@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -37,6 +36,7 @@ class AprUtil(AutotoolsPackage):
     depends_on("sqlite", when="+sqlite")
     depends_on("unixodbc", when="+odbc")
     depends_on("pkgconfig", type="build", when="+crypto ^openssl~shared")
+    depends_on("libxcrypt", when="platform=linux")
 
     @property
     def libs(self):

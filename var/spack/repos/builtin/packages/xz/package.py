@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -61,6 +60,12 @@ class Xz(MSBuildPackage, AutotoolsPackage, SourceforgePackage):
     conflicts("platform=windows", when="+pic")  # no pic on Windows
     # prior to 5.2.3, build system is for MinGW only, not currently supported by Spack
     conflicts("platform=windows", when="@:5.2.3")
+
+    patch(
+        "nvhpc.patch",
+        when="@5.2.10: %nvhpc",
+        sha256="32228638c462651ec7dedab706d05aa352995f064ace2dee915f31c75cc995c0",
+    )
 
     build_system(conditional("msbuild", when="platform=windows"), "autotools", default="autotools")
 

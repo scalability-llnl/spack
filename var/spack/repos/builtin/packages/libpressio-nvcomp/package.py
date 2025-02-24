@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -34,5 +33,5 @@ class LibpressioNvcomp(CMakePackage, CudaPackage):
 
     def cmake_args(self):
         cuda_arch = self.spec.variants["cuda_arch"].value
-        args = [("-DCMAKE_CUDA_ARCHITECTURES=%s" % cuda_arch)]
+        args = ["-DCMAKE_CUDA_ARCHITECTURES=%s" % cuda_arch]
         return args

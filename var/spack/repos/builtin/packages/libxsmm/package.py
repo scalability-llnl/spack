@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,9 +13,9 @@ class Libxsmm(MakefilePackage):
     and sparse matrix operations,
     and deep learning primitives."""
 
-    homepage = "https://github.com/hfp/libxsmm"
-    url = "https://github.com/hfp/libxsmm/archive/1.17.tar.gz"
-    git = "https://github.com/hfp/libxsmm.git"
+    homepage = "https://github.com/libxsmm/libxsmm"
+    url = "https://github.com/libxsmm/libxsmm/archive/1.17.tar.gz"
+    git = "https://github.com/libxsmm/libxsmm.git"
 
     maintainers("hfp")
 

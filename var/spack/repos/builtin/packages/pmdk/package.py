@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -39,8 +38,9 @@ class Pmdk(Package):
     variant("experimental", default=False, description="Build experimental stuff")
     variant("rpmem", default=False, description="Build remote persistent memory components")
 
-    depends_on("cmake", when="@1.12.1:")
-    depends_on("pkgconfig", when="@1.12.1:")
+    depends_on("gmake", type="build")
+    depends_on("cmake", type="build")
+    depends_on("pkgconfig", when="@1.12.1:", type="build")
     depends_on("ncurses", when="@1.6:")
     depends_on("libfabric", when="+rpmem")
     # documentation requires doxygen and a bunch of other dependencies

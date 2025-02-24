@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -78,9 +77,7 @@ class RedisAi(MakefilePackage):
     @property
     def torch_dir(self):
         return (
-            join_path(self.spec["py-torch"].package.cmake_prefix_paths[0], "Torch")
-            if self.with_torch
-            else None
+            join_path(self["py-torch"].cmake_prefix_paths[0], "Torch") if self.with_torch else None
         )
 
     @property

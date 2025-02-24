@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import numbers
@@ -41,7 +40,8 @@ class Pythia6(CMakePackage):
         sha256="01cbff47e99365b5e46f6d62c1735d3cae1932c4710604850d59f538cb758020",
     )
 
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("fortran", type="build")
 
     # Root's TPythia6 interface requires extra sources to be built into
     # the Pythia6 library.

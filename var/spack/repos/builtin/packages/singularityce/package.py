@@ -1,19 +1,16 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 import shutil
 
-import llnl.util.tty as tty
-
 import spack.tengine
 from spack.package import *
 
 
 class SingularityBase(MakefilePackage):
-    variant("suid", default=True, description="install SUID binary")
+    variant("suid", default=False, description="install SUID binary")
     variant("network", default=True, description="install network plugins")
 
     depends_on("pkgconfig", type="build")

@@ -1,11 +1,11 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import itertools
 
 import pytest
 
+import spack.concretize
 from spack.installer import PackageInstaller
 from spack.spec import Spec
 from spack.spec_list import SpecList
@@ -199,8 +199,8 @@ class TestSpecList:
 
     def test_spec_list_exclude_with_abstract_hashes(self, mock_packages, install_mockery):
         # Put mpich in the database so it can be referred to by hash.
-        mpich_1 = Spec("mpich+debug").concretized()
-        mpich_2 = Spec("mpich~debug").concretized()
+        mpich_1 = spack.concretize.concretize_one("mpich+debug")
+        mpich_2 = spack.concretize.concretize_one("mpich~debug")
         PackageInstaller([mpich_1.package, mpich_2.package], explicit=True, fake=True).install()
 
         # Create matrix and exclude +debug, which excludes the first mpich after its abstract hash

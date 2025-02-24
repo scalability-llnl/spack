@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Writers for different kind of recipes and related
@@ -9,6 +8,8 @@ import copy
 import shlex
 from collections import namedtuple
 from typing import Optional
+
+import jsonschema
 
 import spack.environment as ev
 import spack.error
@@ -189,8 +190,6 @@ class PathContext(tengine.Context):
     @tengine.context_property
     def manifest(self):
         """The spack.yaml file that should be used in the image"""
-        import jsonschema
-
         # Copy in the part of spack.yaml prescribed in the configuration file
         manifest = copy.deepcopy(self.config)
         manifest.pop("container")

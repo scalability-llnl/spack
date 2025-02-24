@@ -1,0 +1,32 @@
+spack:
+  view: false
+
+  packages:
+    all:
+      require: target=aarch64
+
+  config:
+    deprecated: true  # allow old python versions
+
+  specs:
+  - clingo-bootstrap +optimized ^python@3.13
+  - clingo-bootstrap +optimized ^python@3.12
+  - clingo-bootstrap +optimized ^python@3.11
+  - clingo-bootstrap +optimized ^python@3.10
+  - clingo-bootstrap +optimized ^python@3.9
+  - clingo-bootstrap +optimized ^python@3.8
+
+  - clingo-bootstrap@spack +optimized ^python@3.13
+  - clingo-bootstrap@spack +optimized ^python@3.12
+  - clingo-bootstrap@spack +optimized ^python@3.11
+  - clingo-bootstrap@spack +optimized ^python@3.10
+  - clingo-bootstrap@spack +optimized ^python@3.9
+  - clingo-bootstrap@spack +optimized ^python@3.8
+
+  ci:
+    pipeline-gen:
+    - build-job-remove:
+        tags: [spack, public]
+    - build-job:
+        variables:
+          CI_GPG_KEY_ROOT: /etc/protected-runner

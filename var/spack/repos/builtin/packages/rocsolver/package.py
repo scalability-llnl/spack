@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,10 +14,10 @@ class Rocsolver(CMakePackage):
 
     homepage = "https://github.com/ROCm/rocSOLVER"
     git = "https://github.com/ROCm/rocSOLVER.git"
-    url = "https://github.com/ROCm/rocSOLVER/archive/rocm-6.1.2.tar.gz"
+    url = "https://github.com/ROCm/rocSOLVER/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
-    maintainers("cgmb", "srekolam", "renjithravindrankannath", "haampie")
+    maintainers("cgmb", "srekolam", "renjithravindrankannath", "haampie", "afzpatel")
     libraries = ["librocsolver"]
 
     amdgpu_targets = ROCmPackage.amdgpu_targets
@@ -32,9 +31,9 @@ class Rocsolver(CMakePackage):
     variant(
         "optimal",
         default=True,
-        description="This option improves performance at the cost of increased binary \
-            size and compile time by adding specialized kernels \
-            for small matrix sizes",
+        description="This option improves performance at the cost of increased binary "
+        "size and compile time by adding specialized kernels "
+        "for small matrix sizes",
     )
     variant("asan", default=False, description="Build with address-sanitizer enabled or disabled")
 
@@ -46,6 +45,10 @@ class Rocsolver(CMakePackage):
 
     version("develop", branch="develop")
     version("master", branch="master")
+    version("6.3.2", sha256="834f532c54bdf0e4900e73ffb0544068071976175559c8bf3c50d7a3b7230a3a")
+    version("6.3.1", sha256="ffa70c4dedeb20a33cf79d4ae3e95ade2ae5202f819459b19a0ebf62c380bba0")
+    version("6.3.0", sha256="48861f7b86379f2b825c0496d1d9318c6e29426d083b361c10f685b0ddd66274")
+    version("6.2.4", sha256="022863df6a9d51bd216e56dd4dc7d437584e48304cfdbc9c5751be1abfd7c73f")
     version("6.2.1", sha256="e1c19cd25f7119c116d1c63e2384e9c47a4ff7ae14bb42dfcef766a4d3a011d5")
     version("6.2.0", sha256="74cb799dcddfcbd6ee05398003416dbccd3d06d7f4b23e4324baac3f15440162")
     version("6.1.2", sha256="8cb45b6a4ed819b8e952c0bfdd8bf7dd941478ac656bea42a6d6751f459e66ea")
@@ -106,6 +109,10 @@ class Rocsolver(CMakePackage):
         "6.1.2",
         "6.2.0",
         "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "6.3.1",
+        "6.3.2",
     ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"rocblas@{ver}", when=f"@{ver}")
@@ -138,7 +145,7 @@ class Rocsolver(CMakePackage):
         if self.spec.satisfies("^cmake@3.21.0:3.21.2"):
             args.append(self.define("__skip_rocmclang", "ON"))
 
-        if self.spec.satisfies("@5.2.0:"):
+        if self.spec.satisfies("@5.2.0:6.3.1"):
             args.append(self.define("BUILD_FILE_REORG_BACKWARD_COMPATIBILITY", True))
         if self.spec.satisfies("@5.3.0:"):
             args.append("-DCMAKE_INSTALL_LIBDIR=lib")

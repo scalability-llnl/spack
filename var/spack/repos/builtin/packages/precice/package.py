@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -93,6 +92,7 @@ class Precice(CMakePackage):
     depends_on("boost@:1.72", when="@:2.0.2")
     depends_on("boost@:1.74", when="@:2.1.1")
     depends_on("boost@:1.78", when="@:2.3.0")
+    depends_on("boost@:1.86", when="@:3.1.2")
 
     depends_on("eigen@3.2:")
     depends_on("eigen@3.4:", when="@3.2:")
@@ -195,7 +195,7 @@ class Precice(CMakePackage):
             python_library = spec["python"].libs[0]
             python_include = spec["python"].headers.directories[0]
             numpy_include = join_path(
-                spec["py-numpy"].package.module.python_platlib, "numpy", "core", "include"
+                self["py-numpy"].module.python_platlib, "numpy", "core", "include"
             )
             cmake_args.extend(
                 [

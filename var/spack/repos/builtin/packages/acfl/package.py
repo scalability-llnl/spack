@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -356,6 +355,8 @@ class Acfl(Package, CompilerPackage):
     provides("blas")
     provides("lapack")
     provides("fftw-api@3")
+
+    depends_on("gmake", type="build")
 
     # Licensing - Not required from 22.0.1 on.
 

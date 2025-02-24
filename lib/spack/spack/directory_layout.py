@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,7 +8,7 @@ import re
 import shutil
 import sys
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import llnl.util.filesystem as fs
 from llnl.util.symlink import readlink
@@ -18,7 +17,6 @@ import spack.config
 import spack.hash_types as ht
 import spack.projections
 import spack.spec
-import spack.store
 import spack.util.spack_json as sjson
 from spack.error import SpackError
 
@@ -27,7 +25,7 @@ default_projections = {
 }
 
 
-def _check_concrete(spec):
+def _check_concrete(spec: "spack.spec.Spec") -> None:
     """If the spec is not concrete, raise a ValueError"""
     if not spec.concrete:
         raise ValueError("Specs passed to a DirectoryLayout must be concrete!")
@@ -53,7 +51,7 @@ def specs_from_metadata_dirs(root: str) -> List["spack.spec.Spec"]:
         spec = _get_spec(prefix)
 
         if spec:
-            spec.prefix = prefix
+            spec.set_prefix(prefix)
             specs.append(spec)
             continue
 
@@ -70,10 +68,9 @@ def specs_from_metadata_dirs(root: str) -> List["spack.spec.Spec"]:
 
 
 class DirectoryLayout:
-    """A directory layout is used to associate unique paths with specs.
-    Different installations are going to want different layouts for their
-    install, and they can use this to customize the nesting structure of
-    spack installs. The default layout is:
+    """A directory layout is used to associate unique paths with specs. Different installations are
+    going to want different layouts for their install, and they can use this to customize the
+    nesting structure of spack installs. The default layout is:
 
     * <install root>/
 
@@ -83,35 +80,30 @@ class DirectoryLayout:
 
           * <name>-<version>-<hash>
 
-    The hash here is a SHA-1 hash for the full DAG plus the build
-    spec.
+    The installation directory projections can be modified with the projections argument."""
 
-    The installation directory projections can be modified with the
-    projections argument.
-    """
-
-    def __init__(self, root, **kwargs):
+    def __init__(
+        self,
+        root: str,
+        *,
+        projections: Optional[Dict[str, str]] = None,
+        hash_length: Optional[int] = None,
+    ) -> None:
         self.root = root
-        self.check_upstream = True
-        projections = kwargs.get("projections") or default_projections
-        self.projections = dict(
-            (key, projection.lower()) for key, projection in projections.items()
-        )
+        projections = projections or default_projections
+        self.projections = {key: projection.lower() for key, projection in projections.items()}
 
         # apply hash length as appropriate
-        self.hash_length = kwargs.get("hash_length", None)
+        self.hash_length = hash_length
         if self.hash_length is not None:
             for when_spec, projection in self.projections.items():
                 if "{hash}" not in projection:
-                    if "{hash" in projection:
-                        raise InvalidDirectoryLayoutParametersError(
-                            "Conflicting options for installation layout hash" " length"
-                        )
-                    else:
-                        raise InvalidDirectoryLayoutParametersError(
-                            "Cannot specify hash length when the hash is not"
-                            " part of all install_tree projections"
-                        )
+                    raise InvalidDirectoryLayoutParametersError(
+                        "Conflicting options for installation layout hash length"
+                        if "{hash" in projection
+                        else "Cannot specify hash length when the hash is not part of all "
+                        "install_tree projections"
+                    )
                 self.projections[when_spec] = projection.replace(
                     "{hash}", "{hash:%d}" % self.hash_length
                 )
@@ -128,38 +120,38 @@ class DirectoryLayout:
         self.manifest_file_name = "install_manifest.json"
 
     @property
-    def hidden_file_regexes(self):
+    def hidden_file_regexes(self) -> Tuple[str]:
         return ("^{0}$".format(re.escape(self.metadata_dir)),)
 
-    def relative_path_for_spec(self, spec):
+    def relative_path_for_spec(self, spec: "spack.spec.Spec") -> str:
         _check_concrete(spec)
 
         projection = spack.projections.get_projection(self.projections, spec)
         path = spec.format_path(projection)
         return str(Path(path))
 
-    def write_spec(self, spec, path):
+    def write_spec(self, spec: "spack.spec.Spec", path: str) -> None:
         """Write a spec out to a file."""
         _check_concrete(spec)
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             # The hash of the projection is the DAG hash which contains
             # the full provenance, so it's availabe if we want it later
             spec.to_json(f, hash=ht.dag_hash)
 
-    def write_host_environment(self, spec):
+    def write_host_environment(self, spec: "spack.spec.Spec") -> None:
         """The host environment is a json file with os, kernel, and spack
         versioning. We use it in the case that an analysis later needs to
         easily access this information.
         """
         env_file = self.env_metadata_path(spec)
         environ = spack.spec.get_host_environment_metadata()
-        with open(env_file, "w") as fd:
+        with open(env_file, "w", encoding="utf-8") as fd:
             sjson.dump(environ, fd)
 
-    def read_spec(self, path):
+    def read_spec(self, path: str) -> "spack.spec.Spec":
         """Read the contents of a file and parse them as a spec"""
         try:
-            with open(path) as f:
+            with open(path, encoding="utf-8") as f:
                 extension = os.path.splitext(path)[-1].lower()
                 if extension == ".json":
                     spec = spack.spec.Spec.from_json(f)
@@ -167,26 +159,28 @@ class DirectoryLayout:
                     # Too late for conversion; spec_file_path() already called.
                     spec = spack.spec.Spec.from_yaml(f)
                 else:
-                    raise SpecReadError(
-                        "Did not recognize spec file extension:" " {0}".format(extension)
-                    )
+                    raise SpecReadError(f"Did not recognize spec file extension: {extension}")
         except Exception as e:
             if spack.config.get("config:debug"):
                 raise
-            raise SpecReadError("Unable to read file: %s" % path, "Cause: " + str(e))
+            raise SpecReadError(f"Unable to read file: {path}", f"Cause: {e}")
 
         # Specs read from actual installations are always concrete
         spec._mark_concrete()
         return spec
 
-    def spec_file_path(self, spec):
+    def spec_file_path(self, spec: "spack.spec.Spec") -> str:
         """Gets full path to spec file"""
         _check_concrete(spec)
         yaml_path = os.path.join(self.metadata_path(spec), self._spec_file_name_yaml)
         json_path = os.path.join(self.metadata_path(spec), self.spec_file_name)
         return yaml_path if os.path.exists(yaml_path) else json_path
 
-    def deprecated_file_path(self, deprecated_spec, deprecator_spec=None):
+    def deprecated_file_path(
+        self,
+        deprecated_spec: "spack.spec.Spec",
+        deprecator_spec: Optional["spack.spec.Spec"] = None,
+    ) -> str:
         """Gets full path to spec file for deprecated spec
 
         If the deprecator_spec is provided, use that. Otherwise, assume
@@ -220,16 +214,16 @@ class DirectoryLayout:
 
         return yaml_path if os.path.exists(yaml_path) else json_path
 
-    def metadata_path(self, spec):
+    def metadata_path(self, spec: "spack.spec.Spec") -> str:
         return os.path.join(spec.prefix, self.metadata_dir)
 
-    def env_metadata_path(self, spec):
+    def env_metadata_path(self, spec: "spack.spec.Spec") -> str:
         return os.path.join(self.metadata_path(spec), "install_environment.json")
 
-    def build_packages_path(self, spec):
+    def build_packages_path(self, spec: "spack.spec.Spec") -> str:
         return os.path.join(self.metadata_path(spec), self.packages_dir)
 
-    def create_install_directory(self, spec):
+    def create_install_directory(self, spec: "spack.spec.Spec") -> None:
         _check_concrete(spec)
 
         # Create install directory with properly configured permissions
@@ -247,7 +241,7 @@ class DirectoryLayout:
 
         self.write_spec(spec, self.spec_file_path(spec))
 
-    def ensure_installed(self, spec):
+    def ensure_installed(self, spec: "spack.spec.Spec") -> None:
         """
         Throws InconsistentInstallDirectoryError if:
         1. spec prefix does not exist
@@ -274,40 +268,23 @@ class DirectoryLayout:
                 "Spec file in %s does not match hash!" % spec_file_path
             )
 
-    def path_for_spec(self, spec):
+    def path_for_spec(self, spec: "spack.spec.Spec") -> str:
         """Return absolute path from the root to a directory for the spec."""
         _check_concrete(spec)
 
         if spec.external:
             return spec.external_path
-        if self.check_upstream:
-            upstream, record = spack.store.STORE.db.query_by_spec_hash(spec.dag_hash())
-            if upstream:
-                raise SpackError(
-                    "Internal error: attempted to call path_for_spec on"
-                    " upstream-installed package."
-                )
 
         path = self.relative_path_for_spec(spec)
         assert not path.startswith(self.root)
         return os.path.join(self.root, path)
 
-    def remove_install_directory(self, spec, deprecated=False):
+    def remove_install_directory(self, spec: "spack.spec.Spec", deprecated: bool = False) -> None:
         """Removes a prefix and any empty parent directories from the root.
         Raised RemoveFailedError if something goes wrong.
         """
         path = self.path_for_spec(spec)
         assert path.startswith(self.root)
-
-        # Windows readonly files cannot be removed by Python
-        # directly, change permissions before attempting to remove
-        if sys.platform == "win32":
-            kwargs = {
-                "ignore_errors": False,
-                "onerror": fs.readonly_file_handler(ignore_errors=False),
-            }
-        else:
-            kwargs = {}  # the default value for ignore_errors is false
 
         if deprecated:
             if os.path.exists(path):
@@ -319,7 +296,16 @@ class DirectoryLayout:
                     raise RemoveFailedError(spec, path, e) from e
         elif os.path.exists(path):
             try:
-                shutil.rmtree(path, **kwargs)
+                if sys.platform == "win32":
+                    # Windows readonly files cannot be removed by Python
+                    # directly, change permissions before attempting to remove
+                    shutil.rmtree(
+                        path,
+                        ignore_errors=False,
+                        onerror=fs.readonly_file_handler(ignore_errors=False),
+                    )
+                else:
+                    shutil.rmtree(path)
             except OSError as e:
                 raise RemoveFailedError(spec, path, e) from e
 

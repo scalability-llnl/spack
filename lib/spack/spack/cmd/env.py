@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -865,7 +864,7 @@ def env_loads(args):
     args.recurse_dependencies = False
 
     loads_file = fs.join_path(env.path, "loads")
-    with open(loads_file, "w") as f:
+    with open(loads_file, "w", encoding="utf-8") as f:
         specs = env._get_environment_specs(recurse_dependencies=recurse_dependencies)
 
         spack.cmd.modules.loads(module_type, specs, args, f)
@@ -1053,7 +1052,7 @@ def env_depfile(args):
 
     # Finally write to stdout/file.
     if args.output:
-        with open(args.output, "w") as f:
+        with open(args.output, "w", encoding="utf-8") as f:
             f.write(makefile)
     else:
         sys.stdout.write(makefile)

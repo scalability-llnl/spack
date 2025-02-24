@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import glob
@@ -1153,7 +1152,7 @@ class IntelPackage(Package):
             # The file will have been created upon self.license_required AND
             # self.license_files having been populated, so the "if" is usually
             # true by the time the present function runs; ../hooks/licensing.py
-            with open(f) as fh:
+            with open(f, encoding="utf-8") as fh:
                 if re.search(r"^[ \t]*[^" + self.license_comment + "\n]", fh.read(), re.MULTILINE):
                     license_type = {
                         "ACTIVATION_TYPE": "license_file",
@@ -1185,7 +1184,7 @@ class IntelPackage(Package):
         # our configuration accordingly. We can do this because the tokens are
         # quite long and specific.
 
-        validator_code = open("pset/check.awk", "r").read()
+        validator_code = open("pset/check.awk", "r", encoding="utf-8").read()
         # Let's go a little further and distill the tokens (plus some noise).
         tokenlike_words = set(re.findall(r"[A-Z_]{4,}", validator_code))
 
@@ -1222,7 +1221,7 @@ class IntelPackage(Package):
             config_draft.update(self._determine_license_type)
 
         # Write sorted *by token* so the file looks less like a hash dump.
-        f = open("silent.cfg", "w")
+        f = open("silent.cfg", "w", encoding="utf-8")
         for token, value in sorted(config_draft.items()):
             if token in tokenlike_words:
                 f.write("%s=%s\n" % (token, value))
@@ -1273,7 +1272,7 @@ class IntelPackage(Package):
                 raise InstallError("Cannot find compiler command to configure rpath:\n\t" + f)
 
             compiler_cfg = os.path.abspath(f + ".cfg")
-            with open(compiler_cfg, "w") as fh:
+            with open(compiler_cfg, "w", encoding="utf-8") as fh:
                 fh.write("-Xlinker -rpath={0}\n".format(compilers_lib_dir))
 
     @spack.phase_callbacks.run_after("install")
@@ -1297,7 +1296,7 @@ class IntelPackage(Package):
                         ad.append(x)
 
                 compiler_cfg = os.path.abspath(f + ".cfg")
-                with open(compiler_cfg, "a") as fh:
+                with open(compiler_cfg, "a", encoding="utf-8") as fh:
                     fh.write("-ax{0}\n".format(",".join(ad)))
 
     @spack.phase_callbacks.run_after("install")

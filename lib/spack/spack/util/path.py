@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -30,8 +29,8 @@ def architecture():
     import spack.spec
 
     host_platform = spack.platforms.host()
-    host_os = host_platform.operating_system("default_os")
-    host_target = host_platform.target("default_target")
+    host_os = host_platform.default_operating_system()
+    host_target = host_platform.default_target()
 
     return spack.spec.ArchSpec((str(host_platform), str(host_os), str(host_target)))
 

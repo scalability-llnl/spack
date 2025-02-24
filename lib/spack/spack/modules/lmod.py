@@ -1,11 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import collections
 import itertools
-import os.path
+import os
 from typing import Dict, List, Optional, Tuple
 
 import llnl.util.filesystem as fs
@@ -210,7 +209,7 @@ class LmodConfiguration(BaseConfiguration):
         # All the other tokens in the hierarchy must be virtual dependencies
         for x in self.hierarchy_tokens:
             if self.spec.package.provides(x):
-                provides[x] = self.spec[x]
+                provides[x] = self.spec
         return provides
 
     @property

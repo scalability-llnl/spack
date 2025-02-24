@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,7 @@ class Duckdb(MakefilePackage):
     maintainers("glentner", "teaguesterling")
 
     version("master", branch="master")
+    version("1.2.0", sha256="f22c97e18c071fa8e43b5e150c03c6ab4bcc510cca6e6b50cbe13af8535fa701")
     version("1.1.3", sha256="2aea0af898ad753fee82b776fea1bf78ccbc9648986e7f7a87372df5e74cdb98")
     version("1.1.2", sha256="a3319a64c390ed0454c869b2e4fc0af2413cd49f55cd0f1400aaed9069cdbc4c")
     version("1.1.1", sha256="a764cef80287ccfd8555884d8facbe962154e7c747043c0842cd07873b4d6752")
@@ -93,13 +93,20 @@ class Duckdb(MakefilePackage):
     # Extensions
     variant("autocomplete", default=True, description="Include autocomplete for CLI in build")
     variant("excel", default=True, description="Include Excel formatting extension in build")
-    variant("fts", default=True, description="Include FTS (full text search) support in build")
     variant("httpfs", default=True, description="Include HTTPFS (& S3) support in build")
     variant("inet", default=True, description="Include INET (ip address) support in build")
     variant("json", default=True, description="Include JSON support in build")
     variant("parquet", default=True, description="Include parquent support in build")
     variant("tpce", default=False, description="Include TPCE in build")
     variant("tpch", default=False, description="Include TPCH in build")
+
+    # FTS was moved to an out-of-tree extension after v1.1.3
+    variant(
+        "fts",
+        default=True,
+        description="Include FTS (full text search) support in build",
+        when="@:1.1",
+    )
 
     # APIs
     variant("python", default=True, description="Build with Python driver")

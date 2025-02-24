@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,13 @@ class PyNbconvert(PythonPackage):
 
     license("BSD-3-Clause")
 
+    version("7.16.4", sha256="86ca91ba266b0a448dc96fa6c5b9d98affabde2867b363258703536807f9f7f4")
+    version("7.16.3", sha256="a6733b78ce3d47c3f85e504998495b07e6ea9cf9bf6ec1c98dda63ec6ad19142")
+    version("7.16.2", sha256="8310edd41e1c43947e4ecf16614c61469ebc024898eb808cce0999860fc9fb16")
+    version("7.16.1", sha256="e79e6a074f49ba3ed29428ed86487bf51509d9aab613bd8522ac08f6d28fd7fd")
+    version("7.16.0", sha256="813e6553796362489ae572e39ba1bff978536192fb518e10826b0e8cadf03ec8")
+    version("7.15.0", sha256="ff3f54a1a5e1e024beb9fde8946d05b6d0bf68cd14b5f2f9dc5b545c8bc71055")
+    version("7.14.2", sha256="a7f8808fd4e082431673ac538400218dd45efd076fbeb07cc6e5aa5a3a4e949e")
     version("7.14.1", sha256="20cba10e0448dc76b3bebfe1adf923663e3b98338daf77b97b42511ef5a88618")
     version("7.4.0", sha256="51b6c77b507b177b73f6729dba15676e42c4e92bcb00edc8cc982ee72e7d89d7")
     version("7.0.0", sha256="fd1e361da30e30e4c5a5ae89f7cae95ca2a4d4407389672473312249a7ba0060")
@@ -52,6 +58,7 @@ class PyNbconvert(PythonPackage):
 
     variant("serve", default=True, description="Include a webserver")
 
+    depends_on("python@3.8:", when="@7.7:", type=("build", "run"))
     depends_on("python@3.7:", when="@6.2.0:", type=("build", "run"))
     depends_on("py-hatchling@1.5:", when="@7.14:", type="build")
     depends_on("py-hatchling@0.25:", when="@7:", type="build")

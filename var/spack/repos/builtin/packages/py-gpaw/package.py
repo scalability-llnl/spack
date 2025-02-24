@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -61,7 +60,7 @@ class PyGpaw(PythonPackage):
 
         python_include = spec["python"].headers.directories[0]
         numpy_include = join_path(
-            spec["py-numpy"].package.module.python_platlib, "numpy", "core", "include"
+            self["py-numpy"].module.python_platlib, "numpy", "core", "include"
         )
 
         libs = blas.libs + lapack.libs + libxc.libs

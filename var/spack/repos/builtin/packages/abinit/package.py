@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -180,7 +179,7 @@ class Abinit(AutotoolsPackage):
             if spec.satisfies("@:8"):
                 oapp("--with-dft-flavor=atompaw+libxc")
             else:
-                "--without-wannier90",
+                oapp("--without-wannier90")
 
         if spec.satisfies("+mpi"):
             oapp(f"CC={spec['mpi'].mpicc}")

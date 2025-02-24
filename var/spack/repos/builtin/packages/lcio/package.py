@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,9 @@ class Lcio(CMakePackage):
     license("BSD-3-Clause")
 
     version("master", branch="master")
+    version("2.22.5", sha256="a756521a2419f8d25d4a4f1bab0008e16c9947020d015f2f6ce457ab0a0429bf")
+    version("2.22.4", sha256="5d60eeb4df8611059f4bc839ac098f5d7e3608a662591e9cbae48aed07995514")
+    version("2.22.3", sha256="5b9715786c5e953f8854881c5d0c4a48030a5491f1701232b82e960ac7980162")
     version("2.22.2", sha256="e5ad9690af85160ef52dd407fc0995451b4293f3aee415a8ea8a950de63d87a1")
     version("2.22.1", sha256="4bc3d2c83af7b1c65d6736dd14ee82f41af7ce9bfc7cfe779c5f47417e8dc326")
     version("2.22", sha256="95676977a0427f5ecc857e8504b13f332c2c2e5769dc00f6beecff3c73dab395")
@@ -46,7 +48,8 @@ class Lcio(CMakePackage):
     version("2.13.2", sha256="9f153ba13e56ee16795378f9192678d40df1faca51d00aaa8fb80547bfecb8d8")
     version("2.13.1", sha256="aa572e2ba38c0cadd6a92fa933c3ed97e21d016c7982578d3f293901169f4ec0")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant(
         "cxxstd",

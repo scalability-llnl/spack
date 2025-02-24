@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -65,6 +64,7 @@ class Libfuse(MesonPackage):
     depends_on("automake", type="build", when="@:2")
     depends_on("libtool", type="build", when="@:2")
     depends_on("gettext", type="build", when="@:2")
+    depends_on("gmake", type="build")
 
     provides("fuse")
     conflicts("+useroot", when="~system_install", msg="useroot requires system_install")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,7 @@ class Lhapdf(AutotoolsPackage):
 
     license("GPL-3.0-or-later")
 
+    version("6.5.5", sha256="d20d8fb71936403274caec5bd584c891592b96c6319175df51d9bb69db869bd8")
     version("6.5.4", sha256="ace8913781044ad542e378697fcd95a8535d510818bb74a6665f9fd2b132ac0f")
     version("6.5.3", sha256="90fe7254d5a48a9b2d424fcbac1bf9708b0e54690efec4c78e9ad28b9203bfcd")
     version("6.5.2", sha256="23972ec46289c82a63df60b55b62f219418b4d80f94b8d570feb2b5e48014054")
@@ -31,8 +31,9 @@ class Lhapdf(AutotoolsPackage):
     version("6.3.0", sha256="864468439c7662bbceed6c61c7132682ec83381a23c9c9920502fdd7329dd816")
     version("6.2.3", sha256="37200a1ab70247250a141dfed7419d178f9a83bd23a4f8a38e203d4e27b41308")
 
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
 
     variant("python", default=True, description="Build python bindings")
 
@@ -40,6 +41,8 @@ class Lhapdf(AutotoolsPackage):
     depends_on("automake", type="build")
     depends_on("libtool", type="build")
     depends_on("m4", type="build")
+
+    depends_on("yaml-cpp", when="@6.5.5:")
 
     extends("python", when="+python")
     depends_on("py-cython", type="build", when="+python")
@@ -57,6 +60,9 @@ class Lhapdf(AutotoolsPackage):
 
     def configure_args(self):
         args = ["FCFLAGS=-O3", "CFLAGS=-O3", "CXXFLAGS=-O3"]
+
+        if self.spec.satisfies("@6.5.5:"):
+            args.append(f"--with-yaml-cpp={self.spec['yaml-cpp'].prefix}")
 
         if self.spec.satisfies("+python"):
             args.append(

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,8 @@ class Fckit(CMakePackage):
 
     version("master", branch="master")
     version("develop", branch="develop")
+    version("0.13.2", sha256="990623eb4eb999145f2d852da9fbd71a69e2e0be601c655c274e8382750dfda2")
+    version("0.13.1", sha256="89a067a7b5b1f2c7909739b567bd43b69f8a2d91e8cbcbac58655fb2d861db51")
     version("0.11.0", sha256="846f5c369940c0a3d42cd12932f7d6155339e79218d149ebbfdd02e759dc86c5")
     version("0.10.1", sha256="9cde04fefa50624bf89068ab793cc2e9437c0cd1c271a41af7d54dbd37c306be")
     version("0.10.0", sha256="f16829f63a01cdef5e158ed2a51f6d4200b3fe6dce8f251af158141a1afe482b")
@@ -49,17 +50,6 @@ class Fckit(CMakePackage):
     depends_on("llvm-openmp", when="+openmp %apple-clang", type=("build", "run"))
     variant("shared", default=True, description="Build shared libraries")
     variant("fismahigh", default=False, description="Apply patching for FISMA-high compliance")
-    variant(
-        "finalize_ddts",
-        default="auto",
-        description="Enable / disable automatic finalization of derived types",
-        values=("auto", "no", "yes"),
-    )
-
-    # fckit fails to auto-detect/switch off finalization
-    # of derived types for latest Intel compilers. If set
-    # to auto, turn off in cmake_args. If set to yes, abort.
-    conflicts("%intel@2021.8:", when="finalize_ddts=yes")
 
     def cmake_args(self):
         args = [
@@ -71,11 +61,11 @@ class Fckit(CMakePackage):
         if self.spec.satisfies("~shared"):
             args.append("-DBUILD_SHARED_LIBS=OFF")
 
-        if "finalize_ddts=auto" not in self.spec:
-            args.append(self.define_from_variant("ENABLE_FINAL", "finalize_ddts"))
-        elif "finalize_ddts=auto" in self.spec and self.spec.satisfies("%intel@2021.8:"):
-            # See comment above (conflicts for finalize_ddts)
-            args.append("-DENABLE_FINAL=OFF")
+        # Turn off finalization of derived data types (DDTs) because it is
+        # flaky and we can't rely on fckit to auto-detect if the compiler
+        # supports the feature or not.
+        # https://github.com/JCSDA/spack-stack/issues/1521
+        args.append("-DENABLE_FINAL=OFF")
 
         if (
             self.spec.satisfies("%intel")

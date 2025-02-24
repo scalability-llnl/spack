@@ -1,7 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -37,7 +36,7 @@ bin/spack -h
 bin/spack help -a
 
 # Profile and print top 20 lines for a simple call to spack spec
-spack -p --lines 20 spec mpileaks%gcc ^dyninst@10.0.0 ^elfutils@0.170
+spack -p --lines 20 spec mpileaks%gcc
 $coverage_run $(which spack) bootstrap status --dev --optional
 
 # Check that we can import Spack packages directly as a first import

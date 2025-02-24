@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -7,7 +6,7 @@ from spack.package import *
 
 
 class PyTimm(PythonPackage):
-    """(Unofficial) PyTorch Image Models."""
+    """PyTorch Image Models."""
 
     homepage = "https://github.com/rwightman/pytorch-image-models"
     pypi = "timm/timm-0.4.12.tar.gz"
@@ -15,6 +14,10 @@ class PyTimm(PythonPackage):
     license("Apache-2.0")
     maintainers("adamjstewart")
 
+    version("1.0.15", sha256="756a3bc30c96565f056e608a9b559daed904617eaadb6be536f96874879b1055")
+    version("1.0.14", sha256="00a7f2cc04ce3ed8f80476bbb7eea27eac8cf6f2d59b5e9aa9cdd375dd6550db")
+    version("1.0.13", sha256="39190337cff26a15d180b660374c901ac472b69d91d8cfc5a5bb47c600fb3716")
+    version("1.0.12", sha256="9da490683bd06302ec40e1892f1ccf87985f033e41f3580887d886b9aee9449a")
     version("1.0.11", sha256="a005f72b87e67ed30cdbf405a9ffd4e723360c780a43b1cefe266af8ecc9d151")
     version("0.9.7", sha256="2bfb1029e90b72e65eb9c75556169815f2e82257eaa1f6ebd623a4b4a52867a2")
     version("0.9.5", sha256="669835f0030cfb2412c464b7b563bb240d4d41a141226afbbf1b457e4f18cff1")
@@ -33,15 +36,15 @@ class PyTimm(PythonPackage):
     with default_args(type=("build", "run")):
         # https://github.com/huggingface/pytorch-image-models/issues/1530
         # https://github.com/huggingface/pytorch-image-models/pull/1649
-        depends_on("python@:3.10", when="@:0.6.12", type=("build", "run"))
+        depends_on("python@:3.10", when="@:0.6.12")
 
-        depends_on("py-torch@1.7:", when="@0.6:", type=("build", "run"))
-        depends_on("py-torch@1.4:", type=("build", "run"))
-        depends_on("py-torchvision", type=("build", "run"))
-        depends_on("py-pyyaml", when="@0.6:", type=("build", "run"))
-        depends_on("py-huggingface-hub", when="@0.6:", type=("build", "run"))
-        depends_on("py-safetensors", when="@0.9:", type=("build", "run"))
+        depends_on("py-torch@1.7:", when="@0.6.11:")
+        depends_on("py-torch@1.4:")
+        depends_on("py-torchvision")
+        depends_on("py-pyyaml", when="@0.6:")
+        depends_on("py-huggingface-hub", when="@0.6:")
+        depends_on("py-safetensors@0.2:", when="@0.9:")
 
         # https://github.com/rwightman/pytorch-image-models/pull/1256
-        depends_on("pil@:9", when="@:0.5", type=("build", "run"))
-        depends_on("py-numpy", when="@:0.5", type=("build", "run"))
+        depends_on("pil@:9", when="@:0.5")
+        depends_on("py-numpy", when="@:0.5")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -21,6 +20,8 @@ class KokkosNvccWrapper(Package):
 
     license("BSD-3-Clause")
 
+    version("4.5.01", sha256="e0008c89d7f03ebbe31eb3c89d40fe529b4e4072b40331ae6b9d6599f02dff44")
+    version("4.5.00", sha256="7f7d8db54e5d2b0d4109ac6aa05732abd25b17d004cce5e21f56005952954e68")
     version("4.4.01", sha256="3f7096d17eaaa4004c7497ac082bf1ae3ff47b5104149e54af021a89414c3682")
     version("4.4.00", sha256="c638980cb62c34969b8c85b73e68327a2cb64f763dd33e5241f5fd437170205a")
     version("4.3.01", sha256="5998b7c732664d6b5e219ccc445cd3077f0e3968b4be480c29cd194b4f45ec70")
@@ -68,6 +69,6 @@ class KokkosNvccWrapper(Package):
         env.set("OMPI_CXX", wrapper)
         env.set("MPICXX_CXX", wrapper)  # HPE MPT
 
-    def setup_dependent_package(self, module, dependent_spec):
-        wrapper = join_path(self.prefix.bin, "nvcc_wrapper")
-        self.spec.kokkos_cxx = wrapper
+    @property
+    def kokkos_cxx(self) -> str:
+        return join_path(self.prefix.bin, "nvcc_wrapper")

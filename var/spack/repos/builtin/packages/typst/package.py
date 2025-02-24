@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,19 +18,17 @@ class Typst(CargoPackage):
 
     license("Apache-2.0", checked_by="upsj")
 
+    version("0.13.0", commit="8dce676dcd691f75696719e0480cd619829846a9", tag="v0.13.0")
     version("0.12.0", commit="737895d769188f6fc154523e67a9102bc24c872e", tag="v0.12.0")
 
-    depends_on("rust@1.81.0:")
+    depends_on("rust@1.80:", type="build")
     depends_on("openssl")
-    depends_on("pkgconf", type="build")
+    depends_on("pkgconfig", type="build")
+
+    build_directory = "crates/typst-cli"
 
     @classmethod
     def determine_version(cls, exe):
         output = Executable(exe)("--version", output=str, error=str)
         match = re.search(r"typst ([0-9.]+)", output)
         return match.group(1) if match else None
-
-    def build(self, spec, prefix):
-        # The cargopackage installer doesn't allow for an option to install from a subdir
-        # see: https://github.com/rust-lang/cargo/issues/7599
-        cargo("install", "--root", "out", "--path", "crates/typst-cli")

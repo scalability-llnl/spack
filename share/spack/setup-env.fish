@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -789,8 +788,7 @@ end
 #
 set -l fish_version (string split '.' $FISH_VERSION)
 if test $fish_version[1] -gt 3
-    or test $fish_version[1] -eq 3
-    and test $fish_version[2] -ge 2
+    or begin ; test $fish_version[1] -eq 3 and test $fish_version[2] -ge 2 ; end
 
     source $sp_share_dir/spack-completion.fish
 end

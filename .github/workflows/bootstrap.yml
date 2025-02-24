@@ -161,11 +161,7 @@ jobs:
           source share/spack/setup-env.sh
           spack -d gpg list
           tree $HOME/.spack/bootstrap/store/
-      - name: Bootstrap File
-        run: |
-          source share/spack/setup-env.sh
-          spack -d python share/spack/qa/bootstrap-file.py
-          tree $HOME/.spack/bootstrap/store/
+
 
   windows:
     runs-on: "windows-latest"
@@ -194,11 +190,5 @@ jobs:
         run: |
           ./share/spack/setup-env.ps1
           spack -d gpg list
-          ./share/spack/qa/validate_last_exit.ps1
-          tree $env:userprofile/.spack/bootstrap/store/
-      - name: Bootstrap File
-        run: |
-          ./share/spack/setup-env.ps1
-          spack -d python share/spack/qa/bootstrap-file.py
           ./share/spack/qa/validate_last_exit.ps1
           tree $env:userprofile/.spack/bootstrap/store/

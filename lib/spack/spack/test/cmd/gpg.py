@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -38,7 +37,7 @@ def test_find_gpg(cmd_name, version, tmpdir, mock_gnupghome, monkeypatch):
 
     with tmpdir.as_cwd():
         for fname in (cmd_name, "gpgconf"):
-            with open(fname, "w") as f:
+            with open(fname, "w", encoding="utf-8") as f:
                 f.write(TEMPLATE.format(version=version))
             fs.set_executable(fname)
 
@@ -85,7 +84,7 @@ def test_gpg(tmpdir, mutable_config, mock_gnupghome):
 
     # Create a file to test signing.
     test_path = tmpdir.join("to-sign.txt")
-    with open(str(test_path), "w+") as fout:
+    with open(str(test_path), "w+", encoding="utf-8") as fout:
         fout.write("Test content for signing.\n")
 
     # Signing without a private key should fail.
@@ -127,12 +126,12 @@ def test_gpg(tmpdir, mutable_config, mock_gnupghome):
     gpg("export", "--secret", str(private_export_path))
 
     # Ensure we exported the right content!
-    with open(str(private_export_path), "r") as fd:
+    with open(str(private_export_path), "r", encoding="utf-8") as fd:
         content = fd.read()
     assert "BEGIN PGP PRIVATE KEY BLOCK" in content
 
     # and for the public key
-    with open(str(export_path), "r") as fd:
+    with open(str(export_path), "r", encoding="utf-8") as fd:
         content = fd.read()
     assert "BEGIN PGP PUBLIC KEY BLOCK" in content
 
@@ -145,7 +144,7 @@ def test_gpg(tmpdir, mutable_config, mock_gnupghome):
     gpg("list", "--signing")
 
     test_path = tmpdir.join("to-sign-2.txt")
-    with open(str(test_path), "w+") as fout:
+    with open(str(test_path), "w+", encoding="utf-8") as fout:
         fout.write("Test content for signing.\n")
 
     # Signing with multiple signing keys is ambiguous.

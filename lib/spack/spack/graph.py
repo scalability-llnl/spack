@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 r"""Functions for graphing DAGs of dependencies.
@@ -43,10 +42,10 @@ from typing import List, Optional, Set, TextIO, Tuple
 import llnl.util.tty.color
 
 import spack.deptypes as dt
-import spack.repo
 import spack.spec
 import spack.tengine
 import spack.traverse
+from spack.solver.input_analysis import create_graph_analyzer
 
 
 def find(seq, predicate):
@@ -538,10 +537,11 @@ class DAGWithDependencyTypes(DotGraphBuilder):
 
 def _static_edges(specs, depflag):
     for spec in specs:
-        pkg_cls = spack.repo.PATH.get_pkg_class(spec.name)
-        possible = pkg_cls.possible_dependencies(expand_virtuals=True, depflag=depflag)
+        *_, edges = create_graph_analyzer().possible_dependencies(
+            spec.name, expand_virtuals=True, allowed_deps=depflag
+        )
 
-        for parent_name, dependencies in possible.items():
+        for parent_name, dependencies in edges.items():
             for dependency_name in dependencies:
                 yield spack.spec.DependencySpec(
                     spack.spec.Spec(parent_name),

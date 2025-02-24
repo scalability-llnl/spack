@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -45,6 +44,7 @@ class Kaldi(Package):  # Does not use Autotools
     depends_on("openfst@1.6.0:", when="@2019-07-29")
     depends_on("openfst@1.6.7:1.7.3", when="@2019-09-29:")
     depends_on("cub", when="@2019-07-29:^cuda@:10")
+    depends_on("gmake", type="build")
 
     patch("openfst-1.4.1.patch", when="@2015-10-07")
     patch("0001_CMakeLists_txt.patch", when="+cuda@11:")

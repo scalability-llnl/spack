@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -36,11 +35,6 @@ class Stat(AutotoolsPackage):
         sha256="9ece10dde8e1579c9db469ac8d2391b26e59498c0947dbb271c2d01d7ef0a65d",
         url="https://github.com/LLNL/STAT/releases/download/v4.0.2/stat-4.0.2.tar.gz",
     )
-    version(
-        "4.0.1",
-        sha256="ae3fbd6946003fb16233d82d40285780a9a802da5fe30d09adb8a8b2a2cc4ad6",
-        url="https://github.com/LLNL/STAT/files/2489327/stat-4.0.1.tar.gz",
-    )
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
@@ -57,8 +51,7 @@ class Stat(AutotoolsPackage):
     depends_on("libtool", type="build")
     depends_on("dyninst", when="@4.2.1:")
     depends_on("dyninst@:11.9", when="~dysect @:4.2.0")
-    depends_on("dyninst@:9", when="@:4.0.1")
-    depends_on("dyninst@8.2.1+stat_dysect", when="+dysect")
+    depends_on("dyninst +stat_dysect", when="+dysect")
     # we depend on fgfs@master to avoid seg faults with fgfs 1.1
     depends_on("fast-global-file-status@1.1.1:", when="+fgfs")
     depends_on("graphlib@3.0.0")

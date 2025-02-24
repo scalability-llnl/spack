@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -49,6 +48,9 @@ class MesonPackage(spack.package_base.PackageBase):
         variant("strip", default=False, description="Strip targets on install")
         depends_on("meson", type="build")
         depends_on("ninja", type="build")
+        # Meson uses pkg-config for dependency detection, and this dependency is
+        # often overlooked by packages that use meson as a build system.
+        depends_on("pkgconfig", type="build")
         # Python detection in meson requires distutils to be importable, but distutils no longer
         # exists in Python 3.12. In Spack, we can't use setuptools as distutils replacement,
         # because the distutils-precedence.pth startup file that setuptools ships with is not run
@@ -189,10 +191,7 @@ class MesonBuilder(BuilderWithDefaults):
         return []
 
     def meson(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: MesonPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Run ``meson`` in the build directory"""
         options = []
@@ -205,10 +204,7 @@ class MesonBuilder(BuilderWithDefaults):
             pkg.module.meson(*options)
 
     def build(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: MesonPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Make the build targets"""
         options = ["-v"]
@@ -217,10 +213,7 @@ class MesonBuilder(BuilderWithDefaults):
             pkg.module.ninja(*options)
 
     def install(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: MesonPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Make the install targets"""
         with fs.working_dir(self.build_directory):

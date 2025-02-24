@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,7 @@ class Minced(Package):
     version("0.1.6", sha256="035e343591b4595c571e17b0b3f526a01a23c3a47ebafb66f20ba667b29b3ed7")
 
     depends_on("java", type=("build", "run"))
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         make()

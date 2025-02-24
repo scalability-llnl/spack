@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,6 +25,11 @@ class Reframe(Package):
     license("BSD-3-Clause")
 
     version("develop", branch="develop")
+    version("4.7.3", sha256="74b8f56dc622d1c75fc1152d15d45e00edab9d2db1f6bc8fd7290125d69c74dd")
+    version("4.7.2", sha256="90e04eaaa21afd5c29a9c6218204c3df4503f624f21f2fe773f90e148d30c152")
+    version("4.7.1", sha256="ed693368d8b47327981a0db2b984c88d7dd703add1ffe736c95f9193ef727baf")
+    version("4.7.0", sha256="4a2604616cd492ab21b09f8234482239eff1a07e1ee61f4e4493fd973e7d5dc2")
+    version("4.6.4", sha256="6167ecfe6711fb9c412c0198cab549f4826eae502c9b592f18eb0192390e740e")
     version("4.6.3", sha256="0f335e588d21a26d76beb011bc86baf80ba633d875512ecd564d0aeb320fcf2c")
     version("4.6.2", sha256="d3343815ee3d2c330b91a1cdb924ba184119ed7d9fc88a4a754b939a4259df82")
     version("4.6.1", sha256="058b05c430af26d2958851af0da32bac0f4bff1af7d78ce6a132c32bbe40ec5c")
@@ -134,6 +138,8 @@ class Reframe(Package):
     depends_on("py-pyyaml", when="@3.4.1:", type="run")
     depends_on("py-requests", when="@3.4.1:", type="run")
     depends_on("py-semver", when="@3.4.2:", type="run")
+    depends_on("py-filelock", when="@4.7:", type="run")
+    depends_on("py-tabulate", when="@4.7:", type="run")
 
     # extension dependencies
     depends_on("py-pygelf", when="+gelf", type="run")
@@ -141,10 +147,11 @@ class Reframe(Package):
     # documentation dependencies
     depends_on("py-sphinx", when="+docs", type="build")
     depends_on("py-sphinx-rtd-theme", when="+docs", type="build")
+    depends_on("gmake", type="build")
 
     # sanity check
     sanity_check_is_file = ["bin/reframe"]
-    sanity_check_is_dir = ["bin", "config", "docs", "reframe", "tutorials", "unittests"]
+    sanity_check_is_dir = ["bin", "docs", "reframe"]
 
     # check if we can run reframe
     @run_after("install")

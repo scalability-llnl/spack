@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -69,7 +68,9 @@ def project_env_mods(
     *specs: spack.spec.Spec, view, env: environment.EnvironmentModifications
 ) -> None:
     """Given a list of environment modifications, project paths changes to the view."""
-    prefix_to_prefix = {s.prefix: view.get_projection_for_spec(s) for s in specs if not s.external}
+    prefix_to_prefix = {
+        str(s.prefix): view.get_projection_for_spec(s) for s in specs if not s.external
+    }
     # Avoid empty regex if all external
     if not prefix_to_prefix:
         return

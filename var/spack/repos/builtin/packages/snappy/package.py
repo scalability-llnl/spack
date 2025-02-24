@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,7 +19,8 @@ class Snappy(CMakePackage):
     version("1.1.8", sha256="16b677f07832a612b0836178db7f374e414f94657c138e6993cbfc5dcc58651f")
     version("1.1.7", sha256="3dfa02e873ff51a11ee02b9ca391807f0c8ea0529a4924afa645fbf97163f9d4")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("shared", default=True, description="Build shared libraries")
     variant("pic", default=True, description="Build position independent code")
