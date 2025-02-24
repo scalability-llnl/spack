@@ -6,11 +6,10 @@ import os
 import pytest
 
 import llnl.util.tty as tty
-from llnl.util.filesystem import copy, join_path, mkdirp
+from llnl.util.filesystem import join_path
 
 import spack.config
 import spack.util.remote_file_cache as rfc_util
-import spack.util.web
 
 github_url = "https://github.com/fake/fake/{0}/develop"
 gitlab_url = "https://gitlab.fake.io/user/repo/-/blob/config/defaults"
