@@ -1028,6 +1028,9 @@ def replace_directory_transaction(directory_name):
     Returns:
         temporary directory where ``directory_name`` has been moved
     """
+    for a, b, c in os.walk(directory_name):
+        print("PRE", a, b, c)
+
     # Check the input is indeed a directory with absolute path.
     # Raise before anything is done to avoid moving the wrong directory
     directory_name = os.path.abspath(directory_name)
@@ -1046,6 +1049,7 @@ def replace_directory_transaction(directory_name):
     try:
         yield backup_dir
     except (Exception, KeyboardInterrupt, SystemExit) as inner_exception:
+        print("hitting the proper exception block")
         # Try to recover the original directory, if this fails, raise a
         # composite exception.
         try:
@@ -1054,11 +1058,15 @@ def replace_directory_transaction(directory_name):
                 shutil.rmtree(directory_name)
             os.rename(backup_dir, directory_name)
         except Exception as outer_exception:
+            print("CouldNOtRestoreDirectBackup")
             raise CouldNotRestoreDirectoryBackup(inner_exception, outer_exception)
 
+        for a, b, c in os.walk(directory_name):
+            print("RESTORED", a, b, c)
         tty.debug("Directory recovered [{0}]".format(directory_name))
         raise
     else:
+        print("NO FAILURE")
         # Otherwise delete the temporary directory
         shutil.rmtree(tmpdir, ignore_errors=True)
         tty.debug("Temporary directory deleted [{0}]".format(tmpdir))

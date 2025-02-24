@@ -983,7 +983,6 @@ def test_install_empty_env(
 def test_installation_fail_tests(install_mockery, mock_fetch, name, method):
     """Confirm build-time tests with unknown methods fail."""
     output = install("--test=root", "--no-cache", name, fail_on_error=False)
-
     # Check that there is a single test failure reported
     assert output.count("TestFailure: 1 test failed") == 1
 
