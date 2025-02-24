@@ -2199,7 +2199,7 @@ class TestConcretize:
             # A package does not exist
             ("pkg-a ^foo", "since 'foo' does not exist"),
             # Request a compiler for a package that doesn't need it
-            ("pkg-c %gcc", "according to its recipe"),
+            ("pkg-c %gcc", "cannot depend on gcc"),
         ],
     )
     def test_errors_on_statically_checked_preconditions(self, spec_str, expected_match):
