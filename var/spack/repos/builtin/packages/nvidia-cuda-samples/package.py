@@ -3,9 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import shutil
-
 from spack.package import *
-
 
 class NvidiaCudaSamples(CMakePackage, MakefilePackage, CudaPackage):
     """A collection of NVIDIA curated sample applications showcasing features of CUDA"""
@@ -32,7 +30,8 @@ class NvidiaCudaSamples(CMakePackage, MakefilePackage, CudaPackage):
         default="cmake",
     )
 
-    # after the change to CMake, the build defaults to all GPU arches supported by the NVCC it depends on
+    # after the change to CMake, the build defaults to all GPU arches
+    # supported by the NVCC it depends on
     conflicts("cuda_arch=none", when="@:12.5+cuda", msg="CUDA architecture is required")
 
     @when("@:12.5")
@@ -42,17 +41,18 @@ class NvidiaCudaSamples(CMakePackage, MakefilePackage, CudaPackage):
 
     @when("@12.8:")
     def cmake_args(self):
-        spec = self.spec
         args = ["-DCUDAToolkit_ROOT=" + self.spec["cuda"].prefix]
         return args
 
-    # cuda-samples doesn't actually install the samples in the CMAKE_INSTALL_PREFIX dir, so this copies them
+    # cuda-samples doesn't actually install the samples in the
+    # CMAKE_INSTALL_PREFIX dir, so this copies them
     @when("@12.8:")
     def install(self, spec, prefix):
         short_hash = spec.prefix.split("-")[-1][0:7]
         shutil.copytree("../spack-build-" + short_hash + "/Samples", prefix + "/bin/")
 
-    # similar to the CMake version, the Make version doesn't have an install phase but instead just creates binaries in a `bin` folder under the build directory
+    # similar to the CMake version, the Make version doesn't have an install phase
+    # but instead just creates binaries in a `bin` folder under the build directory
     @when("@:12.5")
     def install(self, spec, prefix):
         shutil.copytree("./bin/", prefix + "/bin/")
