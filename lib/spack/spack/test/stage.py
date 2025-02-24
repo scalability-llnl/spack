@@ -7,6 +7,7 @@ import collections
 import errno
 import getpass
 import os
+import pathlib
 import shutil
 import stat
 import sys
@@ -16,10 +17,16 @@ import pytest
 from llnl.util.filesystem import getuid, mkdirp, partition_path, touch, working_dir
 from llnl.util.symlink import readlink
 
+import spack.caches
+import spack.cmd.develop
 import spack.config
+import spack.environment
 import spack.error
 import spack.fetch_strategy
+import spack.main
+import spack.mirrors.utils
 import spack.stage
+import spack.util.compression
 import spack.util.executable
 import spack.util.url as url_util
 from spack.resource import Resource
@@ -818,8 +825,11 @@ def _create_tree_from_dir_recursive(path):
             tree[name] = _create_tree_from_dir_recursive(sub_path)
         return tree
     else:
-        with open(path, "r", encoding="utf-8") as f:
-            content = f.read() or None
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                content = f.read() or None
+        except UnicodeDecodeError:
+            raise ValueError(f"Test error: {path} is not utf-8")
         return content
 
 
@@ -862,6 +872,81 @@ class TestDevelopStage:
         assert not os.path.exists(stage.path)
         srctree2 = _create_tree_from_dir_recursive(srcdir)
         assert srctree2 == devtree
+
+    def test_mirror_develop_stage(self, develop_path, tmp_build_stage_dir, tmpdir):
+        name_of_archive = "dev-src-content"
+
+        dst_cache = tmpdir.join("mirror")
+        dst_cache.ensure(dir=True)
+
+        devtree, srcdir = develop_path
+        stage = DevelopStage(
+            "test-stage", srcdir, reference_link="link-to-stage", mirror_id=name_of_archive
+        )
+        cache = spack.caches.MirrorCache(root=dst_cache, skip_unstable_versions=False)
+        stats = spack.mirrors.utils.MirrorStats()
+        stage.cache_mirror(cache, stats)
+
+        the_resulting_archive = os.path.join(dst_cache, "develop", name_of_archive + ".tar.gz")
+
+        decomp_sandbox = tmpdir.join("decompressed")
+        decomp_sandbox.ensure(dir=True)
+        with working_dir(decomp_sandbox):
+            decompressor = spack.util.compression.decompressor_for(the_resulting_archive)
+            decompressor(the_resulting_archive)
+
+        the_resulting_expanded = os.path.join(decomp_sandbox, name_of_archive)
+        assert devtree == _create_tree_from_dir_recursive(the_resulting_expanded)
+
+    def test_develop_from_mirror_cache(
+        self,
+        develop_path,
+        tmp_build_stage_dir,
+        tmpdir,
+        mutable_config,
+        mock_packages,
+        mutable_mock_env_path,
+        mock_fetch,
+        monkeypatch,
+    ):
+        def fail(*args):
+            raise ValueError("This function should not be called")
+
+        monkeypatch.setattr(spack.cmd.develop, "_retrieve_develop_source", fail)
+
+        develop = spack.main.SpackCommand("develop")
+        env = spack.main.SpackCommand("env")
+        add = spack.main.SpackCommand("add")
+        mirror = spack.main.SpackCommand("mirror")
+
+        the_mirror = tmpdir.join("test-mirror")
+        the_mirror.ensure(dir=True)
+        mirror_path = pathlib.Path(the_mirror).as_posix()
+
+        # Note the third '/': that is important for Windows paths with a drive.
+        # For such paths, a URL needs the preceding '/' to indicate that for
+        # "C:/path/to/something", "C:" is not a netloc
+        mirror("add", "test", f"file:///{mirror_path}")
+
+        devtree, srcdir = develop_path
+
+        dev_id = "mpich2-1.5"
+
+        stage = DevelopStage(
+            "test-stage", srcdir, reference_link="link-to-stage", mirror_id=dev_id
+        )
+        cache = spack.caches.MirrorCache(root=the_mirror, skip_unstable_versions=False)
+        stats = spack.mirrors.utils.MirrorStats()
+        stage.cache_mirror(cache, stats)
+
+        env("create", "test")
+        with spack.environment.read("test") as e:
+            add("mpich2")
+            develop("mpich2@1.5")
+            e.concretize()
+            mpich_spec = list(e.concretized_specs())[0][1]
+            mpich_dev_path = mpich_spec.variants["dev_path"].value
+            assert devtree == _create_tree_from_dir_recursive(mpich_dev_path)
 
 
 def test_stage_create_replace_path(tmp_build_stage_dir):
