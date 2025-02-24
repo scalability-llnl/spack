@@ -287,6 +287,9 @@ class NameValueModifier:
             and self.separator == other.separator
         )
 
+    def __hash__(self):
+        return hash((self.name, self.value, self.separator))
+
     def execute(self, env: MutableMapping[str, str]):
         """Apply the modification to the mapping passed as input"""
         raise NotImplementedError("must be implemented by derived classes")
