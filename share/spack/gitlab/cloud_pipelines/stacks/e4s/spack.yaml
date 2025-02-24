@@ -168,6 +168,7 @@ spack:
   - scr
   - slate ~cuda
   - slepc
+  - spack +development_tools fetchers=curl,git,mercurial,subversion,s3 modules=environment-modules,lmod
   - stc
   - strumpack ~slate
   - sundials
