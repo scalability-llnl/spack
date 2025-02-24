@@ -119,11 +119,6 @@ def _conditional_cmake_defaults(pkg: spack.package_base.PackageBase, args: List[
     if pkg.spec.satisfies("platform=darwin") and cmake.satisfies("@3:"):
         args.append(define("CMAKE_POLICY_DEFAULT_CMP0042", "NEW"))
 
-    # CMake 4.0.0 pedantically errors when projects define cmake_minimum_required < 3.5. We
-    # override the project's minimum policy version to 3.5 to avoid this error.
-    if cmake.satisfies("@4.0.0-rc1:"):
-        args.append(define("CMAKE_POLICY_VERSION_MINIMUM", "3.5"))
-
     # Disable find package's config mode for versions of Boost that
     # didn't provide it. See https://github.com/spack/spack/issues/20169
     # and https://cmake.org/cmake/help/latest/module/FindBoost.html

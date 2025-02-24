@@ -129,6 +129,8 @@ class Cmake(Package):
     # https://gitlab.kitware.com/cmake/cmake/-/merge_requests/9623
     patch("mr-9623.patch", when="@3.22.0:3.30")
 
+    patch("CMAKE_POLICY_VERSION_MINIMUM.patch", when="@4.0.0-rc1")
+
     depends_on("ninja", when="platform=windows")
     depends_on("gmake", type=("build", "run"), when="platform=linux")
     depends_on("gmake", type=("build", "run"), when="platform=darwin")
@@ -373,6 +375,12 @@ class Cmake(Package):
 
         module.cmake = Executable(self.spec.prefix.bin.cmake)
         module.ctest = Executable(self.spec.prefix.bin.ctest)
+
+    def setup_dependent_build_environment(self, env, dependent_spec):
+        # CMake 4.0.0 pedantically errors when projects define cmake_minimum_required < 3.5. We
+        # override the project's minimum policy version to 3.5 to avoid this error.
+        if self.spec.satisfies("@4.0.0-rc1:"):
+            env.set("CMAKE_POLICY_VERSION_MINIMUM", "3.5")
 
     @property
     def libs(self):
