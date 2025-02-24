@@ -44,6 +44,13 @@ class Msvc(Package, CompilerPackage):
         extras["compilers"]["c"] = extras["compilers"]["cxx"]
         return spec, extras
 
+    def setup_dependent_package(self, module, dependent_spec):
+        """Populates dependent module with tooling available from VS"""
+        # We want these to resolve to the paths set by MSVC's VCVARs
+        # so no paths
+        module.nmake = MakeExecutable("nmake", jobs=1)
+        module.msbuild = MakeExecutable("msbuild", jobs=1)
+
     @property
     def cc(self):
         if self.spec.external:
