@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import os
 import sys
 
 import pytest
@@ -78,7 +77,7 @@ def test_spack_entry_point_config(tmp_path, mock_get_entry_points):
     if config_path is None:
         raise ValueError("Did not find entry point config in %s" % str(config_paths))
     else:
-        assert os.path.samefile(config_path, my_config_path)
+        assert my_config_path.samefile(config_path)
     config = spack.config.create()
     assert config.get("config:install_tree:root", scope="plugin-mypackage_config") == "/spam/opt"
 
@@ -87,15 +86,15 @@ def test_spack_entry_point_extension(tmp_path, mock_get_entry_points):
     """Test config scope entry point"""
     my_ext = tmp_path / "spack/spack-myext"
     extensions = spack.extensions.get_extension_paths()
-    found = bool([ext for ext in extensions if os.path.samefile(ext, my_ext)])
+    found = bool([ext for ext in extensions if my_ext.samefile(ext)])
     if not found:
         raise ValueError("Did not find extension in %s" % ", ".join(extensions))
     extensions = spack.extensions.extension_paths_from_entry_points()
-    found = bool([ext for ext in extensions if os.path.samefile(ext, my_ext)])
+    found = bool([ext for ext in extensions if my_ext.samefile(ext)])
     if not found:
         raise ValueError("Did not find extension in %s" % ", ".join(extensions))
     root = spack.extensions.load_extension("myext")
-    assert os.path.samefile(root, my_ext)
+    assert my_ext.samefile(root)
     module = spack.extensions.get_module("spam")
     assert module is not None
 

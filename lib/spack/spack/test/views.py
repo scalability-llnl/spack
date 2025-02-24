@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
+from pathlib import Path
 
 import pytest
 
@@ -13,8 +14,8 @@ from spack.installer import PackageInstaller
 from spack.spec import Spec
 
 
-def test_remove_extensions_ordered(install_mockery, mock_fetch, tmpdir):
-    view_dir = str(tmpdir.join("view"))
+def test_remove_extensions_ordered(install_mockery, mock_fetch, tmp_path):
+    view_dir = str(tmp_path / "view")
     layout = DirectoryLayout(view_dir)
     view = YamlFilesystemView(view_dir, layout)
     e2 = spack.concretize.concretize_one("extension2")
@@ -26,25 +27,25 @@ def test_remove_extensions_ordered(install_mockery, mock_fetch, tmpdir):
 
 
 @pytest.mark.regression("32456")
-def test_view_with_spec_not_contributing_files(mock_packages, tmpdir):
-    view_dir = os.path.join(str(tmpdir), "view")
-    os.mkdir(view_dir)
+def test_view_with_spec_not_contributing_files(mock_packages, tmp_path):
+    view_dir = tmp_path / "view"
+    view_dir.mkdir()
 
     layout = DirectoryLayout(view_dir)
     view = SimpleFilesystemView(view_dir, layout)
 
     a = Spec("pkg-a")
     b = Spec("pkg-b")
-    a.prefix = os.path.join(tmpdir, "a")
-    b.prefix = os.path.join(tmpdir, "b")
+    a.prefix = tmp_path / "a"
+    b.prefix = tmp_path / "b"
     a._mark_concrete()
     b._mark_concrete()
 
     # Create directory structure for a and b, and view
     os.makedirs(a.prefix.subdir)
     os.makedirs(b.prefix.subdir)
-    os.makedirs(os.path.join(a.prefix, ".spack"))
-    os.makedirs(os.path.join(b.prefix, ".spack"))
+    os.makedirs(Path(a.prefix, ".spack"))
+    os.makedirs(Path(b.prefix, ".spack"))
 
     # Add files to b's prefix, but not to a's
     with open(b.prefix.file, "w", encoding="utf-8") as f:
@@ -63,5 +64,5 @@ def test_view_with_spec_not_contributing_files(mock_packages, tmpdir):
 
     # Create view and see if files are linked.
     view.add_specs(a, b)
-    assert os.path.lexists(os.path.join(view_dir, "file"))
-    assert os.path.lexists(os.path.join(view_dir, "subdir", "file"))
+    assert os.path.lexists(view_dir / "file")
+    assert os.path.lexists(view_dir / "subdir" / "file")
