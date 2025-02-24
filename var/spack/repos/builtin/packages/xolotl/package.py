@@ -57,7 +57,7 @@ class Xolotl(CMakePackage):
 
         spec = self.spec
         if "+vtk-m" in spec:
-            args.append("-DVTKm_DIR=" + spec["vtk-m"].prefix)
+            args.append(self.define("VTKm_DIR", spec["vtk-m"].prefix))
 
         return args
 
