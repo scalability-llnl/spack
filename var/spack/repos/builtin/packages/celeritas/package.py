@@ -13,11 +13,14 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
     """
 
     homepage = "https://github.com/celeritas-project/celeritas"
+    git = "https://github.com/celeritas-project/celeritas.git"
     url = "https://github.com/celeritas-project/celeritas/releases/download/v0.1.0/celeritas-0.1.0.tar.gz"
 
     maintainers("sethrj")
 
     license("Apache-2.0")
+
+    version("develop", branch="develop", get_full_repo=True)
 
     version("0.5.1", sha256="182d5466fbd98ba9400b343b55f6a06e03b77daed4de1dd16f632ac0a3620249")
     version("0.5.0", sha256="4a8834224d96fd01897e5872ac109f60d91ef0bd7b63fac05a73dcdb61a5530e")
@@ -70,12 +73,16 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("cmake@3.22:", type="build", when="+rocm")
 
     depends_on("nlohmann-json")
-    depends_on("geant4@10.5:", when="@0.4.2: +geant4")
     depends_on("geant4@10.5:11.1", when="@0.3.1:0.4.1 +geant4")
+    depends_on("geant4@10.5:11.2", when="@0.4.2:0.4 +geant4")
+    depends_on("geant4@10.5:", when="@0.5: +geant4")
+    depends_on("g4vg@1.0.2:", when="@0.6: +geant4 +vecgeom")
     depends_on("hepmc3", when="+hepmc3")
     depends_on("root", when="+root")
     depends_on("swig@4.1:", when="+swig")
     depends_on("vecgeom@1.2.5:", when="+vecgeom")
+    depends_on("vecgeom@1.2.8:", when="@0.6: +vecgeom")
+    depends_on("vecgeom@1.2.10:", when="@0.6: +vecgeom +cuda")
 
     depends_on("python", type="build")
     depends_on("doxygen", type="build", when="+doc")
@@ -90,11 +97,12 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
         depends_on("rocrand")
         depends_on("rocthrust")
 
+    # Ensure consistent C++ standards
     for _std in _cxxstd_values:
-        depends_on("geant4 cxxstd=" + _std, when="+geant4 cxxstd=" + _std)
-        depends_on("root cxxstd=" + _std, when="+root cxxstd=" + _std)
-        depends_on("vecgeom cxxstd=" + _std, when="+vecgeom cxxstd=" + _std)
+        for _pkg in ["geant4", "root", "vecgeom"]:
+            depends_on(f"{_pkg} cxxstd={_std}", when=f"+{_pkg} cxxstd={_std}")
 
+    # Ensure consistent CUDA architectures
     depends_on("vecgeom +cuda cuda_arch=none", when="+vecgeom +cuda cuda_arch=none")
     for _arch in CudaPackage.cuda_arch_values:
         depends_on(f"vecgeom +cuda cuda_arch={_arch}", when=f"+vecgeom +cuda cuda_arch={_arch}")
@@ -107,9 +115,6 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
         "https://github.com/celeritas-project/celeritas/commit/3c8ed9614fc695fba35e8a058bedb7bc1556f71c.patch?full_index=1",
         sha256="1161c4f1166860d35d2a3f103236a63acd6a35aee2d2c27561cb929941d1c170",
         when="@0.5.0 +geant4 ^geant4@11.3.0:",
-    )
-    conflicts(
-        "^geant4@11.3.0:", when="@:0.4 +geant4", msg="geant4@11.3.0: requires at least 0.5.0"
     )
 
     def cmake_args(self):
@@ -145,8 +150,17 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
                 )
             )
 
-        if self.version < Version("0.5"):
-            # JSON is required for 0.5 and later
+        if self.spec.satisfies("@:0.4"):
+            # Explicitly activate JSON for older versions
             args.append(define("CELERITAS_USE_JSON", True))
+
+        if self.spec.satisfies("@0.6:"):
+            # Protect against accidentally using vendored instead of spack
+            args.extend(
+                (
+                    define(f"CELERITAS_BUILTIN_{pkg}", False)
+                    for pkg in ["GTest", "nlohmann_json", "G4VG"]
+                )
+            )
 
         return args

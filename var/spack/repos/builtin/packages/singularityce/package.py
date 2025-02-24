@@ -10,7 +10,7 @@ from spack.package import *
 
 
 class SingularityBase(MakefilePackage):
-    variant("suid", default=True, description="install SUID binary")
+    variant("suid", default=False, description="install SUID binary")
     variant("network", default=True, description="install network plugins")
 
     depends_on("pkgconfig", type="build")

@@ -16,6 +16,7 @@ class Rocprim(CMakePackage):
     license("MIT")
 
     maintainers("cgmb", "srekolam", "renjithravindrankannath", "afzpatel")
+    version("6.3.2", sha256="fbb4839992eaba838f798408636da30f0d61b669513dae185ab790c5fa5595c4")
     version("6.3.1", sha256="37690d9f326d68379d52a21fe9184061d38b15263a566f1f182d539e4b3277d5")
     version("6.3.0", sha256="d97c6edcf1f636721f8c023b54f3fad968b48b0709a95ecd640ec0ab1057069e")
     version("6.2.4", sha256="c567aa5e3209dd00aefe5052dde8ceb5bcc3a4aeeeb3ad8dc322f8d0791fc07f")
@@ -79,6 +80,7 @@ class Rocprim(CMakePackage):
         "6.2.4",
         "6.3.0",
         "6.3.1",
+        "6.3.2",
     ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"comgr@{ver}", when=f"@{ver}")
@@ -114,7 +116,7 @@ class Rocprim(CMakePackage):
             args.append(self.define("__skip_rocmclang", "ON"))
         if self.spec.satisfies("@5.2:"):
             args.append(self.define("CMAKE_MODULE_PATH", self.spec["hip"].prefix.lib.cmake.hip))
-        if self.spec.satisfies("@5.2:"):
+        if self.spec.satisfies("@5.2:6.3.1"):
             args.append(self.define("BUILD_FILE_REORG_BACKWARD_COMPATIBILITY", True))
 
         return args

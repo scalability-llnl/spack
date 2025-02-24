@@ -13,9 +13,9 @@ class Libxsmm(MakefilePackage):
     and sparse matrix operations,
     and deep learning primitives."""
 
-    homepage = "https://github.com/hfp/libxsmm"
-    url = "https://github.com/hfp/libxsmm/archive/1.17.tar.gz"
-    git = "https://github.com/hfp/libxsmm.git"
+    homepage = "https://github.com/libxsmm/libxsmm"
+    url = "https://github.com/libxsmm/libxsmm/archive/1.17.tar.gz"
+    git = "https://github.com/libxsmm/libxsmm.git"
 
     maintainers("hfp")
 

@@ -6,7 +6,7 @@ from spack.package import *
 
 
 class PyTimm(PythonPackage):
-    """(Unofficial) PyTorch Image Models."""
+    """PyTorch Image Models."""
 
     homepage = "https://github.com/rwightman/pytorch-image-models"
     pypi = "timm/timm-0.4.12.tar.gz"
@@ -14,6 +14,7 @@ class PyTimm(PythonPackage):
     license("Apache-2.0")
     maintainers("adamjstewart")
 
+    version("1.0.15", sha256="756a3bc30c96565f056e608a9b559daed904617eaadb6be536f96874879b1055")
     version("1.0.14", sha256="00a7f2cc04ce3ed8f80476bbb7eea27eac8cf6f2d59b5e9aa9cdd375dd6550db")
     version("1.0.13", sha256="39190337cff26a15d180b660374c901ac472b69d91d8cfc5a5bb47c600fb3716")
     version("1.0.12", sha256="9da490683bd06302ec40e1892f1ccf87985f033e41f3580887d886b9aee9449a")
@@ -37,12 +38,12 @@ class PyTimm(PythonPackage):
         # https://github.com/huggingface/pytorch-image-models/pull/1649
         depends_on("python@:3.10", when="@:0.6.12")
 
-        depends_on("py-torch@1.7:", when="@0.6:")
+        depends_on("py-torch@1.7:", when="@0.6.11:")
         depends_on("py-torch@1.4:")
         depends_on("py-torchvision")
         depends_on("py-pyyaml", when="@0.6:")
         depends_on("py-huggingface-hub", when="@0.6:")
-        depends_on("py-safetensors", when="@0.9:")
+        depends_on("py-safetensors@0.2:", when="@0.9:")
 
         # https://github.com/rwightman/pytorch-image-models/pull/1256
         depends_on("pil@:9", when="@:0.5")

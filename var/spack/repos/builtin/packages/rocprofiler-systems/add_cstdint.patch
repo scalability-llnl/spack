@@ -1,0 +1,12 @@
+diff --git a/external/timemory/source/timemory/backends/gperftools.hpp b/external/timemory/source/timemory/backends/gperftools.hpp
+index 9177da5..d4c6d74 100644
+--- a/external/timemory/source/timemory/backends/gperftools.hpp
++++ b/external/timemory/source/timemory/backends/gperftools.hpp
+@@ -26,6 +26,7 @@
+
+#include <iostream>
+#include <sstream>
++#include <cstdint>
+#include <string>
+
+#if defined(TIMEMORY_USE_GPERFTOOLS) || defined(TIMEMORY_USE_GPERFTOOLS_TCMALLOC)

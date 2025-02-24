@@ -147,7 +147,7 @@ class Flecsi(CMakePackage, CudaPackage, ROCmPackage):
                     # CMake pulled in via find_package(Legion) won't work without this
                     options.append(self.define("HIP_PATH", "{0}/hip".format(spec["hip"].prefix)))
             elif self.spec.satisfies("^kokkos"):
-                options.append(self.define("CMAKE_CXX_COMPILER", self.spec["kokkos"].kokkos_cxx))
+                options.append(self.define("CMAKE_CXX_COMPILER", self["kokkos"].kokkos_cxx))
         else:
             # kept for supporing version prior to 2.2
             options = [

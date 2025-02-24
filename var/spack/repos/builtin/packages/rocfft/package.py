@@ -20,6 +20,7 @@ class Rocfft(CMakePackage):
 
     license("MIT")
     version("master", branch="master")
+    version("6.3.2", sha256="0511d04d2367dcac6b35bc6b449337ba37bb623b8382fb11178fc608b5435437")
     version("6.3.1", sha256="f8aa0e68d8e303725d0be8ae1d7c0113b6ca019a3b9f08572abf8a02db690662")
     version("6.3.0", sha256="afc716c95d1c80097f7a965e0c3cf1fe246c9fdf10a8fd9a303202156bd3811d")
     version("6.2.4", sha256="8ddc4e779a84b73c21b054ae37fec69e5c2f248589c7fb1b84a2197baf6ce995")
@@ -97,6 +98,7 @@ class Rocfft(CMakePackage):
         "6.2.4",
         "6.3.0",
         "6.3.1",
+        "6.3.2",
         "master",
     ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
@@ -163,7 +165,7 @@ class Rocfft(CMakePackage):
         if self.spec.satisfies("^cmake@3.21.0:3.21.2"):
             args.append(self.define("__skip_rocmclang", "ON"))
 
-        if self.spec.satisfies("@5.2.0:"):
+        if self.spec.satisfies("@5.2.0:6.3.1"):
             args.append(self.define("BUILD_FILE_REORG_BACKWARD_COMPATIBILITY", True))
 
         if self.spec.satisfies("@5.3.0:"):

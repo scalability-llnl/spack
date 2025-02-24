@@ -23,6 +23,7 @@ class PyScikitImage(PythonPackage):
         "skimage.future.graph",
     ]
 
+    version("0.25.2", sha256="e5a37e6cd4d0c018a7a55b9d601357e3382826d3888c10d0213fc63bff977dde")
     version("0.25.1", sha256="d4ab30540d114d37c35fe5c837f89b94aaba2a7643afae8354aa353319e9bbbb")
     version("0.25.0", sha256="58d94fea11b6b3306b3770417dc1cbca7fa9bcbd6a13945d7910399c88c2018c")
     version("0.24.0", sha256="5d16efe95da8edbeb363e0c4157b99becbd650a60b77f6e3af5768b66cf007ab")
