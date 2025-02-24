@@ -996,45 +996,22 @@ def remove_conflict(conflict_spec: SpecType, when: WhenType = None):
 
     def _remove_conflict(pkg):
         modified_conflicts = {}
-        print(f"{pkg.conflicts=}")
-        print(f"{conflict_spec=}")
-        when_keys = []
         for when_spec, conflicts in pkg.conflicts.items():
             for conflict, msg in conflicts:
-                print(f"{conflict=}")
                 if conflict == conflict_spec:
-                    if when_spec.versions.intersects(conflict_when_spec.versions):
-                        new_when_spec = when_spec.versions.intersection(
+                    if when_spec == conflict_when_spec:
+                        conflicts.remove((conflict, msg))
+                    elif when_spec.versions.intersects(conflict_when_spec.versions):
+                        new_when_spec_versions = when_spec.versions.intersection(
                             conflict_complement_versions
                         )
+                        new_when_spec = when_spec.copy()
+                        new_when_spec.versions = new_when_spec_versions
                         new_conflicts = modified_conflicts.setdefault(new_when_spec, [])
-                        print(f"{conflict_spec=}")
                         new_conflicts.append((conflict_spec, msg))
-                    print(f"{when_spec.versions=}")
-                    print(type(when_spec.versions))
-                    # when_spec.constrain(when_spec)
-                    print(f"{when_spec.intersects(conflict_when_spec)=}")
-                    print(f"{when_spec.versions=}")
-                    print(f"{conflict_when_spec.versions=}")
-                    print(f"{when_spec.versions < conflict_when_spec.versions=}")
-                    print(f"{when_spec.versions[0].complement()=}")
-                    foo = when_spec.versions[0].intersection(
-                        conflict_when_spec.versions[0].complement()
-                    )
-                    print(f"{foo=}")
-                    print(f"{when_spec.versions[0].lo=} {when_spec.versions[0].hi=}")
-        print(f"{modified_conflicts=}")
-        print(f"{when_keys=}")
-        try:
-            pkg.conflicts[conflict_when_spec] = [
-                (spec, msg)
-                for spec, msg in pkg.conflicts[conflict_when_spec]
-                if spec != conflict_spec
-            ]
-            if len(pkg.conflicts[conflict_when_spec]) == 0:
-                del pkg.conflicts[conflict_when_spec]
-        except KeyError:
-            pass
+                        conflicts.remove((conflict, msg))
+        pkg.conflicts = {key: value for key, value in pkg.conflicts.items() if value}
+        pkg.conflicts.update(modified_conflicts)
 
     return _remove_conflict
 

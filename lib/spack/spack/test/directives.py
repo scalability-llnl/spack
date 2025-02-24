@@ -322,7 +322,7 @@ from spack.package import *
 
 class X(Package):
     version("1.0")
-    conflicts("mpi", when="@3.0:")
+    conflicts("mpi", when="@3:")
     remove_conflict("mpi", when="@5:")
 """,
 )
@@ -331,7 +331,7 @@ class X(Package):
 @pytest.mark.parametrize("_create_test_repo", [(_pkgx,)], indirect=True)
 def test_remove_conflict_range(test_repo):
     cls = spack.repo.PATH.get_pkg_class(_pkgx[0])
-    assert cls.conflicts == {spack.spec.Spec("@3.0:4"): [(spack.spec.Spec("^gcc"), None)]}
+    assert cls.conflicts == {spack.spec.Spec("@3:4"): [(spack.spec.Spec("mpi"), None)]}
 
 
 _pkgx = (
