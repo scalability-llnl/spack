@@ -38,9 +38,12 @@ spack:
     xz:
       variants: +pic
     mpi:
-      require: 'mpich@4: target=x86_64_v3'
-    mpich:
-      require: '~wrapperrpath ~hwloc target=x86_64_v3'
+      require: intel-oneapi-mpi
+    intel-oneapi-mpi:
+      buildable: false
+      externals:
+      - spec: intel-oneapi-mpi@2021.13.1
+        prefix: /opt/intel/oneapi
     unzip:
       require: '%gcc target=x86_64_v3'
     binutils:
