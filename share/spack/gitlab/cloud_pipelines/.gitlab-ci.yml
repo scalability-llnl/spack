@@ -9,6 +9,9 @@ variables:
   # PROTECTED_MIRROR_FETCH_DOMAIN: "https://binaries.spack.io"
   PROTECTED_MIRROR_FETCH_DOMAIN: "s3://spack-binaries"
   PROTECTED_MIRROR_PUSH_DOMAIN: "s3://spack-binaries"
+  SPACK_CI_ENABLE_STACKS:
+    value: /^build_systems$/
+    expand: false
 
 default:
   image: { "name": "ghcr.io/spack/e4s-ubuntu-18.04:v2021-10-18", "entrypoint": [""] }
