@@ -48,6 +48,7 @@ class Xolotl(CMakePackage):
     depends_on("papi", when="+papi")
 
     variant("vtkm", default=False, description="Activates VTK-m vizHandler")
+    depends_on("vtk-m", when="+vtkm")
 
     depends_on("boost +test", type="test")
 
