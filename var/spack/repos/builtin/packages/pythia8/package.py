@@ -21,6 +21,7 @@ class Pythia8(AutotoolsPackage):
 
     license("GPL-2.0-only")
 
+    version("8.313", sha256="d07e801501c4dcb76d948dc63285375f597453c1d6ec65e71287603dc776718c")
     version("8.312", sha256="bad98e2967b687046c4568c9091d630a0c31b628745c021a994aba4d1d50f8ea")
     version("8.311", sha256="2782d5e429c1543c67375afe547fd4c4ca0720309deb008f7db78626dc7d1464")
     version("8.310", sha256="90c811abe7a3d2ffdbf9b4aeab51cf6e0a5a8befb4e3efa806f3d5b9c311e227")
@@ -85,6 +86,12 @@ class Pythia8(AutotoolsPackage):
     )
     variant("lhapdf", default=False, description="Support the use of external PDF sets via LHAPDF")
     variant("rivet", default=False, description="Support use of RIVET through direct interface")
+    variant(
+        "yoda",
+        default=False,
+        description="Support linking direct booking of YODA2 histograms",
+        when="@8.313:",
+    )
     variant("python", default=False, description="Interface to use PYTHIA in Python")
     variant(
         "madgraph5amc",
@@ -105,6 +112,8 @@ class Pythia8(AutotoolsPackage):
     depends_on("lhapdf@6.2:", when="+lhapdf")
     depends_on("boost", when="+lhapdf @:8.213")
     depends_on("rivet", when="+rivet")
+    depends_on("yoda", when="@:8.312 +rivet")
+    depends_on("yoda@2:", when="+yoda")
     depends_on("python", when="+python")
     depends_on("madgraph5amc", when="+madgraph5amc")
     depends_on("openmpi", when="+openmpi")
@@ -127,6 +136,8 @@ class Pythia8(AutotoolsPackage):
     conflicts("+mpich", when="@:8.304", msg="MPICH support was added in 8.304")
     conflicts("+hdf5", when="@:8.304", msg="HDF5 support was added in 8.304")
     conflicts("+hdf5", when="~mpich", msg="MPICH is required for reading HDF5 files")
+
+    conflicts("~yoda", when="@8.313: +rivet", msg="+rivet requires +yoda")
 
     filter_compiler_wrappers("Makefile.inc", relative_root="share/Pythia8/examples")
 
@@ -175,8 +186,9 @@ class Pythia8(AutotoolsPackage):
         args += self.with_or_without("evtgen", activation_value="prefix")
         args += self.with_or_without("root", activation_value="prefix")
         args += self.with_or_without("rivet", activation_value="prefix")
-        if self.spec.satisfies("+rivet"):
+        if self.spec.satisfies("@:8.312 +rivet"):
             args.append("--with-yoda=" + self.spec["yoda"].prefix)
+        args += self.with_or_without("yoda", activation_value="prefix")
 
         args += self.with_or_without("python", activation_value="prefix")
         args += self.with_or_without(
