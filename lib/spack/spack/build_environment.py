@@ -724,10 +724,10 @@ def set_package_py_globals(pkg, context: Context = Context.BUILD):
     # TODO: johnwparent: Once compilers as nodes lands, make the three
     # tools below DeprecatedExecutable
     if sys.platform == "win32":
-        module.nmake = Executable("nmake", jobs=1)
-        module.msbuild = Executable("msbuild", jobs=1)
+        module.nmake = Executable("nmake")
+        module.msbuild = Executable("msbuild")
         # analog to configure for win32
-        module.cscript = MakeExecutable("cscript", jobs=1)
+        module.cscript = Executable("cscript")
 
     # Find the configure script in the archive path
     # Don't use which for this; we want to find it in the current dir.
