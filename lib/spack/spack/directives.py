@@ -580,7 +580,7 @@ def patch(
     """
 
     def _execute_patch(
-        pkg_or_dep: Union[Type[spack.package_base.PackageBase], Dependency],
+        pkg_or_dep: Union[Type[spack.package_base.PackageBase], Dependency]
     ) -> None:
         pkg = pkg_or_dep.pkg if isinstance(pkg_or_dep, Dependency) else pkg_or_dep
 
@@ -991,6 +991,8 @@ def remove_conflict(conflict_spec: SpecType, when: WhenType = None):
     that does not exist.
     """
     conflict_when_spec = _make_when_spec(when)
+    if not conflict_when_spec:
+        return
     conflict_complement_versions = conflict_when_spec.versions.complement()
     conflict_spec = spack.spec.Spec(conflict_spec)
 
