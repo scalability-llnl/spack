@@ -3,7 +3,9 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import shutil
+
 from spack.package import *
+
 
 class NvidiaCudaSamples(CMakePackage, MakefilePackage, CudaPackage):
     """A collection of NVIDIA curated sample applications showcasing features of CUDA"""
