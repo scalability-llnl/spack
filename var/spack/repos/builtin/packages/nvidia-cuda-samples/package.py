@@ -5,7 +5,7 @@
 from spack.package import *
 import shutil
 
-class CudaSamples(CMakePackage, MakefilePackage, CudaPackage):
+class NvidiaCudaSamples(CMakePackage, MakefilePackage, CudaPackage):
     """A collection of NVIDIA curated sample applications showcasing features of CUDA"""
 
     homepage = "https://github.com/NVIDIA/cuda-samples"
