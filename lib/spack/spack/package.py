@@ -162,7 +162,7 @@ pwd = getcwd
 configure: Executable
 make_jobs: int
 make: MakeExecutable
-nmake: MakeExecutable
+nmake: Executable
 ninja: MakeExecutable
 python_include: str
 python_platlib: str

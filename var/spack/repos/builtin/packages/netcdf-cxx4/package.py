@@ -95,4 +95,4 @@ class NetcdfCxx4(CMakePackage):
 
     def check(self):
         with working_dir(self.build_directory):
-            make("test", parallel=False)
+            ctest()
