@@ -30,6 +30,7 @@ class Jemalloc(AutotoolsPackage):
 
     variant("stats", default=False, description="Enable heap statistics")
     variant("prof", default=False, description="Enable heap profiling")
+    variant("initial-exec-tls", default=True, description="Use the initial-exec tls model")
     variant(
         "jemalloc_prefix",
         default="none",
@@ -56,6 +57,8 @@ class Jemalloc(AutotoolsPackage):
             args.append("--enable-stats")
         if "+prof" in spec:
             args.append("--enable-prof")
+        if "~initial-exec-tls" in spec:
+            args.append("--disable-initial-exec-tls")
 
         je_prefix = spec.variants["jemalloc_prefix"].value
         if je_prefix != "none":
