@@ -21,14 +21,14 @@ class PyFparser(PythonPackage):
     git = "https://github.com/stfc/fparser.git"
     pypi = "fparser/fparser-0.2.0.tar.gz"
 
-    maintainers = ["arporter"]
+    maintainers("arporter")
 
     # License
     license("BSD-3-Clause")
 
     # Releases
     version("develop", branch="master")
-    version("0.2.0", tag="v0.2.0")
+    version("0.2.0", sha256="3901d31c104062c4e532248286929e7405e43b79a6a85815146a176673e69c82")
     version("0.1.4", sha256="00d4f7e9bbd8a9024c3c2f308dd3be9b0eeff3cb852772c9f3cf0c4909dbafd4")
     version("0.1.3", sha256="10ba8b2803632846f6f011278e3810188a078d89afcb4a38bed0cbf10f775736")
     version("0.0.16", sha256="a06389b95a1b9ed12f8141b69c67343da5ba0a29277b2997b02573a93af14e13")
