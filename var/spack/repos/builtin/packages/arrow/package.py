@@ -96,6 +96,7 @@ class Arrow(CMakePackage, CudaPackage):
     variant(
         "compute", default=False, description="Computational kernel functions and other support"
     )
+    variant("dataset", default=False, description="Build the Arrow Dataset integration")
     variant("gandiva", default=False, description="Build Gandiva support")
     variant(
         "glog",
@@ -157,6 +158,7 @@ class Arrow(CMakePackage, CudaPackage):
 
         args.append(self.define_from_variant("ARROW_COMPUTE", "compute"))
         args.append(self.define_from_variant("ARROW_CUDA", "cuda"))
+        args.append(self.define_from_variant("ARROW_DATASET", "dataset"))
         args.append(self.define_from_variant("ARROW_GANDIVA", "gandiva"))
         args.append(self.define_from_variant("ARROW_GLOG", "glog"))
         args.append(self.define_from_variant("ARROW_HDFS", "hdfs"))

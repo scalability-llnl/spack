@@ -21,5 +21,6 @@ class PyDaskExpr(PythonPackage):
 
     # Can't do circular run-time dependencies yet?
     # depends_on("py-dask@2024.7.1", type="run")
-    depends_on("py-pyarrow@7: +dataset", type="run")
+    depends_on("py-pyarrow@7:", type="run")
+    depends_on("arrow+dataset")
     depends_on("py-pandas@2:", type="run")

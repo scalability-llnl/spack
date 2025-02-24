@@ -5,7 +5,7 @@
 from spack.package import *
 
 
-class PyPyarrow(PythonPackage, CudaPackage):
+class PyPyarrow(PythonPackage):
     """A cross-language development platform for in-memory data.
 
     This package contains the Python bindings.
@@ -37,14 +37,6 @@ class PyPyarrow(PythonPackage, CudaPackage):
     version("0.11.0", sha256="07a6fd71c5d7440f2c42383dd2c5daa12d7f0a012f1e88288ed08a247032aead")
     version("0.9.0", sha256="7db8ce2f0eff5a00d6da918ce9f9cfec265e13f8a119b4adb1595e5b19fd6242")
 
-    # Starting with pyarrow 17+, backend support is built if arrow was built with it
-    with when("@:16"):
-        variant("parquet", default=False, description="Build with Parquet support")
-        variant("orc", default=False, description="Build with orc support")
-        variant("dataset", default=False, description="Build with Dataset support")
-
-        conflicts("~parquet", when="+dataset")
-
     depends_on("cxx", type="build")
 
     with default_args(type="build"):
@@ -71,21 +63,6 @@ class PyPyarrow(PythonPackage, CudaPackage):
         depends_on("py-setuptools@38.6:", when="@7:")
         depends_on("py-setuptools")
 
-    arrow_versions = ("@19.0.1",)
-    for v in arrow_versions:
-        depends_on("arrow+python" + v, when=v)
-
-    # Historical dependencies
-    # In newer pip versions --install-option does not exist
-    depends_on("py-pip@:23.0", when="@:16", type="build")
-
-    with default_args(type=("build", "run")):
-        # pyproject.toml, setup.py
-        depends_on("py-numpy@1.16.6:", when="@3:17")
-        depends_on("py-numpy@1.14:", when="@0.11:")
-        depends_on("py-numpy@1.10:")
-        depends_on("py-numpy@:1", when="@:15")
-
     arrow_versions = (
         "@0.9.0",
         "@0.11.0",
@@ -103,31 +80,41 @@ class PyPyarrow(PythonPackage, CudaPackage):
         "@14.0.2",
         "@15.0.2",
         "@16.1.0",
+        "@19.0.1",
     )
     for v in arrow_versions:
         depends_on("arrow+python" + v, when=v)
-        depends_on("arrow+parquet+python" + v, when="+parquet" + v)
-        depends_on("arrow+cuda" + v, when="+cuda" + v)
-        depends_on("arrow+orc" + v, when="+orc" + v)
+
+    # Historical dependencies
+    # In newer pip versions --install-option does not exist
+    depends_on("py-pip@:23.0", when="@:16", type="build")
+
+    with default_args(type=("build", "run")):
+        # pyproject.toml, setup.py
+        depends_on("py-numpy@1.16.6:", when="@3:17")
+        depends_on("py-numpy@1.14:", when="@0.11:")
+        depends_on("py-numpy@1.10:")
+        depends_on("py-numpy@:1", when="@:15")
 
     patch("for_aarch64.patch", when="@0 target=aarch64:")
 
+    # Starting with pyarrow 17+, backend support is built if arrow was built with it
     @when("@:16")
     def setup_build_environment(self, env):
-        env.set("PYARROW_WITH_PARQUET", self.spec.satisfies("+parquet"))
-        env.set("PYARROW_WITH_CUDA", self.spec.satisfies("+cuda"))
-        env.set("PYARROW_WITH_ORC", self.spec.satisfies("+orc"))
-        env.set("PYARROW_WITH_DATASET", self.spec.satisfies("+dataset"))
+        env.set("PYARROW_WITH_PARQUET", self.spec.satisfies("^arrow+parquet"))
+        env.set("PYARROW_WITH_CUDA", self.spec.satisfies("^arrow+cuda"))
+        env.set("PYARROW_WITH_ORC", self.spec.satisfies("^arrow+orc"))
+        env.set("PYARROW_WITH_DATASET", self.spec.satisfies("^arrow+dataset"))
 
     @when("@:16")
     def install_options(self, spec, prefix):
         args = []
-        if spec.satisfies("+parquet"):
+        if spec.satisfies("^arrow+parquet"):
             args.append("--with-parquet")
-        if spec.satisfies("+cuda"):
+        if spec.satisfies("^arrow+cuda"):
             args.append("--with-cuda")
-        if spec.satisfies("+orc"):
+        if spec.satisfies("^arrow+orc"):
             args.append("--with-orc")
-        if spec.satisfies("+dataset"):
+        if spec.satisfies("^arrow+dataset"):
             args.append("--with-dataset")
         return args
