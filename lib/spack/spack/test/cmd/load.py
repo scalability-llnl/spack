@@ -28,12 +28,12 @@ def test_load_recursive(install_mockery, mock_fetch, mock_archive, mock_packages
         # Ensure our reference variable is clean.
         os.environ["CMAKE_PREFIX_PATH"] = "/hello" + os.pathsep + "/world"
 
-        shell_out = load(shell, "mpileaks")
+        load(shell, "mpileaks")
 
         load_script_file = shell_script.path_to_load_shell_script(mpileaks_spec, shell[2:])
 
         with open(load_script_file, "r") as f:
-            shell_out = f.read()
+            shell_cmds = f.read()
 
         def extract_value(output, variable):
             value = []
@@ -48,7 +48,7 @@ def test_load_recursive(install_mockery, mock_fetch, mock_archive, mock_packages
             s.name for s in mpileaks_spec.traverse() if s.prefix == prefix
         )
 
-        paths_shell = extract_value(shell_out, "CMAKE_PREFIX_PATH")
+        paths_shell = extract_value(shell_cmds, "CMAKE_PREFIX_PATH")
 
         # All but the last two paths are added by spack load; lookup what packages they're from.
         pkgs = [prefix_to_pkg(p) for p in paths_shell]
@@ -64,7 +64,7 @@ def test_load_recursive(install_mockery, mock_fetch, mock_archive, mock_packages
 
         # Lastly, do we keep track that mpileaks was loaded?
         assert (
-            extract_value(shell_out, uenv.spack_loaded_hashes_var)[0] == mpileaks_spec.dag_hash()
+            extract_value(shell_cmds, uenv.spack_loaded_hashes_var)[0] == mpileaks_spec.dag_hash()
         )
         return paths_shell
 
@@ -99,13 +99,13 @@ def test_load_includes_run_env(
     install("mpileaks")
     mpileaks_spec = spack.spec.Spec("mpileaks").concretized()
 
-    shell_out = load(shell, "mpileaks")
+    load(shell, "mpileaks")
     load_script_file = shell_script.path_to_load_shell_script(mpileaks_spec, shell[2:])
 
     with open(load_script_file, "r") as f:
-        shell_out = f.read()
+        shell_cmds = f.read()
 
-    assert set_command % ("FOOBAR", "mpileaks") in shell_out
+    assert set_command % ("FOOBAR", "mpileaks") in shell_cmds
 
 
 def test_load_first(install_mockery, mock_fetch, mock_archive, mock_packages):
@@ -130,6 +130,46 @@ def test_load_fails_no_shell(install_mockery, mock_fetch, mock_archive, mock_pac
     out = load("mpileaks", fail_on_error=False)
     assert "To set up shell support" in out
 
+
+# TODO: Reinstate --csh when it's shell script is written
+@pytest.mark.parametrize(
+    "shell,set_command,unset_command",
+    (
+        [("--bat", 'set "%s=%s"', 'set "%s="')]
+        if sys.platform == "win32"
+        else [("--sh", "export %s=%s", "unset %s")]  # ("--csh", "setenv %s %s", "unsetenv %s")]
+    ),
+)
+def test_unload(
+    shell,
+    set_command,
+    unset_command,
+    install_mockery,
+    mock_fetch,
+    mock_archive,
+    mock_packages,
+    working_env,
+):
+    """Tests that any variables set in the user environment are undone by the
+    unload command"""
+    install("mpileaks")
+    mpileaks_spec = spack.spec.Spec("mpileaks").concretized()
+
+    # Set so unload has something to do
+    os.environ["FOOBAR"] = "mpileaks"
+    os.environ[uenv.spack_loaded_hashes_var] = ("%s" + os.pathsep + "%s") % (
+        mpileaks_spec.dag_hash(),
+        "garbage",
+    )
+
+    unload(shell, "mpileaks")
+
+    unload_script_file = shell_script.path_to_unload_shell_script(mpileaks_spec, shell[2:])
+
+    with open(unload_script_file, "r") as f:
+        shell_cmds = f.read()
+
+    assert (unset_command % "FOOBAR") in shell_cmds
 
 def test_unload_fails_no_shell(
     install_mockery, mock_fetch, mock_archive, mock_packages, working_env
