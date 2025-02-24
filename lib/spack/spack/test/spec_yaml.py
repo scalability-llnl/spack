@@ -204,13 +204,6 @@ def test_ordered_read_not_required_for_consistent_dag_hash(
 
     # specs and their hashes are equal to the original
     assert (
-        spec.process_hash()
-        == from_yaml.process_hash()
-        == from_json.process_hash()
-        == from_yaml_rev.process_hash()
-        == from_json_rev.process_hash()
-    )
-    assert (
         spec.dag_hash()
         == from_yaml.dag_hash()
         == from_json.dag_hash()
