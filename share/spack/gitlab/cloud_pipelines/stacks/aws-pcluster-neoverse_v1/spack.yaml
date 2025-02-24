@@ -50,10 +50,13 @@ spack:
             fortran: /home/software/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeh/linux-amzn2-aarch64/gcc-7.3.1/gcc-12.4.0-v6wxye6ijzrxnzxftcwnpu3psohsjl2b/bin/gfortran
     acfl:
       require:
-      - '%gcc target=aarch64'
+      - "%gcc"
+      - "target=aarch64"
     gromacs:
       require:
-      - gromacs@2024.3 %gcc ^armpl-gcc ^openmpi
+      - gromacs@2024.3
+      - "%gcc"
+      - ^armpl-gcc ^openmpi
     libfabric:
       buildable: true
       externals:
@@ -65,13 +68,14 @@ spack:
       variants: ~lldb
     mpas-model:
       require:
-      - precision=single %gcc ^parallelio+pnetcdf
+      - precision=single ^parallelio+pnetcdf
+      - "%gcc"
     mpich:
       require:
       - mpich pmi=pmi2 device=ch4 netmod=ofi +slurm
     nvhpc:
       require:
-      - "nvhpc target=aarch64"
+      - "target=aarch64"
     openfoam:
       require:
       - openfoam ^scotch@6.0.9
@@ -93,6 +97,8 @@ spack:
       - prefix: /opt/slurm
         spec: slurm@22.05.8 +pmix
     all:
+      require:
+      - "%gcc"
       providers:
         blas: [armpl-gcc, openblas]
         fftw-api: [armpl-gcc, fftw]
