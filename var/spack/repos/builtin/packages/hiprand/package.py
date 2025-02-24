@@ -24,6 +24,7 @@ class Hiprand(CMakePackage, CudaPackage, ROCmPackage):
 
     version("develop", branch="develop")
     version("master", branch="master")
+    version("6.3.2", sha256="0a08ed7554c161b095c866cd5e6f0d63cdf063e5b3c1183afa6ac18bad94a575")
     version("6.3.1", sha256="ec43bf64eda348cf53c2767e553fd9561540dc50ae3ce95ca916404aa9a3eafb")
     version("6.3.0", sha256="7464c1e48f4e1a97a5e5978146641971d068886038810876b60acb5dfb6c4d39")
     version("6.2.4", sha256="b6010f5e0c63a139acd92197cc1c0d64a428f7a0ad661bce0cd1e553ad6fd6eb")
@@ -103,6 +104,7 @@ class Hiprand(CMakePackage, CudaPackage, ROCmPackage):
         "6.2.4",
         "6.3.0",
         "6.3.1",
+        "6.3.2",
         "master",
         "develop",
     ]:
@@ -140,7 +142,7 @@ class Hiprand(CMakePackage, CudaPackage, ROCmPackage):
         else:
             args.append(self.define("BUILD_WITH_LIB", "ROCM"))
 
-        if self.spec.satisfies("@5.2.0:"):
+        if self.spec.satisfies("@5.2.0:6.3.1"):
             args.append(self.define("BUILD_FILE_REORG_BACKWARD_COMPATIBILITY", True))
 
         if self.spec.satisfies("@5.3.0:"):

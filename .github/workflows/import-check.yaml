@@ -39,7 +39,7 @@ jobs:
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       with:
         repository: haampie/circular-import-fighter
-        ref: e38bcd0aa46368e30648b61b7f0d8c1ca68aadff
+        ref: 4cdb0bf15f04ab6b49041d5ef1bfd9644cce7f33
         path: circular-import-fighter
     - name: Install dependencies
       working-directory: circular-import-fighter

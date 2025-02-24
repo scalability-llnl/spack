@@ -198,7 +198,7 @@ class Qgis(CMakePackage):
     @run_before("cmake", when="^py-pyqt5")
     def fix_pyqt5_cmake(self):
         cmfile = FileFilter(join_path("cmake", "FindPyQt5.cmake"))
-        pyqtpath = join_path(self.spec["py-pyqt5"].package.module.python_platlib, "PyQt5")
+        pyqtpath = join_path(self["py-pyqt5"].module.python_platlib, "PyQt5")
         cmfile.filter(
             'SET(PYQT5_MOD_DIR "${Python_SITEARCH}/PyQt5")',
             'SET(PYQT5_MOD_DIR "' + pyqtpath + '")',

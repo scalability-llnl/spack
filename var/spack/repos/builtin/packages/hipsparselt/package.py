@@ -21,6 +21,7 @@ class Hipsparselt(CMakePackage, ROCmPackage):
     maintainers("srekolam", "afzpatel", "renjithravindrankannath")
 
     license("MIT")
+    version("6.3.2", sha256="a0b30b478eff822dd7fa1c116ad99dcdf14ece1c33aae04ac71b594efd4d9866")
     version("6.3.1", sha256="403d4c0ef47f89510452a20be6cce72962f21761081fc19a7e0e27e7f0c4ccfd")
     version("6.3.0", sha256="f67ed4900101686596add37824d0628f1e71cf6a30d827a0519b3c3657f63ac3")
     version("6.2.4", sha256="7b007b346f89fac9214ad8541b3276105ce1cac14d6f95a8a504b5a5381c8184")
@@ -58,13 +59,14 @@ class Hipsparselt(CMakePackage, ROCmPackage):
         "6.2.4",
         "6.3.0",
         "6.3.1",
+        "6.3.2",
     ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"hipsparse@{ver}", when=f"@{ver}")
         depends_on(f"rocm-openmp-extras@{ver}", when=f"@{ver}", type="test")
         depends_on(f"llvm-amdgpu@{ver}", when=f"@{ver}")
 
-    for ver in ["6.3.0", "6.3.1"]:
+    for ver in ["6.3.0", "6.3.1", "6.3.2"]:
         depends_on(f"rocm-smi-lib@{ver}", when=f"@{ver}")
 
     depends_on("cmake@3.5:", type="build")

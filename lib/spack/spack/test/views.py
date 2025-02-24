@@ -35,8 +35,8 @@ def test_view_with_spec_not_contributing_files(mock_packages, tmpdir):
 
     a = Spec("pkg-a")
     b = Spec("pkg-b")
-    a.prefix = os.path.join(tmpdir, "a")
-    b.prefix = os.path.join(tmpdir, "b")
+    a.set_prefix(os.path.join(tmpdir, "a"))
+    b.set_prefix(os.path.join(tmpdir, "b"))
     a._mark_concrete()
     b._mark_concrete()
 

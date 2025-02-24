@@ -190,8 +190,7 @@ def test_environment_cant_modify_environments_root(tmpdir):
 @pytest.mark.parametrize(
     "original_content",
     [
-        (
-            """\
+        """\
 spack:
   specs:
   - matrix:
@@ -199,7 +198,6 @@ spack:
     - - a
   concretizer:
     unify: false"""
-        )
     ],
 )
 def test_roundtrip_spack_yaml_with_comments(original_content, mock_packages, config, tmp_path):

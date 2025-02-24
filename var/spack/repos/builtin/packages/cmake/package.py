@@ -125,9 +125,9 @@ class Cmake(Package):
     patch("mr-9623.patch", when="@3.22.0:3.30")
 
     depends_on("ninja", when="platform=windows")
-    depends_on("gmake", when="platform=linux")
-    depends_on("gmake", when="platform=darwin")
-    depends_on("gmake", when="platform=freebsd")
+    depends_on("gmake", type=("build", "run"), when="platform=linux")
+    depends_on("gmake", type=("build", "run"), when="platform=darwin")
+    depends_on("gmake", type=("build", "run"), when="platform=freebsd")
 
     depends_on("qt", when="+qtgui")
     # Qt depends on libmng, which is a CMake package;

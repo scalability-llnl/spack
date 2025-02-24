@@ -22,16 +22,24 @@ class Pandorasdk(CMakePackage):
     version("3.4.1", sha256="9607bf52a9d79d88d28c45d4f3336e066338b36ab81b4d2d125226f4ad3a7aaf")
     version("3.4.0", sha256="1e30db056d4a43f8659fccdda00270af14593425d933f91e91d5c97f1e124c6b")
 
-    depends_on("cxx", type="build")  # generated
+    variant(
+        "cxxstd",
+        default="17",
+        values=("17", "20"),
+        multi=False,
+        description="Use the specified C++ standard when building.",
+    )
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     depends_on("pandorapfa")
 
     def cmake_args(self):
         args = [
-            self.define("LC_PANDORA_CONTENT", True),
-            self.define("LAR_PANDORA_CONTENT", True),
             self.define("CMAKE_MODULE_PATH", self.spec["pandorapfa"].prefix.cmakemodules),
-            self.define("CMAKE_CXX_FLAGS", "-std=c++17"),
+            self.define("CMAKE_CXX_FLAGS", "-Wno-error"),
+            self.define("CMAKE_CXX_STANDARD", self.spec.variants["cxxstd"].value),
         ]
         return args
 

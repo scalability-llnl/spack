@@ -15,7 +15,7 @@ class Nim(Package):
     """
 
     homepage = "https://nim-lang.org/"
-    url = "https://nim-lang.org/download/nim-2.2.0.tar.xz"
+    url = "https://nim-lang.org/download/nim-2.2.2.tar.xz"
     git = "https://github.com/nim-lang/Nim.git"
 
     license("MIT", checked_by="Buldram")
@@ -23,6 +23,7 @@ class Nim(Package):
     maintainers("Buldram")
 
     version("devel", branch="devel")
+    version("2.2.2", sha256="7fcc9b87ac9c0ba5a489fdc26e2d8480ce96a3ca622100d6267ef92135fd8a1f")
     version("2.2.0", sha256="ce9842849c9760e487ecdd1cdadf7c0f2844cafae605401c7c72ae257644893c")
     version("2.0.14", sha256="d420b955833294b7861e3fb65021dac26d1c19c528c4d6e139ccd379e2c15a43")
     version("2.0.12", sha256="c4887949c5eb8d7f9a9f56f0aeb2bf2140fabf0aee0f0580a319e2a09815733a")
@@ -104,9 +105,7 @@ class Nim(Package):
     phases = ["build", "install"]
 
     def patch(self):
-        """Hardcode dependency dynamic library paths into
-        wrapper modules using rpath."""
-
+        # Hardcode dependency dynamic library paths into wrapper modules using rpath
         def append_rpath(path, libdirs):
             """Add a pragma at the end of the file which passes
             rpath with libdirs to the linker when the module is used."""
@@ -131,6 +130,22 @@ class Nim(Package):
         append_rpath("lib/wrappers/openssl.nim", spec["openssl"].libs.directories)
         if spec.satisfies("+sqlite"):
             append_rpath("lib/wrappers/sqlite3.nim", spec["sqlite"].libs.directories)
+
+        # Musl defines SysThread as a struct *pthread_t rather than an unsigned long as glibc does.
+        if self.spec.satisfies("^[virtuals=libc] musl"):
+            if self.spec.satisfies("@devel,1.9.3:"):
+                pthreadModule = "lib/std/private/threadtypes.nim"
+            elif self.spec.satisfies("@:0.19.6"):
+                pthreadModule = "lib/system/threads.nim"
+            else:
+                pthreadModule = "lib/system/threadlocalstorage.nim"
+
+            filter_file(
+                'header: "<sys/types.h>" .} = distinct culong',
+                'header: "<sys/types.h>" .} = pointer',
+                pthreadModule,
+                string=True,
+            )
 
     def build(self, spec, prefix):
         if spec.satisfies("@devel"):

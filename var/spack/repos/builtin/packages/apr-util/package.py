@@ -36,6 +36,7 @@ class AprUtil(AutotoolsPackage):
     depends_on("sqlite", when="+sqlite")
     depends_on("unixodbc", when="+odbc")
     depends_on("pkgconfig", type="build", when="+crypto ^openssl~shared")
+    depends_on("libxcrypt", when="platform=linux")
 
     @property
     def libs(self):

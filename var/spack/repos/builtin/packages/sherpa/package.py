@@ -53,7 +53,12 @@ class Sherpa(CMakePackage, AutotoolsPackage):
     variant("python", default=False, description="Enable Python API")
     variant("hepmc2", default=True, when="@:2", description="Enable HepMC (version 2.x) support")
     variant("hepmc3", default=True, description="Enable HepMC (version 3.x) support")
-    variant("hepmc3root", default=False, description="Enable HepMC (version 3.1+) ROOT support")
+    variant(
+        "hepmc3root",
+        default=False,
+        description="Enable HepMC (version 3.1+) ROOT support",
+        when="+root",
+    )
     variant("rivet", default=False, description="Enable Rivet support")
     variant("fastjet", default=True, when="@:2", description="Enable FASTJET")
     variant("openloops", default=False, description="Enable OpenLoops")

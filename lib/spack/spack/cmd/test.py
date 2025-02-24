@@ -252,7 +252,9 @@ def test_list(args):
     hashes = env.all_hashes() if env else None
 
     specs = spack.store.STORE.db.query(hashes=hashes)
-    specs = list(filter(lambda s: has_test_and_tags(s.package_class), specs))
+    specs = list(
+        filter(lambda s: has_test_and_tags(spack.repo.PATH.get_pkg_class(s.fullname)), specs)
+    )
 
     spack.cmd.display_specs(specs, long=True)
 

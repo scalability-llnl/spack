@@ -1,0 +1,13 @@
+diff --git a/configure b/configure
+index 879d44f..b4bab5f 100755
+--- a/configure
++++ b/configure
+@@ -352,7 +352,7 @@ else
+     #dynlibopt="-shared"
+     # the following more elaborate set of options requested by Alexander Puck Neuwirth
+     # for compatibility with gentoo, cf. https://github.com/fjcontrib/fjcontrib/issues/4
+-    dynlibopt="-shared -Wl,--as-needed -Wl,-soname,fastjetcontribfragile.so.0"
++    dynlibopt="-shared -Wl,--as-needed -Wl,-soname,libfastjetcontribfragile.so"
+     dynlibext="so"
+     dynlibpostproc="" # some dummy command needed
+ fi
