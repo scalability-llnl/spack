@@ -7,6 +7,7 @@ and running executables.
 import collections
 import concurrent.futures
 import os
+import pathlib
 import re
 import sys
 import traceback
@@ -15,6 +16,7 @@ from typing import Dict, Iterable, List, Optional, Set, Tuple, Type
 
 import llnl.util.filesystem
 import llnl.util.lang
+import llnl.util.symlink
 import llnl.util.tty
 
 import spack.error
@@ -70,13 +72,23 @@ def dedupe_paths(paths: List[str]) -> List[str]:
     """Deduplicate paths based on inode and device number. In case the list contains first a
     symlink and then the directory it points to, the symlink is replaced with the directory path.
     This ensures that we pick for example ``/usr/bin`` over ``/bin`` if the latter is a symlink to
-    the former`."""
+    the former."""
     seen: Dict[Tuple[int, int], str] = {}
     for path in paths:
         identifier = file_identifier(path)
         if identifier not in seen:
             seen[identifier] = path
-        elif not os.path.islink(path):
+        # OneAPI symlinks a "latest" directory to a versioned directory
+        # where the layout is something like:
+        # latest -> 2025.0
+        # 2025.0  /
+        #         | - bin
+        #         | - lib
+        #         etc
+        # checking if latest/bin is a symlink will return false because the bin directory
+        # is not a symlink, and will cause the "latest/bin" dir to override the "2025.0/bin"
+        # checking for all parent paths of our detected binaries will prevent this case
+        elif not any([llnl.util.symlink.islink(str(x)) for x in pathlib.Path(path).parents]):
             seen[identifier] = path
     return list(seen.values())
 
@@ -262,6 +274,7 @@ class Finder:
         from spack.repo import PATH as repo_path
 
         result = []
+
         for candidate_path, items_in_prefix in _group_by_prefix(
             llnl.util.lang.dedupe(paths)
         ).items():
