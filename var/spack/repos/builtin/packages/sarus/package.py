@@ -42,7 +42,7 @@ class Sarus(CMakePackage):
 
     depends_on("expat", type="build")
     depends_on("squashfs", type=("build", "run"))
-    depends_on("boost@1.65.0: cxxstd=11 +program_options")
+    depends_on("boost@1.65.0: ~yap~hana cxxstd=11 +program_options")
     depends_on("cpprestsdk@2.10.0:")
     depends_on("libarchive@3.4.1:")
     depends_on("rapidjson@1.2.0-2021-08-13", type="build")

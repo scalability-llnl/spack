@@ -4,7 +4,6 @@
 
 
 from spack.package import *
-from spack.pkg.builtin.boost import Boost
 
 
 class RocmTensile(CMakePackage):
@@ -65,7 +64,6 @@ class RocmTensile(CMakePackage):
     depends_on("cmake@3:", type="build")
     depends_on("msgpack-c@3:")
     depends_on("boost", type=("build", "link"))
-    depends_on(Boost.with_default_variants)
 
     for ver in [
         "5.3.0",

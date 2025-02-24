@@ -1,0 +1,28 @@
+From 33ac06ca59a68266d3d26edf08205d31ddab4a6c Mon Sep 17 00:00:00 2001
+From: Alexis DUBURCQ <alexis.duburcq@gmail.com>
+Date: Fri, 15 Mar 2024 14:10:16 +0100
+Subject: [PATCH] Support numpy 2.0.0b1
+
+---
+ src/numpy/dtype.cpp | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git src/numpy/dtype.cpp src/numpy/dtype.cpp
+index 88a20a27b5..da30d1927b 100644
+--- src/numpy/dtype.cpp
++++ src/numpy/dtype.cpp
+@@ -98,7 +98,13 @@ python::detail::new_reference dtype::convert(object const & arg, bool align)
+   return python::detail::new_reference(reinterpret_cast<PyObject*>(obj));
+ }
+ 
+-int dtype::get_itemsize() const { return reinterpret_cast<PyArray_Descr*>(ptr())->elsize;}
++int dtype::get_itemsize() const {
++#if NPY_ABI_VERSION < 0x02000000
++  return reinterpret_cast<PyArray_Descr*>(ptr())->elsize;
++#else
++  return PyDataType_ELSIZE(reinterpret_cast<PyArray_Descr*>(ptr()));
++#endif
++}
+ 
+ bool equivalent(dtype const & a, dtype const & b) {
+     // On Windows x64, the behaviour described on 

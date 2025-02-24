@@ -1,0 +1,31 @@
+commit 176fce8e4d2016e864a0b9193cc4e9440354d2db
+Author: Andrey Semashev <andrey.semashev@gmail.com>
+Date:   Wed Apr 12 00:10:43 2023 +0300
+
+    Disable -Wl,--no-undefined on OpenBSD.
+    
+    This flag is broken for shared libraries on OpenBSD as it leaves all libc
+    symbols unresolved.
+    
+    Fixes https://github.com/boostorg/filesystem/issues/283.
+
+diff --git a/libs/filesystem/config/has_linkflag_no_undefined.cpp b/libs/filesystem/config/has_linkflag_no_undefined.cpp
+index 94960fc..ae8f940 100644
+--- a/libs/filesystem/config/has_linkflag_no_undefined.cpp
++++ b/libs/filesystem/config/has_linkflag_no_undefined.cpp
+@@ -12,6 +12,15 @@
+ #error "MSVC and compatible compilers don't support -Wl,... flags"
+ #endif
+ 
++#if defined(__OpenBSD__)
++// On OpenBSD, shared libraries are not linked to libc, as there are multiple
++// libc versions installed, and loading multiple different versions into the
++// process is considered dangerous. Only the main executable is linked against
++// one of them, which will be used by all shared libraries loaded into the
++// process. This renders -Wl,--no-undefined unusable for shared libraries.
++#error "-Wl,--no-undefined is broken for shared libraries on OpenBSD"
++#endif
++
+ int main()
+ {
+     return 0;

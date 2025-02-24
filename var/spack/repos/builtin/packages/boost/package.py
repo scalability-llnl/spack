@@ -6,7 +6,11 @@ import os
 import sys
 from pathlib import Path
 
-from spack.package import *
+from spack.package import *  # noqa: E402
+
+sys.path.append(os.path.dirname(__file__))
+import boostorg.patches as boostpatches  # noqa: E402
+import boostorg.variants as boostvariants  # noqa: E402
 
 
 class Boost(Package):
@@ -84,215 +88,63 @@ class Boost(Package):
     depends_on("c", type="build")
     depends_on("cxx", type="build")
 
-    with_default_variants = "boost" + "".join(
-        [
-            "+atomic",
-            "+chrono",
-            "+date_time",
-            "+exception",
-            "+filesystem",
-            "+graph",
-            "+iostreams",
-            "+locale",
-            "+log",
-            "+math",
-            "+program_options",
-            "+random",
-            "+regex",
-            "+serialization",
-            "+signals",
-            "+system",
-            "+test",
-            "+thread",
-            "+timer",
-            "+wave",
+    _buildable_libraries = boostvariants.load()
+    boostpatches.load()
+
+    def _libraries_to_build(self):
+        """
+        The set of libraries that need to be passed to b2 via --with-libraries to be compiled
+        """
+        return [
+            name
+            for name, version in Boost._buildable_libraries.items()
+            if self.spec.satisfies("+{0:s} {1:s}".format(name, version))
         ]
-    )
-
-    # mpi/python are not installed by default because they pull in many
-    # dependencies and/or because there is a great deal of customization
-    # possible (and it would be difficult to choose sensible defaults)
-    #
-    # Boost.Container can be both header-only and compiled. '+container'
-    # indicates the compiled version which requires Extended Allocator
-    # support. The header-only library is installed when no variant is given.
-    all_libs = [
-        "atomic",
-        "charconv",
-        "chrono",
-        "cobalt",
-        "container",
-        "context",
-        "contract",
-        "coroutine",
-        "date_time",
-        "exception",
-        "fiber",
-        "filesystem",
-        "graph",
-        "graph_parallel",
-        "iostreams",
-        "json",
-        "locale",
-        "log",
-        "math",
-        "mpi",
-        "nowide",
-        "program_options",
-        "python",
-        "random",
-        "regex",
-        "serialization",
-        "signals",
-        "stacktrace",
-        "system",
-        "test",
-        "thread",
-        "timer",
-        "type_erasure",
-        "url",
-        "wave",
-    ]
-
-    # Add any extra requirements for specific
-    all_libs_opts = {"charconv": {"when": "@1.85.0:"}, "cobalt": {"when": "@1.84.0:"}}
-
-    for lib in all_libs:
-        lib_opts = all_libs_opts.get(lib, {})
-        variant(lib, default=False, description="Compile with {0} library".format(lib), **lib_opts)
 
     @property
     def libs(self):
         query = self.spec.last_query.extra_parameters
         shared = "+shared" in self.spec
 
-        libnames = (
-            query if query else [lib for lib in self.all_libs if self.spec.satisfies("+%s" % lib)]
-        )
+        libnames = query if query else self._libraries_to_build()
         libnames += ["monitor"]
         libraries = ["libboost_*%s*" % lib for lib in libnames]
 
         return find_libraries(libraries, root=self.prefix, shared=shared, recursive=True)
 
-    variant(
-        "context-impl",
-        default="fcontext",
-        values=("fcontext", "ucontext", "winfib"),
-        multi=False,
-        description="Use the specified backend for boost-context",
-        when="@1.65.0: +context",
-    )
+    # C++98/03 support was removed in 1.84.0
+    conflicts("cxxstd=98", when="@1.84.0:", msg="This version of Boost requires C++11 or newer")
+    conflicts("cxxstd=03", when="@1.84.0:", msg="This version of Boost requires C++11 or newer")
 
-    variant(
-        "cxxstd",
-        default="11",
-        values=(
-            "98",
-            "11",
-            "14",
-            # C++17 is not supported by Boost < 1.63.0.
-            conditional("17", when="@1.63.0:"),
-            # C++20/2a is not supported by Boost < 1.73.0
-            conditional("2a", when="@1.73.0:"),
-            conditional("20", when="@1.77.0:"),
-            conditional("23", when="@1.79.0:"),
-            conditional("26", when="@1.79.0:"),
-        ),
-        multi=False,
-        description="Use the specified C++ standard when building.",
-    )
+    with when("+icu"):
+        depends_on("icu4c")
 
-    # 1.84.0 dropped support for 98/03
-    conflicts("cxxstd=98", when="@1.84.0:")
+        # icu4c currently only supports c++11,14,17
+        #   when cxxstd > 17, icu4c defaults to c++11.
+        #   This is not ideal, but nothing we can do about it here.
+        for std in ["11", "14", "17"]:
+            depends_on(f"icu4c cxxstd={std}", when=f"cxxstd={std}")
 
-    variant("debug", default=False, description="Switch to the debug version of Boost")
-    variant("shared", default=True, description="Additionally build shared libraries")
-    variant(
-        "multithreaded", default=True, description="Build multi-threaded versions of libraries"
-    )
-    variant(
-        "singlethreaded", default=False, description="Build single-threaded versions of libraries"
-    )
-    variant("icu", default=False, description="Build with Unicode and ICU suport")
-    variant("taggedlayout", default=False, description="Augment library names with build options")
-    variant(
-        "versionedlayout",
-        default=False,
-        description="Augment library layout with versioned subdirs",
-    )
-    variant(
-        "clanglibcpp", default=False, description="Compile with clang libc++ instead of libstdc++"
-    )
-    variant("numpy", default=False, description="Build the Boost NumPy library (requires +python)")
-    variant(
-        "pic",
-        default=False,
-        description="Generate position-independent code (PIC), useful "
-        "for building static libraries",
-    )
+    with when("+python"):
+        depends_on("python")
 
-    # https://boostorg.github.io/build/manual/develop/index.html#bbv2.builtin.features.visibility
-    variant(
-        "visibility",
-        values=("global", "protected", "hidden"),
-        default="hidden",
-        multi=False,
-        description="Default symbol visibility in compiled libraries " "(1.69.0 or later)",
-    )
+        # https://github.com/boostorg/python/commit/cbd2d9f033c61d29d0a1df14951f4ec91e7d05cd
+        depends_on("python@:3.9", when="@:1.75")
 
-    # Unicode support
-    depends_on("icu4c", when="+icu")
-    depends_on("icu4c cxxstd=11", when="+icu cxxstd=11")
-    depends_on("icu4c cxxstd=14", when="+icu cxxstd=14")
-    depends_on("icu4c cxxstd=17", when="+icu cxxstd=17")
-    conflicts("cxxstd=98", when="+icu")  # Requires c++11 at least
-    conflicts("+locale ~icu")  # Boost.Locale "strongly recommends" icu, so enforce it
+    with when("+iostreams"):
+        depends_on("bzip2")
+        depends_on("zlib-api")
+        depends_on("zstd")
+        depends_on("xz")
 
-    depends_on("python", when="+python")
-    # https://github.com/boostorg/python/commit/cbd2d9f033c61d29d0a1df14951f4ec91e7d05cd
-    depends_on("python@:3.9", when="@:1.75 +python")
+    with when("+numpy"):
+        depends_on("py-numpy", type=("build", "run"))
 
-    depends_on("mpi", when="+mpi")
-    depends_on("bzip2", when="+iostreams")
-    depends_on("zlib-api", when="+iostreams")
-    depends_on("zstd", when="+iostreams")
-    depends_on("xz", when="+iostreams")
-    depends_on("py-numpy", when="+numpy", type=("build", "run"))
-    # https://github.com/boostorg/python/issues/431
-    depends_on("py-numpy@:1", when="@:1.86+numpy", type=("build", "run"))
+        # https://github.com/boostorg/python/issues/431
+        depends_on("py-numpy@:1", when="@:1.85", type=("build", "run"))
 
-    # Improve the error message when the context-impl variant is conflicting
-    conflicts("context-impl=fcontext", when="@:1.65.0")
-    conflicts("context-impl=ucontext", when="@:1.65.0")
-    conflicts("context-impl=winfib", when="@:1.65.0")
-
-    # Coroutine, Context, Fiber, etc., are not straightforward.
-    conflicts("+context", when="@:1.50")  # Context since 1.51.0.
-    conflicts("cxxstd=98", when="+context")  # Context requires >=C++11.
-    conflicts("+coroutine", when="@:1.52")  # Context since 1.53.0.
-    conflicts("~context", when="+coroutine")  # Coroutine requires Context.
-    conflicts("+fiber", when="@:1.61")  # Fiber since 1.62.0.
-    conflicts("cxxstd=98", when="+fiber")  # Fiber requires >=C++11.
-    conflicts("~context", when="+fiber")  # Fiber requires Context.
-
-    # NOTE: 1.64.0 seems fine for *most* applications, but if you need
-    #       +python and +mpi, there seem to be errors with out-of-date
-    #       API calls from mpi/python.
-    #       See: https://github.com/spack/spack/issues/3963
-    conflicts("@1.64.0", when="+python", msg="Errors with out-of-date API calls from Python")
-    conflicts("@1.64.0", when="+mpi", msg="Errors with out-of-date API calls from MPI")
-
-    conflicts("+taggedlayout", when="+versionedlayout")
-    conflicts("+numpy", when="~python")
-
-    # boost-python in 1.72.0 broken with cxxstd=98
-    conflicts("cxxstd=98", when="+mpi+python @1.72.0")
-
-    # boost-mpi depends on boost-python since 1.87.0
-    conflicts("~python", when="+mpi @1.87.0:")
-
-    # Container's Extended Allocators were not added until 1.56.0
-    conflicts("+container", when="@:1.55")
+    with when("+mpi"):
+        depends_on("mpi")
 
     # Boost.System till 1.76 (included) was relying on mutex, which was not
     # detected correctly on Darwin platform when using GCC
@@ -306,151 +158,11 @@ class Boost(Package):
     # (https://github.com/spack/spack/pull/32879#issuecomment-1265933265)
     conflicts("%oneapi", when="@1.80")
 
-    # Boost 1.85.0 stacktrace added a hard compilation error that has to
-    # explicitly be suppressed on some platforms:
-    # https://github.com/boostorg/stacktrace/pull/150. This conflict could be
-    # turned into a variant that allows users to opt-in when they know it is
-    # safe to do so on affected platforms.
-    conflicts("+clanglibcpp", when="@1.85: +stacktrace")
-
-    # On Windows, the signals variant is required when building any of
-    # the all_libs variants.
-    for lib in all_libs:
-        requires("+signals", when=f"+{lib} platform=windows")
-
-    # Patch fix from https://svn.boost.org/trac/boost/ticket/11856
-    patch("boost_11856.patch", when="@1.60.0%gcc@4.4.7")
-
-    # Patch fix from https://svn.boost.org/trac/boost/ticket/11120
-    patch("python_jam-1_77.patch", when="@1.77:     ^python@3:")
-    patch("python_jam.patch", when="@1.56:1.76 ^python@3:")
-    patch("python_jam_pre156.patch", when="@:1.55.0   ^python@3:")
-
-    # Patch fix for IBM XL compiler
-    patch("xl_1_62_0_le.patch", when="@1.62.0%xl_r")
-    patch("xl_1_62_0_le.patch", when="@1.62.0%xl")
-
-    # Patch fix from https://svn.boost.org/trac/boost/ticket/10125
-    patch("call_once_variadic.patch", when="@1.54.0:1.55%gcc@5.0:")
-
-    # Patch to override the PGI toolset when using the NVIDIA compilers
-    patch("nvhpc-1.74.patch", when="@1.74.0:1.75%nvhpc")
-    patch("nvhpc-1.76.patch", when="@1.76.0:1.76%nvhpc")
-
-    # Patch to workaround compiler bug
-    patch("nvhpc-find_address.patch", when="@1.75.0:1.76%nvhpc")
-
-    # Patch to workaround gcc-8.3 compiler issue https://github.com/boostorg/mpl/issues/44
-    patch("boost_gcc83_cpp17_fix.patch", when="@1.69:%gcc@8.3")
-
-    # Fix for version comparison on newer Clang on darwin
-    # See: https://github.com/boostorg/build/issues/440
-    # See: https://github.com/macports/macports-ports/pull/6726
-    patch("darwin_clang_version.patch", level=0, when="@1.56.0:1.72.0 platform=darwin")
-
-    # Fix missing declaration of uintptr_t with glibc>=2.17 - https://bugs.gentoo.org/482372
-    patch(
-        "https://482372.bugs.gentoo.org/attachment.cgi?id=356970",
-        when="@1.53.0:1.54",
-        sha256="b6f6ce68282159d46c716a1e6c819c815914bdb096cddc516fa48134209659f2",
-    )
-
-    # Fix: "Unable to compile code using boost/process.hpp"
-    # See: https://github.com/boostorg/process/issues/116
-    # Patch: https://github.com/boostorg/process/commit/6a4d2ff72114ef47c7afaf92e1042aca3dfa41b0.patch
-    patch("1.72_boost_process.patch", level=2, when="@1.72.0")
-
-    # Patch fix for warnings from commits 2d37749, af1dc84, c705bab, and
-    # 0134441 on https://github.com/boostorg/system.
-    patch("system-non-virtual-dtor-include.patch", when="@1.69.0", level=2)
-    patch("system-non-virtual-dtor-test.patch", when="@1.69.0", working_dir="libs/system", level=1)
-
-    # Change the method for version analysis when using Fujitsu compiler.
-    patch("fujitsu_version_analysis.patch", when="@1.67.0:1.76.0%fj")
-    patch("fujitsu_version_analysis-1.77.patch", when="@1.77.0:%fj")
-
-    # Add option to C/C++ compile commands in clang-linux.jam
-    patch("clang-linux_add_option.patch", when="@1.56.0:1.63.0")
-    patch("clang-linux_add_option2.patch", when="@1.47.0:1.55.0")
-
-    # C++20 concepts fix for Beast
-    # See https://github.com/boostorg/beast/pull/1927 for details
-    patch(
-        "https://www.boost.org/patches/1_73_0/0002-beast-coroutines.patch",
-        sha256="4dd507e1f5a29e3b87b15321a4d8c74afdc8331433edabf7aeab89b3c405d556",
-        when="@1.73.0",
-    )
-
-    # Cloning a status_code with indirecting_domain leads to segmentation fault
-    # See https://github.com/ned14/outcome/issues/223 for details
-    patch(
-        "https://www.boost.org/patches/1_73_0/0001-outcome-assert.patch",
-        sha256="246508e052c44b6f4e8c2542a71c06cacaa72cd1447ab8d2a542b987bc35ace9",
-        when="@1.73.0",
-    )
-
-    # Support bzip2 and gzip in other directory
-    # See https://github.com/boostorg/build/pull/154
-    patch("boost_154.patch", when="@1.56.0:1.63")
-
-    # Backport Python3 import problem
-    # See https://github.com/boostorg/python/pull/218
-    patch("boost_218.patch", when="@1.63.0:1.67")
-
-    # Fix B2 bootstrap toolset during installation
-    # See https://github.com/spack/spack/issues/20757
-    # and https://github.com/spack/spack/pull/21408
-    patch("bootstrap-toolset.patch", when="@1.75")
-
-    # Fix compiler used for building bjam during bootstrap
-    patch("bootstrap-compiler.patch", when="@1.76:")
-
-    # Allow building context asm sources with GCC on Darwin
-    # See https://github.com/spack/spack/pull/24889
-    # and https://github.com/boostorg/context/issues/177
-    patch("context-macho-gcc.patch", when="@1.65:1.76 +context platform=darwin %gcc")
-
-    # Fix float128 support when building with CUDA and Cray compiler
-    # See https://github.com/boostorg/config/pull/378
-    patch(
-        "https://github.com/boostorg/config/commit/fee1ad07968386b6d547f089311b7a2c1bf7fa55.patch?full_index=1",
-        sha256="666eec8cfb0f71a87443ab27d179a9771bda32bcb8ff5e16afa3767f7b7f1e70",
-        when="@:1.76%cce",
-        level=2,
-    )
-
-    # Fix building with Intel compilers
-    patch(
-        "https://github.com/bfgroup/b2/commit/23212066f0f20358db54568bb16b3fe1d76f88ce.patch?full_index=1",
-        sha256="4849671f9df4b8f3c962130d7f6d44eba3b20d113e84f9faade75e6469e90310",
-        when="@1.77.0",
-        working_dir="tools/build",
-    )
-
-    # Fix issues with PTHREAD_STACK_MIN not being a DEFINED constant in newer glibc
-    # See https://github.com/spack/spack/issues/28273
-    patch("pthread-stack-min-fix.patch", when="@1.69.0:1.72.0")
-
-    # https://www.intel.com/content/www/us/en/developer/articles/technical/building-boost-with-oneapi.html
-    patch("intel-oneapi-linux-jam.patch", when="@1.76: %oneapi")
-
-    # https://github.com/boostorg/phoenix/issues/111
-    patch("boost_phoenix_1.81.0.patch", level=2, when="@1.81.0:1.82.0")
-
-    # https://github.com/boostorg/filesystem/issues/284
-    patch(
-        "https://www.boost.org/patches/1_82_0/0002-filesystem-fix-win-smbv1-dir-iterator.patch",
-        sha256="738ba8e0d7b5cdcf5fae4998f9450b51577bbde1bb0d220a0721551609714ca4",
-        when="@1.82.0 platform=windows",
-    )
-
-    # https://github.com/boostorg/context/pull/280
-    patch(
-        "https://github.com/boostorg/context/commit/d11cbccc87da5d6d41c04f3949e18d49c43e62fc.patch?full_index=1",
-        sha256="e2d37f9e35e8e238977de9af32604a8e1c2648d153df1d568935a20216b5c67f",
-        when="@1.87.0",
-        working_dir="libs/context",
-    )
+    # On Windows, the signals variant is required when building many libraries,
+    # so we always require it.
+    with when("platform=windows"):
+        requires("+signals", when="@1.29.0:1.68.0")
+        requires("+signals2", when="@1.68.0:")  # signals was removed in 1.68.0
 
     def patch(self):
         # Disable SSSE3 and AVX2 when using the NVIDIA compiler
@@ -516,7 +228,7 @@ class Boost(Package):
             Path(spec["python"].libs[0]).parent.as_posix(),
         )
 
-    def determine_bootstrap_options(self, spec, with_libs, options):
+    def determine_bootstrap_options(self, spec, options):
         boost_toolset_id = self.determine_toolset(spec)
 
         # Arm compiler bootstraps with 'gcc' (but builds as 'clang')
@@ -524,6 +236,10 @@ class Boost(Package):
             options.append("--with-toolset=gcc")
         else:
             options.append("--with-toolset=%s" % boost_toolset_id)
+
+        with_libs = {
+            f"{lib}" for lib, _ in Boost._buildable_libraries.items() if f"+{lib}" in spec
+        }
         if with_libs:
             options.append("--with-libraries=%s" % ",".join(sorted(with_libs)))
         else:
@@ -611,7 +327,7 @@ class Boost(Package):
             )
 
         # If we are building context, tell b2 which backend to use
-        if "+context" in spec and "context-impl" in spec.variants:
+        if spec.satisfies("+context") and "context-impl" in spec.variants:
             options.extend(["context-impl=%s" % spec.variants["context-impl"].value])
 
         if spec.satisfies("+taggedlayout"):
@@ -629,14 +345,14 @@ class Boost(Package):
 
         if spec.satisfies("platform=windows"):
             # The runtime link must either be shared or static, not both.
-            if "+shared" in spec:
+            if spec.satisfies("+shared"):
                 options.append("runtime-link=shared")
             else:
                 options.append("runtime-link=static")
 
             # Any lib that is in self.all_libs AND in the variants dictionary
             # AND is set to False should be added to options in a --without flag
-            for lib in self.all_libs:
+            for lib in Boost._buildable_libraries:
                 if lib not in self.spec.variants.dict or self.spec.satisfies(f"+{lib}"):
                     continue
                 options.append(f"--without-{lib}")
@@ -681,15 +397,12 @@ class Boost(Package):
             if spec.variants["cxxstd"].value == "11":
                 cxxflags.append("-std=c++11")
 
-        # See conflict above and
-        # https://github.com/boostorg/stacktrace/pull/150. This suppresses a
-        # compilation error that must be explicitly suppressed. Because of the
-        # conflict we can suppress the error without input from a user.
-        if spec.satisfies("@1.85: +stacktrace"):
+        # https://github.com/boostorg/stacktrace/pull/150
+        if spec.satisfies("@1.85: +stacktrace+clanglibcpp"):
             cxxflags.append("-DBOOST_STACKTRACE_LIBCXX_RUNTIME_MAY_CAUSE_MEMORY_LEAK")
 
         if cxxflags:
-            options.append('cxxflags="{0}"'.format(" ".join(cxxflags)))
+            options.append("cxxflags={0}".format(" ".join(cxxflags)))
 
         # Visibility was added in 1.69.0.
         if spec.satisfies("@1.69.0:"):
@@ -732,41 +445,13 @@ class Boost(Package):
             force_symlink("/usr/bin/libtool", join_path(newdir, "libtool"))
             env["PATH"] = newdir + ":" + env["PATH"]
 
-        with_libs = {f"{lib}" for lib in Boost.all_libs if f"+{lib}" in spec}
-
-        # Remove libraries that the release version does not support
-        if not spec.satisfies("@1.85.0:"):
-            with_libs.discard("charconv")
-        if not spec.satisfies("@1.84.0:"):
-            with_libs.discard("cobalt")
-        if not spec.satisfies("@1.81.0:"):
-            with_libs.discard("url")
-        if not spec.satisfies("@1.75.0:"):
-            with_libs.discard("json")
-        if spec.satisfies("@1.69.0:"):
-            with_libs.discard("signals")
-        if not spec.satisfies("@1.54.0:"):
-            with_libs.discard("log")
-        if not spec.satisfies("@1.53.0:"):
-            with_libs.discard("atomic")
-        if not spec.satisfies("@1.48.0:"):
-            with_libs.discard("locale")
-        if not spec.satisfies("@1.47.0:"):
-            with_libs.discard("chrono")
-        if not spec.satisfies("@1.43.0:"):
-            with_libs.discard("random")
-        if not spec.satisfies("@1.39.0:"):
-            with_libs.discard("exception")
-        if spec.satisfies("+graph") and spec.satisfies("+mpi"):
-            with_libs.add("graph_parallel")
-
         if self.spec.satisfies("platform=windows"):
             self.bootstrap_windows()
         else:
             # to make Boost find the user-config.jam
             env["BOOST_BUILD_PATH"] = self.stage.source_path
             bootstrap_options = ["--prefix=%s" % prefix]
-            self.determine_bootstrap_options(spec, with_libs, bootstrap_options)
+            self.determine_bootstrap_options(spec, bootstrap_options)
             bootstrap = Executable("./bootstrap.sh")
             bootstrap(*bootstrap_options)
 

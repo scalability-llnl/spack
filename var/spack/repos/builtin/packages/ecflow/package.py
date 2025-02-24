@@ -5,7 +5,6 @@
 import os
 
 from spack.package import *
-from spack.pkg.builtin.boost import Boost
 
 
 class Ecflow(CMakePackage):
@@ -50,10 +49,6 @@ class Ecflow(CMakePackage):
     # v4: Boost-1.7X release not working well on serialization
     depends_on("boost@1.53:1.69+python", when="@:4")
     depends_on("boost@1.53:1.69+pic", when="@:4 +static_boost")
-    # TODO: replace this with an explicit list of components of Boost,
-    # for instance depends_on("boost +filesystem")
-    # See https://github.com/spack/spack/pull/22303 for reference
-    depends_on(Boost.with_default_variants, when="@:4")
 
     # Use newer boost with v5 up to 1.84.0 - https://github.com/spack/spack/issues/44116
     conflicts("boost@1.85:", when="@:5.11.4")
