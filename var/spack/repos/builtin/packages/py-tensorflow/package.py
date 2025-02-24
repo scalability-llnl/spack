@@ -473,6 +473,10 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
     conflicts("%gcc@:11", when="@2.17:")
     conflicts("%gcc@:9.3.0", when="@2.9:")
     conflicts("%gcc@:7.3.0")
+    # https://github.com/tensorflow/tensorflow/issues/76908
+    conflicts("%clang@:15", when="@2.18:")
+    # https://github.com/tensorflow/tensorflow/issues/62416
+    conflicts("%clang@17:", when="@:2.14")
 
     # zlib is vendored and downloaded directly from zlib.org (or mirrors), but
     # old downloads are removed from that site immediately after a new release.
@@ -508,6 +512,14 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
     # pywrap_tensorflow must be imported before anything else that would import
     # protobuf definitions.
     patch("0008-Fix-protobuf-errors-when-using-system-protobuf.patch", when="@2.5:2.6")
+
+    # remove unnecessary symbol ignores that cause errors with new compilers
+    # https://github.com/tensorflow/tensorflow/issues/62416
+    patch(
+        "https://raw.githubusercontent.com/getsolus/packages/dfc56ba57a8af8233a635e309b499ff5d27992f4/packages/t/tensorflow/files/fix-clang-18.diff",
+        sha256="10d730b59284843d6c9ba92668b068582e51d5cdfc7ccfe8e26791ad0f41d4ac",
+        when="@2.15",
+    )
 
     # see https://github.com/tensorflow/tensorflow/issues/62490
     # and https://github.com/abseil/abseil-cpp/issues/1665
@@ -744,6 +756,7 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
         # Do you want to use Clang to build TensorFlow?
         if "%clang" in spec:
             env.set("TF_NEED_CLANG", "1")
+            env.set("CLANG_COMPILER_PATH", spack_cc)
         else:
             env.set("TF_NEED_CLANG", "0")
 

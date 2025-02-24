@@ -610,14 +610,14 @@ class Petsc(Package, CudaPackage, ROCmPackage):
         if "+exodusii+fortran" in spec and "+fortran" in spec:
             options.append("--with-exodusii-fortran-bindings")
 
+        direct_dependencies = {
+            *(spec.name for spec in spec.dependencies()),
+            *(virtual for edge in spec.edges_to_dependencies() for virtual in edge.virtuals),
+        }
         # tuple format (spacklibname, petsclibname, useinc, uselib)
         # default: 'gmp', => ('gmp', 'gmp', True, True)
         # any other combination needs a full tuple
         # if not (useinc || uselib): usedir - i.e (False, False)
-        direct_dependencies = []
-        for dep in spec.dependencies():
-            direct_dependencies.append(dep.name)
-            direct_dependencies.extend(set(vspec.name for vspec in dep.package.virtuals_provided))
         for library in (
             ("cuda", "cuda", False, False),
             ("hip", "hip", True, False),

@@ -32,4 +32,4 @@ class CargoBuilder(spack.build_systems.cargo.CargoBuilder):
 
     @property
     def build_args(self):
-        return super().build_args + ["--bin", "jj", "jj-cli"]
+        return ["--bin", "jj", "jj-cli"]

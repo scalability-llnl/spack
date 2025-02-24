@@ -243,7 +243,7 @@ class Finder:
         raise NotImplementedError("must be implemented by derived classes")
 
     def detect_specs(
-        self, *, pkg: Type["spack.package_base.PackageBase"], paths: List[str]
+        self, *, pkg: Type["spack.package_base.PackageBase"], paths: Iterable[str]
     ) -> List["spack.spec.Spec"]:
         """Given a list of files matching the search patterns, returns a list of detected specs.
 

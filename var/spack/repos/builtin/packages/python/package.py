@@ -63,68 +63,169 @@ class Python(Package):
     version("3.12.9", sha256="45313e4c5f0e8acdec9580161d565cf5fea578e3eabf25df7cc6355bf4afa1ee")
     version("3.12.8", sha256="5978435c479a376648cb02854df3b892ace9ed7d32b1fead652712bee9d03a45")
     version("3.12.7", sha256="73ac8fe780227bf371add8373c3079f42a0dc62deff8d612cd15a618082ab623")
-    version("3.12.6", sha256="85a4c1be906d20e5c5a69f2466b00da769c221d6a684acfd3a514dbf5bf10a66")
-    version("3.12.5", sha256="38dc4e2c261d49c661196066edbfb70fdb16be4a79cc8220c224dfeb5636d405")
-    version("3.12.4", sha256="01b3c1c082196f3b33168d344a9c85fb07bfe0e7ecfe77fee4443420d1ce2ad9")
-    version("3.12.3", sha256="a6b9459f45a6ebbbc1af44f5762623fa355a0c87208ed417628b379d762dddb0")
-    version("3.12.2", sha256="a7c4f6a9dc423d8c328003254ab0c9338b83037bd787d680826a5bf84308116e")
-    version("3.12.1", sha256="d01ec6a33bc10009b09c17da95cc2759af5a580a7316b3a446eb4190e13f97b2")
-    version("3.12.0", sha256="51412956d24a1ef7c97f1cb5f70e185c13e3de1f50d131c0aac6338080687afb")
     version("3.11.11", sha256="883bddee3c92fcb91cf9c09c5343196953cbb9ced826213545849693970868ed")
-    version("3.11.10", sha256="92f2faf242681bfa406d53a51e17d42c5373affe23a130cd9697e132ef574706")
-    version("3.11.9", sha256="e7de3240a8bc2b1e1ba5c81bf943f06861ff494b69fda990ce2722a504c6153d")
-    version("3.11.8", sha256="d3019a613b9e8761d260d9ebe3bd4df63976de30464e5c0189566e1ae3f61889")
-    version("3.11.7", sha256="068c05f82262e57641bd93458dfa883128858f5f4997aad7a36fd25b13b29209")
-    version("3.11.6", sha256="c049bf317e877cbf9fce8c3af902436774ecef5249a29d10984ca3a37f7f4736")
-    version("3.11.5", sha256="a12a0a013a30b846c786c010f2c19dd36b7298d888f7c4bd1581d90ce18b5e58")
-    version("3.11.4", sha256="85c37a265e5c9dd9f75b35f954e31fbfc10383162417285e30ad25cc073a0d63")
-    version("3.11.3", sha256="1a79f3df32265d9e6625f1a0b31c28eb1594df911403d11f3320ee1da1b3e048")
-    version("3.11.2", sha256="2411c74bda5bbcfcddaf4531f66d1adc73f247f529aee981b029513aefdbf849")
-    version("3.11.1", sha256="baed518e26b337d4d8105679caf68c5c32630d702614fc174e98cb95c46bdfa4")
-    version("3.11.0", sha256="64424e96e2457abbac899b90f9530985b51eef2905951febd935f0e73414caeb")
     version("3.10.16", sha256="f2e22ed965a93cfeb642378ed6e6cdbc127682664b24123679f3d013fafe9cd0")
-    version("3.10.15", sha256="a27864e5ba2a4474f8f6c58ab92ff52767ac8b66f1646923355a53fe3ef15074")
-    version("3.10.14", sha256="cefea32d3be89c02436711c95a45c7f8e880105514b78680c14fe76f5709a0f6")
-    version("3.10.13", sha256="698ec55234c1363bd813b460ed53b0f108877c7a133d48bde9a50a1eb57b7e65")
-    version("3.10.12", sha256="a43cd383f3999a6f4a7db2062b2fc9594fefa73e175b3aedafa295a51a7bb65c")
-    version("3.10.11", sha256="f3db31b668efa983508bd67b5712898aa4247899a346f2eb745734699ccd3859")
-    version("3.10.10", sha256="fba64559dde21ebdc953e4565e731573bb61159de8e4d4cedee70fb1196f610d")
-    version("3.10.9", sha256="4ccd7e46c8898f4c7862910a1703aa0e63525913a519abb2f55e26220a914d88")
-    version("3.10.8", sha256="f400c3fb394b8bef1292f6dc1292c5fadc3533039a5bc0c3e885f3e16738029a")
-    version("3.10.7", sha256="1b2e4e2df697c52d36731666979e648beeda5941d0f95740aafbf4163e5cc126")
-    version("3.10.6", sha256="848cb06a5caa85da5c45bd7a9221bb821e33fc2bdcba088c127c58fad44e6343")
-    version("3.10.5", sha256="18f57182a2de3b0be76dfc39fdcfd28156bb6dd23e5f08696f7492e9e3d0bf2d")
-    version("3.10.4", sha256="f3bcc65b1d5f1dc78675c746c98fcee823c038168fc629c5935b044d0911ad28")
-    version("3.10.3", sha256="5a3b029bad70ba2a019ebff08a65060a8b9b542ffc1a83c697f1449ecca9813b")
-    version("3.10.2", sha256="3c0ede893011319f9b0a56b44953a3d52c7abf9657c23fb4bc9ced93b86e9c97")
-    version("3.10.1", sha256="b76117670e7c5064344b9c138e141a377e686b9063f3a8a620ff674fa8ec90d3")
-    version("3.10.0", sha256="c4e0cbad57c90690cb813fb4663ef670b4d0f587d8171e2c42bd4c9245bd2758")
     version("3.9.21", sha256="667c3ba2ca98d39ead1162f6548c3475768582e2ff89e0821d25eb956ac09944")
-    version("3.9.20", sha256="1e71f006222666e0a39f5a47be8221415c22c4dd8f25334cc41aee260b3d379e")
-    version("3.9.19", sha256="f5f9ec8088abca9e399c3b62fd8ef31dbd2e1472c0ccb35070d4d136821aaf71")
-    version("3.9.18", sha256="504ce8cfd59addc04c22f590377c6be454ae7406cb1ebf6f5a350149225a9354")
-    version("3.9.17", sha256="8ead58f669f7e19d777c3556b62fae29a81d7f06a7122ff9bc57f7dd82d7e014")
-    version("3.9.16", sha256="1ad539e9dbd2b42df714b69726e0693bc6b9d2d2c8e91c2e43204026605140c5")
-    version("3.9.15", sha256="48d1ccb29d5fbaf1fb8f912271d09f7450e426d4dfe95978ef6aaada70ece4d8")
-    version("3.9.14", sha256="9201836e2c16361b2b7408680502393737d44f227333fe2e5729c7d5f6041675")
-    version("3.9.13", sha256="829b0d26072a44689a6b0810f5b4a3933ee2a0b8a4bfc99d7c5893ffd4f97c44")
-    version("3.9.12", sha256="70e08462ebf265012bd2be88a63d2149d880c73e53f1712b7bbbe93750560ae8")
-    version("3.9.11", sha256="3442400072f582ac2f0df30895558f08883b416c8c7877ea55d40d00d8a93112")
-    version("3.9.10", sha256="1aa9c0702edbae8f6a2c95f70a49da8420aaa76b7889d3419c186bfc8c0e571e")
-    version("3.9.9", sha256="2cc7b67c1f3f66c571acc42479cdf691d8ed6b47bee12c9b68430413a17a44ea")
-    version("3.9.8", sha256="7447fb8bb270942d620dd24faa7814b1383b61fa99029a240025fd81c1db8283")
-    version("3.9.7", sha256="a838d3f9360d157040142b715db34f0218e535333696a5569dc6f854604eb9d1")
-    version("3.9.6", sha256="d0a35182e19e416fc8eae25a3dcd4d02d4997333e4ad1f2eee6010aadc3fe866")
-    version("3.9.5", sha256="e0fbd5b6e1ee242524430dee3c91baf4cbbaba4a72dd1674b90fda87b713c7ab")
-    version("3.9.4", sha256="66c4de16daa74a825cf9da9ddae1fe020b72c3854b73b1762011cc33f9e4592f")
-    version("3.9.3", sha256="3afeb61a45b5a2e6f1c0f621bd8cf925a4ff406099fdb3d8c97b993a5f43d048")
-    version("3.9.2", sha256="7899e8a6f7946748830d66739f2d8f2b30214dad956e56b9ba216b3de5581519")
-    version("3.9.1", sha256="29cb91ba038346da0bd9ab84a0a55a845d872c341a4da6879f462e94c741f117")
-    version("3.9.0", sha256="df796b2dc8ef085edae2597a41c1c0a63625ebd92487adaef2fed22b567873e8")
+
+    # EOL versions we still want to be able to install
     with default_args(deprecated=True):
         version(
             "3.8.20", sha256="9f2d5962c2583e67ef75924cd56d0c1af78bf45ec57035cf8a2cc09f74f4bf78"
         )
+        version(
+            "3.7.17", sha256="fd50161bc2a04f4c22a0971ff0f3856d98b4bf294f89740a9f06b520aae63b49"
+        )
+        version(
+            "3.6.15", sha256="54570b7e339e2cfd72b29c7e2fdb47c0b7b18b7412e61de5b463fc087c13b043"
+        )
+
+    # Old patch versions to be removed in the next Spack version
+    with default_args(deprecated=True):
+        version(
+            "3.12.6", sha256="85a4c1be906d20e5c5a69f2466b00da769c221d6a684acfd3a514dbf5bf10a66"
+        )
+        version(
+            "3.12.5", sha256="38dc4e2c261d49c661196066edbfb70fdb16be4a79cc8220c224dfeb5636d405"
+        )
+        version(
+            "3.12.4", sha256="01b3c1c082196f3b33168d344a9c85fb07bfe0e7ecfe77fee4443420d1ce2ad9"
+        )
+        version(
+            "3.12.3", sha256="a6b9459f45a6ebbbc1af44f5762623fa355a0c87208ed417628b379d762dddb0"
+        )
+        version(
+            "3.12.2", sha256="a7c4f6a9dc423d8c328003254ab0c9338b83037bd787d680826a5bf84308116e"
+        )
+        version(
+            "3.12.1", sha256="d01ec6a33bc10009b09c17da95cc2759af5a580a7316b3a446eb4190e13f97b2"
+        )
+        version(
+            "3.12.0", sha256="51412956d24a1ef7c97f1cb5f70e185c13e3de1f50d131c0aac6338080687afb"
+        )
+        version(
+            "3.11.10", sha256="92f2faf242681bfa406d53a51e17d42c5373affe23a130cd9697e132ef574706"
+        )
+        version(
+            "3.11.9", sha256="e7de3240a8bc2b1e1ba5c81bf943f06861ff494b69fda990ce2722a504c6153d"
+        )
+        version(
+            "3.11.8", sha256="d3019a613b9e8761d260d9ebe3bd4df63976de30464e5c0189566e1ae3f61889"
+        )
+        version(
+            "3.11.7", sha256="068c05f82262e57641bd93458dfa883128858f5f4997aad7a36fd25b13b29209"
+        )
+        version(
+            "3.11.6", sha256="c049bf317e877cbf9fce8c3af902436774ecef5249a29d10984ca3a37f7f4736"
+        )
+        version(
+            "3.11.5", sha256="a12a0a013a30b846c786c010f2c19dd36b7298d888f7c4bd1581d90ce18b5e58"
+        )
+        version(
+            "3.11.4", sha256="85c37a265e5c9dd9f75b35f954e31fbfc10383162417285e30ad25cc073a0d63"
+        )
+        version(
+            "3.11.3", sha256="1a79f3df32265d9e6625f1a0b31c28eb1594df911403d11f3320ee1da1b3e048"
+        )
+        version(
+            "3.11.2", sha256="2411c74bda5bbcfcddaf4531f66d1adc73f247f529aee981b029513aefdbf849"
+        )
+        version(
+            "3.11.1", sha256="baed518e26b337d4d8105679caf68c5c32630d702614fc174e98cb95c46bdfa4"
+        )
+        version(
+            "3.11.0", sha256="64424e96e2457abbac899b90f9530985b51eef2905951febd935f0e73414caeb"
+        )
+        version(
+            "3.10.15", sha256="a27864e5ba2a4474f8f6c58ab92ff52767ac8b66f1646923355a53fe3ef15074"
+        )
+        version(
+            "3.10.14", sha256="cefea32d3be89c02436711c95a45c7f8e880105514b78680c14fe76f5709a0f6"
+        )
+        version(
+            "3.10.13", sha256="698ec55234c1363bd813b460ed53b0f108877c7a133d48bde9a50a1eb57b7e65"
+        )
+        version(
+            "3.10.12", sha256="a43cd383f3999a6f4a7db2062b2fc9594fefa73e175b3aedafa295a51a7bb65c"
+        )
+        version(
+            "3.10.11", sha256="f3db31b668efa983508bd67b5712898aa4247899a346f2eb745734699ccd3859"
+        )
+        version(
+            "3.10.10", sha256="fba64559dde21ebdc953e4565e731573bb61159de8e4d4cedee70fb1196f610d"
+        )
+        version(
+            "3.10.9", sha256="4ccd7e46c8898f4c7862910a1703aa0e63525913a519abb2f55e26220a914d88"
+        )
+        version(
+            "3.10.8", sha256="f400c3fb394b8bef1292f6dc1292c5fadc3533039a5bc0c3e885f3e16738029a"
+        )
+        version(
+            "3.10.7", sha256="1b2e4e2df697c52d36731666979e648beeda5941d0f95740aafbf4163e5cc126"
+        )
+        version(
+            "3.10.6", sha256="848cb06a5caa85da5c45bd7a9221bb821e33fc2bdcba088c127c58fad44e6343"
+        )
+        version(
+            "3.10.5", sha256="18f57182a2de3b0be76dfc39fdcfd28156bb6dd23e5f08696f7492e9e3d0bf2d"
+        )
+        version(
+            "3.10.4", sha256="f3bcc65b1d5f1dc78675c746c98fcee823c038168fc629c5935b044d0911ad28"
+        )
+        version(
+            "3.10.3", sha256="5a3b029bad70ba2a019ebff08a65060a8b9b542ffc1a83c697f1449ecca9813b"
+        )
+        version(
+            "3.10.2", sha256="3c0ede893011319f9b0a56b44953a3d52c7abf9657c23fb4bc9ced93b86e9c97"
+        )
+        version(
+            "3.10.1", sha256="b76117670e7c5064344b9c138e141a377e686b9063f3a8a620ff674fa8ec90d3"
+        )
+        version(
+            "3.10.0", sha256="c4e0cbad57c90690cb813fb4663ef670b4d0f587d8171e2c42bd4c9245bd2758"
+        )
+        version(
+            "3.9.20", sha256="1e71f006222666e0a39f5a47be8221415c22c4dd8f25334cc41aee260b3d379e"
+        )
+        version(
+            "3.9.19", sha256="f5f9ec8088abca9e399c3b62fd8ef31dbd2e1472c0ccb35070d4d136821aaf71"
+        )
+        version(
+            "3.9.18", sha256="504ce8cfd59addc04c22f590377c6be454ae7406cb1ebf6f5a350149225a9354"
+        )
+        version(
+            "3.9.17", sha256="8ead58f669f7e19d777c3556b62fae29a81d7f06a7122ff9bc57f7dd82d7e014"
+        )
+        version(
+            "3.9.16", sha256="1ad539e9dbd2b42df714b69726e0693bc6b9d2d2c8e91c2e43204026605140c5"
+        )
+        version(
+            "3.9.15", sha256="48d1ccb29d5fbaf1fb8f912271d09f7450e426d4dfe95978ef6aaada70ece4d8"
+        )
+        version(
+            "3.9.14", sha256="9201836e2c16361b2b7408680502393737d44f227333fe2e5729c7d5f6041675"
+        )
+        version(
+            "3.9.13", sha256="829b0d26072a44689a6b0810f5b4a3933ee2a0b8a4bfc99d7c5893ffd4f97c44"
+        )
+        version(
+            "3.9.12", sha256="70e08462ebf265012bd2be88a63d2149d880c73e53f1712b7bbbe93750560ae8"
+        )
+        version(
+            "3.9.11", sha256="3442400072f582ac2f0df30895558f08883b416c8c7877ea55d40d00d8a93112"
+        )
+        version(
+            "3.9.10", sha256="1aa9c0702edbae8f6a2c95f70a49da8420aaa76b7889d3419c186bfc8c0e571e"
+        )
+        version("3.9.9", sha256="2cc7b67c1f3f66c571acc42479cdf691d8ed6b47bee12c9b68430413a17a44ea")
+        version("3.9.8", sha256="7447fb8bb270942d620dd24faa7814b1383b61fa99029a240025fd81c1db8283")
+        version("3.9.7", sha256="a838d3f9360d157040142b715db34f0218e535333696a5569dc6f854604eb9d1")
+        version("3.9.6", sha256="d0a35182e19e416fc8eae25a3dcd4d02d4997333e4ad1f2eee6010aadc3fe866")
+        version("3.9.5", sha256="e0fbd5b6e1ee242524430dee3c91baf4cbbaba4a72dd1674b90fda87b713c7ab")
+        version("3.9.4", sha256="66c4de16daa74a825cf9da9ddae1fe020b72c3854b73b1762011cc33f9e4592f")
+        version("3.9.3", sha256="3afeb61a45b5a2e6f1c0f621bd8cf925a4ff406099fdb3d8c97b993a5f43d048")
+        version("3.9.2", sha256="7899e8a6f7946748830d66739f2d8f2b30214dad956e56b9ba216b3de5581519")
+        version("3.9.1", sha256="29cb91ba038346da0bd9ab84a0a55a845d872c341a4da6879f462e94c741f117")
+        version("3.9.0", sha256="df796b2dc8ef085edae2597a41c1c0a63625ebd92487adaef2fed22b567873e8")
         version(
             "3.8.19", sha256="c7fa55a36e5c7a19ec37d8f90f60a2197548908c9ac8b31e7c0dbffdd470eeac"
         )
@@ -165,12 +266,6 @@ class Python(Package):
         version("3.8.2", sha256="e634a7a74776c2b89516b2e013dda1728c89c8149b9863b8cea21946daf9d561")
         version("3.8.1", sha256="c7cfa39a43b994621b245e029769e9126caa2a93571cee2e743b213cceac35fb")
         version("3.8.0", sha256="f1069ad3cae8e7ec467aa98a6565a62a48ef196cb8f1455a245a08db5e1792df")
-        version(
-            "3.7.17", sha256="fd50161bc2a04f4c22a0971ff0f3856d98b4bf294f89740a9f06b520aae63b49"
-        )
-        version(
-            "3.6.15", sha256="54570b7e339e2cfd72b29c7e2fdb47c0b7b18b7412e61de5b463fc087c13b043"
-        )
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
@@ -262,8 +357,6 @@ class Python(Package):
     # C/C++ modules, consider installing a Spack-managed Python with
     # this patch instead. For more information, see:
     # https://github.com/spack/spack/pull/16856
-    patch("python-3.7.2-distutils-C++.patch", when="@3.7.2")
-    patch("python-3.7.3-distutils-C++.patch", when="@3.7.3")
     patch("python-3.7.4+-distutils-C++.patch", when="@3.7.4:3.10")
     patch("python-3.7.4+-distutils-C++-testsuite.patch", when="@3.7.4:3.11")
     patch("python-3.11-distutils-C++.patch", when="@3.11.0:3.11")
@@ -281,10 +374,6 @@ class Python(Package):
     # Ensure that distutils chooses correct compiler option for RPATH on fj:
     patch("fj-rpath-3.1.patch", when="@:3.9.7,3.10.0 %fj")
     patch("fj-rpath-3.9.patch", when="@3.9.8:3.9,3.10.1:3.11 %fj")
-
-    # Fixes build with the Intel compilers
-    # https://github.com/python/cpython/pull/16717
-    patch("intel-3.7.patch", when="@3.7.1:3.7.5 %intel")
 
     # CPython tries to build an Objective-C file with GCC's C frontend
     # https://github.com/spack/spack/pull/16222

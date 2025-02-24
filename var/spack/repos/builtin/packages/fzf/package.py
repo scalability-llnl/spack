@@ -7,7 +7,7 @@ import re
 from spack.package import *
 
 
-class Fzf(MakefilePackage):
+class Fzf(GoPackage):
     """A general-purpose command-line fuzzy finder that provides fast, interactive
     filtering for files, processes, git commits, and more. It supports fuzzy
     search with real-time preview and various input sources."""
@@ -21,7 +21,6 @@ class Fzf(MakefilePackage):
     license("MIT")
 
     sanity_check_is_file = ["bin/fzf"]
-    sanity_check_is_dir = ["share/fzf/shell"]
 
     # Versions from newest to oldest
     version("master", branch="master")
@@ -64,26 +63,22 @@ class Fzf(MakefilePackage):
 
     def setup_build_environment(self, env):
         """Set up the build environment for fzf."""
-        # Point GOPATH at the top of the staging dir for the build step
-        env.prepend_path("GOPATH", self.stage.path)
+        # Setup build env from GoPackage builder
+        super().setup_build_environment(env)
 
         # Set required environment variables for non-git builds
         env.set("FZF_VERSION", self.spec.version)
         env.set("FZF_REVISION", "tarball")
 
-    def install(self, spec, prefix):
-        """Install fzf and its components."""
-        make("install")
+    @run_after("install")
+    def install_completions(self):
+        mkdirp(bash_completion_path(self.prefix))
+        mkdirp(zsh_completion_path(self.prefix))
 
-        # Install binary
-        mkdir(prefix.bin)
-        install("bin/fzf", prefix.bin)
+        install("shell/completion.bash", bash_completion_path(self.prefix) / "fzf.bash")
+        install("shell/completion.zsh", zsh_completion_path(self.prefix) / "_fzf")
 
-        # Install shell integration scripts
-        mkdirp(prefix.share.fzf.shell)
-        install_tree("shell", prefix.share.fzf.shell)
-
-        # Install vim plugin if requested
-        if spec.satisfies("+vim"):
-            mkdirp(prefix.share.fzf.plugins)
-            install("plugin/fzf.vim", prefix.share.fzf.plugins)
+    @run_after("install", when="+vim")
+    def install_vim_plugin(self):
+        mkdirp(self.prefix.share.fzf.plugins)
+        install("plugin/fzf.vim", self.prefix.share.fzf.plugins)

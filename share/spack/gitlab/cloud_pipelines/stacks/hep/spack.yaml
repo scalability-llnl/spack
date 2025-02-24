@@ -4,6 +4,7 @@ spack:
   concretizer:
     reuse: false
     unify: when_possible
+    static_analysis: true
 
   packages:
     all:
