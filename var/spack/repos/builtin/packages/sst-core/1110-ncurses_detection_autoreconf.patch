@@ -1,0 +1,251 @@
+diff --git configure configure
+index 717b31b..915a27b 100755
+--- configure
++++ configure
+@@ -831,7 +831,7 @@ enable_testframework_dev
+ enable_mpi
+ with_python
+ with_libz
+-with_curses
++with_ncurses
+ with_hdf5
+ enable_mem_pools
+ enable_debug
+@@ -19282,27 +19282,27 @@ fi
+   sst_check_curses_happy="yes"
+ 
+ 
+-# Check whether --with-curses was given.
+-if test "${with_curses+set}" = set; then :
+-  withval=$with_curses;
++# Check whether --with-ncurses was given.
++if test "${with_ncurses+set}" = set; then :
++  withval=$with_ncurses;
+ fi
+ 
+ 
+-  if test "$with_curses" = "no"; then :
++  if test "$with_ncurses" = "no"; then :
+   sst_check_curses_happy="no"
+ fi
+ 
+   NCURSES_CONFIG_EXE="no"
+ 
+-    if test ! -d "$with_curses"; then :
+-  if test -x "$with_curses"; then :
+-  NCURSES_CONFIG_EXE=$with_curses
++    if test ! -d "$with_ncurses"; then :
++  if test -x "$with_ncurses"; then :
++  NCURSES_CONFIG_EXE=$with_ncurses
+ fi
+ fi
+ 
+     if test $NCURSES_CONFIG_EXE = "no"; then :
+-  if test -n "$with_curses"; then :
+-  for ac_prog in "ncurses6-config" "ncurses5.4-config" "ncurses5-config"
++  if test -n "$with_ncurses"; then :
++  for ac_prog in "ncurses6-config" "ncursesw6-config" "ncurses5.4-config" "ncurses5-config"
+ do
+   # Extract the first word of "$ac_prog", so it can be a program name with args.
+ set dummy $ac_prog; ac_word=$2
+@@ -19317,7 +19317,7 @@ else
+   ;;
+   *)
+   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+-for as_dir in "$with_curses/bin"
++for as_dir in "$with_ncurses/bin"
+ do
+   IFS=$as_save_IFS
+   test -z "$as_dir" && as_dir=.
+@@ -19349,7 +19349,7 @@ done
+ test -n "$NCURSES_CONFIG_EXE" || NCURSES_CONFIG_EXE=""no""
+ 
+ else
+-  for ac_prog in "ncurses6-config" "ncurses5.4-config" "ncurses5-config"
++  for ac_prog in "ncurses6-config" "ncursesw6-config" "ncurses5.4-config" "ncurses5-config"
+ do
+   # Extract the first word of "$ac_prog", so it can be a program name with args.
+ set dummy $ac_prog; ac_word=$2
+@@ -19398,6 +19398,11 @@ test -n "$NCURSES_CONFIG_EXE" || NCURSES_CONFIG_EXE=""no""
+ fi
+ fi
+ 
++  { $as_echo "$as_me:${as_lineno-$LINENO}: checking ncurses config binary exists" >&5
++$as_echo_n "checking ncurses config binary exists... " >&6; }
++  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $NCURSES_CONFIG_EXE" >&5
++$as_echo "$NCURSES_CONFIG_EXE" >&6; }
++
+       if test $NCURSES_CONFIG_EXE = "no"; then :
+ 
+             CURSES_CPPFLAGS=
+@@ -19415,7 +19420,7 @@ else
+             CPPFLAGS="$CPPFLAGS $CURSES_CPPFLAGS"
+             LDFLAGS="$LDFLAGS $CURSES_LIBS"
+ 
+-                        ac_ext=cpp
++                                    ac_ext=cpp
+ ac_cpp='$CXXCPP $CPPFLAGS'
+ ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+@@ -19429,12 +19434,15 @@ else
+ fi
+ 
+ 
+-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing initscr" >&5
+-$as_echo_n "checking for library containing initscr... " >&6; }
+-if ${ac_cv_search_initscr+:} false; then :
++                                                                                                curses_check_lib_tmp=""
++            if test "$sst_check_curses_happy" != "no"; then :
++  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for initscr in -lncursesw" >&5
++$as_echo_n "checking for initscr in -lncursesw... " >&6; }
++if ${ac_cv_lib_ncursesw_initscr+:} false; then :
+   $as_echo_n "(cached) " >&6
+ else
+-  ac_func_search_save_LIBS=$LIBS
++  ac_check_lib_save_LIBS=$LIBS
++LIBS="-lncursesw  $LIBS"
+ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ 
+@@ -19453,40 +19461,110 @@ return initscr ();
+   return 0;
+ }
+ _ACEOF
+-for ac_lib in '' $CURSES_LIBS; do
+-  if test -z "$ac_lib"; then
+-    ac_res="none required"
+-  else
+-    ac_res=-l$ac_lib
+-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+-  fi
+-  if ac_fn_cxx_try_link "$LINENO"; then :
+-  ac_cv_search_initscr=$ac_res
++if ac_fn_cxx_try_link "$LINENO"; then :
++  ac_cv_lib_ncursesw_initscr=yes
++else
++  ac_cv_lib_ncursesw_initscr=no
+ fi
+ rm -f core conftest.err conftest.$ac_objext \
+-    conftest$ac_exeext
+-  if ${ac_cv_search_initscr+:} false; then :
+-  break
++    conftest$ac_exeext conftest.$ac_ext
++LIBS=$ac_check_lib_save_LIBS
+ fi
+-done
+-if ${ac_cv_search_initscr+:} false; then :
++{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ncursesw_initscr" >&5
++$as_echo "$ac_cv_lib_ncursesw_initscr" >&6; }
++if test "x$ac_cv_lib_ncursesw_initscr" = xyes; then :
++  curses_check_lib_tmp="ncursesw is valid"
++else
++  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for initscr in -lncurses" >&5
++$as_echo_n "checking for initscr in -lncurses... " >&6; }
++if ${ac_cv_lib_ncurses_initscr+:} false; then :
++  $as_echo_n "(cached) " >&6
++else
++  ac_check_lib_save_LIBS=$LIBS
++LIBS="-lncurses  $LIBS"
++cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
+ 
++/* Override any GCC internal prototype to avoid an error.
++   Use char because int might match the return type of a GCC
++   builtin and then its argument prototype would still apply.  */
++#ifdef __cplusplus
++extern "C"
++#endif
++char initscr ();
++int
++main ()
++{
++return initscr ();
++  ;
++  return 0;
++}
++_ACEOF
++if ac_fn_cxx_try_link "$LINENO"; then :
++  ac_cv_lib_ncurses_initscr=yes
+ else
+-  ac_cv_search_initscr=no
++  ac_cv_lib_ncurses_initscr=no
+ fi
+-rm conftest.$ac_ext
+-LIBS=$ac_func_search_save_LIBS
++rm -f core conftest.err conftest.$ac_objext \
++    conftest$ac_exeext conftest.$ac_ext
++LIBS=$ac_check_lib_save_LIBS
+ fi
+-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_initscr" >&5
+-$as_echo "$ac_cv_search_initscr" >&6; }
+-ac_res=$ac_cv_search_initscr
+-if test "$ac_res" != no; then :
+-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
++{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ncurses_initscr" >&5
++$as_echo "$ac_cv_lib_ncurses_initscr" >&6; }
++if test "x$ac_cv_lib_ncurses_initscr" = xyes; then :
++  curses_check_lib_tmp="ncurses is valid"
++else
++  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for initscr in -lcurses" >&5
++$as_echo_n "checking for initscr in -lcurses... " >&6; }
++if ${ac_cv_lib_curses_initscr+:} false; then :
++  $as_echo_n "(cached) " >&6
++else
++  ac_check_lib_save_LIBS=$LIBS
++LIBS="-lcurses  $LIBS"
++cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
+ 
++/* Override any GCC internal prototype to avoid an error.
++   Use char because int might match the return type of a GCC
++   builtin and then its argument prototype would still apply.  */
++#ifdef __cplusplus
++extern "C"
++#endif
++char initscr ();
++int
++main ()
++{
++return initscr ();
++  ;
++  return 0;
++}
++_ACEOF
++if ac_fn_cxx_try_link "$LINENO"; then :
++  ac_cv_lib_curses_initscr=yes
++else
++  ac_cv_lib_curses_initscr=no
++fi
++rm -f core conftest.err conftest.$ac_objext \
++    conftest$ac_exeext conftest.$ac_ext
++LIBS=$ac_check_lib_save_LIBS
++fi
++{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_curses_initscr" >&5
++$as_echo "$ac_cv_lib_curses_initscr" >&6; }
++if test "x$ac_cv_lib_curses_initscr" = xyes; then :
++  curses_check_lib_tmp="curses is valid"
+ else
+   sst_check_curses_happy="no"
++                     CURSES_CPPFLAGS=""
++                     CURSES_LIBS=""
++
++fi
++
+ fi
+ 
++fi
++
++
++fi
+             ac_ext=c
+ ac_cpp='$CPP $CPPFLAGS'
+ ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+@@ -19521,7 +19599,7 @@ $as_echo_n "checking for curses library... " >&6; }
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: $sst_check_curses_happy" >&5
+ $as_echo "$sst_check_curses_happy" >&6; }
+ 
+-  if test "$sst_check_curses_happy" = "no" -a ! -z "$with_curses" -a "$with_curses" != "no"; then :
++  if test "$sst_check_curses_happy" = "no" -a ! -z "$with_ncurses" -a "$with_ncurses" != "no"; then :
+ 
+ fi
+   if test "$sst_check_curses_happy" = "yes"; then :
