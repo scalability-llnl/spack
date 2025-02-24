@@ -5,6 +5,7 @@
 import os
 import platform
 
+import spack.deptypes as dt
 from spack.build_environment import dso_suffix
 from spack.package import *
 
@@ -341,6 +342,16 @@ class IntelOneapiCompilers(IntelOneApiPackage, CompilerPackage):
     # cannot express that properly. For now, add conflicts for non-gcc compilers
     # instead.
     requires("%gcc", msg="intel-oneapi-compilers must be installed with %gcc")
+
+    # Hack for working around things like having old binutils in RHEL9.5
+    # https://access.redhat.com/solutions/7049696
+    variant(
+        "binutils",
+        default=False,
+        description="Build a binutils. (Use if unsupported opcode by OS ld/as)",
+    )
+    with when("+binutils"):
+        depends_on("binutils", type=dt.ALL_TYPES)
 
     for v in versions:
         version(v["version"], expand=False, **v["cpp"])
