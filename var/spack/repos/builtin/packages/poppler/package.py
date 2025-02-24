@@ -13,6 +13,8 @@ class Poppler(CMakePackage):
     list_url = "https://poppler.freedesktop.org/releases.html"
     git = "https://gitlab.freedesktop.org/poppler/poppler.git"
 
+    maintainers("cessenat")
+
     license("GPL-2.0-or-later")
 
     version("master", branch="master")
@@ -40,10 +42,11 @@ class Poppler(CMakePackage):
     variant("openjpeg", default=False, description="Use libopenjpeg for JPX streams")
     variant("qt", default=False, description="Compile poppler qt wrapper")
     variant("zlib", default=False, description="Build with zlib")
-    variant("iconv", default=False, description="Search for Iconv package")
     variant("jpeg", default=False, description="Search for JPEG package")
     variant("png", default=False, description="Search for PNG package")
     variant("tiff", default=False, description="Search for TIFF package")
+    variant("nss", default=False, description="Search for NSS package")
+    variant("gpgme", default=False, description="Search for GPGME package")
 
     depends_on("cmake@3.1.0:", type="build")
     depends_on("pkgconfig", type="build")
@@ -60,10 +63,12 @@ class Poppler(CMakePackage):
     depends_on("qt@4.0:", when="+qt")
     depends_on("zlib-api", when="+zlib")
     depends_on("cairo+ft@1.10.0:", when="+glib")
-    depends_on("iconv", when="+iconv")
+    depends_on("iconv", when="+cpp")
     depends_on("jpeg", when="+jpeg")
     depends_on("libpng", when="+png")
     depends_on("libtiff", when="+tiff")
+    depends_on("nss@3.73:", when="+nss")
+    depends_on("gpgme", when="+gpgme")
 
     depends_on("qt@5.0:", when="@0.62.0:+qt")
     depends_on("qt@4.0:4.8.6", when="@:0.61+qt")
@@ -86,80 +91,63 @@ class Poppler(CMakePackage):
             "-DTESTDATADIR={0}".format(join_path(self.stage.source_path, "testdata")),
             # TODO: Add packages for these missing dependencies
             "-DENABLE_SPLASH=OFF",
-            "-DWITH_NSS3=OFF",
         ]
 
         # Install header files
         args.append("-DENABLE_UNSTABLE_API_ABI_HEADERS=ON")
 
-        if "+boost" in spec:
-            args.append("-DENABLE_BOOST=ON")
-        else:
-            args.append("-DENABLE_BOOST=OFF")
-
-        if "+cms" in spec:
+        args.append(self.define_from_variant("ENABLE_BOOST", "boost"))
+        if spec.satisfies("+cms"):
             args.append("-DENABLE_CMS=lcms2")
         else:
             args.append("-DENABLE_CMS=none")
 
-        if "+cpp" in spec:
-            args.append("-DENABLE_CPP=ON")
-        else:
-            args.append("-DENABLE_CPP=OFF")
-
-        if "+glib" in spec:
-            args.extend(["-DENABLE_GLIB=ON", "-DWITH_GLIB=ON", "-DWITH_Cairo=ON"])
-        else:
-            args.extend(["-DENABLE_GLIB=OFF", "-DWITH_GLIB=OFF", "-DWITH_Cairo=OFF"])
-
-        if "+gobject" in spec:
-            args.append("-DENABLE_GOBJECT_INTROSPECTION=ON")
-        else:
-            args.append("-DENABLE_GOBJECT_INTROSPECTION=OFF")
-
-        if "+libcurl" in spec:
-            args.append("-DENABLE_LIBCURL=ON")
-        else:
-            args.append("-DENABLE_LIBCURL=OFF")
-
-        if "+openjpeg" in spec:
-            args.append("-DENABLE_LIBOPENJPEG=openjpeg2")
-        else:
-            args.append("-DENABLE_LIBOPENJPEG=none")
-
-        if "+qt" in spec and spec.satisfies("^qt@4.0:4.8.6"):
-            args.append("-DENABLE_QT4=ON")
-            args.append("-DENABLE_QT5=OFF")
-        elif "+qt" in spec and spec.satisfies("^qt@5.0:"):
-            args.append("-DENABLE_QT5=ON")
-            args.append("-DENABLE_QT4=OFF")
-        else:
-            args.append("-DENABLE_QT4=OFF")
-            args.append("-DENABLE_QT5=OFF")
-
-        if "+zlib" in spec:
-            args.append("-DENABLE_ZLIB=ON")
-        else:
-            args.append("-DENABLE_ZLIB=OFF")
-
-        if "+iconv" in spec:
+        args.append(self.define_from_variant("ENABLE_CPP", "cpp"))
+        if spec.satisfies("+cpp"):
             args.append("-DWITH_Iconv=ON")
         else:
             args.append("-DWITH_Iconv=OFF")
 
-        if "+jpeg" in spec:
+        if spec.satisfies("+glib"):
+            args.extend(["-DENABLE_GLIB=ON", "-DWITH_GLIB=ON", "-DWITH_Cairo=ON"])
+        else:
+            args.extend(["-DENABLE_GLIB=OFF", "-DWITH_GLIB=OFF", "-DWITH_Cairo=OFF"])
+
+        args.append(self.define_from_variant("ENABLE_GOBJECT_INTROSPECTION", "gobject"))
+        args.append(self.define_from_variant("ENABLE_LIBCURL", "libcurl"))
+
+        if spec.satisfies("+openjpeg"):
+            args.append("-DENABLE_LIBOPENJPEG=openjpeg2")
+        else:
+            args.append("-DENABLE_LIBOPENJPEG=none")
+
+        if spec.satisfies("+qt") and spec.satisfies("^qt@4.0:4.8.6"):
+            args.append("-DENABLE_QT4=ON")
+            args.append("-DENABLE_QT5=OFF")
+            args.append("-DENABLE_QT6=OFF")
+        elif spec.satisfies("+qt") and spec.satisfies("^qt@5.0:5.99"):
+            args.append("-DENABLE_QT5=ON")
+            args.append("-DENABLE_QT4=OFF")
+            args.append("-DENABLE_QT6=OFF")
+        elif spec.satisfies("+qt") and spec.satisfies("^qt@6.0:"):
+            args.append("-DENABLE_QT4=OFF")
+            args.append("-DENABLE_QT5=OFF")
+            args.append("-DENABLE_QT6=ON")
+        else:
+            args.append("-DENABLE_QT4=OFF")
+            args.append("-DENABLE_QT5=OFF")
+            args.append("-DENABLE_QT6=OFF")
+
+        args.append(self.define_from_variant("ENABLE_ZLIB", "zlib"))
+
+        if spec.satisfies("+jpeg"):
             args.extend(["-DENABLE_DCTDECODER=libjpeg", "-DWITH_JPEG=ON"])
         else:
             args.extend(["-DENABLE_DCTDECODER=none", "-DWITH_JPEG=OFF"])
 
-        if "+png" in spec:
-            args.append("-DWITH_PNG=ON")
-        else:
-            args.append("-DWITH_PNG=OFF")
-
-        if "+tiff" in spec:
-            args.append("-DWITH_TIFF=ON")
-        else:
-            args.append("-DWITH_TIFF=OFF")
+        args.append(self.define_from_variant("ENABLE_LIBPNG", "png"))
+        args.append(self.define_from_variant("ENABLE_LIBTIFF", "tiff"))
+        args.append(self.define_from_variant("ENABLE_NSS3", "nss"))
+        args.append(self.define_from_variant("ENABLE_GPGME", "gpgme"))
 
         return args

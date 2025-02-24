@@ -29,8 +29,8 @@ def architecture():
     import spack.spec
 
     host_platform = spack.platforms.host()
-    host_os = host_platform.operating_system("default_os")
-    host_target = host_platform.target("default_target")
+    host_os = host_platform.default_operating_system()
+    host_target = host_platform.default_target()
 
     return spack.spec.ArchSpec((str(host_platform), str(host_os), str(host_target)))
 

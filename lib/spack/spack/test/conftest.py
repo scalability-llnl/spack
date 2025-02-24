@@ -4,13 +4,14 @@
 
 import collections
 import datetime
+import email.message
 import errno
 import functools
 import inspect
+import io
 import itertools
 import json
 import os
-import os.path
 import pathlib
 import re
 import shutil
@@ -36,6 +37,7 @@ import spack.bootstrap.core
 import spack.caches
 import spack.compiler
 import spack.compilers
+import spack.concretize
 import spack.config
 import spack.directives_meta
 import spack.environment as ev
@@ -619,7 +621,7 @@ def linux_os():
     platform = spack.platforms.host()
     name, version = "debian", "6"
     if platform.name == "linux":
-        current_os = platform.operating_system("default_os")
+        current_os = platform.default_operating_system()
         name, version = current_os.name, current_os.version
     LinuxOS = collections.namedtuple("LinuxOS", ["name", "version"])
     return LinuxOS(name=name, version=version)
@@ -678,7 +680,6 @@ def mock_uarch_configuration(mock_uarch_json):
 def mock_targets(mock_uarch_configuration, monkeypatch):
     """Use this fixture to enable mock uarch targets for testing."""
     targets_json, targets = mock_uarch_configuration
-
     monkeypatch.setattr(archspec.cpu.schema, "TARGETS_JSON", targets_json)
     monkeypatch.setattr(archspec.cpu.microarchitecture, "TARGETS", targets)
 
@@ -849,7 +850,7 @@ def _populate(mock_db):
     """
 
     def _install(spec):
-        s = spack.spec.Spec(spec).concretized()
+        s = spack.concretize.concretize_one(spec)
         PackageInstaller([s.package], fake=True, explicit=True).install()
 
     _install("mpileaks ^mpich")
@@ -1983,7 +1984,9 @@ def default_mock_concretization(config, mock_packages, concretized_specs_cache):
     def _func(spec_str, tests=False):
         key = spec_str, tests
         if key not in concretized_specs_cache:
-            concretized_specs_cache[key] = spack.spec.Spec(spec_str).concretized(tests=tests)
+            concretized_specs_cache[key] = spack.concretize.concretize_one(
+                spack.spec.Spec(spec_str), tests=tests
+            )
         return concretized_specs_cache[key].copy()
 
     return _func
@@ -2125,3 +2128,51 @@ def mock_test_cache(tmp_path_factory):
     cache_dir = tmp_path_factory.mktemp("cache")
     print(cache_dir)
     return spack.util.file_cache.FileCache(str(cache_dir))
+
+
+class MockHTTPResponse(io.IOBase):
+    """This is a mock HTTP response, which implements part of http.client.HTTPResponse"""
+
+    def __init__(self, status, reason, headers=None, body=None):
+        self.msg = None
+        self.version = 11
+        self.url = None
+        self.headers = email.message.EmailMessage()
+        self.status = status
+        self.code = status
+        self.reason = reason
+        self.debuglevel = 0
+        self._body = body
+
+        if headers is not None:
+            for key, value in headers.items():
+                self.headers[key] = value
+
+    @classmethod
+    def with_json(cls, status, reason, headers=None, body=None):
+        """Create a mock HTTP response with JSON string as body"""
+        body = io.BytesIO(json.dumps(body).encode("utf-8"))
+        return cls(status, reason, headers, body)
+
+    def read(self, *args, **kwargs):
+        return self._body.read(*args, **kwargs)
+
+    def getheader(self, name, default=None):
+        self.headers.get(name, default)
+
+    def getheaders(self):
+        return self.headers.items()
+
+    def fileno(self):
+        return 0
+
+    def getcode(self):
+        return self.status
+
+    def info(self):
+        return self.headers
+
+
+@pytest.fixture()
+def mock_runtimes(config, mock_packages):
+    return mock_packages.packages_with_tags("runtime")

@@ -5,47 +5,16 @@
 from spack.package import *
 
 
-class AppleLibunwind(Package):
-    """Placeholder package for Apple's analogue to non-GNU libunwind"""
+class AppleLibunwind(BundlePackage):
+    """This package is intended to be a placeholder for Apple's system-provided,
+    non-GNU-compatible libunwind library.
+    """
 
     homepage = "https://opensource.apple.com/source/libunwind/libunwind-35.3/"
 
     provides("unwind")
 
-    # The 'conflicts' directive only accepts valid spack specs;
-    # platforms cannot be negated -- 'platform!=darwin' is not a valid
-    # spec -- so expressing a conflict for any platform that isn't
-    # Darwin must be expressed by listing a conflict with every
-    # platform that isn't Darwin/macOS
-    conflicts("platform=linux")
-
-    # Override the fetcher method to throw a useful error message;
-    # avoids GitHub issue (#7061) in which the opengl placeholder
-    # package threw a generic, uninformative error during the `fetch`
-    # step,
-    @property
-    def fetcher(self):
-        msg = """This package is intended to be a placeholder for Apple's
-        system-provided, non-GNU-compatible libunwind library.
-
-        Add to your packages.yaml:
-
-        packages:
-          apple-libunwind:
-            buildable: False
-            externals:
-            - spec: apple-libunwind@35.3
-              prefix: /usr
-        """
-        raise InstallError(msg)
-
-    @fetcher.setter  # Since fetcher is read-write, must override both
-    def fetcher(self):
-        _ = self.fetcher
-
-    def install(self, spec, prefix):
-        # sanity_check_prefix requires something in the install directory
-        mkdirp(prefix.lib)
+    requires("platform=darwin")
 
     @property
     def libs(self):

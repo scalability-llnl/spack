@@ -17,6 +17,7 @@ class PyPyscf(PythonPackage):
 
     license("Apache-2.0")
 
+    version("2.8.0", sha256="db720372e7f7d1aa2df0fb90c07f483da363730197c937a6378952d34b6abf3d")
     version("2.7.0", sha256="ca8efc2f28d72c3130f26a967e7fa8d0bbc4a6b47d16a7c4c732ec85a31b7eec")
     version("2.6.2", sha256="744c89a8e4d38c4b5562f75fa68f9d079faeb23602d255fba0eb6d1bac97bca2")
     version("2.6.1", sha256="faeaeeb0c07fec5018937655511709a9c2445e3d7c421c0fa1ae5d889e4ab455")
@@ -48,6 +49,7 @@ class PyPyscf(PythonPackage):
     depends_on("py-scipy@0.19:1.10", type=("build", "run"), when="@2.1:2.2")
     # https://github.com/pyscf/pyscf/issues/1783
     depends_on("py-scipy@0.19:", type=("build", "run"), when="@2.3:")
+    depends_on("py-scipy@1.6.0:", type=("build", "run"), when="@2.7.0:")
     conflicts("^py-scipy@1.5.0:1.5.1", when="@2:")
     depends_on("py-h5py@2.3.0:", type=("build", "run"))
     depends_on("py-h5py@2.7.0:", type=("build", "run"), when="@2:")

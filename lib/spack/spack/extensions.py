@@ -187,7 +187,7 @@ def path_for_extension(target_name: str, *, paths: List[str]) -> str:
         if name == target_name:
             return path
     else:
-        raise IOError('extension "{0}" not found'.format(target_name))
+        raise OSError('extension "{0}" not found'.format(target_name))
 
 
 def get_module(cmd_name):

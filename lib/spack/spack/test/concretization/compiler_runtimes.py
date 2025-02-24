@@ -8,6 +8,7 @@ import pytest
 
 import archspec.cpu
 
+import spack.concretize
 import spack.config
 import spack.paths
 import spack.repo
@@ -20,7 +21,7 @@ pytestmark = [pytest.mark.usefixtures("enable_runtimes")]
 
 
 def _concretize_with_reuse(*, root_str, reused_str):
-    reused_spec = spack.spec.Spec(reused_str).concretized()
+    reused_spec = spack.concretize.concretize_one(reused_str)
     setup = spack.solver.asp.SpackSolverSetup(tests=False)
     driver = spack.solver.asp.PyclingoDriver()
     result, _, _ = driver.solve(setup, [spack.spec.Spec(f"{root_str}")], reuse=[reused_spec])
@@ -44,7 +45,7 @@ def enable_runtimes():
 
 
 def test_correct_gcc_runtime_is_injected_as_dependency(runtime_repo):
-    s = spack.spec.Spec("pkg-a%gcc@10.2.1 ^pkg-b%gcc@9.4.0").concretized()
+    s = spack.concretize.concretize_one("pkg-a%gcc@10.2.1 ^pkg-b%gcc@9.4.0")
     a, b = s["pkg-a"], s["pkg-b"]
 
     # Both a and b should depend on the same gcc-runtime directly
@@ -61,7 +62,7 @@ def test_external_nodes_do_not_have_runtimes(runtime_repo, mutable_config, tmp_p
     packages_yaml = {"pkg-b": {"externals": [{"spec": "pkg-b@1.0", "prefix": f"{str(tmp_path)}"}]}}
     spack.config.set("packages", packages_yaml)
 
-    s = spack.spec.Spec("pkg-a%gcc@10.2.1").concretized()
+    s = spack.concretize.concretize_one("pkg-a%gcc@10.2.1")
 
     a, b = s["pkg-a"], s["pkg-b"]
 

@@ -88,6 +88,7 @@ class Neovim(CMakePackage):
     )
 
     # depend on virtual, lua-luajit-openresty preferred
+    depends_on("lua-lang")
     depends_on("luajit", when="~no_luajit")
     depends_on("lua-lang@5.1", when="+no_luajit")
 
@@ -153,4 +154,7 @@ class Neovim(CMakePackage):
 
     @when("^lua")
     def cmake_args(self):
-        return [self.define("PREFER_LUA", True)]
+        return [
+            self.define("PREFER_LUA", True),
+            self.define("LPEG_LIBRARY", self.spec["lua-lpeg"].libs),
+        ]

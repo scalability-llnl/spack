@@ -359,6 +359,11 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
     # intel oneapi doesn't compile some code in catalyst
     patch("catalyst-etc_oneapi_fix.patch", when="@5.10.0:5.10.1%oneapi")
 
+    # Classic Intel compilers don't compile some code in vtkFFT.txx
+    # https://gitlab.kitware.com/vtk/vtk/-/merge_requests/11928
+    # Applying it for every compiler is fine.
+    patch("vtk-fft-icc.patch", when="@5.12.0:5.13.2")
+
     # Patch for paraview 5.8: ^hdf5@1.13.2:
     # Even with ~hdf5, hdf5 is part of the dependency tree due to netcdf-c
     # https://gitlab.kitware.com/vtk/vtk/-/merge_requests/9690
@@ -386,7 +391,7 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
 
     def url_for_version(self, version):
         _urlfmt = "http://www.paraview.org/files/v{0}/ParaView-v{1}{2}.tar.{3}"
-        """Handle ParaView version-based custom URLs."""
+        # Handle ParaView version-based custom URLs
         if version < Version("5.1.0"):
             return _urlfmt.format(version.up_to(2), version, "-source", "gz")
         elif version < Version("5.6.1"):

@@ -133,7 +133,7 @@ def test_check_prefix_manifest(tmpdir):
 
     spec = spack.spec.Spec("libelf")
     spec._mark_concrete()
-    spec.prefix = prefix
+    spec.set_prefix(prefix)
 
     results = spack.verify.check_spec_manifest(spec)
     assert results.has_errors()

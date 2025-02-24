@@ -57,6 +57,8 @@ class Hepmc3(CMakePackage):
     conflicts("%gcc@9.3.0", when="@:3.1.1")
     patch("ba38f14d8f56c16cc4105d98f6d4540c928c6150.patch", when="@3.1.2:3.2.1 %gcc@9.3.0")
 
+    extends("python", when="+python")
+
     @property
     def libs(self):
         return find_libraries(["libHepMC3", "libHepMC3Search"], root=self.prefix, recursive=True)

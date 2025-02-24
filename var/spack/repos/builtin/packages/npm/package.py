@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
+import re
 import shutil
 
 from spack.package import *
@@ -14,6 +15,8 @@ class Npm(Package):
     homepage = "https://github.com/npm/cli"
     url = "https://registry.npmjs.org/npm/-/npm-9.3.1.tgz"
     git = "https://github.com/npm/cli.git"
+
+    tags = ["build-tools"]
 
     license("Artistic-2.0")
 
@@ -44,6 +47,14 @@ class Npm(Package):
         sha256="168b394fbca60ea81dc84b1824466df96246b9eb4d671c2541f55f408a264b4c",
         when="@6",
     )
+
+    executables = ["^npm$"]
+
+    @classmethod
+    def determine_version(cls, exe):
+        output = Executable(exe)("--version", output=str, error=str).strip()
+        match = re.match(r"([\d.]+)\s*", output)
+        return match.group(1) if match else None
 
     @when("@6")
     def patch(self):

@@ -60,7 +60,7 @@ class PyGpaw(PythonPackage):
 
         python_include = spec["python"].headers.directories[0]
         numpy_include = join_path(
-            spec["py-numpy"].package.module.python_platlib, "numpy", "core", "include"
+            self["py-numpy"].module.python_platlib, "numpy", "core", "include"
         )
 
         libs = blas.libs + lapack.libs + libxc.libs

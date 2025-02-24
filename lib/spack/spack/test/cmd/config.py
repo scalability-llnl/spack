@@ -8,12 +8,12 @@ import pytest
 
 import llnl.util.filesystem as fs
 
+import spack.concretize
 import spack.config
 import spack.database
 import spack.environment as ev
 import spack.main
 import spack.schema.config
-import spack.spec
 import spack.store
 import spack.util.spack_yaml as syaml
 
@@ -335,7 +335,7 @@ def test_config_add_override_leaf_from_file(mutable_empty_config, tmpdir):
 
 
 def test_config_add_update_dict_from_file(mutable_empty_config, tmpdir):
-    config("add", "packages:all:compiler:[gcc]")
+    config("add", "packages:all:require:['%gcc']")
 
     # contents to add to file
     contents = """spack:
@@ -357,7 +357,7 @@ def test_config_add_update_dict_from_file(mutable_empty_config, tmpdir):
     expected = """packages:
   all:
     target: [x86_64]
-    compiler: [gcc]
+    require: ['%gcc']
 """
 
     assert expected == output
@@ -593,8 +593,7 @@ def test_config_prefer_upstream(
     prepared_db = spack.database.Database(mock_db_root, layout=gen_mock_layout("/a/"))
 
     for spec in ["hdf5 +mpi", "hdf5 ~mpi", "boost+debug~icu+graph", "dependency-install", "patch"]:
-        dep = spack.spec.Spec(spec)
-        dep.concretize()
+        dep = spack.concretize.concretize_one(spec)
         prepared_db.add(dep)
 
     downstream_db_root = str(tmpdir_factory.mktemp("mock_downstream_db_root"))
@@ -607,7 +606,6 @@ def test_config_prefer_upstream(
     packages = syaml.load(open(cfg_file, encoding="utf-8"))["packages"]
 
     # Make sure only the non-default variants are set.
-    assert packages["all"] == {"compiler": ["gcc@=10.2.1"]}
     assert packages["boost"] == {"variants": "+debug +graph", "version": ["1.63.0"]}
     assert packages["dependency-install"] == {"version": ["2.0"]}
     # Ensure that neither variant gets listed for hdf5, since they conflict

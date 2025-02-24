@@ -8,7 +8,7 @@ from spack.package import *
 class BppPopgen(CMakePackage):
     """The Bio++ Population Genetics Library"""
 
-    homepage = "https://https://github.com/BioPP/bpp-popgen"
+    homepage = "https://github.com/BioPP/bpp-popgen"
     url = "https://github.com/BioPP/bpp-popgen/archive/refs/tags/v2.4.1.tar.gz"
 
     maintainers("snehring")

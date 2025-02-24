@@ -98,7 +98,6 @@ properties: Dict[str, Any] = {
     "packages": {
         "type": "object",
         "default": {},
-        "additionalProperties": False,
         "properties": {
             "all": {  # package name
                 "type": "object",
@@ -140,58 +139,54 @@ properties: Dict[str, Any] = {
                 },
             }
         },
-        "patternProperties": {
-            r"(?!^all$)(^\w[\w-]*)": {  # package name
-                "type": "object",
-                "default": {},
-                "additionalProperties": False,
-                "properties": {
-                    "require": requirements,
-                    "prefer": prefer_and_conflict,
-                    "conflict": prefer_and_conflict,
-                    "version": {
-                        "type": "array",
-                        "default": [],
-                        # version strings
-                        "items": {"anyOf": [{"type": "string"}, {"type": "number"}]},
-                    },
-                    "buildable": {"type": "boolean", "default": True},
-                    "permissions": permissions,
-                    # If 'get_full_repo' is promoted to a Package-level
-                    # attribute, it could be useful to set it here
-                    "package_attributes": package_attributes,
-                    "variants": variants,
-                    "externals": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "spec": {"type": "string"},
-                                "prefix": {"type": "string"},
-                                "modules": {"type": "array", "items": {"type": "string"}},
-                                "extra_attributes": {
-                                    "type": "object",
-                                    "additionalProperties": True,
-                                    "properties": {
-                                        "compilers": {
-                                            "type": "object",
-                                            "patternProperties": {
-                                                r"(^\w[\w-]*)": {"type": "string"}
-                                            },
-                                        },
-                                        "environment": spack.schema.environment.definition,
-                                        "extra_rpaths": extra_rpaths,
-                                        "implicit_rpaths": implicit_rpaths,
-                                        "flags": flags,
+        "additionalProperties": {  # package name
+            "type": "object",
+            "default": {},
+            "additionalProperties": False,
+            "properties": {
+                "require": requirements,
+                "prefer": prefer_and_conflict,
+                "conflict": prefer_and_conflict,
+                "version": {
+                    "type": "array",
+                    "default": [],
+                    # version strings
+                    "items": {"anyOf": [{"type": "string"}, {"type": "number"}]},
+                },
+                "buildable": {"type": "boolean", "default": True},
+                "permissions": permissions,
+                # If 'get_full_repo' is promoted to a Package-level
+                # attribute, it could be useful to set it here
+                "package_attributes": package_attributes,
+                "variants": variants,
+                "externals": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "spec": {"type": "string"},
+                            "prefix": {"type": "string"},
+                            "modules": {"type": "array", "items": {"type": "string"}},
+                            "extra_attributes": {
+                                "type": "object",
+                                "additionalProperties": {"type": "string"},
+                                "properties": {
+                                    "compilers": {
+                                        "type": "object",
+                                        "patternProperties": {r"(^\w[\w-]*)": {"type": "string"}},
                                     },
+                                    "environment": spack.schema.environment.definition,
+                                    "extra_rpaths": extra_rpaths,
+                                    "implicit_rpaths": implicit_rpaths,
+                                    "flags": flags,
                                 },
                             },
-                            "additionalProperties": True,
-                            "required": ["spec"],
                         },
+                        "additionalProperties": True,
+                        "required": ["spec"],
                     },
                 },
-            }
+            },
         },
     }
 }

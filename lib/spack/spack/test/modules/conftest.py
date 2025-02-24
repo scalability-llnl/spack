@@ -5,6 +5,7 @@ import pathlib
 
 import pytest
 
+import spack.concretize
 import spack.modules.lmod
 import spack.modules.tcl
 import spack.spec
@@ -18,7 +19,7 @@ def modulefile_content(request):
     def _impl(spec_like, module_set_name="default", explicit=True):
         if isinstance(spec_like, str):
             spec_like = spack.spec.Spec(spec_like)
-        spec = spec_like.concretized()
+        spec = spack.concretize.concretize_one(spec_like)
         generator = writer_cls(spec, module_set_name, explicit)
         generator.write(overwrite=True)
         written_module = pathlib.Path(generator.layout.filename)
@@ -35,7 +36,7 @@ def factory(request, mock_modules_root):
     writer_cls = getattr(request.module, "writer_cls")
 
     def _mock(spec_string, module_set_name="default", explicit=True):
-        spec = spack.spec.Spec(spec_string).concretized()
+        spec = spack.concretize.concretize_one(spec_string)
         return writer_cls(spec, module_set_name, explicit), spec
 
     return _mock

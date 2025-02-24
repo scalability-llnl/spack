@@ -38,7 +38,7 @@ spack:
     - ripgrep
     - gh
     - fd
-    # - bfs # liburing: /usr/include/linux/ipv6.h:19:8: error: redefinition of 'struct in6_pktinfo'
+    - bfs
     - fzf
     - tree
     - jq

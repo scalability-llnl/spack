@@ -5,8 +5,6 @@
 import os
 import sys
 
-from llnl.util.filesystem import find_first
-
 import spack.build_systems.autotools
 import spack.build_systems.nmake
 from spack.package import *

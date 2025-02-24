@@ -25,6 +25,7 @@ class GpiSpace(CMakePackage):
     license("GPL-3.0-or-later")
 
     version("latest", branch="main")
+    version("24.12", sha256="9cd97b8e41b4494c14a90afff6b801f9cf3b5811205e39c33a481ab09db59920")
     version("23.06", sha256="b4ee51f309c80c12a7842c0909041903608c6144535bc6faac3bbb8ff40e9213")
     version("22.12", sha256="1c0ab9a1ada9dbbc0f80fb04ddbbb24ff900231f709cb99aa63f0d135a3ad398")
     version("22.09", sha256="f938847205181081ed24896bba16302ac35bbf478b4ceecae5bb21d5a38c8556")
@@ -66,10 +67,17 @@ class GpiSpace(CMakePackage):
     depends_on(
         "boost@1.62.0:1.63.0"
         "+atomic +chrono +coroutine +context +date_time +filesystem +iostreams"
-        " +program_options +random +regex +serialization +test +timer cxxstd=14"
+        " +program_options +random +regex +serialization +test +timer cxxstd=14",
+        when="@:23.06",
+    )
+    depends_on(
+        "boost@1.62.0:1.63.0"
+        "+atomic +chrono +coroutine +context +date_time +filesystem +iostreams"
+        " +program_options +random +regex +serialization +test +timer cxxstd=17",
+        when="@24.12:",
     )
     depends_on("hwloc@1.10: +libudev ~libxml2 libs=static")
-    depends_on("libssh2@1.7:")
+    depends_on("libssh2")
     depends_on("openssl@0.9:")
     with when("+iml"):
         depends_on("gpi-2@1.3.2:1.3.3 fabrics=infiniband", when="@:22.09 network=infiniband")

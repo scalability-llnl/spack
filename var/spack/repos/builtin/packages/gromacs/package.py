@@ -4,8 +4,6 @@
 
 import os
 
-import llnl.util.filesystem as fs
-
 import spack.build_systems.cmake
 from spack.package import *
 
@@ -264,6 +262,7 @@ class Gromacs(CMakePackage, CudaPackage):
     depends_on("c", type="build")
     depends_on("cxx", type="build")
     depends_on("fortran", type="build", when="@:4.5.5")  # No core Fortran code since 4.6
+    depends_on("fortran", type="build", when="+cp2k")  # Need Fortan compiler for CP2K
 
     variant(
         "mpi", default=True, description="Activate MPI support (disable for Thread-MPI support)"
@@ -660,7 +659,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
         not be intended with ``--test``.
         """
         if self.pkg.run_tests:
-            with fs.working_dir(self.build_directory):
+            with working_dir(self.build_directory):
                 make("tests")
 
     def check(self):
@@ -669,7 +668,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
         Override the standard CMakeBuilder behavior. GROMACS has both `test`
         and `check` targets, but we are only interested in the latter.
         """
-        with fs.working_dir(self.build_directory):
+        with working_dir(self.build_directory):
             if self.generator == "Unix Makefiles":
                 make("check")
             elif self.generator == "Ninja":

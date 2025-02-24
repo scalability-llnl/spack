@@ -8,8 +8,6 @@ import socket
 import sys
 from os import environ as env
 
-import llnl.util.tty as tty
-
 from spack.package import *
 
 
@@ -123,11 +121,9 @@ class VtkH(CMakePackage, CudaPackage):
 
     @run_before("cmake")
     def hostconfig(self):
+        """This method creates a 'host-config' file that specifies all of the options used to
+        configure and build vtkh."""
         spec = self.spec
-        """
-        This method creates a 'host-config' file that specifies
-        all of the options used to configure and build vtkh.
-        """
 
         if not os.path.isdir(spec.prefix):
             os.mkdir(spec.prefix)

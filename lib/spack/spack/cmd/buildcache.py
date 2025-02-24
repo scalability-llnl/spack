@@ -16,6 +16,7 @@ from llnl.util.lang import elide_list, stable_partition
 
 import spack.binary_distribution as bindist
 import spack.cmd
+import spack.concretize
 import spack.config
 import spack.deptypes as dt
 import spack.environment as ev
@@ -554,8 +555,7 @@ def check_fn(args: argparse.Namespace):
         tty.msg("No specs provided, exiting.")
         return
 
-    for spec in specs:
-        spec.concretize()
+    specs = [spack.concretize.concretize_one(s) for s in specs]
 
     # Next see if there are any configured binary mirrors
     configured_mirrors = spack.config.get("mirrors", scope=args.scope)
@@ -623,7 +623,7 @@ def save_specfile_fn(args):
     root = specs[0]
 
     if not root.concrete:
-        root.concretize()
+        root = spack.concretize.concretize_one(root)
 
     save_dependency_specfiles(
         root, args.specfile_dir, dependencies=spack.cmd.parse_specs(args.specs)

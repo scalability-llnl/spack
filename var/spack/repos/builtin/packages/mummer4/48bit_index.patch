@@ -1,0 +1,10 @@
+--- include/mummer/48bit_index.hpp	2020-10-01 01:47:50.000000000 +0100
++++ include/mummer/48bit_index.hpp.patched	2023-06-09 12:07:09.949856479 +0100
+@@ -6,6 +6,7 @@
+ #endif
+ 
++#include <cstdint>
+ #include "48bit_iterator.hpp"
+ 
+ template<typename IDX>
+ struct fortyeight_index {

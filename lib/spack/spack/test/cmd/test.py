@@ -11,10 +11,10 @@ from llnl.util.filesystem import copy_tree
 
 import spack.cmd.common.arguments
 import spack.cmd.test
+import spack.concretize
 import spack.config
 import spack.install_test
 import spack.paths
-import spack.spec
 from spack.install_test import TestStatus
 from spack.main import SpackCommand
 
@@ -240,7 +240,7 @@ def test_read_old_results(mock_packages, mock_test_stage):
 
 def test_test_results_none(mock_packages, mock_test_stage):
     name = "trivial"
-    spec = spack.spec.Spec("trivial-smoke-test").concretized()
+    spec = spack.concretize.concretize_one("trivial-smoke-test")
     suite = spack.install_test.TestSuite([spec], name)
     suite.ensure_stage()
     spack.install_test.write_test_suite_file(suite)
@@ -255,7 +255,7 @@ def test_test_results_none(mock_packages, mock_test_stage):
 def test_test_results_status(mock_packages, mock_test_stage, status):
     """Confirm 'spack test results' returns expected status."""
     name = "trivial"
-    spec = spack.spec.Spec("trivial-smoke-test").concretized()
+    spec = spack.concretize.concretize_one("trivial-smoke-test")
     suite = spack.install_test.TestSuite([spec], name)
     suite.ensure_stage()
     spack.install_test.write_test_suite_file(suite)
@@ -278,7 +278,7 @@ def test_test_results_status(mock_packages, mock_test_stage, status):
 def test_report_filename_for_cdash(install_mockery, mock_fetch):
     """Test that the temporary file used to write Testing.xml for CDash is not the upload URL"""
     name = "trivial"
-    spec = spack.spec.Spec("trivial-smoke-test").concretized()
+    spec = spack.concretize.concretize_one("trivial-smoke-test")
     suite = spack.install_test.TestSuite([spec], name)
     suite.ensure_stage()
 

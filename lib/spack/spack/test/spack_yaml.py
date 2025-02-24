@@ -137,3 +137,19 @@ def test_round_trip_configuration(initial_content, expected_final_content, tmp_p
         expected_final_content = initial_content
 
     assert final_content.getvalue() == expected_final_content
+
+
+def test_sorted_dict():
+    assert syaml.sorted_dict(
+        {
+            "z": 0,
+            "y": [{"x": 0, "w": [2, 1, 0]}, 0],
+            "v": ({"u": 0, "t": 0, "s": 0}, 0, {"r": 0, "q": 0}),
+            "p": 0,
+        }
+    ) == {
+        "p": 0,
+        "v": ({"s": 0, "t": 0, "u": 0}, 0, {"q": 0, "r": 0}),
+        "y": [{"w": [2, 1, 0], "x": 0}, 0],
+        "z": 0,
+    }

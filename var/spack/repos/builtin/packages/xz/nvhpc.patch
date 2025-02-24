@@ -1,0 +1,12 @@
+diff -Naru xz.pristine/src/liblzma/common/common.h xz.new/src/liblzma/common/common.h
+--- xz.pristine/src/liblzma/common/common.h	2025-02-11 21:03:10.322612833 +0000
++++ xz.new/src/liblzma/common/common.h	2025-02-11 21:02:56.135613226 +0000
+@@ -93,7 +93,7 @@
+ 					LZMA_API(type) intname
+ #	else
+ #		define LZMA_SYMVER_API(extnamever, type, intname) \
+-			__asm__(".symver " #intname "," extnamever); \
++			__asm__(".symver " #intname "," extnamever "\n"); \
+ 			extern LZMA_API(type) intname
+ #	endif
+ #endif

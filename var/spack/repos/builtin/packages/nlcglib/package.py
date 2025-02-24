@@ -116,7 +116,7 @@ class Nlcglib(CMakePackage, CudaPackage, ROCmPackage):
         if "+cuda%gcc" in self.spec:
             options += [
                 self.define(
-                    "CMAKE_CXX_COMPILER", "{0}".format(self.spec["kokkos-nvcc-wrapper"].kokkos_cxx)
+                    "CMAKE_CXX_COMPILER", "{0}".format(self["kokkos-nvcc-wrapper"].kokkos_cxx)
                 )
             ]
 

@@ -110,3 +110,11 @@ def test_which(tmpdir, monkeypatch):
         exe = ex.which("spack-test-exe")
         assert exe is not None
         assert exe.path == path
+
+
+def test_construct_from_pathlib(mock_executable):
+    """Tests that we can construct an executable from a pathlib.Path object"""
+    expected = "Hello world!"
+    path = mock_executable("hello", output=f"echo {expected}\n")
+    hello = ex.Executable(path)
+    assert expected in hello(output=str)

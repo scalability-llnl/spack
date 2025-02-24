@@ -6,6 +6,7 @@ import os
 
 import pytest
 
+import spack.concretize
 from spack.directory_layout import DirectoryLayout
 from spack.filesystem_view import SimpleFilesystemView, YamlFilesystemView
 from spack.installer import PackageInstaller
@@ -16,7 +17,7 @@ def test_remove_extensions_ordered(install_mockery, mock_fetch, tmpdir):
     view_dir = str(tmpdir.join("view"))
     layout = DirectoryLayout(view_dir)
     view = YamlFilesystemView(view_dir, layout)
-    e2 = Spec("extension2").concretized()
+    e2 = spack.concretize.concretize_one("extension2")
     PackageInstaller([e2.package], explicit=True).install()
     view.add_specs(e2)
 
@@ -34,8 +35,8 @@ def test_view_with_spec_not_contributing_files(mock_packages, tmpdir):
 
     a = Spec("pkg-a")
     b = Spec("pkg-b")
-    a.prefix = os.path.join(tmpdir, "a")
-    b.prefix = os.path.join(tmpdir, "b")
+    a.set_prefix(os.path.join(tmpdir, "a"))
+    b.set_prefix(os.path.join(tmpdir, "b"))
     a._mark_concrete()
     b._mark_concrete()
 

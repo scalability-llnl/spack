@@ -275,7 +275,7 @@ def _do_fake_install(pkg: "spack.package_base.PackageBase") -> None:
     fs.mkdirp(pkg.prefix.bin)
     fs.touch(os.path.join(pkg.prefix.bin, command))
     if sys.platform != "win32":
-        chmod = which("chmod")
+        chmod = which("chmod", required=True)
         chmod("+x", os.path.join(pkg.prefix.bin, command))
 
     # Install fake header file
@@ -814,7 +814,7 @@ class BuildRequest:
         # Include build dependencies if pkg is going to be built from sources, or
         # if build deps are explicitly requested.
         if include_build_deps or not (
-            cache_only or pkg.spec.installed and not pkg.spec.dag_hash() in self.overwrite
+            cache_only or pkg.spec.installed and pkg.spec.dag_hash() not in self.overwrite
         ):
             depflag |= dt.BUILD
         if self.run_tests(pkg):
@@ -2436,11 +2436,7 @@ class BuildProcessInstaller:
                     # DEBUGGING TIP - to debug this section, insert an IPython
                     # embed here, and run the sections below without log capture
                     log_contextmanager = log_output(
-                        log_file,
-                        self.echo,
-                        True,
-                        env=self.unmodified_env,
-                        filter_fn=self.filter_fn,
+                        log_file, self.echo, True, filter_fn=self.filter_fn
                     )
 
                     with log_contextmanager as logger:

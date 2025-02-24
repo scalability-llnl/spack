@@ -492,7 +492,7 @@ def extend_with_additional_versions(specs, num_versions):
         mirror_specs = spack.mirrors.utils.get_all_versions(specs)
     else:
         mirror_specs = spack.mirrors.utils.get_matching_versions(specs, num_versions=num_versions)
-    mirror_specs = [x.concretized() for x in mirror_specs]
+    mirror_specs = [spack.concretize.concretize_one(x) for x in mirror_specs]
     return mirror_specs
 
 
@@ -545,7 +545,7 @@ class IncludeFilter:
         package does not explicitly forbid redistributing source."""
         if self.private:
             return True
-        elif x.package_class.redistribute_source(x):
+        elif spack.repo.PATH.get_pkg_class(x.fullname).redistribute_source(x):
             return True
         else:
             tty.debug(

@@ -179,7 +179,7 @@ class Abinit(AutotoolsPackage):
             if spec.satisfies("@:8"):
                 oapp("--with-dft-flavor=atompaw+libxc")
             else:
-                "--without-wannier90",
+                oapp("--without-wannier90")
 
         if spec.satisfies("+mpi"):
             oapp(f"CC={spec['mpi'].mpicc}")

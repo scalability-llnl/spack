@@ -9,6 +9,7 @@ import pytest
 
 import spack.hooks.cache_shell_script as shell_script
 import spack.spec
+import spack.concretize
 import spack.user_environment as uenv
 from spack.main import SpackCommand
 
@@ -23,7 +24,7 @@ def test_load_recursive(install_mockery, mock_fetch, mock_archive, mock_packages
         """Test that `spack load` applies prefix inspections of its required runtime deps in
         topo-order"""
         install("mpileaks")
-        mpileaks_spec = spack.spec.Spec("mpileaks").concretized()
+        mpileaks_spec = spack.concretize.concretize_one("mpileaks")
 
         # Ensure our reference variable is clean.
         os.environ["CMAKE_PREFIX_PATH"] = "/hello" + os.pathsep + "/world"
@@ -60,7 +61,9 @@ def test_load_recursive(install_mockery, mock_fetch, mock_archive, mock_packages
 
         # Finally, do we list them in topo order?
         for i, pkg in enumerate(pkgs):
-            set(s.name for s in mpileaks_spec[pkg].traverse(direction="parents")) in set(pkgs[:i])
+            assert {s.name for s in mpileaks_spec[pkg].traverse(direction="parents")}.issubset(
+                pkgs[: i + 1]
+            )
 
         # Lastly, do we keep track that mpileaks was loaded?
         assert (
@@ -153,7 +156,7 @@ def test_unload(
     """Tests that any variables set in the user environment are undone by the
     unload command"""
     install("mpileaks")
-    mpileaks_spec = spack.spec.Spec("mpileaks").concretized()
+    mpileaks_spec = spack.concretize.concretize_one("mpileaks")
 
     # Set so unload has something to do
     os.environ["FOOBAR"] = "mpileaks"
@@ -176,7 +179,7 @@ def test_unload_fails_no_shell(
 ):
     """Test that spack unload prints an error message without a shell."""
     install("mpileaks")
-    mpileaks_spec = spack.spec.Spec("mpileaks").concretized()
+    mpileaks_spec = spack.concretize.concretize_one("mpileaks")
     os.environ[uenv.spack_loaded_hashes_var] = mpileaks_spec.dag_hash()
 
     out = unload("mpileaks", fail_on_error=False)
