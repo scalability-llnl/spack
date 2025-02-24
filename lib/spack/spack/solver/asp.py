@@ -3820,7 +3820,7 @@ def _specs_with_commits(spec):
         version_dict = spec.package_class.versions.get(spec.version, {})
         assert version_dict.get("branch") or version_dict.get("tag")
 
-        
+
 def _inject_patches_variant(root: spack.spec.Spec) -> None:
     # This dictionary will store object IDs rather than Specs as keys
     # since the Spec __hash__ will change as patches are added to them
