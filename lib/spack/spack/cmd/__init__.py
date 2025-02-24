@@ -585,6 +585,25 @@ def is_git_repo(path):
     return False
 
 
+def test_settings(test_opt, roots):
+    if test_opt == "all":
+        return True
+
+    tests = python_list()
+    if test_opt == "root":
+        tests += [spec.name for spec in roots]
+
+    cfg_tests = python_list()
+    pkg_cfgs = spack.config.get("packages")
+    for pkg_name, pkg_cfg in pkg_cfgs.items():
+        install_args = pkg_cfg.get("install_args", {})
+        if install_args.get("test", False):
+            cfg_tests.append(pkg_name)
+    tests += cfg_tests
+
+    return tests or False
+
+
 class PythonNameError(spack.error.SpackError):
     """Exception class thrown for impermissible python names"""
 
