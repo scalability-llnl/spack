@@ -39,7 +39,8 @@ class PyDatasets(PythonPackage):
             depends_on("py-fsspec@:0.8.0", when="^python@:3.7")
             depends_on("py-huggingface-hub@:0.0")
             depends_on("py-importlib-metadata", when="^python@:3.7")
-            depends_on("py-pyarrow@1:3+parquet")
+            depends_on("py-pyarrow@1:3")
+            depends_on("arrow+parquet")
             depends_on("py-tqdm@4.27:4.49")
         with when("@2.8.0"):
             depends_on("py-responses@:0.18")
@@ -49,7 +50,8 @@ class PyDatasets(PythonPackage):
             depends_on("py-dill@:0.3.6")
             depends_on("py-fsspec@2021.11.1:+http")
             depends_on("py-huggingface-hub@0.2:0")
-            depends_on("py-pyarrow@6:+parquet")
+            depends_on("py-pyarrow@6:")
+            depends_on("arrow+parquet")
             depends_on("py-tqdm@4.62.1:")
             depends_on("python@3.7:")
         with when("@2.20.0:"):
@@ -57,7 +59,8 @@ class PyDatasets(PythonPackage):
             depends_on("py-dill@0.3.0:0.3.8")  # temporary upper bound
             depends_on("py-fsspec@2023.1.0:2024.5.0+http")
             depends_on("py-huggingface-hub@0.21.2:")
-            depends_on("py-pyarrow@15:+parquet+dataset")
+            depends_on("py-pyarrow@15:")
+            depends_on("arrow+parquet+dataset")
             depends_on("py-requests@2.32.2:")
             depends_on("py-tqdm@4.66.3:")
             depends_on("python@3.8:")
