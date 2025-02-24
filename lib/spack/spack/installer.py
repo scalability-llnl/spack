@@ -37,6 +37,7 @@ import sys
 import time
 from collections import defaultdict
 from gzip import GzipFile
+from pathlib import Path, PurePath
 from typing import Dict, Iterator, List, Optional, Set, Tuple, Union
 
 import llnl.util.filesystem as fs
@@ -272,20 +273,23 @@ def _do_fake_install(pkg: "spack.package_base.PackageBase") -> None:
     dso_suffix = ".dylib" if sys.platform == "darwin" else plat_shared
 
     # Install fake command
-    fs.mkdirp(pkg.prefix.bin)
-    fs.touch(os.path.join(pkg.prefix.bin, command))
+    prefix_bin = Path(pkg.prefix.bin)
+    fs.mkdirp(prefix_bin)
+    fs.touch(prefix_bin / command)
     if sys.platform != "win32":
         chmod = which("chmod", required=True)
-        chmod("+x", os.path.join(pkg.prefix.bin, command))
+        chmod("+x", str(prefix_bin / command))
 
     # Install fake header file
-    fs.mkdirp(pkg.prefix.include)
-    fs.touch(os.path.join(pkg.prefix.include, header + ".h"))
+    prefix_include = Path(pkg.prefix.include)
+    fs.mkdirp(prefix_include)
+    fs.touch(prefix_include / (header + ".h"))
 
     # Install fake shared and static libraries
-    fs.mkdirp(pkg.prefix.lib)
+    prefix_lib = Path(pkg.prefix.lib)
+    fs.mkdirp(prefix_lib)
     for suffix in [dso_suffix, plat_static]:
-        fs.touch(os.path.join(pkg.prefix.lib, library + suffix))
+        fs.touch(prefix_lib / (library + suffix))
 
     # Install fake man page
     fs.mkdirp(pkg.prefix.man.man1)
@@ -533,6 +537,7 @@ def dump_packages(spec: "spack.spec.Spec", path: str) -> None:
         spec: the Spack spec whose package information is to be dumped
         path: the path to the build packages directory
     """
+    path = Path(path)
     fs.mkdirp(path)
 
     # Copy in package.py files from any dependencies.
@@ -544,7 +549,7 @@ def dump_packages(spec: "spack.spec.Spec", path: str) -> None:
             # Locate the dependency package in the install tree and find
             # its provenance information.
             source = spack.store.STORE.layout.build_packages_path(node)
-            source_repo_root = os.path.join(source, node.namespace)
+            source_repo_root = source / node.namespace
 
             # If there's no provenance installed for the package, skip it.
             # If it's external, skip it because it either:
@@ -553,7 +558,7 @@ def dump_packages(spec: "spack.spec.Spec", path: str) -> None:
             # (currently) use Spack metadata to associate repos with externals
             # built by other Spack instances.
             # Spack can always get something current from the builtin repo.
-            if node.external or not os.path.isdir(source_repo_root):
+            if node.external or not source_repo_root.is_dir():
                 continue
 
             # Create a source repo and get the pkg directory out of it.
@@ -566,8 +571,8 @@ def dump_packages(spec: "spack.spec.Spec", path: str) -> None:
                 tty.warn(f"Warning: Couldn't copy in provenance for {node.name}")
 
         # Create a destination repository
-        dest_repo_root = os.path.join(path, node.namespace)
-        if not os.path.exists(dest_repo_root):
+        dest_repo_root = path / node.namespace
+        if not dest_repo_root.exists():
             spack.repo.create_repo(dest_repo_root)
         repo = spack.repo.from_path(dest_repo_root)
 
@@ -645,7 +650,7 @@ def log(pkg: "spack.package_base.PackageBase") -> None:
         # FIXME : this potentially catches too many things...
         tty.debug(e)
 
-    archive_install_logs(pkg, os.path.dirname(packages_dir))
+    archive_install_logs(pkg, str(packages_dir.parent))
 
     # Archive the environment modifications for the build.
     fs.install(pkg.env_mods_path, pkg.install_env_path)
@@ -657,9 +662,7 @@ def log(pkg: "spack.package_base.PackageBase") -> None:
     # Finally, archive files that are specific to each package
     with fs.working_dir(pkg.stage.path):
         errors = io.StringIO()
-        target_dir = os.path.join(
-            spack.store.STORE.layout.metadata_path(pkg.spec), "archived-files"
-        )
+        target_dir = Path(spack.store.STORE.layout.metadata_path(pkg.spec), "archived-files")
 
         for glob_expr in spack.builder.create(pkg).archive_files:
             # Check that we are trying to copy things that are
@@ -675,10 +678,10 @@ def log(pkg: "spack.package_base.PackageBase") -> None:
             files = glob.glob(glob_expr)
             for f in files:
                 try:
-                    target = os.path.join(target_dir, f)
+                    target = target_dir / f
                     # We must ensure that the directory exists before
                     # copying a file in
-                    fs.mkdirp(os.path.dirname(target))
+                    fs.mkdirp(target.parent)
                     fs.install(f, target)
                 except Exception as e:
                     tty.debug(e)
@@ -689,7 +692,7 @@ def log(pkg: "spack.package_base.PackageBase") -> None:
                     errors.write(f"[FAILED TO ARCHIVE]: {f}")
 
         if errors.getvalue():
-            error_file = os.path.join(target_dir, "errors.txt")
+            error_file = target_dir / "errors.txt"
             fs.mkdirp(target_dir)
             with open(error_file, "w", encoding="utf-8") as err:
                 err.write(errors.getvalue())
@@ -1065,7 +1068,8 @@ class Task:
             pkg: the package to be built and installed
         """
         # Move to a module level method.
-        if not os.path.exists(pkg.spec.prefix):
+        prefix = Path(pkg.spec.prefix)
+        if not prefix.exists():
             path = spack.util.path.debug_padded_filter(pkg.spec.prefix)
             tty.debug(f"Creating the installation directory {path}")
             spack.store.STORE.layout.create_install_directory(pkg.spec)
@@ -1490,7 +1494,8 @@ class PackageInstaller:
 
             # Make sure the installation directory is in the desired state
             # for uninstalled specs.
-            if os.path.isdir(task.pkg.spec.prefix):
+            task_prefix = Path(task.pkg.spec.prefix)
+            if task_prefix.is_dir():
                 if not keep_prefix:
                     task.pkg.remove_prefix()
                 else:
@@ -2003,7 +2008,8 @@ class PackageInstaller:
 
         # If the install prefix is missing, warn about it, and proceed with
         # normal install.
-        if not os.path.exists(task.pkg.prefix):
+        task_prefix = Path(task.pkg.prefix)
+        if not task_prefix.exists():
             tty.debug("Missing installation to overwrite")
             return InstallAction.INSTALL
 
@@ -2385,10 +2391,10 @@ class BuildProcessInstaller:
     def _install_source(self) -> None:
         """Install source code from stage into share/pkg/src if necessary."""
         pkg = self.pkg
-        if not os.path.isdir(pkg.stage.source_path):
+        if not Path(pkg.stage.source_path).is_dir():
             return
 
-        src_target = os.path.join(pkg.spec.prefix, "share", pkg.name, "src")
+        src_target = Path(pkg.spec.prefix, "share", pkg.name, "src")
         tty.debug(f"{self.pre} Copying source to {src_target}")
 
         fs.install_tree(pkg.stage.source_path, src_target)
@@ -2426,11 +2432,11 @@ class BuildProcessInstaller:
             # Spawn a daemon that reads from a pipe and redirects
             # everything to log_path, and provide the phase for logging
             builder = spack.builder.create(pkg)
+            log_dir = PurePath(pkg.log_path).parent
             for i, phase_fn in enumerate(builder):
                 # Keep a log file for each phase
-                log_dir = os.path.dirname(pkg.log_path)
                 log_file = "spack-build-%02d-%s-out.txt" % (i + 1, phase_fn.name.lower())
-                log_file = os.path.join(log_dir, log_file)
+                log_file = os.fspath(log_dir / log_file)
 
                 try:
                     # DEBUGGING TIP - to debug this section, insert an IPython
@@ -2510,8 +2516,8 @@ def deprecate(spec: "spack.spec.Spec", deprecator: "spack.spec.Spec", link_fn) -
         specfile = spack.store.STORE.layout.spec_file_path(spec)
 
     # copy spec metadata to "deprecated" dir of deprecator
-    depr_specfile = spack.store.STORE.layout.deprecated_file_path(spec, deprecator)
-    fs.mkdirp(os.path.dirname(depr_specfile))
+    depr_specfile = Path(spack.store.STORE.layout.deprecated_file_path(spec, deprecator))
+    fs.mkdirp(depr_specfile.parent)
     shutil.copy2(specfile, depr_specfile)
 
     # Any specs deprecated in favor of this spec are re-deprecated in favor of its new deprecator
