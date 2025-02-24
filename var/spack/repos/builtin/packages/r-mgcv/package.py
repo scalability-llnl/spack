@@ -41,3 +41,4 @@ class RMgcv(RPackage):
     depends_on("r@3.6.0:", type=("build", "run"), when="@1.8.34:")
     depends_on("r-nlme@3.1-64:", type=("build", "run"))
     depends_on("r-matrix", type=("build", "run"))
+    depends_on("gettext")

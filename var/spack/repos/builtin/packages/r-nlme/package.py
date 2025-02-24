@@ -34,3 +34,6 @@ class RNlme(RPackage):
     depends_on("r@3.4.0:", type=("build", "run"), when="@3.1-135.5:")
     depends_on("r@3.6.0:", type=("build", "run"), when="@3.1-165:")
     depends_on("r-lattice", type=("build", "run"))
+
+    # looks for libintl.h directly
+    depends_on("gettext")
