@@ -441,11 +441,14 @@ class Root(CMakePackage):
     conflicts("%intel")
 
     # ROOT <6.08 was incompatible with the GCC 5+ ABI
-    conflicts("%gcc@5.0.0:", when="@:6.07")
+    conflicts("%gcc@5:", when="@:6.07")
 
     # The version of Clang featured in ROOT <6.12 fails to build with
     # GCC 9.2.1, which we can safely extrapolate to the GCC 9 series.
-    conflicts("%gcc@9.0.0:", when="@:6.11")
+    conflicts("%gcc@9:", when="@:6.11")
+
+    # GCC 15 support was added in 6.34.04
+    conflicts("%gcc@15:", when="@:6.34.02")
 
     # See https://github.com/root-project/root/issues/9297
     conflicts("target=ppc64le:", when="@:6.24")
