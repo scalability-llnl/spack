@@ -829,8 +829,7 @@ class Unparser:
         # Special case: 3.__abs__() is a syntax error, so if node.value
         # is an integer literal then we need to either parenthesize
         # it or add an extra space to get 3 .__abs__().
-        num_type = getattr(ast, "Constant", getattr(ast, "Num", None))
-        if isinstance(node.value, num_type) and isinstance(node.value.n, int):
+        if isinstance(node.value, (ast.Constant, ast.Num)) and isinstance(node.value.n, int):
             self.write(" ")
         self.write(".")
         self.write(node.attr)
