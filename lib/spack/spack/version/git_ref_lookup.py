@@ -10,6 +10,7 @@ from typing import Dict, Optional, Tuple
 from llnl.util.filesystem import mkdirp, working_dir
 
 import spack.caches
+import spack.error
 import spack.fetch_strategy
 import spack.paths
 import spack.repo
@@ -78,7 +79,7 @@ class GitRefLookup(AbstractRefLookup):
             try:
                 pkg = spack.repo.PATH.get_pkg_class(self.pkg_name)
                 pkg.git
-            except (spack.repo.RepoError, AttributeError) as e:
+            except (spack.error.RepoError, AttributeError) as e:
                 raise VersionLookupError(f"Couldn't get the git repo for {self.pkg_name}") from e
             self._pkg = pkg
         return self._pkg
