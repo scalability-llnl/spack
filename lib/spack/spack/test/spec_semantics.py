@@ -27,6 +27,7 @@ from spack.spec import (
     SpecFormatStringError,
     UnsupportedCompilerError,
 )
+from spack.test.conftest import create_test_repo
 from spack.variant import (
     InvalidVariantValueError,
     MultipleValuesInExclusiveVariantError,
@@ -1962,6 +1963,71 @@ def test_edge_equality_does_not_depend_on_virtual_order():
     assert edge1 == edge2
     assert tuple(sorted(edge1.virtuals)) == edge1.virtuals
     assert tuple(sorted(edge2.virtuals)) == edge1.virtuals
+
+
+_p1 = (
+    "p1",
+    """\
+class P1(Package):
+    version("1.0")
+
+    depends_on("v1")
+""",
+)
+
+_i1 = (
+    "i1",
+    """\
+class I1(Package):
+    version("1.0")
+
+    provides("v1")
+
+    depends_on("p2")
+
+    @property
+    def v1_libs(self):
+        return LibraryList(["/t1/a.so", "/t1/b.so"])
+""",
+)
+
+_p2 = (
+    "p2",
+    """\
+class P2(Package):
+    version("1.0")
+""",
+)
+
+
+@pytest.fixture
+def _repo_virtual_libs_access(tmpdir, mutable_config):
+    """
+    p1
+    |
+    i1 (provides v1)
+    |
+    p2
+    """
+    yield create_test_repo(tmpdir, [_p1, _i1, _p2])
+
+
+# TODO: do we have a fixture to clear the provider cache etc. when
+# using these temporary repos?
+@pytest.fixture
+def use_repo_virtual_libs_access(_repo_virtual_libs_access, monkeypatch, mock_stage):
+    with spack.repo.use_repositories(_repo_virtual_libs_access) as mock_repo_path:
+        yield mock_repo_path
+
+
+def test_virtual_lib_access(use_repo_virtual_libs_access):
+    p1 = spack.spec.Spec("p1").concretized()
+
+    l1 = p1["v1"].libs
+    assert "/t1/a.so" in l1
+
+    l2 = p1["i1"].libs
+    assert "/t1/a.so" in l2
 
 
 def test_old_format_strings_trigger_error(default_mock_concretization):

@@ -1184,6 +1184,19 @@ def _libs_default_handler(spec: "Spec"):
     name = spec.name.replace("-", "?")
     home = getattr(spec.package, "home")
 
+    provided = spec.package.virtuals_provided
+    if provided:
+        v_libs = []
+        for v in provided:
+            vlibs_accessor = f"{v}_libs"
+            if hasattr(spec.package, vlibs_accessor):
+                v_libs.append(vlibs_accessor)
+        if v_libs:
+            aggregate_libs = getattr(spec.package, v_libs[0])
+            for vlibs_accessor in v_libs[1:]:
+                aggregate_libs += getattr(spec.package, vlibs_accessor)
+            return aggregate_libs
+
     # Avoid double 'lib' for packages whose names already start with lib
     if not name.startswith("lib") and not spec.satisfies("platform=windows"):
         name = "lib" + name
