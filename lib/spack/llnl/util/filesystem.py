@@ -597,21 +597,38 @@ def group_ids(uid=None):
 
 
 @system_path_filter(arg_slice=slice(1))
-def chgrp(path, group, follow_symlinks=True):
+def chgrp(
+    path,
+    group,
+    follow_symlinks=True,
+    _stat=None,
+    _lstat=None,
+    _chown=None,
+    _lchown=None,
+    _getgrnam=None,
+):
     """Implement the bash chgrp function on a single path"""
     if sys.platform == "win32":
         raise OSError("Function 'chgrp' is not supported on Windows")
 
+    stat = _stat or os.stat
+    lstat = _lstat or os.lstat
+    chown = _chown or os.chown
+    lchown = _lchown or os.lchown
+    getgrnam = _getgrnam or grp.getgrnam
+
     if isinstance(group, str):
-        gid = grp.getgrnam(group).gr_gid
+        gid = getgrnam(group).gr_gid
     else:
         gid = group
-    if os.stat(path).st_gid == gid:
+    if follow_symlinks and stat(path).st_gid == gid:
+        return
+    elif (not follow_symlinks) and lstat(path).st_gid == gid:
         return
     if follow_symlinks:
-        os.chown(path, -1, gid)
+        chown(path, -1, gid)
     else:
-        os.lchown(path, -1, gid)
+        lchown(path, -1, gid)
 
 
 @system_path_filter(arg_slice=slice(1))
