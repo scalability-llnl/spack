@@ -10,7 +10,7 @@ class Prometheus(MakefilePackage):
     systems and service monitoring system."""
 
     homepage = "https://prometheus.io/"
-    url = "https://github.com/prometheus/prometheus/archive/v2.19.2.tar.gz"
+    url = "https://github.com/prometheus/prometheus/archive/v2.55.1.tar.gz"
 
     license("Apache-2.0")
 
@@ -23,10 +23,18 @@ class Prometheus(MakefilePackage):
 
     depends_on("c", type="build")  # generated
 
-    depends_on("go", type="build")
+    depends_on("go@1.17:", type="build", when="@2.37.0:")
+    depends_on("go@1.16:", type="build", when="@2.33.0:")
+    depends_on("go@1.14:", type="build", when="@2.23.0:")
+    depends_on("go@1.13:", type="build", when="@2.17.0:")
+
+    depends_on("node-js@16:", type="build", when="@2.31.0")
     depends_on("node-js@11.10.1:", type="build")
-    depends_on("yarn", type="build")
-    depends_on("npm", type="build", when="@2.55.1:")
+
+    depends_on("npm@7:", type="build", when="@2.31.0:")
+    depends_on("npm", type="build", when="@2.30.0:")
+    depends_on("yarn@1", type="build", when="@:2.29.2")
+
 
     def build(self, spec, prefix):
         make("build", parallel=False)
