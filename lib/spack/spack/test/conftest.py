@@ -72,8 +72,8 @@ import spack.version
 from spack.fetch_strategy import URLFetchStrategy
 from spack.installer import PackageInstaller
 from spack.main import SpackCommand
-from spack.util.remote_file_cache import raw_github_gitlab_url
 from spack.util.pattern import Bunch
+from spack.util.remote_file_cache import raw_github_gitlab_url
 
 from ..enums import ConfigScopePriority
 
