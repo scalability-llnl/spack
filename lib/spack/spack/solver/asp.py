@@ -4104,36 +4104,30 @@ class Solver:
         self.selector = ReusableSpecsSelector(configuration=spack.config.CONFIG)
 
     @staticmethod
-    def _check_input_and_extract_concrete_specs(specs):
-        reusable = []
+    def _check_input_and_extract_concrete_specs(
+        specs: List[spack.spec.Spec],
+    ) -> List[spack.spec.Spec]:
+        reusable: List[spack.spec.Spec] = []
+        analyzer = create_graph_analyzer()
         for root in specs:
             for s in root.traverse():
-                candidates = s.edges_to_dependencies(depflag=dt.BUILD)
-                if candidates:
-                    non_virtuals, virtuals, _ = create_graph_analyzer().possible_dependencies(
-                        s, transitive=False, allowed_deps=dt.LINK | dt.RUN | dt.BUILD
-                    )
-                    possible_direct_deps = set(non_virtuals) | virtuals
-                    not_possible = set(
-                        [
-                            x.spec.name
-                            for x in candidates
-                            if x.direct and x.spec.name not in possible_direct_deps
-                        ]
-                    )
-                    if not_possible:
-                        start_str = f"'{s}' in '{root}'"
-                        if s == root:
-                            start_str = f"'{root}'"
-                        raise UnsatisfiableSpecError(
-                            f"{start_str} cannot have a dependency on {', '.join(not_possible)}, "
-                            f"according to its recipe"
-                        )
-
                 if s.concrete:
                     reusable.append(s)
-                elif spack.repo.PATH.is_virtual(s.name):
-                    continue
+                else:
+                    if spack.repo.PATH.is_virtual(s.name):
+                        continue
+                    # Error if direct dependencies cannot be satisfied
+                    deps = {edge.spec.name for edge in s.edges_to_dependencies() if edge.direct}
+                    if deps:
+                        graph = analyzer.possible_dependencies(
+                            s, allowed_deps=dt.ALL, transitive=False
+                        )
+                        deps.difference_update(graph.real_pkgs, graph.virtuals)
+                        if deps:
+                            start_str = f"'{root}'" if s == root else f"'{s}' in '{root}'"
+                            raise UnsatisfiableSpecError(
+                                f"{start_str} cannot depend on {', '.join(deps)}"
+                            )
 
                 try:
                     spack.repo.PATH.get_pkg_class(s.fullname)
