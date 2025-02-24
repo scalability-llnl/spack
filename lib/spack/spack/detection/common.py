@@ -224,6 +224,7 @@ def update_configuration(
             pkg_config["buildable"] = False
         pkg_to_cfg[package_name] = pkg_config
 
+    scope = scope or spack.config.default_modify_scope()
     pkgs_cfg = spack.config.get("packages", scope=scope)
     pkgs_cfg = spack.schema.merge_yaml(pkgs_cfg, pkg_to_cfg)
     spack.config.set("packages", pkgs_cfg, scope=scope)

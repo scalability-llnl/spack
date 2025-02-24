@@ -22,6 +22,9 @@ class Cmake(Package):
 
     tags = ["build-tools"]
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     version(
         "3.23.1",
         md5="4cb3ff35b2472aae70f542116d616e63",

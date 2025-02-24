@@ -34,11 +34,7 @@ def test_yaml_directory_layout_parameters(tmpdir, default_mock_concretization):
     layout_default = DirectoryLayout(str(tmpdir))
     path_default = layout_default.relative_path_for_spec(spec)
     assert path_default == str(
-        Path(
-            spec.format(
-                "{architecture}/" "{compiler.name}-{compiler.version}/" "{name}-{version}-{hash}"
-            )
-        )
+        Path(spec.format("{architecture.platform}-{architecture.target}/{name}-{version}-{hash}"))
     )
 
     # Test hash_length parameter works correctly
@@ -51,7 +47,7 @@ def test_yaml_directory_layout_parameters(tmpdir, default_mock_concretization):
     assert len(path_default) - len(path_7) == 25
 
     # Test path_scheme
-    arch, compiler, package7 = path_7.split(os.sep)
+    arch, package7 = path_7.split(os.sep)
     projections_package7 = {"all": "{name}-{version}-{hash:7}"}
     layout_package7 = DirectoryLayout(str(tmpdir), projections=projections_package7)
     path_package7 = layout_package7.relative_path_for_spec(spec)

@@ -27,8 +27,6 @@ class GccRuntime(Package):
 
     license("GPL-3.0-or-later WITH GCC-exception-3.1")
 
-    requires("%gcc")
-
     LIBRARIES = [
         "asan",
         "atomic",
@@ -47,15 +45,18 @@ class GccRuntime(Package):
 
     # libgfortran ABI
     provides("fortran-rt", "libgfortran")
-    provides("libgfortran@3", when="%gcc@:6")
-    provides("libgfortran@4", when="%gcc@7")
-    provides("libgfortran@5", when="%gcc@8:")
+    provides("libgfortran@3", when="@:6")
+    provides("libgfortran@4", when="@7")
+    provides("libgfortran@5", when="@8:")
 
     depends_on("libc", type="link", when="platform=linux")
 
+    depends_on("gcc", type="build")
+
     def install(self, spec, prefix):
+        gcc_pkg = self["gcc"]
         if spec.platform in ["linux", "freebsd"]:
-            libraries = get_elf_libraries(compiler=self.compiler, libraries=self.LIBRARIES)
+            libraries = get_elf_libraries(compiler=gcc_pkg, libraries=self.LIBRARIES)
         elif spec.platform == "darwin":
             libraries = self._get_libraries_macho()
         else:
@@ -75,9 +76,8 @@ class GccRuntime(Package):
 
     def _get_libraries_macho(self):
         """Same as _get_libraries_elf but for Mach-O binaries"""
-        cc = Executable(self.compiler.cc)
+        cc = self._get_compiler()
         path_and_install_name = []
-
         for name in self.LIBRARIES:
             if name == "gcc_s":
                 # On darwin, libgcc_s is versioned and can't be linked as -lgcc_s,
@@ -114,6 +114,23 @@ class GccRuntime(Package):
             path_and_install_name.append((runtime_path, dylib_name))
 
         return path_and_install_name
+
+    def _get_compiler(self):
+        gcc_pkg = self["gcc"]
+        exe_path = None
+        for attr_name in ("cc", "cxx", "fortran"):
+            try:
+                exe_path = getattr(gcc_pkg, attr_name)
+            except AttributeError:
+                pass
+
+            if not exe_path:
+                continue
+            cc = Executable(exe_path)
+            break
+        else:
+            raise InstallError(f"cannot find any compiler for {gcc_pkg.spec}")
+        return cc
 
     @property
     def libs(self):

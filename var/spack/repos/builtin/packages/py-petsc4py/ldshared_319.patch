@@ -1,0 +1,12 @@
+diff --unified --recursive --no-dereference spack-src1/conf/confpetsc.py spack-src2/conf/confpetsc.py
+--- spack-src1/conf/confpetsc.py	2025-02-17 13:02:08.781676798 +0100
++++ spack-src2/conf/confpetsc.py	2025-02-17 13:03:13.024625112 +0100
+@@ -350,7 +350,7 @@
+         ldshared = [
+             flg
+             for flg in split_quoted(ldshared)
+-            if flg not in ldcmd and (flg.find('/lib/spack/env') < 0)
++            if flg not in ldcmd and (flg.find('/libexec/spack/') < 0)
+         ]
+         ldshared = str.join(' ', ldshared)
+ 

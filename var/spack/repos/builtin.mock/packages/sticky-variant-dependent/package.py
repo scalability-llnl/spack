@@ -14,3 +14,5 @@ class StickyVariantDependent(AutotoolsPackage):
 
     depends_on("sticky-variant")
     conflicts("%gcc", when="^sticky-variant~allow-gcc")
+
+    depends_on("c", type="build")

@@ -330,7 +330,7 @@ that ``--tests`` is passed to ``spack ci rebuild`` as part of the
           - spack --version
           - cd ${SPACK_CONCRETE_ENV_DIR}
           - spack env activate --without-view .
-          - spack config add "config:install_tree:projections:${SPACK_JOB_SPEC_PKG_NAME}:'morepadding/{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'"
+          - spack config add "config:install_tree:projections:${SPACK_JOB_SPEC_PKG_NAME}:'morepadding/{architecture.platform}-{architecture.target}/{name}-{version}-{hash}'"
            - mkdir -p ${SPACK_ARTIFACTS_ROOT}/user_data
            - if [[ -r /mnt/key/intermediate_ci_signing_key.gpg ]]; then spack gpg trust /mnt/key/intermediate_ci_signing_key.gpg; fi
            - if [[ -r /mnt/key/spack_public_key.gpg ]]; then spack gpg trust /mnt/key/spack_public_key.gpg; fi

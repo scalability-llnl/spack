@@ -5,6 +5,7 @@ spack:
   view: false
 
   concretizer:
+    static_analysis: true
     reuse: false
     unify: false
 
@@ -14,15 +15,34 @@ spack:
 
   packages:
     all:
-      require: "%cce@18.0.0 target=x86_64_v3"
-      compiler: [cce]
+      require:
+      - target=x86_64_v3
+      - "%cce"
       providers:
         blas: [cray-libsci]
+        c: [cce]
+        cxx: [cce]
+        fortran: [cce]
         lapack: [cray-libsci]
         mpi: [cray-mpich]
         tbb: [intel-tbb]
         scalapack: [netlib-scalapack]
       variants: +mpi
+
+    # Virtuals
+    blas:
+      require:
+      - cray-libsci
+    lapack:
+      require:
+      - cray-libsci
+    mpi:
+      require:
+      - cray-mpich
+    scalapack:
+      require:
+      - netlib-scalapack
+
     ncurses:
       require: +termlib ldflags=-Wl,--undefined-version
     tbb:
@@ -33,21 +53,28 @@ spack:
       variants: +python +filesystem +iostreams +system
     elfutils:
       variants: ~nls
-      require: "%gcc"
+      require:
+      - target=x86_64_v3
+      - "%gcc"
     gcc-runtime:
-      require: "%gcc"
+      require:
+      - target=x86_64_v3
+      - "%gcc"
     hdf5:
       variants: +fortran +hl +shared
     libfabric:
       variants: fabrics=sockets,tcp,udp,rxm
     mgard:
       require:
+        - target=x86_64_v3
         - "@2023-01-10:"
     mpich:
       variants: ~wrapperrpath
     paraview:
       # Don't build GUI support or GLX rendering for HPC/container deployments
-      require: "~qt ^[virtuals=gl] osmesa"
+      require:
+      - "~qt ^[virtuals=gl] osmesa"
+      - target=x86_64_v3
     trilinos:
       require:
       - one_of: [+amesos +amesos2 +anasazi +aztec +boost +epetra +epetraext +ifpack
@@ -58,6 +85,7 @@ spack:
       - one_of: [~ml ~muelu ~zoltan2 ~teko, +ml +muelu +zoltan2 +teko]
       - one_of: [+superlu-dist, ~superlu-dist]
       - one_of: [+shylu, ~shylu]
+      - target=x86_64_v3
 
   specs:
   # CPU
@@ -140,8 +168,8 @@ spack:
   # - gptune              # py-scipy: meson.build:82:0: ERROR: Unknown compiler(s): [['/home/gitlab-runner-3/builds/dWfnZWPh/0/spack/spack/lib/spack/env/cce/ftn']]
   # - hpctoolkit          # dyninst requires %gcc
   # - hpx max_cpu_count=512 networking=mpi  # libxcrypt-4.4.35
-  # - lammps              # lammps-20240829.1: Reversed (or previously applied) patch detected!  Assume -R? [n] 
-  # - libpressio +bitgrooming +bzip2 ~cuda ~cusz +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp +json +remote +netcdf +mgard # mgard: 
+  # - lammps              # lammps-20240829.1: Reversed (or previously applied) patch detected!  Assume -R? [n]
+  # - libpressio +bitgrooming +bzip2 ~cuda ~cusz +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp +json +remote +netcdf +mgard # mgard:
   # - mgard +serial +openmp +timing +unstructured ~cuda # mgard
   # - nrm                 # py-scipy: meson.build:82:0: ERROR: Unknown compiler(s): [['/home/gitlab-runner-3/builds/dWfnZWPh/0/spack/spack/lib/spack/env/cce/ftn']]
   # - nvhpc               # requires %gcc
