@@ -18,7 +18,7 @@ class Survey(CMakePackage):
     available for tools inside current MPI implementations including:
     MPICH, MVAPICH, MPT, and OpenMPI. It also supports multiple
     architectures and has been tested on machines based on Intel,
-    AMD, ARM, and IBM P8/9 processors and integrated NVIDIA GPUs.
+    AMD, ARM, and IBM P8/9 processors and integrated AMD and NVIDIA GPUs.
 
     Survey is a licensed product with the source not openly available.
     To access the survey source and build with spack please contact:
@@ -31,8 +31,9 @@ class Survey(CMakePackage):
 
     maintainers("jgalarowicz")
 
-    version("master", branch="master")
-    version("1.0.9", branch="1.0.9")
+    version("1.1.1", branch="1.1.1")
+    version("1.1.0", tag="1.1.0")
+    version("1.0.9", tag="1.0.9")
     version("1.0.8.1", branch="1.0.8.1")
     version("1.0.8", tag="1.0.8")
     version("1.0.7", tag="1.0.7")
@@ -59,14 +60,14 @@ class Survey(CMakePackage):
     depends_on("cmake@3.12:", type="build")
 
     # for collectors
-    depends_on("libmonitor@2021.04.27+commrank", type=("build", "link", "run"), when="@:1.0.2")
-    depends_on("libmonitor@2021.11.08+commrank", type=("build", "link", "run"), when="@1.0.3:")
+    depends_on("libmonitor@2021.11.08+commrank", type=("build", "link", "run"), when="@:1.0.9")
+    depends_on("libmonitor@2023.03.15+commrank", type=("build", "link", "run"), when="@1.1.0:")
 
     depends_on("papi@5:", type=("build", "link", "run"))
     depends_on("gotcha@master", type=("build", "link"), when="@:1.0.7")
     depends_on("gotcha@1.0.4", type=("build", "link"), when="@1.0.8:")
-    depends_on("llvm-openmp@9.0.0", type=("build", "link"), when="@:1.0.2")
-    depends_on("llvm-openmp@12.0.1", type=("build", "link"), when="@1.0.3:")
+    depends_on("llvm-openmp@9.0.0", type=("build", "link"), when="@:1.0.3")
+    depends_on("llvm-openmp@12.0.1+multicompat", type=("build", "link"), when="@1.0.4:")
 
     # MPI Installation
     depends_on("mpi", type="build", when="+mpi")
@@ -88,6 +89,14 @@ class Survey(CMakePackage):
     depends_on("py-humanize", type=("build", "run"), when="@1.0.8:")
     depends_on("py-importlib-resources", type=("build", "run"), when="@1.0.8:")
     depends_on("py-gitpython", type=("build", "run"), when="@1.0.9:")
+    depends_on("py-smmap", type=("build", "run"), when="@1.0.9:")
+    depends_on("py-gitdb", type=("build", "run"), when="@1.0.9:")
+    depends_on("py-pyparsing", type=("build", "run"), when="@1.0.9:")
+    depends_on("py-markupsafe", type=("build", "run"), when="@1.0.9:")
+    depends_on("py-packaging", type=("build", "run"), when="@1.0.9:")
+    depends_on("py-pillow", type=("build", "run"), when="@1.0.9:")
+    depends_on("py-cycler", type=("build", "run"), when="@1.0.9:")
+    depends_on("py-kiwisolver", type=("build", "run"), when="@1.0.9:")
 
     extends("python")
 
@@ -131,6 +140,15 @@ class Survey(CMakePackage):
 
         return cmake_args
 
+    @property
+    def python_lib_dir(self):
+        python_vers_phrase = "python{0}".format(self.spec["python"].version.up_to(2))
+        return join_path("lib", python_vers_phrase)
+
+    @property
+    def site_packages_dir(self):
+        return join_path(self.python_lib_dir, "site-packages")
+
     def setup_run_environment(self, env):
         """Set up the compile and runtime environments for a package."""
 
@@ -144,3 +162,92 @@ class Survey(CMakePackage):
         # Add paths for sub-tools that are used by survey
         env.prepend_path("PATH", self.spec["papi"].prefix.bin)
         env.prepend_path("PATH", self.spec["libmonitor"].prefix.bin)
+
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["python"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-pandas"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-python-dateutil"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-setuptools"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-numpy"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-pytz"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-six"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-psutil"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-sqlalchemy"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-pyyaml"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-matplotlib"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-filelock"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-humanize"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH",
+            join_path(self.spec["py-importlib-resources"].prefix, self.site_packages_dir),
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-pip"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-seaborn"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-jinja2"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-more-itertools"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-versioneer"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-zipp"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-gitpython"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-smmap"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-gitdb"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-pyparsing"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-markupsafe"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-packaging"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-pillow"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-cycler"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-kiwisolver"].prefix, self.site_packages_dir)
+        )
