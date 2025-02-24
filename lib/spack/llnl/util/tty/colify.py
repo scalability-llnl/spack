@@ -138,7 +138,7 @@ def colify(
     env_size = os.environ.get("COLIFY_SIZE")
     if env_size:
         try:
-            r, c = env_size.split("x")
+            r, c = env_size.lower().split("x")
             console_rows, console_cols = int(r), int(c)
             tty = True
         except BaseException:
