@@ -960,9 +960,6 @@ if [ -n "$SPACK_CCACHE_BINARY" ]; then
     case "$lang_flags" in
         C|CXX)  # ccache only supports C languages
             prepend full_command_list "${SPACK_CCACHE_BINARY}"
-            # workaround for stage being a temp folder
-            # see #3761#issuecomment-294352232
-            export CCACHE_NOHASHDIR=yes
             ;;
     esac
 fi
