@@ -1067,13 +1067,17 @@ spack:
         assert os.path.exists(os.path.join(e2.path, f))
 
 
+# TODO: Should we be supporting relative path rewrites when creating new env from existing?
+# TODO: If so, then this should confirm that the absolute include paths in the new env exist.
 def test_init_from_yaml_relative_includes_outside_env(tmp_path):
-    files = ["../outside_env_not_copied/repos.yaml"]
+    """Ensure relative includes to files outside the environment fail."""
+    files = ["../outside_env/repos.yaml"]
 
     manifest = f"""
 spack:
   specs: []
-  include: {files}
+  include:
+  - path: {files[0]}
 """
 
     # subdir to ensure parent of environment dir is not shared
@@ -1086,7 +1090,7 @@ spack:
     for f in files:
         fs.touchp(e1_path / f)
 
-    with pytest.raises(spack.config.ConfigFileError, match="Detected 1 missing include"):
+    with pytest.raises(ValueError, match="does not exist"):
         _ = _env_create("test2", init_file=e1_manifest)
 
 
@@ -1186,14 +1190,14 @@ spack:
 
 
 def test_with_config_bad_include_create(environment_from_manifest):
-    """Confirm missing include paths raise expected exception and error."""
-    with pytest.raises(spack.config.ConfigFileError, match="2 missing include path"):
+    """Confirm missing required include raises expected exception."""
+    err = "does not exist"
+    with pytest.raises(ValueError, match=err):
         environment_from_manifest(
             """
 spack:
   include:
   - /no/such/directory
-  - no/such/file.yaml
 """
         )
 
@@ -1203,34 +1207,25 @@ def test_with_config_bad_include_activate(environment_from_manifest, tmpdir):
     include1 = env_root / "include1.yaml"
     include1.touch()
 
-    abs_include_path = os.path.abspath(tmpdir.join("subdir").ensure("include2.yaml"))
-
     spack_yaml = env_root / ev.manifest_name
     spack_yaml.write_text(
-        f"""
+        """
 spack:
   include:
   - ./include1.yaml
-  - {abs_include_path}
 """
     )
 
     with ev.Environment(env_root) as e:
         e.concretize()
 
-    # we've created an environment with some included config files (which do
-    # in fact exist): now we remove them and check that we get a sensible
-    # error message
+    # We've created an environment with included config file (which does
+    # exist). Now we remove it and check that we get a sensible error.
 
-    os.remove(abs_include_path)
     os.remove(include1)
-    with pytest.raises(spack.config.ConfigFileError) as exc:
+    with pytest.raises(ValueError, match="does not exist"):
         ev.activate(ev.Environment(env_root))
 
-    err = exc.value.message
-    assert "missing include" in err
-    assert abs_include_path in err
-    assert "include1.yaml" in err
     assert ev.active_environment() is None
 
 
@@ -1338,8 +1333,10 @@ def test_config_change_existing(mutable_mock_env_path, tmp_path, mock_packages, 
     included file scope.
     """
 
+    env_path = tmp_path / "test_config"
+    fs.mkdirp(env_path)
     included_file = "included-packages.yaml"
-    included_path = tmp_path / included_file
+    included_path = env_path / included_file
     with open(included_path, "w", encoding="utf-8") as f:
         f.write(
             """\
@@ -1355,7 +1352,7 @@ packages:
 """
         )
 
-    spack_yaml = tmp_path / ev.manifest_name
+    spack_yaml = env_path / ev.manifest_name
     spack_yaml.write_text(
         f"""\
 spack:
@@ -1369,7 +1366,8 @@ spack:
 """
     )
 
-    e = ev.Environment(tmp_path)
+    mutable_config.set("config:misc_cache", str(tmp_path / "cache"))
+    e = ev.Environment(env_path)
     with e:
         # List of requirements, flip a variant
         config("change", "packages:mpich:require:~debug")
@@ -1457,19 +1455,6 @@ def test_env_with_included_config_file_url(tmpdir, mutable_empty_config, package
 
     cfg = spack.config.get("packages")
     assert cfg["mpileaks"]["version"] == ["2.2"]
-
-
-def test_env_with_included_config_missing_file(tmpdir, mutable_empty_config):
-    """Test inclusion of a missing configuration file raises FetchError
-    noting missing file."""
-
-    spack_yaml = tmpdir.join("spack.yaml")
-    missing_file = tmpdir.join("packages.yaml")
-    with spack_yaml.open("w") as f:
-        f.write("spack:\n  include:\n    - {0}\n".format(missing_file.strpath))
-
-    with pytest.raises(spack.error.ConfigError, match="missing include path"):
-        ev.Environment(tmpdir.strpath)
 
 
 def test_env_with_included_config_scope(mutable_mock_env_path, packages_file):
@@ -1566,7 +1551,7 @@ spack:
 
 
 def test_env_with_included_configs_precedence(tmp_path):
-    """Test precendence of multiple included configuration files."""
+    """Test precedence of multiple included configuration files."""
     file1 = "high-config.yaml"
     file2 = "low-config.yaml"
 
@@ -4277,21 +4262,31 @@ def test_unify_when_possible_works_around_conflicts():
     assert len([x for x in e.all_specs() if x.satisfies("mpich")]) == 1
 
 
+# Using mock_include_cache to ensure the "remote" file is cached in a temporary
+# location and not polluting the user cache.
 def test_env_include_packages_url(
-    tmpdir, mutable_empty_config, mock_spider_configs, mock_curl_configs
+    tmpdir, mutable_empty_config, mock_fetch_url_text, mock_curl_configs, mock_include_cache
 ):
     """Test inclusion of a (GitHub) URL."""
     develop_url = "https://github.com/fake/fake/blob/develop/"
     default_packages = develop_url + "etc/fake/defaults/packages.yaml"
+    sha256 = "a422e35b3a18869d0611a4137b37314131749ecdc070a7cd7183f488da81201a"
     spack_yaml = tmpdir.join("spack.yaml")
     with spack_yaml.open("w") as f:
-        f.write("spack:\n  include:\n    - {0}\n".format(default_packages))
-    assert os.path.isfile(spack_yaml.strpath)
+        f.write(
+            f"""\
+spack:
+  include:
+  - path: {default_packages}
+    sha256: {sha256}
+"""
+        )
 
     with spack.config.override("config:url_fetch_method", "curl"):
         env = ev.Environment(tmpdir.strpath)
         ev.activate(env)
 
+        # Make sure a setting from test/data/config/packages.yaml is present
         cfg = spack.config.get("packages")
         assert "mpich" in cfg["all"]["providers"]["mpi"]
 
@@ -4360,7 +4355,7 @@ spack:
 
 
 @pytest.mark.parametrize("first", ["false", "true", "custom"])
-def test_env_include_mixed_views(tmp_path, mutable_mock_env_path, mutable_config, first):
+def test_env_include_mixed_views(tmp_path, mutable_config, mutable_mock_env_path, first):
     """Ensure including path and boolean views in different combinations result
     in the creation of only the first view if it is not disabled."""
     false_yaml = tmp_path / "false-view.yaml"

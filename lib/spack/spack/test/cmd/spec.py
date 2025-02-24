@@ -13,7 +13,10 @@ import spack.spec
 import spack.store
 from spack.main import SpackCommand, SpackCommandError
 
-pytestmark = pytest.mark.usefixtures("mutable_config", "mutable_mock_repo")
+# Unit tests should not be affected by the user's managed environments
+pytestmark = pytest.mark.usefixtures(
+    "mutable_mock_env_path", "mutable_config", "mutable_mock_repo"
+)
 
 spec = SpackCommand("spec")
 

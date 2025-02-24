@@ -200,7 +200,11 @@ else:
 @pytest.mark.requires_executables(*required_executables)
 @pytest.mark.maybeslow
 @pytest.mark.usefixtures(
-    "default_config", "cache_directory", "install_dir_default_layout", "temporary_mirror"
+    "default_config",
+    "cache_directory",
+    "install_dir_default_layout",
+    "temporary_mirror",
+    "mutable_mock_env_path",
 )
 def test_default_rpaths_create_install_default_layout(temporary_mirror_dir):
     """
@@ -272,7 +276,11 @@ def test_default_rpaths_install_nondefault_layout(temporary_mirror_dir):
 @pytest.mark.maybeslow
 @pytest.mark.nomockstage
 @pytest.mark.usefixtures(
-    "default_config", "cache_directory", "install_dir_default_layout", "temporary_mirror"
+    "default_config",
+    "cache_directory",
+    "install_dir_default_layout",
+    "temporary_mirror",
+    "mutable_mock_env_path",
 )
 def test_relative_rpaths_install_default_layout(temporary_mirror_dir):
     """
