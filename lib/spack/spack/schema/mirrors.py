@@ -34,6 +34,7 @@ connection = {
             },
         ]
     },
+    "view": {"type": ["string", "null"]},
     "profile": {"type": ["string", "null"]},
     "endpoint_url": {"type": ["string", "null"]},
     "access_token": {"type": ["string", "null"]},  # deprecated

@@ -128,8 +128,18 @@ class Mirror:
 
     @property
     def push_url(self):
-        """Get the valid, canonicalized fetch URL"""
+        """Get the valid, canonicalized push URL"""
         return self.get_url("push")
+
+    @property
+    def fetch_view(self) -> Optional[str]:
+        """Get the binary mirror view to used for fetching binaries"""
+        return self.get_view("fetch")
+
+    @property
+    def push_view(self) -> Optional[str]:
+        """Get the binary mirror view to used for pushing an index to the binary cache"""
+        return self.get_view("push")
 
     def ensure_mirror_usable(self, direction: str = "push"):
         access_pair = self._get_value("access_pair", direction)
@@ -200,6 +210,10 @@ class Mirror:
                 changed = True
         return changed
 
+    def _check_valid_direction(self, direction: str):
+        if direction not in ("fetch", "push", None):
+            raise ValueError(f"direction must be either 'fetch' or 'push', not {direction}")
+
     def update(self, data: dict, direction: Optional[str] = None) -> bool:
         """Modify the mirror with the given data. This takes care
         of expanding trivial mirror definitions by URL to something more
@@ -266,8 +280,7 @@ class Mirror:
 
     def _get_value(self, attribute: str, direction: str):
         """Returns the most specific value for a given attribute (either push/fetch or global)"""
-        if direction not in ("fetch", "push"):
-            raise ValueError(f"direction must be either 'fetch' or 'push', not {direction}")
+        self._check_valid_direction(direction)
 
         if isinstance(self._data, str):
             return None
@@ -281,9 +294,21 @@ class Mirror:
 
         return value[attribute]
 
+    def get_view(self, direction: str) -> Optional[str]:
+        self._check_valid_direction(direction)
+
+        view = None
+        direction_config = self._data
+        if isinstance(self._data, dict):
+            direction_config = self._data.get(direction, self._data)
+
+        if isinstance(direction_config, dict):
+            view = direction_config.get("view")
+
+        return view
+
     def get_url(self, direction: str) -> str:
-        if direction not in ("fetch", "push"):
-            raise ValueError(f"direction must be either 'fetch' or 'push', not {direction}")
+        self._check_valid_direction(direction)
 
         # Whole mirror config is just a url.
         if isinstance(self._data, str):
