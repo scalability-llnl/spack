@@ -940,6 +940,9 @@ class Opencv(CMakePackage, CudaPackage):
             if spec.variants["cuda_arch"].value[0] != "none":
                 cuda_arch = spec.variants["cuda_arch"].value
                 args.append(self.define("CUDA_ARCH_BIN", " ".join(cuda_arch)))
+            # https://github.com/opencv/opencv/pull/23021
+            if spec.satisfies("@4.9: ^cmake@3.18:"):
+                args.append(self.define("ENABLE_CUDA_FIRST_CLASS_LANGUAGE", True))
 
         # TODO: this CMake flag is deprecated
         if spec.target.family == "ppc64le":
