@@ -14,7 +14,7 @@ import traceback
 import typing
 import warnings
 from datetime import datetime, timedelta
-from typing import Callable, Dict, Iterable, List, Tuple, TypeVar
+from typing import Callable, Dict, Iterable, List, Mapping, Optional, Tuple, TypeVar
 
 # Ignore emacs backups when listing modules
 ignore_modules = r"^\.#|~$"
@@ -1080,3 +1080,88 @@ class DeprecatedProperty:
 
     def factory(self, instance, owner):
         raise NotImplementedError("must be implemented by derived classes")
+
+
+KT = TypeVar("KT")
+VT = TypeVar("VT")
+
+
+class PriorityOrderedMapping(Mapping[KT, VT]):
+    """Mapping that iterates over key according to an integer priority. If the priority is
+    the same for two keys, insertion order is what matters.
+
+    The priority is set when the key/value pair is added. If not set, the highest current priority
+    is used.
+    """
+
+    _data: Dict[KT, VT]
+    _priorities: List[Tuple[int, KT]]
+
+    def __init__(self) -> None:
+        self._data = {}
+        # Tuple of (priority, key)
+        self._priorities = []
+
+    def __getitem__(self, key: KT) -> VT:
+        return self._data[key]
+
+    def __len__(self) -> int:
+        return len(self._data)
+
+    def __iter__(self):
+        yield from (key for _, key in self._priorities)
+
+    def __reversed__(self):
+        yield from (key for _, key in reversed(self._priorities))
+
+    def reversed_keys(self):
+        """Iterates over keys from the highest priority, to the lowest."""
+        return reversed(self)
+
+    def reversed_values(self):
+        """Iterates over values from the highest priority, to the lowest."""
+        yield from (self._data[key] for _, key in reversed(self._priorities))
+
+    def _highest_priority(self) -> int:
+        if not self._priorities:
+            return 0
+        result, _ = self._priorities[-1]
+        return result
+
+    def add(self, key: KT, *, value: VT, priority: Optional[int] = None) -> None:
+        """Adds a key/value pair to the mapping, with a specific priority.
+
+        If the priority is None, then it is assumed to be the highest priority value currently
+        in the container.
+
+        Raises:
+              ValueError: when the same priority is already in the mapping
+        """
+        if priority is None:
+            priority = self._highest_priority()
+
+        if key in self._data:
+            self.remove(key)
+
+        self._priorities.append((priority, key))
+        # We rely on sort being stable
+        self._priorities.sort(key=lambda x: x[0])
+        self._data[key] = value
+        assert len(self._data) == len(self._priorities)
+
+    def remove(self, key: KT) -> VT:
+        """Removes a key from the mapping.
+
+        Returns:
+            The value associated with the key being removed
+
+        Raises:
+            KeyError: if the key is not in the mapping
+        """
+        if key not in self._data:
+            raise KeyError(f"cannot find {key}")
+
+        popped_item = self._data.pop(key)
+        self._priorities = [(p, k) for p, k in self._priorities if k != key]
+        assert len(self._data) == len(self._priorities)
+        return popped_item

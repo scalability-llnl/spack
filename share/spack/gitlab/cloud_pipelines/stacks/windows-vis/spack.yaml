@@ -5,6 +5,8 @@
 
 spack:
   view: false
+  concretizer:
+    unify: false
   specs:
   - vtk~mpi
 

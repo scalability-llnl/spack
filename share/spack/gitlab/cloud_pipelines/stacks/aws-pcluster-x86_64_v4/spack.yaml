@@ -1,5 +1,8 @@
 spack:
   view: false
+  concretizer:
+    unify: false
+
   definitions:
   - apps:
     - gromacs %oneapi
