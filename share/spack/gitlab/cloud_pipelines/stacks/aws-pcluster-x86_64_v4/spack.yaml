@@ -7,7 +7,7 @@ spack:
         # earliest oneapi version with fix does not run on AmazonLinux2, see https://github.com/spack/spack/pull/46457
         # - mpas-model %oneapi
     - openfoam %gcc
-    - palace %oneapi ^superlu-dist%oneapi     # hack: force fortran-rt provider through superlu-dist
+    - palace %oneapi
         # TODO: Find out how to make +ipo cmake flag work.
         # - quantum-espresso %oneapi
     - openmpi %oneapi
@@ -63,6 +63,9 @@ spack:
               fortran: /home/software/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeh/linux-amzn2-x86_64_v3/gcc-12.4.0/intel-oneapi-compilers-2024.1.0-f5u3psfhbwscasajkn324igtupn3blop/compiler/2024.1/bin/ifx
             extra_rpaths:
               - /home/software/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeh/linux-amzn2-x86_64_v3/gcc-7.3.1/gcc-12.4.0-pttzchh7o54nhmycj4wgzw5mic6rk2nb/lib64
+    fortran:
+      require:
+      - "intel-oneapi-compilers"
     gettext:
       # Newer gettext cannot build with gcc@12 and old AL2 glibc headers
       # Older gettext versions do not build correctly with oneapi.
