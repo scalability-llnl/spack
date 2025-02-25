@@ -97,7 +97,6 @@ import spack.repo
 import spack.spec_parser
 import spack.store
 import spack.traverse
-import spack.util.executable
 import spack.util.hash
 import spack.util.prefix
 import spack.util.spack_json as sjson
@@ -1108,145 +1107,26 @@ class _EdgeMap(collections.abc.Mapping):
         self.edges.clear()
 
 
-def _command_default_handler(spec: "Spec"):
-    """Default handler when looking for the 'command' attribute.
-
-    Tries to search for ``spec.name`` in the ``spec.home.bin`` directory.
-
-    Parameters:
-        spec: spec that is being queried
-
-    Returns:
-        Executable: An executable of the command
-
-    Raises:
-        RuntimeError: If the command is not found
-    """
-    home = getattr(spec.package, "home")
-    path = os.path.join(home.bin, spec.name)
-
-    if fs.is_exe(path):
-        return spack.util.executable.Executable(path)
-    raise RuntimeError(f"Unable to locate {spec.name} command in {home.bin}")
-
-
-def _headers_default_handler(spec: "Spec"):
-    """Default handler when looking for the 'headers' attribute.
-
-    Tries to search for ``*.h`` files recursively starting from
-    ``spec.package.home.include``.
-
-    Parameters:
-        spec: spec that is being queried
-
-    Returns:
-        HeaderList: The headers in ``prefix.include``
-
-    Raises:
-        NoHeadersError: If no headers are found
-    """
-    home = getattr(spec.package, "home")
-    headers = fs.find_headers("*", root=home.include, recursive=True)
-
-    if headers:
-        return headers
-    raise spack.error.NoHeadersError(f"Unable to locate {spec.name} headers in {home}")
-
-
-def _libs_default_handler(spec: "Spec"):
-    """Default handler when looking for the 'libs' attribute.
-
-    Tries to search for ``lib{spec.name}`` recursively starting from
-    ``spec.package.home``. If ``spec.name`` starts with ``lib``, searches for
-    ``{spec.name}`` instead.
-
-    Parameters:
-        spec: spec that is being queried
-
-    Returns:
-        LibraryList: The libraries found
-
-    Raises:
-        NoLibrariesError: If no libraries are found
-    """
-
-    # Variable 'name' is passed to function 'find_libraries', which supports
-    # glob characters. For example, we have a package with a name 'abc-abc'.
-    # Now, we don't know if the original name of the package is 'abc_abc'
-    # (and it generates a library 'libabc_abc.so') or 'abc-abc' (and it
-    # generates a library 'libabc-abc.so'). So, we tell the function
-    # 'find_libraries' to give us anything that matches 'libabc?abc' and it
-    # gives us either 'libabc-abc.so' or 'libabc_abc.so' (or an error)
-    # depending on which one exists (there is a possibility, of course, to
-    # get something like 'libabcXabc.so, but for now we consider this
-    # unlikely).
-    name = spec.name.replace("-", "?")
-    home = getattr(spec.package, "home")
-
-    # Avoid double 'lib' for packages whose names already start with lib
-    if not name.startswith("lib") and not spec.satisfies("platform=windows"):
-        name = "lib" + name
-
-    # If '+shared' search only for shared library; if '~shared' search only for
-    # static library; otherwise, first search for shared and then for static.
-    search_shared = (
-        [True] if ("+shared" in spec) else ([False] if ("~shared" in spec) else [True, False])
-    )
-
-    for shared in search_shared:
-        # Since we are searching for link libraries, on Windows search only for
-        # ".Lib" extensions by default as those represent import libraries for implicit links.
-        libs = fs.find_libraries(name, home, shared=shared, recursive=True, runtime=False)
-        if libs:
-            return libs
-
-    raise spack.error.NoLibrariesError(
-        f"Unable to recursively locate {spec.name} libraries in {home}"
-    )
-
-
 class ForwardQueryToPackage:
     """Descriptor used to forward queries from Spec to Package"""
 
-    def __init__(
-        self,
-        attribute_name: str,
-        default_handler: Optional[Callable[["Spec"], Any]] = None,
-        _indirect: bool = False,
-    ) -> None:
+    def __init__(self, attribute_name: str, _indirect: bool = False) -> None:
         """Create a new descriptor.
 
         Parameters:
             attribute_name: name of the attribute to be searched for in the Package instance
-            default_handler: default function to be called if the attribute was not found in the
-                Package instance
             _indirect: temporarily added to redirect a query to another package.
         """
         self.attribute_name = attribute_name
-        self.default = default_handler
         self.indirect = _indirect
 
     def __get__(self, instance: "SpecBuildInterface", cls):
-        """Retrieves the property from Package using a well defined chain
-        of responsibility.
+        """Retrieves the property from Package using a well defined chain of responsibility.
 
-        The order of call is:
+        The call order is:
 
-        1. if the query was through the name of a virtual package try to
-            search for the attribute `{virtual_name}_{attribute_name}`
-            in Package
-
-        2. try to search for attribute `{attribute_name}` in Package
-
-        3. try to call the default handler
-
-        The first call that produces a value will stop the chain.
-
-        If no call can handle the request then AttributeError is raised with a
-        message indicating that no relevant attribute exists.
-        If a call returns None, an AttributeError is raised with a message
-        indicating a query failure, e.g. that library files were not found in a
-        'libs' query.
+        1. `pkg.{virtual_name}_{attribute_name}` if the query is for a virtual package
+        2. `pkg.{attribute_name}` otherwise
         """
         # TODO: this indirection exist solely for `spec["python"].command` to actually return
         # spec["python-venv"].command. It should be removed when `python` is a virtual.
@@ -1262,61 +1142,23 @@ class ForwardQueryToPackage:
             _ = instance.wrapped_obj[instance.wrapped_obj.name]  # NOQA: ignore=F841
             query = instance.last_query
 
-        callbacks_chain = []
-        # First in the chain : specialized attribute for virtual packages
         if query.isvirtual:
-            specialized_name = "{0}_{1}".format(query.name, self.attribute_name)
-            callbacks_chain.append(lambda: getattr(pkg, specialized_name))
-        # Try to get the generic method from Package
-        callbacks_chain.append(lambda: getattr(pkg, self.attribute_name))
-        # Final resort : default callback
-        if self.default is not None:
-            _default = self.default  # make mypy happy
-            callbacks_chain.append(lambda: _default(instance.wrapped_obj))
+            attrs = [f"{query.name}_{self.attribute_name}", self.attribute_name]
+        else:
+            attrs = [self.attribute_name]
 
-        # Trigger the callbacks in order, the first one producing a
-        # value wins
-        value = None
-        message = None
-        for f in callbacks_chain:
-            try:
-                value = f()
-                # A callback can return None to trigger an error indicating
-                # that the query failed.
-                if value is None:
-                    msg = "Query of package '{name}' for '{attrib}' failed\n"
-                    msg += "\tprefix : {spec.prefix}\n"
-                    msg += "\tspec : {spec}\n"
-                    msg += "\tqueried as : {query.name}\n"
-                    msg += "\textra parameters : {query.extra_parameters}"
-                    message = msg.format(
-                        name=pkg.name,
-                        attrib=self.attribute_name,
-                        spec=instance,
-                        query=instance.last_query,
-                    )
-                else:
-                    return value
-                break
-            except AttributeError:
-                pass
-        # value is 'None'
-        if message is not None:
-            # Here we can use another type of exception. If we do that, the
-            # unit test 'test_getitem_exceptional_paths' in the file
-            # lib/spack/spack/test/spec_dag.py will need to be updated to match
-            # the type.
-            raise AttributeError(message)
-        # 'None' value at this point means that there are no appropriate
-        # properties defined and no default handler, or that all callbacks
-        # raised AttributeError. In this case, we raise AttributeError with an
-        # appropriate message.
-        fmt = "'{name}' package has no relevant attribute '{query}'\n"
-        fmt += "\tspec : '{spec}'\n"
-        fmt += "\tqueried as : '{spec.last_query.name}'\n"
-        fmt += "\textra parameters : '{spec.last_query.extra_parameters}'\n"
-        message = fmt.format(name=pkg.name, query=self.attribute_name, spec=instance)
-        raise AttributeError(message)
+        pkg_t = type(pkg)
+
+        for attr in attrs:
+            pkg_attr = getattr(pkg_t, attr, None)
+            if pkg_attr is None:
+                continue
+            if callable(pkg_attr):
+                return getattr(pkg, attr)(query=query)
+            else:
+                return getattr(pkg, attr)
+        else:
+            raise AttributeError(f"Package {pkg.name} has no attribute {self.attribute_name}")
 
     def __set__(self, instance, value):
         cls_name = type(instance).__name__
@@ -1330,12 +1172,10 @@ QueryState = collections.namedtuple("QueryState", ["name", "extra_parameters", "
 
 class SpecBuildInterface(lang.ObjectWrapper):
     # home is available in the base Package so no default is needed
-    home = ForwardQueryToPackage("home", default_handler=None)
-    headers = ForwardQueryToPackage("headers", default_handler=_headers_default_handler)
-    libs = ForwardQueryToPackage("libs", default_handler=_libs_default_handler)
-    command = ForwardQueryToPackage(
-        "command", default_handler=_command_default_handler, _indirect=True
-    )
+    home = ForwardQueryToPackage("home")
+    headers = ForwardQueryToPackage("headers")
+    libs = ForwardQueryToPackage("libs")
+    command = ForwardQueryToPackage("command", _indirect=True)
 
     def __init__(
         self,
