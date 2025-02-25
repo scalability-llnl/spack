@@ -119,7 +119,7 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     # https://github.com/pytorch/pytorch/issues/124018
     _desc = "Build the flash_attention kernel for scaled dot product attention"
     variant("flash_attention", default=True, description=_desc, when="@1.13:+cuda")
-    variant("flash_attention", default=True, description=_desc, when="@1.13:+rocm")
+    variant("flash_attention", default=False, description=_desc, when="@1.13:+rocm")
     # py-torch has strict dependencies on old protobuf/py-protobuf versions that
     # cause problems with other packages that require newer versions of protobuf
     # and py-protobuf --> provide an option to use the internal/vendored protobuf.
@@ -129,6 +129,9 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     conflicts("+tensorpipe", when="+rocm ^hip@:5.1", msg="TensorPipe not supported until ROCm 5.2")
     conflicts("+breakpad", when="target=ppc64:")
     conflicts("+breakpad", when="target=ppc64le:")
+    conflicts(
+        "+flash_attention", when="+rocm", msg="AOTriton currently fails when building for ROCm"
+    )
 
     # https://github.com/pytorch/pytorch/issues/77811
     conflicts("+qnnpack", when="platform=darwin target=aarch64:")
@@ -175,6 +178,7 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
         depends_on("py-typing-extensions@4.8:", when="@2.2:")
         depends_on("py-typing-extensions@3.6.2.1:", when="@1.7:")
         depends_on("py-setuptools")
+        depends_on("py-sympy@1.13.1", when="@2.5:")
         depends_on("py-sympy", when="@2:")
         depends_on("py-networkx", when="@2:")
         depends_on("py-jinja2", when="@2:")
@@ -507,14 +511,58 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
         working_dir="third_party/fbgemm",
     )
 
-    @when("@1.5.0:")
     def patch(self):
-        # https://github.com/pytorch/pytorch/issues/52208
-        filter_file(
-            "torch_global_deps PROPERTIES LINKER_LANGUAGE C",
-            "torch_global_deps PROPERTIES LINKER_LANGUAGE CXX",
-            "caffe2/CMakeLists.txt",
-        )
+        if self.version <= Version("1.5.0"):
+            # https://github.com/pytorch/pytorch/issues/52208
+            filter_file(
+                "torch_global_deps PROPERTIES LINKER_LANGUAGE C",
+                "torch_global_deps PROPERTIES LINKER_LANGUAGE CXX",
+                "caffe2/CMakeLists.txt",
+            )
+        if "+rocm" in self.spec:
+            # BUG: ROCM_SOURCE_DIR is not propagated correctly by pytorch to sub cmake calls
+            # So we directly inject it in the CMakeLists.txt
+            rocm_path = self.spec["hip"].prefix
+            filter_file(
+                r"set\(ROCM_SOURCE_DIR \"\$ENV{ROCM_SOURCE_DIR}\"\)",
+                f'set(ROCM_SOURCE_DIR "{rocm_path}")',
+                "third_party/kineto/libkineto/CMakeLists.txt",
+            )
+
+            if self.version < Version("2.2.3"):
+                print(f"Patching older ROCm install {rocm_path}")
+                filter_file(r"/opt/rocm/", f"{rocm_path}", "caffe2/CMakeLists.txt")
+                # ROCm 5.X.Y and ROCm 6.X.Y have different file architectures:
+                # For example, for rocblas:
+                # In ROCm 5.X.Y headers are located under:
+                #    /opt/rocm-5.X.Y/rocblas/include
+                #    /opt/rocm-5.X.Y/include/rocblas
+                #    /opt/rocm-5.X.Y/include (symlinks)
+                # In ROCm 6.X.Y, headers are only located under (no symlinks):
+                #    /opt/rocm-6.X.Y/include/rocblas
+
+                # PyTorch currently uses a ROCm 5.X.Y organization:
+                #   i.e., => /opt/rocm-5.X.Y/rocblas/include
+                # Install with ROCm 6.X will fail without these patches
+                if self.spec["hip"].version >= Version("6.0.0"):
+                    filter_file(
+                        r"(/opt/rocm-\d+\.\d+\.\d+)/([a-z]+)/include",
+                        r"\1/include/\2",
+                        "caffe2/CMakeLists.txt",
+                    )
+            else:
+                filter_file(
+                    r"set\(ROCM_SOURCE_DIR \"\$ENV{ROCM_SOURCE_DIR}\"\)",
+                    f'set(ROCM_SOURCE_DIR "{rocm_path}")',
+                    "caffe2/CMakeLists.txt",
+                )
+
+                if self.spec["hip"].version >= Version("6.0.0"):
+                    filter_file(
+                        r"(\${ROCM_SOURCE_DIR})/([a-z]+)/include",
+                        r"\1/include/\2",
+                        "caffe2/CMakeLists.txt",
+                    )
 
     def torch_cuda_arch_list(self, env):
         if "+cuda" in self.spec:
@@ -591,6 +639,20 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
             env.set("HIPCUB_PATH", self.spec["hipcub"].prefix)
             env.set("ROCTHRUST_PATH", self.spec["rocthrust"].prefix)
             env.set("ROCTRACER_PATH", self.spec["roctracer-dev"].prefix)
+            env.set("ROCTRACER_INCLUDE_DIR", self.spec["roctracer-dev"].prefix)
+
+            # BUG: ROCM_SOURCE_DIR is not propagated correctly by pytorch to sub cmake calls
+            rocm_path = self.spec["hip"].prefix
+            env.set("ROCM_SOURCE_DIR", rocm_path)
+
+            # __HIP_PLATFORM_HCC__ is deprecated but used by old pytorch
+            env.set("CXXFLAGS", "-D__HIP_PLATFORM_AMD__")
+
+            # Deactivate aottriton related features
+            # AOTriton does not compile without many patches on AMD systems
+            env.set("USE_FLASH_ATTENTION", "OFF")
+            env.set("USE_MEM_EFF_ATTENTION", "OFF")
+
             if self.spec.satisfies("^hip@5.2.0:"):
                 env.set("CMAKE_MODULE_PATH", self.spec["hip"].prefix.lib.cmake.hip)
 
