@@ -264,7 +264,7 @@ def canonicalize_path(path: str, default_wd: Optional[str] = None) -> str:
     url_path = urllib.request.url2pathname(url.path)
     if url.scheme and url.scheme != "file":
         # Have a remote URL so simply return it with substitutions
-        return path
+        return os.path.normpath(path)
 
     path = url_path
     if not os.path.isabs(path):
