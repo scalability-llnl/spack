@@ -356,6 +356,7 @@ class Petsc(Package, CudaPackage, ROCmPackage):
     with when("+rocm"):
         depends_on("rocm-core")
         depends_on("hipblas")
+        depends_on("hipblas-common", when="^hipblas@6.3.0:")
         depends_on("hipsparse")
         depends_on("hipsolver")
         depends_on("rocsparse")
