@@ -2493,8 +2493,7 @@ class WindowsSimulatedRPath:
         self._additional_library_dependents = set()
         if not self.link_install_prefix:
             tty.debug(
-                f"Generating rpath for non install context, {self.pkg.prefix} \
-install prefixes will be omitted as rpath targets"
+                f"Generating rpath for non install context: {base_modification_prefix}"
             )
 
     @property
@@ -2523,13 +2522,9 @@ install prefixes will be omitted as rpath targets"
             else:
                 new_pth = pathlib.Path(pth)
             path_is_in_prefix = new_pth.is_relative_to(self.base_modification_prefix)
-            add_lib = False
-            if path_is_in_prefix:
-                add_lib = True
-            else:
+            if not path_is_in_prefix:
                 raise RuntimeError(f"Attempting to generate rpath symlink out of rpath context: {str(self.base_modification_prefix)}")
-            if add_lib:
-                self._additional_library_dependents.add(new_pth)
+            self._additional_library_dependents.add(new_pth)
 
     @property
     def rpaths(self):
