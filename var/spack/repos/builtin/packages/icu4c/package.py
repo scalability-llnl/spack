@@ -54,7 +54,7 @@ class Icu4c(AutotoolsPackage, MSBuildPackage):
         depends_on("libtool", type="build")
 
     with when("build_system=msbuild"):
-        patch("ICU4C_NMAKE_NO_DOUBLE_QUOTE_VARS.patch")
+        patch("ICU4C_NMAKE_NO_DOUBLE_QUOTE_VARS.patch", when="@64.1:")
 
     conflicts(
         "%intel@:16",
