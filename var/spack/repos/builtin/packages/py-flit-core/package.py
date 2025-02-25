@@ -19,6 +19,7 @@ class PyFlitCore(PythonPackage):
 
     license("BSD-3-Clause")
 
+    version("3.10.1", sha256="66e5b87874a0d6e39691f0e22f09306736b633548670ad3c09ec9db03c5662f7")
     version("3.9.0", sha256="72ad266176c4a3fcfab5f2930d76896059851240570ce9a98733b658cb786eba")
     version("3.8.0", sha256="b305b30c99526df5e63d6022dd2310a0a941a187bd3884f4c8ef0418df6c39f3")
     version("3.7.1", sha256="14955af340c43035dbfa96b5ee47407e377ee337f69e70f73064940d27d0a44f")
@@ -31,11 +32,6 @@ class PyFlitCore(PythonPackage):
     version("3.1.0", sha256="22ff73be39a2b3c9e0692dfbbea3ad4a9d127e5733736a87dbb8ddcbf7309b1e")
     version("3.0.0", sha256="a465052057e2d6d957e6850e9915245adedfc4fd0dd5737d0791bf3132417c2d")
     version("2.3.0", sha256="a50bcd8bf5785e3a7d95434244f30ba693e794c5204ac1ee908fc07c4acdbf80")
-
-    # pyproject.toml
-    depends_on("python@3.6:", when="@3.4:", type=("build", "run"))
-    depends_on("python@3.4:", when="@3:", type=("build", "run"))
-    depends_on("python@2.7,3.4:", type=("build", "run"))
 
     # flit_core/build_thyself.py
     depends_on("py-tomli", when="@3.4:3.5", type="run")

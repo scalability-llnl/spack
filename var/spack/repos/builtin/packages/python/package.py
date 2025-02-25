@@ -488,6 +488,11 @@ class Python(Package):
             r"^(.*)setup\.py(.*)((build)|(install))(.*)$", r"\1setup.py\2 --no-user-cfg \3\6"
         )
 
+        # limit the number of processes to use for compileall in older Python versions
+        # https://github.com/python/cpython/commit/9a7e9f9921804f3f90151ca42703e612697dd430
+        if self.spec.satisfies("@:3.11"):
+            ff.filter("-j0 ", f"-j{make_jobs} ")
+
         # disable building the nis module (there is no flag to disable it).
         if self.spec.satisfies("@3.8:3.10"):
             filter_file(
@@ -789,7 +794,7 @@ class Python(Package):
                 self.win_installer(prefix)
             else:
                 # See https://github.com/python/cpython/issues/102007
-                make(*self.install_targets, parallel=False)
+                make(*self.install_targets, f"COMPILEALL_OPTS=-j{make_jobs}", parallel=False)
 
     @run_after("install")
     def filter_compilers(self):

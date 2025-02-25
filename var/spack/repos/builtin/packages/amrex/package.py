@@ -158,6 +158,7 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
     with when("+fft"):
         depends_on("rocfft", when="+rocm")
         depends_on("fftw@3", when="~cuda ~rocm ~sycl")
+        depends_on("pkgconfig", type="build")
     with when("+ascent"):
         depends_on("ascent")
         depends_on("ascent +cuda", when="+cuda")
