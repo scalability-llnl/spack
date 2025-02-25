@@ -15,7 +15,7 @@ from spack.error import SpackError
 from spack.util.lock import Lock, ReadTransaction, WriteTransaction
 
 
-def _maybe_open(path: str) -> Optional[IO[str]]:
+def _maybe_open(path: Union[str, pathlib.Path]) -> Optional[IO[str]]:
     try:
         return open(path, "r", encoding="utf-8")
     except OSError as e:
@@ -25,7 +25,7 @@ def _maybe_open(path: str) -> Optional[IO[str]]:
 
 
 class ReadContextManager:
-    def __init__(self, path: str) -> None:
+    def __init__(self, path: Union[str, pathlib.Path]) -> None:
         self.path = path
 
     def __enter__(self) -> Optional[IO[str]]:
