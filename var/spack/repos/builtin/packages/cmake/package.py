@@ -31,10 +31,11 @@ class Cmake(Package):
 
     version("master", branch="master")
     version(
-        "4.0.0-rc1",
-        sha256="70428d4deede456100acf8573b0263bc4d53a55675e62df89cc187dfb40b8618",
+        "4.0.0-rc2",
+        sha256="087dde74196edfba0ed48a25ac0aae419a10c814f76ba2a3cf30f0c467c83b7d",
         preferred=True,
     )
+    version("4.0.0-rc1", sha256="70428d4deede456100acf8573b0263bc4d53a55675e62df89cc187dfb40b8618")
     version("3.31.5", sha256="66fb53a145648be56b46fa9e8ccade3a4d0dfc92e401e52ce76bdad1fea43d27")
     version("3.31.4", sha256="a6130bfe75f5ba5c73e672e34359f7c0a1931521957e8393a5c2922c8b0f7f25")
     version("3.31.3", sha256="fac45bc6d410b49b3113ab866074888d6c9e9dc81a141874446eb239ac38cb87")
@@ -128,8 +129,6 @@ class Cmake(Package):
     # Statically linked binaries error on install when CMAKE_INSTALL_RPATH is set
     # https://gitlab.kitware.com/cmake/cmake/-/merge_requests/9623
     patch("mr-9623.patch", when="@3.22.0:3.30")
-
-    patch("CMAKE_POLICY_VERSION_MINIMUM.patch", when="@4.0.0-rc1")
 
     depends_on("ninja", when="platform=windows")
     depends_on("gmake", type=("build", "run"), when="platform=linux")
@@ -277,7 +276,7 @@ class Cmake(Package):
             self.generator = ninja
 
         if not sys.platform == "win32":
-            args.append("--prefix={0}".format(self.prefix))
+            args.append(f"--prefix={0}".format(self.prefix))
 
             jobs = spack.build_environment.get_effective_jobs(
                 make_jobs,
@@ -285,7 +284,7 @@ class Cmake(Package):
                 supports_jobserver=self.generator.supports_jobserver,
             )
             if jobs is not None:
-                args.append("--parallel={0}".format(jobs))
+                args.append(f"--parallel={0}".format(jobs))
 
             if spec.satisfies("+ownlibs"):
                 # Build and link to the CMake-provided third-party libraries
