@@ -22,6 +22,9 @@ import spack.environment as ev
 import spack.hash_types as ht
 import spack.main
 import spack.paths as spack_paths
+import spack.repo
+import spack.spec
+import spack.stage
 import spack.util.spack_yaml as syaml
 from spack.ci import gitlab as gitlab_generator
 from spack.ci.common import PipelineDag, PipelineOptions, SpackCIConfig
@@ -1841,3 +1844,62 @@ spack:
 
     assert pipeline_doc.startswith("unittestpipeline")
     assert "externaltest" in pipeline_doc
+
+
+@pytest.fixture
+def fetch_versions_match(monkeypatch):
+    """Fake successful checksums returned from downloaded tarballs."""
+
+    def get_checksums_for_versions(url_by_version, package_name, **kwargs):
+        pkg_cls = spack.repo.PATH.get_pkg_class(package_name)
+        return {v: pkg_cls.versions[v]["sha256"] for v in url_by_version}
+
+    monkeypatch.setattr(spack.stage, "get_checksums_for_versions", get_checksums_for_versions)
+
+
+@pytest.fixture
+def fetch_versions_invalid(monkeypatch):
+    """Fake successful checksums returned from downloaded tarballs."""
+
+    def get_checksums_for_versions(url_by_version, package_name, **kwargs):
+        return {
+            v: "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
+            for v in url_by_version
+        }
+
+    monkeypatch.setattr(spack.stage, "get_checksums_for_versions", get_checksums_for_versions)
+
+
+def test_ci_verify_versions_standard_valid(
+    monkeypatch, mock_packages, fetch_versions_match, mock_git_package_changes
+):
+    repo_path, _, commits = mock_git_package_changes
+
+    monkeypatch.setattr(spack.paths, "prefix", repo_path)
+
+    out = ci_cmd("verify-versions", commits[-1], commits[-2])
+    assert "Validated diff-test@2.1.5" in out
+
+
+def test_ci_verify_versions_standard_invalid(
+    monkeypatch, mock_packages, fetch_versions_invalid, mock_git_package_changes
+):
+    repo_path, _, commits = mock_git_package_changes
+
+    monkeypatch.setattr(spack.paths, "prefix", repo_path)
+
+    out = ci_cmd("verify-versions", commits[-1], commits[-2], fail_on_error=False)
+    assert "Invalid checksum found diff-test@2.1.5" in out
+
+
+def test_ci_verify_versions_manual_package(
+    monkeypatch, mock_packages, fetch_versions_invalid, mock_git_package_changes
+):
+    repo_path, _, commits = mock_git_package_changes
+    monkeypatch.setattr(spack.paths, "prefix", repo_path)
+
+    pkg_class = spack.spec.Spec("diff-test").package_class
+    monkeypatch.setattr(pkg_class, "manual_download", True)
+
+    out = ci_cmd("verify-versions", commits[-1], commits[-2], fail_on_error=False)
+    assert "Skipping manual download package: diff-test" in out
