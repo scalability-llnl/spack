@@ -46,6 +46,7 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     version("main", branch="main")
     version("develop", branch="develop")
+    version("0.10.1", tag="v0.10.1", commit="6626ee1c5668176fb64dd9a52dec3e8596b3ba6b")
     version("0.9.0", tag="v0.9.0", commit="5f531595d941d16fa3b8583bfc347a845d9feb6d")
     version("0.8.1", tag="v0.8.1", commit="0da8a5b1be596887158ac2fcd321524ba5259e15")
     version("0.8.0", tag="v0.8.0", commit="71fab3262eb7e1aa44a04c21d072b77f06362f7b")
