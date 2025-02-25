@@ -225,7 +225,7 @@ class Openssl(Package):  # Uses Fake Autotools, should subclass Package
         install_tgt = "install" if self.spec.satisfies("+docs") else "install_sw"
 
         # See https://github.com/openssl/openssl/issues/7466#issuecomment-432148137
-        host_make(install_tgt, *make_args)
+        host_make(install_tgt, **make_args)
 
     @run_after("install")
     def link_system_certs(self):
