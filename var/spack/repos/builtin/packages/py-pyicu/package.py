@@ -22,4 +22,4 @@ class PyPyicu(PythonPackage):
     depends_on("py-setuptools", type="build")
     depends_on("pkgconfig", type="build")
 
-    depends_on("icu4c@:76")
+    depends_on("icu4c@:76")  # ICU_MAX_MAJOR_VERSION in setup.py
