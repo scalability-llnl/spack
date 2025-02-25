@@ -19,6 +19,6 @@ class ConfigScopePriority(enum.IntEnum):
 
     BUILTIN = 0
     CONFIG_FILES = 1
-    ENVIRONMENT = 2
-    CUSTOM = 3
+    CUSTOM = 2
+    ENVIRONMENT = 3
     COMMAND_LINE = 4
