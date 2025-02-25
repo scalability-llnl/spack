@@ -1,0 +1,32 @@
+--- a/src/H5Pfapl.c
++++ b/src/H5Pfapl.c
+@@ -516,8 +516,12 @@
+     H5F_ACS_COLL_MD_READ_FLAG_DEF; /* Default setting for the collective metedata read flag */
+ static const hbool_t H5F_def_coll_md_write_flag_g =
+     H5F_ACS_COLL_MD_WRITE_FLAG_DEF; /* Default setting for the collective metedata write flag */
+-static const MPI_Comm H5F_def_mpi_params_comm_g = H5F_ACS_MPI_PARAMS_COMM_DEF; /* Default MPI communicator */
+-static const MPI_Info H5F_def_mpi_params_info_g = H5F_ACS_MPI_PARAMS_INFO_DEF; /* Default MPI info struct */
++static MPI_Comm H5F_def_mpi_params_comm_g; /* Default MPI communicator */
++static MPI_Info H5F_def_mpi_params_info_g; /* Default MPI info struct */
++static void __attribute__((__constructor__)) H5F_def_mpi_params_set() {
++  H5F_def_mpi_params_comm_g = H5F_ACS_MPI_PARAMS_COMM_DEF;
++  H5F_def_mpi_params_info_g = H5F_ACS_MPI_PARAMS_INFO_DEF;
++}
+ #endif                                                                         /* H5_HAVE_PARALLEL */
+ static const H5AC_cache_image_config_t H5F_def_mdc_initCacheImageCfg_g =
+     H5F_ACS_META_CACHE_INIT_IMAGE_CONFIG_DEF; /* Default metadata cache image settings */
+--- a/tools/src/h5perf/pio_perf.c
++++ b/tools/src/h5perf/pio_perf.c
+@@ -112,7 +112,11 @@
+ #define HDF5_PARAPREFIX ""
+ #endif
+ char    *paraprefix   = NULL;          /* for command line option para-prefix */
+-MPI_Info h5_io_info_g = MPI_INFO_NULL; /* MPI INFO object for IO */
++MPI_Info h5_io_info_g; /* MPI INFO object for IO */
++static void __attribute__((__constructor__)) h5_io_info_g_init()
++{
++  h5_io_info_g = MPI_INFO_NULL;
++}
+ 
+ /*
+  * Command-line options: The user can specify short or long-named

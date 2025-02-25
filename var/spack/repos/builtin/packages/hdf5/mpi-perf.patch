@@ -1,0 +1,30 @@
+--- a/tools/src/h5perf/perf.c
++++ b/tools/src/h5perf/perf.c
+@@ -118,7 +118,11 @@
+ #define HDF5_PARAPREFIX ""
+ #endif
+ char *   paraprefix   = NULL;          /* for command line option para-prefix */
+-MPI_Info h5_io_info_g = MPI_INFO_NULL; /* MPI INFO object for IO */
++MPI_Info h5_io_info_g;                 /* MPI INFO object for IO */
++static void __attribute__((__constructor__)) h5_io_info_g_init()
++{
++  h5_io_info_g = MPI_INFO_NULL;
++}
+ 
+ static char *h5_fixname_real(const char *base_name, hid_t fapl, const char *_suffix, char *fullname,
+                              size_t size, hbool_t nest_printf, hbool_t subst_for_superblock);
+--- a/tools/src/h5perf/pio_perf.c
++++ b/tools/src/h5perf/pio_perf.c
+@@ -117,7 +117,11 @@
+ #define HDF5_PARAPREFIX ""
+ #endif
+ char *   paraprefix   = NULL;          /* for command line option para-prefix */
+-MPI_Info h5_io_info_g = MPI_INFO_NULL; /* MPI INFO object for IO */
++MPI_Info h5_io_info_g;                 /* MPI INFO object for IO */
++static void __attribute__((__constructor__)) h5_io_info_g_init()
++{
++  h5_io_info_g = MPI_INFO_NULL;
++}
+ 
+ /*
+  * Command-line options: The user can specify short or long-named

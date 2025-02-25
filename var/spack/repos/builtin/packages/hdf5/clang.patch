@@ -1,0 +1,11 @@
+--- a/src/H5Aint.c
++++ b/src/H5Aint.c
+@@ -2099,7 +2099,7 @@
+             /* Allocate background memory */
+             if(H5T_path_bkg(tpath_src_mem) || H5T_path_bkg(tpath_mem_dst)) {
+                 if(NULL == (bkg_buf = H5FL_BLK_CALLOC(attr_buf, buf_size)))
+-                    HGOTO_ERROR(H5E_ATTR, H5E_CANTALLOC, FAIL, "memory allocation failed")
++                    HGOTO_ERROR(H5E_ATTR, H5E_CANTALLOC, ((H5A_t *)FAIL), "memory allocation failed")
+             }
+ 
+             /* Convert from source file to memory */
