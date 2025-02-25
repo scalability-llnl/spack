@@ -2394,6 +2394,8 @@ class Environment:
 
     def __enter__(self):
         self._previous_active = _active_environment
+        if self._previous_active:
+            deactivate()
         activate(self)
         return self
 
