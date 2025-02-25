@@ -424,6 +424,7 @@ complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a undevelop -d 'rem
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a uninstall -d 'remove installed packages'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a unit-test -d 'run spack'"'"'s unit tests (wrapper around pytest)'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a unload -d 'remove package from the user environment'
+complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a update -d 'update the spack repository to the latest commit'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a url -d 'debugging tool for url parsing'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a verify -d 'verify spack installations on disk'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a versions -d 'list available versions of a package'
@@ -3105,6 +3106,13 @@ complete -c spack -n '__fish_spack_using_command unload' -l pwsh -f -a shell
 complete -c spack -n '__fish_spack_using_command unload' -l pwsh -d 'print pwsh commands to load the package'
 complete -c spack -n '__fish_spack_using_command unload' -s a -l all -f -a all
 complete -c spack -n '__fish_spack_using_command unload' -s a -l all -d 'unload all loaded Spack packages'
+
+# spack update
+set -g __fish_spack_optspecs_spack_update h/help b/branch=
+complete -c spack -n '__fish_spack_using_command update' -s h -l help -f -a help
+complete -c spack -n '__fish_spack_using_command update' -s h -l help -d 'show this help message and exit'
+complete -c spack -n '__fish_spack_using_command update' -s b -l branch -r -f -a branch
+complete -c spack -n '__fish_spack_using_command update' -s b -l branch -r -d 'name of the branch to upate the repository to'
 
 # spack url
 set -g __fish_spack_optspecs_spack_url h/help
