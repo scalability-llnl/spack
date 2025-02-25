@@ -998,6 +998,7 @@ def finish_parse_and_run(parser, cmd_name, main_args, env_format_error):
     args, unknown = parser.parse_known_args(main_args.command)
     # we need to inherit verbose since the install command checks for it
     args.verbose = main_args.verbose
+    args.lines = main_args.lines
 
     # Now that we know what command this is and what its args are, determine
     # whether we can continue with a bad environment and raise if not.
