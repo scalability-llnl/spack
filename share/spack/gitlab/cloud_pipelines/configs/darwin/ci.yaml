@@ -5,6 +5,11 @@ ci:
   pipeline-gen:
   - build-job:
       tags: [ "macos-sequoia", "apple-clang-16", "aarch64-macos" ]
+
+      # after_script intended to ensure all stage files are properly cleaned up,
+      # including those that may have been created as read-only by `go mod`
+      # as part of installation of a golang package
+      # see: https://github.com/spack/spack/issues/49147
       after_script-:
       - - if [[ -d tmp ]] ; then chmod -R u+w tmp ; else echo tmp not found ; fi
         - ./bin/spack clean -a
