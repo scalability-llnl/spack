@@ -115,7 +115,7 @@ class FileCache:
         if not timeout:
             timeout = self.lock_timeout
         _cache_key = key + "-" + str(start) + "-" + str(length)
-        if key not in self._locks:
+        if _cache_key not in self._locks:
             self._locks[_cache_key] = Lock(str(self._lock_path(key)), start=start, length=length, default_timeout=timeout)
         return self._locks[_cache_key]
 
