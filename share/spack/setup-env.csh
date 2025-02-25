@@ -83,3 +83,6 @@ end
 
 # done: unset sentinel variable as we're no longer initializing
 unsetenv _sp_initializing
+
+# Set shell being used
+setenv SPACK_SHELL="csh"

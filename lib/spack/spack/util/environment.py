@@ -93,13 +93,6 @@ def filter_system_paths(paths: Iterable[Path]) -> List[Path]:
     return [p for p in paths if not is_system_path(p)]
 
 
-def deprioritize_system_paths(paths: List[Path]) -> List[Path]:
-    """Reorders input paths by putting system paths at the end of the list, otherwise
-    preserving order.
-    """
-    return list(sorted(paths, key=is_system_path))
-
-
 def prune_duplicate_paths(paths: List[Path]) -> List[Path]:
     """Returns the input list with duplicates removed, otherwise preserving order."""
     return list(dedupe(paths))
@@ -264,6 +257,9 @@ class NameModifier:
         """Apply the modification to the mapping passed as input"""
         raise NotImplementedError("must be implemented by derived classes")
 
+    def _cache_str(self):
+        raise NotImplementedError("must be implemented by derived classes")
+
 
 class NameValueModifier:
     """Base class for modifiers that modify the value of an environment variable."""
@@ -291,6 +287,9 @@ class NameValueModifier:
         """Apply the modification to the mapping passed as input"""
         raise NotImplementedError("must be implemented by derived classes")
 
+    def _cache_str(self):
+        raise NotImplementedError("must be implemented by derived classes")
+
 
 class SetEnv(NameValueModifier):
     __slots__ = ("force", "raw")
@@ -312,6 +311,9 @@ class SetEnv(NameValueModifier):
         tty.debug(f"SetEnv: {self.name}={str(self.value)}", level=3)
         env[self.name] = str(self.value)
 
+    def _cache_str(self):
+        return f"_spack_env_set {self.name} {str(self.value)}"
+
 
 class AppendFlagsEnv(NameValueModifier):
     def execute(self, env: MutableMapping[str, str]):
@@ -321,12 +323,18 @@ class AppendFlagsEnv(NameValueModifier):
         else:
             env[self.name] = str(self.value)
 
+    def _cache_str(self):
+        return f"_spack_env_append {self.name} {str(self.value)} {self.separator}"
+
 
 class UnsetEnv(NameModifier):
     def execute(self, env: MutableMapping[str, str]):
         tty.debug(f"UnsetEnv: {self.name}", level=3)
         # Avoid throwing if the variable was not set
         env.pop(self.name, None)
+
+    def _cache_str(self):
+        return f"_spack_env_unset {self.name}"
 
 
 class RemoveFlagsEnv(NameValueModifier):
@@ -337,12 +345,18 @@ class RemoveFlagsEnv(NameValueModifier):
         flags = [f for f in flags if f != self.value]
         env[self.name] = self.separator.join(flags)
 
+    def _cache_str(self):
+        return f"_spack_env_remove {self.name} {str(self.value)} {self.separator}"
+
 
 class SetPath(NameValueModifier):
     def execute(self, env: MutableMapping[str, str]):
         string_path = self.separator.join(str(item) for item in self.value)
         tty.debug(f"SetPath: {self.name}={string_path}", level=3)
         env[self.name] = string_path
+
+    def _cache_str(self):
+        return f"_spack_env_set {self.name} {str(self.value)} {self.separator}"
 
 
 class AppendPath(NameValueModifier):
@@ -353,6 +367,10 @@ class AppendPath(NameValueModifier):
         directories.append(path_to_os_path(os.path.normpath(self.value)).pop())
         env[self.name] = self.separator.join(directories)
 
+    def _cache_str(self):
+        value = path_to_os_path(os.path.normpath(self.value)).pop()
+        return f"_spack_env_append {self.name} {value} {self.separator}"
+
 
 class PrependPath(NameValueModifier):
     def execute(self, env: MutableMapping[str, str]):
@@ -361,6 +379,10 @@ class PrependPath(NameValueModifier):
         directories = environment_value.split(self.separator) if environment_value else []
         directories = [path_to_os_path(os.path.normpath(self.value)).pop()] + directories
         env[self.name] = self.separator.join(directories)
+
+    def _cache_str(self):
+        value = path_to_os_path(os.path.normpath(self.value)).pop()
+        return f"_spack_env_prepend {self.name} {value} {self.separator}"
 
 
 class RemovePath(NameValueModifier):
@@ -375,16 +397,9 @@ class RemovePath(NameValueModifier):
         ]
         env[self.name] = self.separator.join(directories)
 
-
-class DeprioritizeSystemPaths(NameModifier):
-    def execute(self, env: MutableMapping[str, str]):
-        tty.debug(f"DeprioritizeSystemPaths: {self.name}", level=3)
-        environment_value = env.get(self.name, "")
-        directories = environment_value.split(self.separator) if environment_value else []
-        directories = deprioritize_system_paths(
-            [path_to_os_path(os.path.normpath(x)).pop() for x in directories]
-        )
-        env[self.name] = self.separator.join(directories)
+    def _cache_str(self):
+        value = path_to_os_path(os.path.normpath(self.value)).pop()
+        return f"_spack_env_remove {self.name} {value} {self.separator}"
 
 
 class PruneDuplicatePaths(NameModifier):
@@ -396,6 +411,9 @@ class PruneDuplicatePaths(NameModifier):
             [path_to_os_path(os.path.normpath(x)).pop() for x in directories]
         )
         env[self.name] = self.separator.join(directories)
+
+    def _cache_str(self):
+        return f"_spack_env_prune_duplicates {self.name} {self.separator}"
 
 
 class EnvironmentModifications:
@@ -546,18 +564,6 @@ class EnvironmentModifications:
         self.env_modifications.append(item)
 
     @system_env_normalize
-    def deprioritize_system_paths(self, name: str, separator: str = os.pathsep):
-        """Stores a request to deprioritize system paths in a path list,
-        otherwise preserving the order.
-
-        Args:
-            name: name of the environment variable
-            separator: separator for the paths (default: os.pathsep)
-        """
-        item = DeprioritizeSystemPaths(name, separator=separator, trace=self._trace())
-        self.env_modifications.append(item)
-
-    @system_env_normalize
     def prune_duplicate_paths(self, name: str, separator: str = os.pathsep):
         """Stores a request to remove duplicates from a path list, otherwise
         preserving the order.
@@ -653,28 +659,16 @@ class EnvironmentModifications:
         env = os.environ if env is None else env
         new_env = dict(env.items())
 
+        cache_commands = ""
+
         for _, actions in sorted(modifications.items()):
             for modifier in actions:
-                modifier.execute(new_env)
+                cache_commands += f"{modifier._cache_str()}\n"
 
         if "MANPATH" in new_env and not new_env["MANPATH"].endswith(os.pathsep):
             new_env["MANPATH"] += os.pathsep
 
-        cmds = ""
-
-        for name in sorted(set(modifications)):
-            new = new_env.get(name, None)
-            old = env.get(name, None)
-            if explicit or new != old:
-                if new is None:
-                    cmds += _SHELL_UNSET_STRINGS[shell].format(name)
-                else:
-                    value = new_env[name]
-                    if shell not in ("bat", "pwsh"):
-                        value = shlex.quote(value)
-                    cmd = _SHELL_SET_STRINGS[shell].format(name, value)
-                    cmds += cmd
-        return cmds
+        return cache_commands
 
     @staticmethod
     def from_sourcing_file(
