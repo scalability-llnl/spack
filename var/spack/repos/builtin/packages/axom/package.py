@@ -338,7 +338,9 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
             # Recommended MPI flags
             hip_link_flags += "-lxpmem "
             hip_link_flags += "-L/opt/cray/pe/mpich/{0}/gtl/lib ".format(spec["mpi"].version)
-            hip_link_flags += "-Wl,-rpath,/opt/cray/pe/mpich/{0}/gtl/lib ".format(spec["mpi"].version)
+            hip_link_flags += "-Wl,-rpath,/opt/cray/pe/mpich/{0}/gtl/lib ".format(
+                spec["mpi"].version
+            )
             hip_link_flags += "-lmpi_gtl_hsa "
 
             # Fixes for mpi for rocm until wrapper paths are fixed
@@ -347,7 +349,9 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
                 hip_link_flags += "-Wl,--disable-new-dtags "
 
                 if spec.satisfies("^hip@6.0.0:"):
-                    hip_link_flags += "-L{0}/lib/llvm/lib -Wl,-rpath,{0}/lib/llvm/lib ".format(rocm_root)
+                    hip_link_flags += "-L{0}/lib/llvm/lib -Wl,-rpath,{0}/lib/llvm/lib ".format(
+                        rocm_root
+                    )
                 else:
                     hip_link_flags += "-L{0}/llvm/lib -Wl,-rpath,{0}/llvm/lib ".format(rocm_root)
                 hip_link_flags += "-lpgmath -lflang -lflangrti -lompstub "
