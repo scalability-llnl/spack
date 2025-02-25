@@ -1,0 +1,13 @@
+diff --git a/source/test/testdata/testdata.mak b/source/test/testdata/testdata.mak
+index 2809efd..02f5b79 100644
+--- a/source/test/testdata/testdata.mak
++++ b/source/test/testdata/testdata.mak
+@@ -25,7 +25,7 @@ ALL : "$(TESTDATAOUT)\testdata.dat"
+ 
+ # old_e_testtypes.res is the same, but icuswapped to big-endian EBCDIC
+ 
+-TESTDATATMP="$(TESTDATAOUT)\testdata"
++TESTDATATMP=$(TESTDATAOUT)\testdata
+ 
+ CREATE_DIRS :
+ 	@if not exist "$(TESTDATAOUT)\$(NULL)" mkdir "$(TESTDATAOUT)"
