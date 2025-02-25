@@ -6,6 +6,7 @@ import collections.abc
 import copy
 import enum
 import functools
+import io
 import itertools
 import os
 import pathlib
@@ -35,6 +36,7 @@ import spack.environment as ev
 import spack.error
 import spack.package_base
 import spack.package_prefs
+import spack.patch
 import spack.platforms
 import spack.repo
 import spack.solver.splicing
@@ -42,6 +44,7 @@ import spack.spec
 import spack.store
 import spack.util.crypto
 import spack.util.libc
+import spack.util.module_cmd as md
 import spack.util.path
 import spack.util.timer
 import spack.variant as vt
@@ -62,7 +65,7 @@ from .core import (
     parse_files,
     parse_term,
 )
-from .counter import FullDuplicatesCounter, MinimalDuplicatesCounter, NoDuplicatesCounter
+from .input_analysis import create_counter, create_graph_analyzer
 from .requirements import RequirementKind, RequirementParser, RequirementRule
 from .version_order import concretization_version_order
 
@@ -73,17 +76,19 @@ TransformFunction = Callable[[spack.spec.Spec, List[AspFunction]], List[AspFunct
 #: Enable the addition of a runtime node
 WITH_RUNTIME = sys.platform != "win32"
 
-#: Data class that contain configuration on what a
-#: clingo solve should output.
-#:
-#: Args:
-#:     timers (bool):  Print out coarse timers for different solve phases.
-#:     stats (bool): Whether to output Clingo's internal solver statistics.
-#:     out: Optional output stream for the generated ASP program.
-#:     setup_only (bool): if True, stop after setup and don't solve (default False).
-OutputConfiguration = collections.namedtuple(
-    "OutputConfiguration", ["timers", "stats", "out", "setup_only"]
-)
+
+class OutputConfiguration(NamedTuple):
+    """Data class that contains configuration on what a clingo solve should output."""
+
+    #: Print out coarse timers for different solve phases
+    timers: bool
+    #: Whether to output Clingo's internal solver statistics
+    stats: bool
+    #: Optional output stream for the generated ASP program
+    out: Optional[io.IOBase]
+    #: If True, stop after setup and don't solve
+    setup_only: bool
+
 
 #: Default output configuration for a solve
 DEFAULT_OUTPUT_CONFIGURATION = OutputConfiguration(
@@ -269,15 +274,6 @@ def specify(spec):
 def remove_node(spec: spack.spec.Spec, facts: List[AspFunction]) -> List[AspFunction]:
     """Transformation that removes all "node" and "virtual_node" from the input list of facts."""
     return list(filter(lambda x: x.args[0] not in ("node", "virtual_node"), facts))
-
-
-def _create_counter(specs: List[spack.spec.Spec], tests: bool):
-    strategy = spack.config.CONFIG.get("concretizer:duplicates:strategy", "none")
-    if strategy == "full":
-        return FullDuplicatesCounter(specs, tests=tests)
-    if strategy == "minimal":
-        return MinimalDuplicatesCounter(specs, tests=tests)
-    return NoDuplicatesCounter(specs, tests=tests)
 
 
 def all_libcs() -> Set[spack.spec.Spec]:
@@ -507,7 +503,7 @@ class Result:
             # The specs must be unified to get here, so it is safe to associate any satisfying spec
             # with the input. Multiple inputs may be matched to the same concrete spec
             node = SpecBuilder.make_node(pkg=input_spec.name)
-            if input_spec.virtual:
+            if spack.repo.PATH.is_virtual(input_spec.name):
                 providers = [
                     spec.name for spec in answer.values() if spec.package.provides(input_spec.name)
                 ]
@@ -1121,6 +1117,8 @@ class SpackSolverSetup:
     """Class to set up and run a Spack concretization solve."""
 
     def __init__(self, tests: bool = False):
+        self.possible_graph = create_graph_analyzer()
+
         # these are all initialized in setup()
         self.gen: "ProblemInstanceBuilder" = ProblemInstanceBuilder()
         self.requirement_parser = RequirementParser(spack.config.CONFIG)
@@ -2087,7 +2085,11 @@ class SpackSolverSetup:
         f: Union[Type[_Head], Type[_Body]] = _Body if body else _Head
 
         if spec.name:
-            clauses.append(f.node(spec.name) if not spec.virtual else f.virtual_node(spec.name))
+            clauses.append(
+                f.node(spec.name)
+                if not spack.repo.PATH.is_virtual(spec.name)
+                else f.virtual_node(spec.name)
+            )
         if spec.namespace:
             clauses.append(f.namespace(spec.name, spec.namespace))
 
@@ -2114,7 +2116,7 @@ class SpackSolverSetup:
 
             for value in variant.value_as_tuple:
                 # ensure that the value *can* be valid for the spec
-                if spec.name and not spec.concrete and not spec.virtual:
+                if spec.name and not spec.concrete and not spack.repo.PATH.is_virtual(spec.name):
                     variant_defs = vt.prevalidate_variant_value(
                         self.pkg_class(spec.name), variant, spec
                     )
@@ -2397,38 +2399,20 @@ class SpackSolverSetup:
 
     def target_defaults(self, specs):
         """Add facts about targets and target compatibility."""
-        self.gen.h2("Default target")
-
-        platform = spack.platforms.host()
-        uarch = archspec.cpu.TARGETS.get(platform.default)
-
         self.gen.h2("Target compatibility")
 
-        # Construct the list of targets which are compatible with the host
-        candidate_targets = [uarch] + uarch.ancestors
-
-        # Get configuration options
-        granularity = spack.config.get("concretizer:targets:granularity")
-        host_compatible = spack.config.get("concretizer:targets:host_compatible")
-
-        # Add targets which are not compatible with the current host
-        if not host_compatible:
-            additional_targets_in_family = sorted(
-                [
-                    t
-                    for t in archspec.cpu.TARGETS.values()
-                    if (t.family.name == uarch.family.name and t not in candidate_targets)
-                ],
-                key=lambda x: len(x.ancestors),
-                reverse=True,
-            )
-            candidate_targets += additional_targets_in_family
-
-        # Check if we want only generic architecture
-        if granularity == "generic":
-            candidate_targets = [t for t in candidate_targets if t.vendor == "generic"]
-
         # Add targets explicitly requested from specs
+        candidate_targets = []
+        for x in self.possible_graph.candidate_targets():
+            if all(
+                self.possible_graph.unreachable(pkg_name=pkg_name, when_spec=f"target={x}")
+                for pkg_name in self.pkgs
+            ):
+                tty.debug(f"[{__name__}] excluding target={x}, cause no package can use it")
+                continue
+            candidate_targets.append(x)
+
+        host_compatible = spack.config.CONFIG.get("concretizer:targets:host_compatible")
         for spec in specs:
             if not spec.architecture or not spec.architecture.target:
                 continue
@@ -2444,6 +2428,8 @@ class SpackSolverSetup:
                     if ancestor not in candidate_targets:
                         candidate_targets.append(ancestor)
 
+        platform = spack.platforms.host()
+        uarch = archspec.cpu.TARGETS.get(platform.default)
         best_targets = {uarch.family.name}
         for compiler_id, known_compiler in enumerate(self.possible_compilers):
             if not known_compiler.available:
@@ -2501,7 +2487,6 @@ class SpackSolverSetup:
             self.gen.newline()
 
         self.default_targets = list(sorted(set(self.default_targets)))
-
         self.target_preferences()
 
     def virtual_providers(self):
@@ -2605,7 +2590,14 @@ class SpackSolverSetup:
         # Tell the concretizer about possible values from specs seen in spec_clauses().
         # We might want to order these facts by pkg and name if we are debugging.
         for pkg_name, variant_def_id, value in self.variant_values_from_specs:
-            vid = self.variant_ids_by_def_id[variant_def_id]
+            try:
+                vid = self.variant_ids_by_def_id[variant_def_id]
+            except KeyError:
+                tty.debug(
+                    f"[{__name__}] cannot retrieve id of the {value} variant from {pkg_name}"
+                )
+                continue
+
             self.gen.fact(fn.pkg_fact(pkg_name, fn.variant_possible_value(vid, value)))
 
     def register_concrete_spec(self, spec, possible):
@@ -2676,7 +2668,7 @@ class SpackSolverSetup:
         """
         check_packages_exist(specs)
 
-        node_counter = _create_counter(specs, tests=self.tests)
+        node_counter = create_counter(specs, tests=self.tests, possible_graph=self.possible_graph)
         self.possible_virtuals = node_counter.possible_virtuals()
         self.pkgs = node_counter.possible_dependencies()
         self.libcs = sorted(all_libcs())  # type: ignore[type-var]
@@ -2684,7 +2676,9 @@ class SpackSolverSetup:
         # Fail if we already know an unreachable node is requested
         for spec in specs:
             missing_deps = [
-                str(d) for d in spec.traverse() if d.name not in self.pkgs and not d.virtual
+                str(d)
+                for d in spec.traverse()
+                if d.name not in self.pkgs and not spack.repo.PATH.is_virtual(d.name)
             ]
             if missing_deps:
                 raise spack.spec.InvalidDependencyError(spec.name, missing_deps)
@@ -2901,7 +2895,11 @@ class SpackSolverSetup:
                     pkg_name = clause.args[1]
                     self.gen.fact(fn.mentioned_in_literal(trigger_id, root_name, pkg_name))
 
-            requirements.append(fn.attr("virtual_root" if spec.virtual else "root", spec.name))
+            requirements.append(
+                fn.attr(
+                    "virtual_root" if spack.repo.PATH.is_virtual(spec.name) else "root", spec.name
+                )
+            )
             cache[imposed_spec_key] = (effect_id, requirements)
             self.gen.fact(fn.pkg_fact(spec.name, fn.condition_effect(condition_id, effect_id)))
 
@@ -3489,7 +3487,7 @@ class SpecBuilder:
         self._specs[node].extra_attributes = spec_info.get("extra_attributes", {})
 
         # If this is an extension, update the dependencies to include the extendee
-        package = self._specs[node].package_class(self._specs[node])
+        package = spack.repo.PATH.get_pkg_class(self._specs[node].fullname)(self._specs[node])
         extendee_spec = package.extendee_spec
 
         if extendee_spec:
@@ -3706,11 +3704,11 @@ class SpecBuilder:
         roots = [spec.root for spec in self._specs.values()]
         roots = dict((id(r), r) for r in roots)
         for root in roots.values():
-            spack.spec.Spec.inject_patches_variant(root)
+            _inject_patches_variant(root)
 
         # Add external paths to specs with just external modules
         for s in self._specs.values():
-            spack.spec.Spec.ensure_external_path_if_external(s)
+            _ensure_external_path_if_external(s)
 
         for s in self._specs.values():
             _develop_specs_from_env(s, ev.active_environment())
@@ -3780,6 +3778,92 @@ class SpecBuilder:
             specs[new_key] = current_spec
 
         return specs
+
+
+def _inject_patches_variant(root: spack.spec.Spec) -> None:
+    # This dictionary will store object IDs rather than Specs as keys
+    # since the Spec __hash__ will change as patches are added to them
+    spec_to_patches: Dict[int, Set[spack.patch.Patch]] = {}
+    for s in root.traverse():
+        # After concretizing, assign namespaces to anything left.
+        # Note that this doesn't count as a "change".  The repository
+        # configuration is constant throughout a spack run, and
+        # normalize and concretize evaluate Packages using Repo.get(),
+        # which respects precedence.  So, a namespace assignment isn't
+        # changing how a package name would have been interpreted and
+        # we can do it as late as possible to allow as much
+        # compatibility across repositories as possible.
+        if s.namespace is None:
+            s.namespace = spack.repo.PATH.repo_for_pkg(s.name).namespace
+
+        if s.concrete:
+            continue
+
+        # Add any patches from the package to the spec.
+        node_patches = {
+            patch
+            for cond, patch_list in spack.repo.PATH.get_pkg_class(s.fullname).patches.items()
+            if s.satisfies(cond)
+            for patch in patch_list
+        }
+        if node_patches:
+            spec_to_patches[id(s)] = node_patches
+
+    # Also record all patches required on dependencies by depends_on(..., patch=...)
+    for dspec in root.traverse_edges(deptype=dt.ALL, cover="edges", root=False):
+        if dspec.spec.concrete:
+            continue
+
+        pkg_deps = spack.repo.PATH.get_pkg_class(dspec.parent.fullname).dependencies
+
+        edge_patches: List[spack.patch.Patch] = []
+        for cond, deps_by_name in pkg_deps.items():
+            if not dspec.parent.satisfies(cond):
+                continue
+
+            dependency = deps_by_name.get(dspec.spec.name)
+            if not dependency:
+                continue
+
+            for pcond, patch_list in dependency.patches.items():
+                if dspec.spec.satisfies(pcond):
+                    edge_patches.extend(patch_list)
+
+        if edge_patches:
+            spec_to_patches.setdefault(id(dspec.spec), set()).update(edge_patches)
+
+    for spec in root.traverse():
+        if id(spec) not in spec_to_patches:
+            continue
+
+        patches = list(spec_to_patches[id(spec)])
+        variant: vt.MultiValuedVariant = spec.variants.setdefault(
+            "patches", vt.MultiValuedVariant("patches", ())
+        )
+        variant.value = tuple(p.sha256 for p in patches)
+        # FIXME: Monkey patches variant to store patches order
+        ordered_hashes = [(*p.ordering_key, p.sha256) for p in patches if p.ordering_key]
+        ordered_hashes.sort()
+        tty.debug(
+            f"Ordered hashes [{spec.name}]: "
+            + ", ".join("/".join(str(e) for e in t) for t in ordered_hashes)
+        )
+        setattr(
+            variant, "_patches_in_order_of_appearance", [sha256 for _, _, sha256 in ordered_hashes]
+        )
+
+
+def _ensure_external_path_if_external(spec: spack.spec.Spec) -> None:
+    if not spec.external_modules or spec.external_path:
+        return
+
+    # Get the path from the module the package can override the default
+    # (this is mostly needed for Cray)
+    pkg_cls = spack.repo.PATH.get_pkg_class(spec.name)
+    package = pkg_cls(spec)
+    spec.external_path = getattr(package, "external_prefix", None) or md.path_from_modules(
+        spec.external_modules
+    )
 
 
 def _develop_specs_from_env(spec, env):
@@ -4102,10 +4186,10 @@ class Solver:
         reusable = []
         for root in specs:
             for s in root.traverse():
-                if s.virtual:
-                    continue
                 if s.concrete:
                     reusable.append(s)
+                elif spack.repo.PATH.is_virtual(s.name):
+                    continue
                 spack.spec.Spec.ensure_valid_variants(s)
         return reusable
 

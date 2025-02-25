@@ -4,8 +4,6 @@
 
 import subprocess
 
-import llnl.util.tty as tty
-
 from spack.package import *
 
 

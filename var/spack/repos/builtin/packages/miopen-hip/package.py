@@ -20,6 +20,7 @@ class MiopenHip(CMakePackage):
     libraries = ["libMIOpen"]
 
     license("MIT")
+    version("6.3.2", sha256="7abda3b437e396a1611a6f63e73ab1656d45d5405194504136c0ccbb75b81fea")
     version("6.3.1", sha256="edb82a74086fb96f8d7ee9e50a180302f716332cd0dff96bf7244bdc6fab5895")
     version("6.3.0", sha256="171834978d6316a5ec7607d4b10c7c69e5bfe9064edae8bdb9b207e578b41c1d")
     version("6.2.4", sha256="8e4836e007e5e66fa487288887a098aaeeb95f3c63a19c2b91f6e848c023a040")
@@ -42,6 +43,11 @@ class MiopenHip(CMakePackage):
         version("5.3.3", sha256="7efc98215d23a2caaf212378c37e9a6484f54a4ed3e9660719286e4f287d3715")
         version("5.3.0", sha256="c5819f593d71beeda2eb24b89182912240cc40f83b2b8f9de695a8e230aa4ea6")
 
+    variant(
+        "ck",
+        default=True,
+        description="Enable MIOpen to use composable kernels for various operation",
+    )
     variant("asan", default=False, description="Build with address-sanitizer enabled or disabled")
 
     conflicts("+asan", when="os=rhel9")
@@ -96,6 +102,7 @@ class MiopenHip(CMakePackage):
         "6.2.4",
         "6.3.0",
         "6.3.1",
+        "6.3.2",
     ]:
         depends_on(f"rocm-cmake@{ver}:", type="build", when=f"@{ver}")
         depends_on(f"hip@{ver}", when=f"@{ver}")
@@ -139,11 +146,10 @@ class MiopenHip(CMakePackage):
         "6.2.4",
         "6.3.0",
         "6.3.1",
+        "6.3.2",
     ]:
-        depends_on("nlohmann-json", type="link")
-        depends_on(f"composable-kernel@{ver}", when=f"@{ver}")
+        depends_on(f"composable-kernel@{ver}", when=f"@{ver} +ck")
     for ver in ["5.4.0", "5.4.3", "5.5.0"]:
-        depends_on("nlohmann-json", type="link")
         depends_on(f"rocmlir@{ver}", when=f"@{ver}")
     for ver in [
         "6.0.0",
@@ -156,15 +162,17 @@ class MiopenHip(CMakePackage):
         "6.2.4",
         "6.3.0",
         "6.3.1",
+        "6.3.2",
     ]:
         depends_on(f"roctracer-dev@{ver}", when=f"@{ver}")
-    for ver in ["6.1.0", "6.1.1", "6.1.2"]:
-        depends_on("googletest")
-    for ver in ["6.2.0", "6.2.1", "6.2.4", "6.3.0", "6.3.1"]:
+    for ver in ["6.2.0", "6.2.1", "6.2.4", "6.3.0", "6.3.1", "6.3.2"]:
         depends_on(f"rocrand@{ver}", when=f"@{ver}")
-    for ver in ["6.3.0", "6.3.1"]:
+    for ver in ["6.3.0", "6.3.1", "6.3.2"]:
         depends_on(f"hipblas@{ver}", when=f"@{ver}")
         depends_on(f"hipblaslt@{ver}", when=f"@{ver}")
+
+    depends_on("nlohmann-json", type="link")
+    depends_on("googletest", when="@6.1:")
 
     def setup_build_environment(self, env):
         lib_dir = self.spec["zlib-api"].libs.directories[0]
@@ -220,7 +228,7 @@ class MiopenHip(CMakePackage):
             args.append(self.define("MIOPEN_USE_MLIR", "ON"))
             args.append(self.define("MIOPEN_ENABLE_AI_KERNEL_TUNING", "OFF"))
         if self.spec.satisfies("@5.5.1:"):
-            args.append(self.define("MIOPEN_USE_COMPOSABLEKERNEL", "ON"))
+            args.append(self.define_from_variant("MIOPEN_USE_COMPOSABLEKERNEL", "ck"))
             args.append(self.define("MIOPEN_ENABLE_AI_KERNEL_TUNING", "OFF"))
             args.append(self.define("MIOPEN_USE_MLIR", "OFF"))
         if self.spec.satisfies("@5.7.0:"):

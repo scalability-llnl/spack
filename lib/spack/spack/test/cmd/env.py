@@ -1038,6 +1038,58 @@ spack:
     assert not e2.specs_by_hash
 
 
+def test_init_from_yaml_relative_includes(tmp_path):
+    files = [
+        "relative_copied/packages.yaml",
+        "./relative_copied/compilers.yaml",
+        "repos.yaml",
+        "./config.yaml",
+    ]
+
+    manifest = f"""
+spack:
+  specs: []
+  include: {files}
+"""
+
+    e1_path = tmp_path / "e1"
+    e1_manifest = e1_path / "spack.yaml"
+    fs.mkdirp(e1_path)
+    with open(e1_manifest, "w", encoding="utf-8") as f:
+        f.write(manifest)
+
+    for f in files:
+        fs.touchp(e1_path / f)
+
+    e2 = _env_create("test2", init_file=e1_manifest)
+
+    for f in files:
+        assert os.path.exists(os.path.join(e2.path, f))
+
+
+def test_init_from_yaml_relative_includes_outside_env(tmp_path):
+    files = ["../outside_env_not_copied/repos.yaml"]
+
+    manifest = f"""
+spack:
+  specs: []
+  include: {files}
+"""
+
+    # subdir to ensure parent of environment dir is not shared
+    e1_path = tmp_path / "e1_subdir" / "e1"
+    e1_manifest = e1_path / "spack.yaml"
+    fs.mkdirp(e1_path)
+    with open(e1_manifest, "w", encoding="utf-8") as f:
+        f.write(manifest)
+
+    for f in files:
+        fs.touchp(e1_path / f)
+
+    with pytest.raises(spack.config.ConfigFileError, match="Detected 1 missing include"):
+        _ = _env_create("test2", init_file=e1_manifest)
+
+
 def test_env_view_external_prefix(tmp_path, mutable_database, mock_packages):
     fake_prefix = tmp_path / "a-prefix"
     fake_bin = fake_prefix / "bin"
@@ -1698,7 +1750,10 @@ def test_stage(mock_stage, mock_fetch, install_mockery):
         spec = spack.concretize.concretize_one(spec)
         for dep in spec.traverse():
             stage_name = f"{stage_prefix}{dep.name}-{dep.version}-{dep.dag_hash()}"
-            assert os.path.isdir(os.path.join(root, stage_name))
+            if dep.external:
+                assert not os.path.exists(os.path.join(root, stage_name))
+            else:
+                assert os.path.isdir(os.path.join(root, stage_name))
 
     check_stage("mpileaks")
     check_stage("zmpi")
@@ -3023,11 +3078,10 @@ def test_stack_view_activate_from_default(
         assert "FOOBAR=mpileaks" in shell
 
 
-def test_envvar_set_in_activate(tmpdir, mock_fetch, mock_packages, mock_archive, install_mockery):
-    filename = str(tmpdir.join("spack.yaml"))
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(
-            """\
+def test_envvar_set_in_activate(tmp_path, mock_packages, install_mockery):
+    spack_yaml = tmp_path / "spack.yaml"
+    spack_yaml.write_text(
+        """
 spack:
   specs:
     - cmake%gcc
@@ -3035,21 +3089,21 @@ spack:
     set:
       ENVAR_SET_IN_ENV_LOAD: "True"
 """
-        )
-    with tmpdir.as_cwd():
-        env("create", "test", "./spack.yaml")
-        with ev.read("test"):
-            install()
+    )
 
-        test_env = ev.read("test")
-        output = env("activate", "--sh", "test")
+    env("create", "test", str(spack_yaml))
+    with ev.read("test"):
+        install("--fake")
 
-        assert "ENVAR_SET_IN_ENV_LOAD=True" in output
+    test_env = ev.read("test")
+    output = env("activate", "--sh", "test")
 
-        with test_env:
-            with spack.util.environment.set_env(ENVAR_SET_IN_ENV_LOAD="True"):
-                output = env("deactivate", "--sh")
-                assert "unset ENVAR_SET_IN_ENV_LOAD" in output
+    assert "ENVAR_SET_IN_ENV_LOAD=True" in output
+
+    with test_env:
+        with spack.util.environment.set_env(ENVAR_SET_IN_ENV_LOAD="True"):
+            output = env("deactivate", "--sh")
+            assert "unset ENVAR_SET_IN_ENV_LOAD" in output
 
 
 def test_stack_view_no_activate_without_default(

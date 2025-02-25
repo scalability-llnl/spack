@@ -35,6 +35,11 @@ class LuaLpeg(LuaPackage):
 
     depends_on("lua-lang@:5.1.9", when="@:0.12.1 ^[virtuals=lua-lang] lua")
 
+    @property
+    def libs(self):
+        libraries = [f"**/lua/{self.spec['lua-lang'].version.up_to(2)}/lpeg"]
+        return find_libraries(libraries, root=self.prefix)
+
 
 class LuaBuilder(spack.build_systems.lua.LuaBuilder):
     # without this, the resulting library cannot be linked by a normal link phase, the
@@ -42,7 +47,8 @@ class LuaBuilder(spack.build_systems.lua.LuaBuilder):
     # * replaces `-bundle` from the default flags with `-shared`
     @when("platform=darwin")
     def generate_luarocks_config(self, pkg, spec, prefix):
-        path = super().generate_luarocks_config(pkg, spec, prefix)
+        super().generate_luarocks_config(pkg, spec, prefix)
+        path = self._luarocks_config_path()
 
         with open(path, "a") as cfg:
             cfg.write(

@@ -206,7 +206,7 @@ def test_repo(_create_test_repo, monkeypatch, mock_stage):
 )
 def test_redistribute_directive(test_repo, spec_str, distribute_src, distribute_bin):
     spec = spack.spec.Spec(spec_str)
-    assert spec.package_class.redistribute_source(spec) == distribute_src
+    assert spack.repo.PATH.get_pkg_class(spec.fullname).redistribute_source(spec) == distribute_src
     concretized_spec = spack.concretize.concretize_one(spec)
     assert concretized_spec.package.redistribute_binary == distribute_bin
 

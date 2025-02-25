@@ -93,28 +93,26 @@ except ImportError:
     pass
 
 
-"""This is a list of filesystem locations to test locks in.  Paths are
-expanded so that %u is replaced with the current username. '~' is also
-legal and will be expanded to the user's home directory.
-
-Tests are skipped for directories that don't exist, so you'll need to
-update this with the locations of NFS, Lustre, and other mounts on your
-system.
-"""
+#: This is a list of filesystem locations to test locks in.  Paths are
+#: expanded so that %u is replaced with the current username. '~' is also
+#: legal and will be expanded to the user's home directory.
+#:
+#: Tests are skipped for directories that don't exist, so you'll need to
+#: update this with the locations of NFS, Lustre, and other mounts on your
+#: system.
 locations = [
     tempfile.gettempdir(),
     os.path.join("/nfs/tmp2/", getpass.getuser()),
     os.path.join("/p/lscratch*/", getpass.getuser()),
 ]
 
-"""This is the longest a failed multiproc test will take.
-Barriers will time out and raise an exception after this interval.
-In MPI mode, barriers don't time out (they hang).  See mpi_multiproc_test.
-"""
+#: This is the longest a failed multiproc test will take.
+#: Barriers will time out and raise an exception after this interval.
+#: In MPI mode, barriers don't time out (they hang).  See mpi_multiproc_test.
 barrier_timeout = 5
 
-"""This is the lock timeout for expected failures.
-This may need to be higher for some filesystems."""
+#: This is the lock timeout for expected failures.
+#: This may need to be higher for some filesystems.
 lock_fail_timeout = 0.1
 
 
@@ -286,9 +284,8 @@ def mpi_multiproc_test(*functions):
     comm.Barrier()  # barrier after each MPI test.
 
 
-"""``multiproc_test()`` should be called by tests below.
-``multiproc_test()`` will work for either MPI runs or for local runs.
-"""
+#: ``multiproc_test()`` should be called by tests below.
+#: ``multiproc_test()`` will work for either MPI runs or for local runs.
 multiproc_test = mpi_multiproc_test if mpi else local_multiproc_test
 
 

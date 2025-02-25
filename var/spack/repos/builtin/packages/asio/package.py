@@ -18,6 +18,7 @@ class Asio(AutotoolsPackage):
     license("BSL-1.0")
 
     # As uneven minor versions of asio are not considered stable, they wont be added anymore
+    version("1.32.0", sha256="f1b94b80eeb00bb63a3c8cef5047d4e409df4d8a3fe502305976965827d95672")
     version("1.30.2", sha256="755bd7f85a4b269c67ae0ea254907c078d408cce8e1a352ad2ed664d233780e8")
     version("1.30.1", sha256="94b121cc2016680f2314ef58eadf169c2d34fff97fba01df325a192d502d3a58")
     version("1.30.0", sha256="df6674bd790842b3a7422e9cc4c5d3212ac268cebdb5d38f3e783e4918313c7b")

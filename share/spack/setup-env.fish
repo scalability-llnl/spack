@@ -788,8 +788,7 @@ end
 #
 set -l fish_version (string split '.' $FISH_VERSION)
 if test $fish_version[1] -gt 3
-    or test $fish_version[1] -eq 3
-    and test $fish_version[2] -ge 2
+    or begin ; test $fish_version[1] -eq 3 ; and test $fish_version[2] -ge 2 ; end
 
     source $sp_share_dir/spack-completion.fish
 end

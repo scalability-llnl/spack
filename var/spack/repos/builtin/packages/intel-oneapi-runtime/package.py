@@ -3,8 +3,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
 
-from llnl.util import tty
-
 from spack.package import *
 from spack.pkg.builtin.gcc_runtime import get_elf_libraries
 

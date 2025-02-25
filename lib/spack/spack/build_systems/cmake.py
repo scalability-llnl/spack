@@ -11,6 +11,7 @@ from itertools import chain
 from typing import Any, List, Optional, Tuple
 
 import llnl.util.filesystem as fs
+from llnl.util import tty
 from llnl.util.lang import stable_partition
 
 import spack.builder
@@ -458,11 +459,23 @@ class CMakeBuilder(BuilderWithDefaults):
     ) -> None:
         """Runs ``cmake`` in the build directory"""
 
-        # skip cmake phase if it is an incremental develop build
-        if spec.is_develop and os.path.isfile(
-            os.path.join(self.build_directory, "CMakeCache.txt")
-        ):
-            return
+        if spec.is_develop:
+            # skip cmake phase if it is an incremental develop build
+
+            # Determine the files that will re-run CMake that are generated from a successful
+            # configure step based on state
+            primary_generator = _extract_primary_generator(self.generator)
+            configure_artifact = "Makefile"
+            if primary_generator == "Ninja":
+                configure_artifact = "ninja.build"
+
+            if os.path.isfile(os.path.join(self.build_directory, configure_artifact)):
+                tty.msg(
+                    "Incremental build criteria satisfied."
+                    "Skipping CMake configure step. To force configuration run"
+                    f" `spack clean {pkg.name}`"
+                )
+                return
 
         options = self.std_cmake_args
         options += self.cmake_args()

@@ -116,13 +116,21 @@ def setup_src_code(spec: spack.spec.Spec, src_path: str, clone: bool = True, for
     if not clone and not os.path.exists(src_path):
         raise SpackError(f"Provided path {src_path} does not exist")
 
-
+    version = spec.versions.concrete_range_as_version
+    if not version:
+        # look up the maximum version so infintiy versions are preferred for develop
+        version = max(spack.repo.PATH.get_pkg_class(spec.fullname).versions.keys())
+        tty.msg(f"Defaulting to highest version: {spec.name}@{version}")
+    spec.versions = spack.version.VersionList([version])
+    
+    
 def _update_config(spec, path):
     find_fn = lambda section: spec.name in section
 
     entry = {"spec": str(spec)}
     if path and path != spec.name:
         entry["path"] = path
+
 
     def change_fn(section):
         section[spec.name] = entry

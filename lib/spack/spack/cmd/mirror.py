@@ -545,7 +545,7 @@ class IncludeFilter:
         package does not explicitly forbid redistributing source."""
         if self.private:
             return True
-        elif x.package_class.redistribute_source(x):
+        elif spack.repo.PATH.get_pkg_class(x.fullname).redistribute_source(x):
             return True
         else:
             tty.debug(

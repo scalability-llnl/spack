@@ -4,8 +4,6 @@
 
 import os
 
-import llnl.util.tty as tty
-
 from spack.package import *
 
 
@@ -192,7 +190,7 @@ class Octopus(AutotoolsPackage, CudaPackage):
         else:
             # To be foolproof, fail with a proper error message
             # if neither FFTW nor MKL are in the dependency tree.
-            tty.die(
+            raise InstallError(
                 'Unsupported "fftw-api" provider, '
                 "currently only FFTW and MKL are supported.\n"
                 "Please report this issue on Spack's repository."

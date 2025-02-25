@@ -164,6 +164,9 @@ class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
     # https://github.com/google/jax/issues/19992
     conflicts("@0.4.4:", when="target=ppc64le:")
 
+    # Fails to build with freshly released CUDA (#48708).
+    conflicts("^cuda@12.8:", when="@:0.4.31")
+
     def url_for_version(self, version):
         url = "https://github.com/jax-ml/jax/archive/refs/tags/{}-v{}.tar.gz"
         if version >= Version("0.4.33"):

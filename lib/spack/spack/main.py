@@ -163,7 +163,7 @@ class SpackArgumentParser(argparse.ArgumentParser):
         # lazily add all commands to the parser when needed.
         add_all_commands(self)
 
-        """Print help on subcommands in neatly formatted sections."""
+        # Print help on subcommands in neatly formatted sections.
         formatter = self._get_formatter()
 
         # Create a list of subcommand actions. Argparse internals are nasty!

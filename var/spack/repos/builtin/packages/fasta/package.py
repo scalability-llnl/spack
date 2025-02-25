@@ -41,7 +41,7 @@ class Fasta(MakefilePackage):
         elif self.spec.satisfies("platform=linux target=x86_64:"):
             name = "Makefile.linux64_sse2"
         else:
-            tty.die(
+            raise InstallError(
                 """Unsupported platform/target, must be
 Darwin (assumes 64-bit)
 Linux x86_64

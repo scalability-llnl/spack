@@ -84,7 +84,12 @@ class Zlib(MakefilePackage, Package):
     @property
     def libs(self):
         shared = "+shared" in self.spec
-        return find_libraries(["libz"], root=self.prefix, recursive=True, shared=shared)
+        libnames = ["libz"]
+        if self.spec.satisfies("platform=windows"):
+            libnames.append("zdll" if shared else "zlib")
+        return find_libraries(
+            libnames, root=self.prefix, recursive=True, shared=shared, runtime=False
+        )
 
 
 class SetupEnvironment:

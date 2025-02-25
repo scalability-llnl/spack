@@ -7,7 +7,6 @@
 import platform
 
 from spack.package import *
-from spack.util.prefix import Prefix
 
 # FIXME Remove hack for polymorphic versions
 # This package uses a ugly hack to be able to dispatch, given the same
