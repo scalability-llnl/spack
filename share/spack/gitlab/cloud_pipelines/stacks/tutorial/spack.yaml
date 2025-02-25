@@ -1,7 +1,5 @@
 spack:
   view: false
-  concretizer:
-    unify: false
   packages:
     all:
       require: target=x86_64_v3

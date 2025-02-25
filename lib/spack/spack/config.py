@@ -66,8 +66,6 @@ import spack.util.spack_yaml as syaml
 import spack.util.web as web_util
 from spack.util.cpus import cpus_available
 
-from .enums import ConfigScopePriority
-
 #: Dict from section names -> schema for that section
 SECTION_SCHEMAS: Dict[str, Any] = {
     "compilers": spack.schema.compilers.schema,
@@ -410,18 +408,26 @@ def _config_mutator(method):
     return _method
 
 
-ScopeWithOptionalPriority = Union[ConfigScope, Tuple[int, ConfigScope]]
-ScopeWithPriority = Tuple[int, ConfigScope]
-
-
 class Configuration:
-    """A hierarchical configuration, merging a number of scopes at different priorities."""
+    """A full Spack configuration, from a hierarchy of config files.
+
+    This class makes it easy to add a new scope on top of an existing one.
+    """
 
     # convert to typing.OrderedDict when we drop 3.6, or OrderedDict when we reach 3.9
-    scopes: lang.PriorityOrderedMapping[str, ConfigScope]
+    scopes: Dict[str, ConfigScope]
 
-    def __init__(self) -> None:
-        self.scopes = lang.PriorityOrderedMapping()
+    def __init__(self, *scopes: ConfigScope) -> None:
+        """Initialize a configuration with an initial list of scopes.
+
+        Args:
+            scopes: list of scopes to add to this
+                Configuration, ordered from lowest to highest precedence
+
+        """
+        self.scopes = collections.OrderedDict()
+        for scope in scopes:
+            self.push_scope(scope)
         self.format_updates: Dict[str, List[ConfigScope]] = collections.defaultdict(list)
 
     def ensure_unwrapped(self) -> "Configuration":
@@ -429,31 +435,36 @@ class Configuration:
         return self
 
     def highest(self) -> ConfigScope:
-        """Scope with the highest precedence"""
-        return next(self.scopes.reversed_values())  # type: ignore
+        """Scope with highest precedence"""
+        return next(reversed(self.scopes.values()))  # type: ignore
 
     @_config_mutator
-    def push_scope(self, scope: ConfigScope, priority: Optional[int] = None) -> None:
-        """Adds a scope to the Configuration, at a given priority.
+    def ensure_scope_ordering(self):
+        """Ensure that scope order matches documented precedent"""
+        # FIXME: We also need to consider that custom configurations and other orderings
+        # may not be preserved correctly
+        if "command_line" in self.scopes:
+            # TODO (when dropping python 3.6): self.scopes.move_to_end
+            self.scopes["command_line"] = self.remove_scope("command_line")
 
-        If a priority is not given, it is assumed to be the current highest priority.
+    @_config_mutator
+    def push_scope(self, scope: ConfigScope) -> None:
+        """Add a higher precedence scope to the Configuration."""
+        tty.debug(f"[CONFIGURATION: PUSH SCOPE]: {str(scope)}", level=2)
+        self.scopes[scope.name] = scope
 
-        Args:
-            scope: scope to be added
-            priority: priority of the scope
-        """
-        tty.debug(f"[CONFIGURATION: PUSH SCOPE]: {str(scope)}, priority={priority}", level=2)
-        self.scopes.add(scope.name, value=scope, priority=priority)
+    @_config_mutator
+    def pop_scope(self) -> ConfigScope:
+        """Remove the highest precedence scope and return it."""
+        name, scope = self.scopes.popitem(last=True)  # type: ignore[call-arg]
+        tty.debug(f"[CONFIGURATION: POP SCOPE]: {str(scope)}", level=2)
+        return scope
 
     @_config_mutator
     def remove_scope(self, scope_name: str) -> Optional[ConfigScope]:
-        """Removes a scope by name, and returns it. If the scope does not exist, returns None."""
-        try:
-            scope = self.scopes.remove(scope_name)
-            tty.debug(f"[CONFIGURATION: POP SCOPE]: {str(scope)}", level=2)
-        except KeyError as e:
-            tty.debug(f"[CONFIGURATION: POP SCOPE]: {e}", level=2)
-            return None
+        """Remove scope by name; has no effect when ``scope_name`` does not exist"""
+        scope = self.scopes.pop(scope_name, None)
+        tty.debug(f"[CONFIGURATION: POP SCOPE]: {str(scope)}", level=2)
         return scope
 
     @property
@@ -462,13 +473,15 @@ class Configuration:
         return (s for s in self.scopes.values() if s.writable)
 
     def highest_precedence_scope(self) -> ConfigScope:
-        """Writable scope with the highest precedence."""
-        return next(s for s in self.scopes.reversed_values() if s.writable)
+        """Writable scope with highest precedence."""
+        return next(s for s in reversed(self.scopes.values()) if s.writable)  # type: ignore
 
     def highest_precedence_non_platform_scope(self) -> ConfigScope:
-        """Writable non-platform scope with the highest precedence"""
+        """Writable non-platform scope with highest precedence"""
         return next(
-            s for s in self.scopes.reversed_values() if s.writable and not s.is_platform_dependent
+            s
+            for s in reversed(self.scopes.values())  # type: ignore
+            if s.writable and not s.is_platform_dependent
         )
 
     def matching_scopes(self, reg_expr) -> List[ConfigScope]:
@@ -735,7 +748,7 @@ def override(
     """
     if isinstance(path_or_scope, ConfigScope):
         overrides = path_or_scope
-        CONFIG.push_scope(path_or_scope, priority=None)
+        CONFIG.push_scope(path_or_scope)
     else:
         base_name = _OVERRIDES_BASE_NAME
         # Ensure the new override gets a unique scope name
@@ -749,7 +762,7 @@ def override(
                 break
 
         overrides = InternalConfigScope(scope_name)
-        CONFIG.push_scope(overrides, priority=None)
+        CONFIG.push_scope(overrides)
         CONFIG.set(path_or_scope, value, scope=scope_name)
 
     try:
@@ -759,15 +772,13 @@ def override(
         assert scope is overrides
 
 
-def _add_platform_scope(
-    cfg: Configuration, name: str, path: str, priority: ConfigScopePriority, writable: bool = True
-) -> None:
+def _add_platform_scope(cfg: Configuration, name: str, path: str, writable: bool = True) -> None:
     """Add a platform-specific subdirectory for the current platform."""
     platform = spack.platforms.host().name
     scope = DirectoryConfigScope(
         f"{name}/{platform}", os.path.join(path, platform), writable=writable
     )
-    cfg.push_scope(scope, priority=priority)
+    cfg.push_scope(scope)
 
 
 def config_paths_from_entry_points() -> List[Tuple[str, str]]:
@@ -802,10 +813,11 @@ def create() -> Configuration:
     it. It is bundled inside a function so that configuration can be
     initialized lazily.
     """
+    cfg = Configuration()
+
     # first do the builtin, hardcoded defaults
-    cfg = create_from(
-        (ConfigScopePriority.BUILTIN, InternalConfigScope("_builtin", CONFIG_DEFAULTS))
-    )
+    builtin = InternalConfigScope("_builtin", CONFIG_DEFAULTS)
+    cfg.push_scope(builtin)
 
     # Builtin paths to configuration files in Spack
     configuration_paths = [
@@ -835,9 +847,10 @@ def create() -> Configuration:
 
     # add each scope and its platform-specific directory
     for name, path in configuration_paths:
-        cfg.push_scope(DirectoryConfigScope(name, path), priority=ConfigScopePriority.CONFIG_FILES)
-        # Each scope can have per-platform overrides in subdirectories
-        _add_platform_scope(cfg, name, path, priority=ConfigScopePriority.CONFIG_FILES)
+        cfg.push_scope(DirectoryConfigScope(name, path))
+
+        # Each scope can have per-platfom overrides in subdirectories
+        _add_platform_scope(cfg, name, path)
 
     return cfg
 
@@ -942,7 +955,7 @@ def set(path: str, value: Any, scope: Optional[str] = None) -> None:
     return CONFIG.set(path, value, scope)
 
 
-def scopes() -> lang.PriorityOrderedMapping[str, ConfigScope]:
+def scopes() -> Dict[str, ConfigScope]:
     """Convenience function to get list of configuration scopes."""
     return CONFIG.scopes
 
@@ -1396,7 +1409,7 @@ def ensure_latest_format_fn(section: str) -> Callable[[YamlConfigDict], bool]:
 
 @contextlib.contextmanager
 def use_configuration(
-    *scopes_or_paths: Union[ScopeWithOptionalPriority, str]
+    *scopes_or_paths: Union[ConfigScope, str]
 ) -> Generator[Configuration, None, None]:
     """Use the configuration scopes passed as arguments within the context manager.
 
@@ -1411,7 +1424,7 @@ def use_configuration(
     global CONFIG
 
     # Normalize input and construct a Configuration object
-    configuration = create_from(*scopes_or_paths)
+    configuration = _config_from(scopes_or_paths)
     CONFIG.clear_caches(), configuration.clear_caches()
 
     saved_config, CONFIG = CONFIG, configuration
@@ -1422,44 +1435,23 @@ def use_configuration(
         CONFIG = saved_config
 
 
-def _normalize_input(entry: Union[ScopeWithOptionalPriority, str]) -> ScopeWithPriority:
-    if isinstance(entry, tuple):
-        return entry
-
-    default_priority = ConfigScopePriority.CONFIG_FILES
-    if isinstance(entry, ConfigScope):
-        return default_priority, entry
-
-    # Otherwise we need to construct it
-    path = os.path.normpath(entry)
-    assert os.path.isdir(path), f'"{path}" must be a directory'
-    name = os.path.basename(path)
-    return default_priority, DirectoryConfigScope(name, path)
-
-
 @lang.memoized
-def create_from(*scopes_or_paths: Union[ScopeWithOptionalPriority, str]) -> Configuration:
-    """Creates a configuration object from the scopes passed in input.
+def _config_from(scopes_or_paths: List[Union[ConfigScope, str]]) -> Configuration:
+    scopes = []
+    for scope_or_path in scopes_or_paths:
+        # If we have a config scope we are already done
+        if isinstance(scope_or_path, ConfigScope):
+            scopes.append(scope_or_path)
+            continue
 
-    Args:
-        *scopes_or_paths: either a tuple of (priority, ConfigScope), or a ConfigScope, or a string
-            If priority is not given, it is assumed to be ConfigScopePriority.CONFIG_FILES. If a
-            string is given, a DirectoryConfigScope is created from it.
+        # Otherwise we need to construct it
+        path = os.path.normpath(scope_or_path)
+        assert os.path.isdir(path), f'"{path}" must be a directory'
+        name = os.path.basename(path)
+        scopes.append(DirectoryConfigScope(name, path))
 
-    Examples:
-
-        >>> builtin_scope = InternalConfigScope("_builtin", {"config": {"build_jobs": 1}})
-        >>> cl_scope = InternalConfigScope("command_line", {"config": {"build_jobs": 10}})
-        >>> cfg = create_from(
-        ...     (ConfigScopePriority.COMMAND_LINE, cl_scope),
-        ...     (ConfigScopePriority.BUILTIN, builtin_scope)
-        ... )
-    """
-    scopes_with_priority = [_normalize_input(x) for x in scopes_or_paths]
-    result = Configuration()
-    for priority, scope in scopes_with_priority:
-        result.push_scope(scope, priority=priority)
-    return result
+    configuration = Configuration(*scopes)
+    return configuration
 
 
 def raw_github_gitlab_url(url: str) -> str:
