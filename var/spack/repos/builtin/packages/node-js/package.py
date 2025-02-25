@@ -132,6 +132,7 @@ class NodeJs(Package):
 
     # See https://github.com/nodejs/node/issues/52223
     patch("fix-old-glibc-random-headers.patch", when="^glibc@:2.24")
+    patch("use-va-opt-macro.patch", when="%gcc@14:")
 
     # Work around gcc-12.[1-2] compiler bug
     # See https://github.com/nodejs/node/pull/53728
