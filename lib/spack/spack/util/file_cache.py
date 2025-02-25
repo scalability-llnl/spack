@@ -5,8 +5,9 @@
 import errno
 import math
 import os
+import pathlib
 import shutil
-from typing import IO, Optional, Tuple
+from typing import IO, Optional, Tuple, Union
 
 from llnl.util.filesystem import mkdirp, rename
 
@@ -70,7 +71,7 @@ class FileCache:
 
     """
 
-    def __init__(self, root, timeout=120):
+    def __init__(self, root: Union[str, pathlib.Path], timeout=120):
         """Create a file cache object.
 
         This will create the cache directory if it does not exist yet.
@@ -82,67 +83,70 @@ class FileCache:
                 for cache files, this specifies how long Spack should wait
                 before assuming that there is a deadlock.
         """
-        self.root = root.rstrip(os.path.sep)
-        if not os.path.exists(self.root):
-            mkdirp(self.root)
+        if isinstance(root, str):
+            root = pathlib.Path(root)
+        self.root = root
+        self.root.mkdir(parents=True, exist_ok=True)
 
         self._locks = {}
         self.lock_timeout = timeout
 
     def destroy(self):
         """Remove all files under the cache root."""
-        for f in os.listdir(self.root):
-            path = os.path.join(self.root, f)
-            if os.path.isdir(path):
-                shutil.rmtree(path, True)
+        for f in self.root.iterdir():
+            if f.is_dir():
+                shutil.rmtree(f, True)
             else:
-                os.remove(path)
+                f.unlink()
 
-    def cache_path(self, key):
+    def cache_path(self, key) -> pathlib.Path:
         """Path to the file in the cache for a particular key."""
-        return os.path.join(self.root, key)
+        return self.root / key
 
-    def _lock_path(self, key):
+    def _lock_path(self, key) -> pathlib.Path:
         """Path to the file in the cache for a particular key."""
         keyfile = os.path.basename(key)
         keydir = os.path.dirname(key)
 
-        return os.path.join(self.root, keydir, "." + keyfile + ".lock")
+        return self.root / keydir / "." + keyfile + ".lock"
 
-    def _get_lock(self, key):
+    def _get_lock(self, key, start:int=0, length:int=0, timeout:int=0):
         """Create a lock for a key, if necessary, and return a lock object."""
+        if not timeout:
+            timeout = self.lock_timeout
+        _cache_key = key + "-" + str(start) + "-" + str(length)
         if key not in self._locks:
-            self._locks[key] = Lock(self._lock_path(key), default_timeout=self.lock_timeout)
-        return self._locks[key]
+            self._locks[_cache_key] = Lock(str(self._lock_path(key)), start=start, length=length, default_timeout=timeout)
+        return self._locks[_cache_key]
 
-    def init_entry(self, key):
+    def init_entry(self, key, start:int=0, length:int=0):
         """Ensure we can access a cache file. Create a lock for it if needed.
 
         Return whether the cache file exists yet or not.
         """
         cache_path = self.cache_path(key)
 
-        exists = os.path.exists(cache_path)
+        exists = cache_path.exists()
         if exists:
-            if not os.path.isfile(cache_path):
+            if not cache_path.is_file():
                 raise CacheError("Cache file is not a file: %s" % cache_path)
 
             if not os.access(cache_path, os.R_OK):
                 raise CacheError("Cannot access cache file: %s" % cache_path)
         else:
             # if the file is hierarchical, make parent directories
-            parent = os.path.dirname(cache_path)
-            if parent.rstrip(os.path.sep) != self.root:
-                mkdirp(parent)
+            parent = cache_path.parent
+            if parent != self.root:
+                parent.mkdir(parents=True, exist_ok=True)
 
             if not os.access(parent, os.R_OK | os.W_OK):
                 raise CacheError("Cannot access cache directory: %s" % parent)
 
             # ensure lock is created for this key
-            self._get_lock(key)
+            self._get_lock(key, start=start, length=length)
         return exists
 
-    def read_transaction(self, key):
+    def read_transaction(self, key, start:int=0, length:int=0, timeout:int=0):
         """Get a read transaction on a file cache item.
 
         Returns a ReadTransaction context manager and opens the cache file for
@@ -153,9 +157,9 @@ class FileCache:
 
         """
         path = self.cache_path(key)
-        return ReadTransaction(self._get_lock(key), acquire=lambda: ReadContextManager(path))
+        return ReadTransaction(self._get_lock(key, start=start, length=length, timeout=timeout), acquire=lambda: ReadContextManager(path))
 
-    def write_transaction(self, key):
+    def write_transaction(self, key, start:int=0, length:int=0, timeout:int=0):
         """Get a write transaction on a file cache item.
 
         Returns a WriteTransaction context manager that opens a temporary file
@@ -167,7 +171,7 @@ class FileCache:
         if os.path.exists(path) and not os.access(path, os.W_OK):
             raise CacheError(f"Insufficient permissions to write to file cache at {path}")
 
-        return WriteTransaction(self._get_lock(key), acquire=lambda: WriteContextManager(path))
+        return WriteTransaction(self._get_lock(key, start=start, length=length, timeout=timeout), acquire=lambda: WriteContextManager(path))
 
     def mtime(self, key) -> float:
         """Return modification time of cache file, or -inf if it does not exist.
@@ -179,14 +183,14 @@ class FileCache:
         if not self.init_entry(key):
             return -math.inf
         else:
-            return os.stat(self.cache_path(key)).st_mtime
+            return self.cache_path(key).stat().st_mtime
 
-    def remove(self, key):
+    def remove(self, key, start:int=0, length:int=0):
         file = self.cache_path(key)
-        lock = self._get_lock(key)
+        lock = self._get_lock(key, start=start, length=length)
         try:
             lock.acquire_write()
-            os.unlink(file)
+            file.unlink()
         except OSError as e:
             # File not found is OK, so remove is idempotent.
             if e.errno != errno.ENOENT:
