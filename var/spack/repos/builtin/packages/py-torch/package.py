@@ -648,11 +648,6 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
             # __HIP_PLATFORM_HCC__ is deprecated but used by old pytorch
             env.set("CXXFLAGS", "-D__HIP_PLATFORM_AMD__")
 
-            # Deactivate aottriton related features
-            # AOTriton does not compile without many patches on AMD systems
-            env.set("USE_FLASH_ATTENTION", "OFF")
-            env.set("USE_MEM_EFF_ATTENTION", "OFF")
-
             if self.spec.satisfies("^hip@5.2.0:"):
                 env.set("CMAKE_MODULE_PATH", self.spec["hip"].prefix.lib.cmake.hip)
 
@@ -669,6 +664,12 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
         enable_or_disable("mps")
         enable_or_disable("breakpad")
         enable_or_disable("flash_attention")
+
+        if "+rocm ~flash_attention" in self.spec:
+            # Deactivate both attention mechanism for AOTtriton
+            # AOTriton does not compile without many patches on AMD systems
+            env.set("USE_FLASH_ATTENTION", "OFF")
+            env.set("USE_MEM_EFF_ATTENTION", "OFF")
 
         enable_or_disable("nccl")
         if "+cuda+nccl" in self.spec:
