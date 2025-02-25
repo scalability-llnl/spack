@@ -674,7 +674,9 @@ class Petsc(Package, CudaPackage, ROCmPackage):
                 useinc = True
                 uselib = True
 
-            library_requested = spacklibname.split(":")[0] in direct_dependencies
+            dependency_name = spacklibname.split(":")[0]
+            dependency_names = [d.name for d in spec.dependencies()]
+            library_requested = dependency_name in direct_dependencies and dependency_name in dependency_names
             options.append(
                 "--with-{library}={value}".format(
                     library=petsclibname, value=("1" if library_requested else "0")
