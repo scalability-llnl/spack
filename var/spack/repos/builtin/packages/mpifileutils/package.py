@@ -19,7 +19,7 @@ class Mpifileutils(CMakePackage):
     url = "https://github.com/hpc/mpifileutils/archive/v0.9.tar.gz"
     git = "https://github.com/hpc/mpifileutils.git"
 
-    maintainers("gonsie", "carbonneau1", "adammoody")
+    maintainers("gonsie", "carbonneau1")
 
     tags = ["e4s"]
 
