@@ -83,6 +83,9 @@ spack:
     bison:
       require:
       - "%gcc"
+    boost:
+      require:
+      - "%gcc"
     libfabric:
       buildable: true
       externals:
