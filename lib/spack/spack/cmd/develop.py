@@ -122,15 +122,14 @@ def setup_src_code(spec: spack.spec.Spec, src_path: str, clone: bool = True, for
         version = max(spack.repo.PATH.get_pkg_class(spec.fullname).versions.keys())
         tty.msg(f"Defaulting to highest version: {spec.name}@{version}")
     spec.versions = spack.version.VersionList([version])
-    
-    
+
+
 def _update_config(spec, path):
     find_fn = lambda section: spec.name in section
 
     entry = {"spec": str(spec)}
     if path and path != spec.name:
         entry["path"] = path
-
 
     def change_fn(section):
         section[spec.name] = entry
