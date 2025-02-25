@@ -15,6 +15,7 @@ class Fjcontrib(AutotoolsPackage):
 
     license("GPL-2.0-or-later")
 
+    version("1.101", sha256="dbe8ad2199f72d64dd29f6218f6f53efddc8fb3e5dd9c5d10f2fd1e23d6e44f6")
     version("1.100", sha256="52ad945d9195c40f347958dc04041e41c7130e845ebdf0c13f1bbdd5b6d2429b")
     version("1.056", sha256="fc31544424dece0d0676ea2433ad1e96fd9db82920bc7a7ef6294ce94e659d6e")
     version("1.055", sha256="d9aa46560fdfd85082f202a5a9ce64768fe0c598660f013206a8c9c17ecd0f36")
