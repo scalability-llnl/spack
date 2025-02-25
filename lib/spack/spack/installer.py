@@ -1106,6 +1106,13 @@ class Task:
         else:
             return self.request.install_args.get("dependencies_use_cache", _use_cache)
 
+    @use_cache.setter
+    def use_cache(self, v: bool) -> None:
+        self._use_cache = v
+        # force override also request
+        self.request.install_args["package_use_cache"] = v
+        self.request.install_args["dependencies_use_cache"] = v
+
     @property
     def cache_only(self) -> bool:
         _cache_only = False
@@ -2185,8 +2192,7 @@ class PackageInstaller:
                     f"Failed to install {pkg.name} from binary cache due "
                     f"to {str(exc)}: Requeueing to install from source."
                 )
-                # this overrides a full method, which is ugly.
-                task.use_cache = False  # type: ignore[misc]
+                task.use_cache = False
                 self._requeue_task(task, install_status)
                 continue
 
@@ -2394,7 +2400,6 @@ class BuildProcessInstaller:
         fs.install_tree(pkg.stage.source_path, src_target)
 
     def _real_install(self) -> None:
-
         pkg = self.pkg
 
         # Do the real install in the source directory.
