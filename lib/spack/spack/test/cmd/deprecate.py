@@ -15,6 +15,9 @@ uninstall = SpackCommand("uninstall")
 deprecate = SpackCommand("deprecate")
 find = SpackCommand("find")
 
+# Unit tests should not be affected by the user's managed environments
+pytestmark = pytest.mark.usefixtures("mutable_mock_env_path")
+
 
 def test_deprecate(mock_packages, mock_archive, mock_fetch, install_mockery):
     install("--fake", "libelf@0.8.13")

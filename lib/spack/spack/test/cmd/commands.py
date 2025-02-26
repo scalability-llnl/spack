@@ -5,6 +5,7 @@
 import filecmp
 import os
 import shutil
+import textwrap
 
 import pytest
 
@@ -259,15 +260,25 @@ def test_update_completion_arg(shell, tmpdir, monkeypatch):
 def test_updated_completion_scripts(shell, tmpdir):
     """Make sure our shell tab completion scripts remain up-to-date."""
 
-    msg = (
+    width = 72
+    lines = textwrap.wrap(
         "It looks like Spack's command-line interface has been modified. "
-        "Please update Spack's shell tab completion scripts by running:\n\n"
-        "    spack commands --update-completion\n\n"
-        "and adding the changed files to your pull request."
+        "If differences are more than your global 'include:' scopes, please "
+        "update Spack's shell tab completion scripts by running:",
+        width,
     )
+    lines.append("\n    spack commands --update-completion\n")
+    lines.extend(
+        textwrap.wrap(
+            "and adding the changed files (minus your global 'include:' scopes) "
+            "to your pull request.",
+            width,
+        )
+    )
+    msg = "\n".join(lines)
 
     header = os.path.join(spack.paths.share_path, shell, f"spack-completion.{shell}")
-    script = "spack-completion.{0}".format(shell)
+    script = f"spack-completion.{shell}"
     old_script = os.path.join(spack.paths.share_path, script)
     new_script = str(tmpdir.join(script))
 

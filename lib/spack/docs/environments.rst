@@ -670,24 +670,38 @@ This configuration sets the default compiler for all packages to
 Included configurations
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Spack environments allow an ``include`` heading in their yaml
-schema. This heading pulls in external configuration files and applies
-them to the environment.
+Spack environments allow an ``include`` heading in their yaml schema.
+This heading pulls in external configuration files and applies them to
+the environment.
 
 .. code-block:: yaml
 
    spack:
      include:
-     - relative/path/to/config.yaml
+     - environment/relative/path/to/config.yaml
      - https://github.com/path/to/raw/config/compilers.yaml
      - /absolute/path/to/packages.yaml
+     - path: /path/to/$os/$target/environment
+       optional: true
+     - path: /path/to/os-specific/config-dir
+       when: os == "ventura"
 
-Environments can include files or URLs. File paths can be relative or
-absolute. URLs include the path to the text for individual files or
-can be the path to a directory containing configuration files.
-Spack supports ``file``, ``http``, ``https`` and ``ftp`` protocols (or
-schemes). Spack-specific, environment and user path variables may be
-used in these paths. See :ref:`config-file-variables` for more information.
+Included configuration files are required *unless* they are explicitly optional
+or the entry's condition evaluates to ``false``. Optional includes are specified
+with the ``optional`` clause and conditional with the ``when`` clause. (See
+:ref:`include-yaml` for more information on optional and conditional entries.)
+
+Files are listed using paths to individual files or directories containing them.
+Path entries may be absolute or relative to the environment or specified as 
+URLs. URLs to individual files need link to the **raw** form of the file's 
+contents (e.g., `GitHub
+<https://docs.github.com/en/repositories/working-with-files/using-files/viewing-and-understanding-files#viewing-or-copying-the-raw-file-content>`_ 
+or `GitLab
+<https://docs.gitlab.com/ee/api/repository_files.html#get-raw-file-from-repository>`_).
+Only the ``file``, ``ftp``, ``http`` and ``https`` protocols (or schemes) are
+supported. Spack-specific, environment and user path variables can be used.
+(See :ref:`config-file-variables` for more information.)
+
 
 ^^^^^^^^^^^^^^^^^^^^^^^^
 Configuration precedence

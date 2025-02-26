@@ -14,6 +14,7 @@ import subprocess
 import sys
 import tempfile
 from datetime import date
+from typing import Optional
 
 import llnl.util.tty as tty
 from llnl.util.lang import memoized
@@ -235,7 +236,7 @@ def add_padding(path, length):
     return os.path.join(path, padding)
 
 
-def canonicalize_path(path, default_wd=None):
+def canonicalize_path(path: str, default_wd: Optional[str] = None) -> str:
     """Same as substitute_path_variables, but also take absolute path.
 
     If the string is a yaml object with file annotations, make absolute paths
@@ -243,26 +244,39 @@ def canonicalize_path(path, default_wd=None):
     Otherwise, use ``default_wd`` if specified, otherwise ``os.getcwd()``
 
     Arguments:
-        path (str): path being converted as needed
+        path: path being converted as needed
 
-    Returns:
-        (str): An absolute path with path variable substitution
+    Returns: An absolute path or non-file URL with path variable substitution
     """
+    import urllib.parse
+    import urllib.request
+
     # Get file in which path was written in case we need to make it absolute
     # relative to that path.
     filename = None
     if isinstance(path, syaml.syaml_str):
-        filename = os.path.dirname(path._start_mark.name)
-        assert path._start_mark.name == path._end_mark.name
+        filename = os.path.dirname(path._start_mark.name)  # type: ignore[attr-defined]
+        assert path._start_mark.name == path._end_mark.name  # type: ignore[attr-defined]
 
     path = substitute_path_variables(path)
+
+    url = urllib.parse.urlparse(path)
+    url_path = urllib.request.url2pathname(url.path)
+    if url.scheme:
+        if url.scheme != "file":
+            # Have a remote URL so simply return it with substitutions
+            return os.path.normpath(path)
+
+        # Drop the URL scheme from the local path
+        path = url_path
+
     if not os.path.isabs(path):
         if filename:
             path = os.path.join(filename, path)
         else:
             base = default_wd or os.getcwd()
             path = os.path.join(base, path)
-            tty.debug("Using working directory %s as base for abspath" % base)
+            tty.debug(f"Using working directory {base} as base for abspath")
 
     return os.path.normpath(path)
 
@@ -347,6 +361,7 @@ def filter_padding():
     This is needed because Spack's debug output gets extremely long when we use a
     long padded installation path.
     """
+    # circular import
     import spack.config
 
     padding = spack.config.get("config:install_tree:padded_length", None)

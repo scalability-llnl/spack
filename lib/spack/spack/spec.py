@@ -5130,6 +5130,13 @@ def get_host_environment() -> Dict[str, Any]:
     }
 
 
+def eval_conditional(string):
+    """Evaluate conditional definitions using restricted variable scope."""
+    valid_variables = get_host_environment()
+    valid_variables.update({"re": re, "env": os.environ})
+    return eval(string, valid_variables)
+
+
 class SpecParseError(spack.error.SpecError):
     """Wrapper for ParseError for when we're parsing specs."""
 

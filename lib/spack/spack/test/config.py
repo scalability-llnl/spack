@@ -11,8 +11,7 @@ from datetime import date
 
 import pytest
 
-import llnl.util.tty as tty
-from llnl.util.filesystem import join_path, touch, touchp
+from llnl.util.filesystem import join_path, touch
 
 import spack
 import spack.config
@@ -26,6 +25,7 @@ import spack.repo
 import spack.schema.compilers
 import spack.schema.config
 import spack.schema.env
+import spack.schema.include
 import spack.schema.mirrors
 import spack.schema.repos
 import spack.spec
@@ -51,22 +51,9 @@ config_merge_list = {"config": {"build_stage": ["patha", "pathb"]}}
 
 config_override_list = {"config": {"build_stage:": ["pathd", "pathe"]}}
 
-config_merge_dict = {"config": {"info": {"a": 3, "b": 4}}}
+config_merge_dict = {"config": {"aliases": {"ls": "find", "dev": "develop"}}}
 
-config_override_dict = {"config": {"info:": {"a": 7, "c": 9}}}
-
-
-@pytest.fixture()
-def write_config_file(tmpdir):
-    """Returns a function that writes a config file."""
-
-    def _write(config, data, scope):
-        config_yaml = tmpdir.join(scope, config + ".yaml")
-        config_yaml.ensure()
-        with config_yaml.open("w") as f:
-            syaml.dump_config(data, f)
-
-    return _write
+config_override_dict = {"config": {"aliases:": {"be": "build-env", "deps": "dependencies"}}}
 
 
 @pytest.fixture()
@@ -1037,6 +1024,16 @@ config:
         )
 
 
+def test_bad_include_yaml(tmpdir):
+    with pytest.raises(spack.config.ConfigFormatError, match="is not of type"):
+        check_schema(
+            spack.schema.include.schema,
+            """\
+include: $HOME/include.yaml
+""",
+        )
+
+
 def test_bad_mirrors_yaml(tmpdir):
     with pytest.raises(spack.config.ConfigFormatError):
         check_schema(
@@ -1101,9 +1098,9 @@ def test_internal_config_section_override(mock_low_high_config, write_config_fil
 
 def test_internal_config_dict_override(mock_low_high_config, write_config_file):
     write_config_file("config", config_merge_dict, "low")
-    wanted_dict = config_override_dict["config"]["info:"]
+    wanted_dict = config_override_dict["config"]["aliases:"]
     mock_low_high_config.push_scope(spack.config.InternalConfigScope("high", config_override_dict))
-    assert mock_low_high_config.get("config:info") == wanted_dict
+    assert mock_low_high_config.get("config:aliases") == wanted_dict
 
 
 def test_internal_config_list_override(mock_low_high_config, write_config_file):
@@ -1135,10 +1132,10 @@ def test_set_list_override(mock_low_high_config, write_config_file):
 
 def test_set_dict_override(mock_low_high_config, write_config_file):
     write_config_file("config", config_merge_dict, "low")
-    wanted_dict = config_override_dict["config"]["info:"]
-    with spack.config.override("config:info:", wanted_dict):
-        assert wanted_dict == mock_low_high_config.get("config:info")
-    assert config_merge_dict["config"]["info"] == mock_low_high_config.get("config:info")
+    wanted_dict = config_override_dict["config"]["aliases:"]
+    with spack.config.override("config:aliases:", wanted_dict):
+        assert wanted_dict == mock_low_high_config.get("config:aliases")
+    assert config_merge_dict["config"]["aliases"] == mock_low_high_config.get("config:aliases")
 
 
 def test_set_bad_path(config):
@@ -1262,134 +1259,6 @@ def test_user_cache_path_is_overridable(working_env):
 def test_user_cache_path_is_default_when_env_var_is_empty(working_env):
     os.environ["SPACK_USER_CACHE_PATH"] = ""
     assert os.path.expanduser("~%s.spack" % os.sep) == spack.paths._get_user_cache_path()
-
-
-github_url = "https://github.com/fake/fake/{0}/develop"
-gitlab_url = "https://gitlab.fake.io/user/repo/-/blob/config/defaults"
-
-
-@pytest.mark.parametrize(
-    "url,isfile",
-    [
-        (github_url.format("tree"), False),
-        ("{0}/README.md".format(github_url.format("blob")), True),
-        ("{0}/etc/fake/defaults/packages.yaml".format(github_url.format("blob")), True),
-        (gitlab_url, False),
-        (None, False),
-    ],
-)
-def test_config_collect_urls(mutable_empty_config, mock_spider_configs, url, isfile):
-    with spack.config.override("config:url_fetch_method", "curl"):
-        urls = spack.config.collect_urls(url)
-        if url:
-            if isfile:
-                expected = 1 if url.endswith(".yaml") else 0
-                assert len(urls) == expected
-            else:
-                # Expect multiple configuration files for a "directory"
-                assert len(urls) > 1
-        else:
-            assert not urls
-
-
-@pytest.mark.parametrize(
-    "url,isfile,fail",
-    [
-        (github_url.format("tree"), False, False),
-        (gitlab_url, False, False),
-        ("{0}/README.md".format(github_url.format("blob")), True, True),
-        ("{0}/compilers.yaml".format(gitlab_url), True, False),
-        (None, False, True),
-    ],
-)
-def test_config_fetch_remote_configs(
-    tmpdir, mutable_empty_config, mock_collect_urls, mock_curl_configs, url, isfile, fail
-):
-    def _has_content(filename):
-        # The first element of all configuration files for this test happen to
-        # be the basename of the file so this check leverages that feature. If
-        # that changes, then this check will need to change accordingly.
-        element = "{0}:".format(os.path.splitext(os.path.basename(filename))[0])
-        with open(filename, "r", encoding="utf-8") as fd:
-            for line in fd:
-                if element in line:
-                    return True
-        tty.debug("Expected {0} in '{1}'".format(element, filename))
-        return False
-
-    dest_dir = join_path(tmpdir.strpath, "defaults")
-    if fail:
-        msg = "Cannot retrieve configuration"
-        with spack.config.override("config:url_fetch_method", "curl"):
-            with pytest.raises(spack.config.ConfigFileError, match=msg):
-                spack.config.fetch_remote_configs(url, dest_dir)
-    else:
-        with spack.config.override("config:url_fetch_method", "curl"):
-            path = spack.config.fetch_remote_configs(url, dest_dir)
-            assert os.path.exists(path)
-            if isfile:
-                # Ensure correct file is "fetched"
-                assert os.path.basename(path) == os.path.basename(url)
-                # Ensure contents of the file has expected config element
-                assert _has_content(path)
-            else:
-                for filename in os.listdir(path):
-                    assert _has_content(join_path(path, filename))
-
-
-@pytest.fixture(scope="function")
-def mock_collect_urls(mock_config_data, monkeypatch):
-    """Mock the collection of URLs to avoid mocking spider."""
-
-    _, config_files = mock_config_data
-
-    def _collect(base_url):
-        if not base_url:
-            return []
-
-        ext = os.path.splitext(base_url)[1]
-        if ext:
-            return [base_url] if ext == ".yaml" else []
-
-        return [join_path(base_url, f) for f in config_files]
-
-    monkeypatch.setattr(spack.config, "collect_urls", _collect)
-
-    yield
-
-
-@pytest.mark.parametrize(
-    "url,skip",
-    [(github_url.format("tree"), True), ("{0}/compilers.yaml".format(gitlab_url), True)],
-)
-def test_config_fetch_remote_configs_skip(
-    tmpdir, mutable_empty_config, mock_collect_urls, mock_curl_configs, url, skip
-):
-    """Ensure skip fetching remote config file if it already exists when
-    required and not skipping if replacing it."""
-
-    def check_contents(filename, expected):
-        with open(filename, "r", encoding="utf-8") as fd:
-            lines = fd.readlines()
-            if expected:
-                assert lines[0] == "compilers:"
-            else:
-                assert not lines
-
-    dest_dir = join_path(tmpdir.strpath, "defaults")
-    filename = "compilers.yaml"
-
-    # Create a stage directory with an empty configuration file
-    path = join_path(dest_dir, filename)
-    touchp(path)
-
-    # Do NOT replace the existing cached configuration file if skipping
-    expected = None if skip else "compilers:"
-
-    with spack.config.override("config:url_fetch_method", "curl"):
-        path = spack.config.fetch_remote_configs(url, dest_dir, skip)
-        result_filename = path if path.endswith(".yaml") else join_path(path, filename)
-        check_contents(result_filename, expected)
 
 
 def test_config_file_dir_failure(tmpdir, mutable_empty_config):

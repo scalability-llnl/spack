@@ -29,11 +29,7 @@ properties: Dict[str, Any] = {
             # merged configuration scope schemas
             spack.schema.merged.properties,
             # extra environment schema properties
-            {
-                "include": {"type": "array", "default": [], "items": {"type": "string"}},
-                "specs": spec_list_schema,
-                "include_concrete": include_concrete,
-            },
+            {"specs": spec_list_schema, "include_concrete": include_concrete},
         ),
     }
 }
