@@ -73,6 +73,7 @@
 #    /opt/rocm/hsa also has an hsa.h file, but it won't be found because spack
 #    does not like its directory structure.
 #
+import pathlib
 
 import os
 
@@ -80,6 +81,35 @@ import spack.variant
 from spack.directives import conflicts, depends_on, variant
 from spack.package_base import PackageBase
 from spack.util.environment import EnvironmentModifications
+
+
+# ask the driver what gpus are installed
+def _query_kfd_gfx_targets(*known_targets):
+    targets = []
+    try:
+        nodes = pathlib.Path("/sys/class/kfd/kfd/topology/nodes")
+        for filename in nodes.glob("*/properties"):
+            with filename.open(encoding="utf-8") as f:
+                for line in f:
+                    label = "gfx_target_version "
+                    if not line.startswith(label):
+                        continue
+                    version = int(line[len(label) :])
+                    if not version:
+                        break
+                    major_version = version // 10000
+                    minor_version = (version // 100) % 100
+                    step_version = version % 100
+                    target = "gfx{:d}{:x}{:x}".format(major_version, minor_version, step_version)
+                    if target in known_targets:
+                        targets.append(target)
+                    break
+    except (OSError, ValueError):
+        pass  # query is best-effort
+    if targets:
+        return targets
+    else:
+        return "none"
 
 
 class ROCmPackage(PackageBase):
@@ -135,7 +165,9 @@ class ROCmPackage(PackageBase):
     variant(
         "amdgpu_target",
         description="AMD GPU architecture",
-        values=spack.variant.any_combination_of(*amdgpu_targets),
+        values=spack.variant.any_combination_of(*amdgpu_targets).with_default(
+            _query_kfd_gfx_targets(*amdgpu_targets)
+        ),
         sticky=True,
         when="+rocm",
     )
