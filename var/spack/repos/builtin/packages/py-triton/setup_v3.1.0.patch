@@ -1,0 +1,36 @@
+diff --git c/pyproject.toml i/pyproject.toml
+index e1ecf8228..35c5426c3 100644
+--- c/pyproject.toml
++++ i/pyproject.toml
+@@ -1,5 +1,5 @@
+ [build-system]
+-requires = ["setuptools>=40.8.0", "wheel", "cmake>=3.18", "ninja>=1.11.1"]
++requires = ["setuptools>=40.8.0", "cmake>=3.18", "ninja>=1.11.1"]
+ 
+ [tool.yapf]
+ based_on_style = "pep8"
+diff --git c/python/pyproject.toml i/python/pyproject.toml
+index 315aa7da9..97b61bcd4 100644
+--- c/python/pyproject.toml
++++ i/python/pyproject.toml
+@@ -1,6 +1,6 @@
+ 
+ [build-system]
+-requires = ["setuptools>=40.8.0", "wheel", "cmake>=3.18", "ninja>=1.11.1"]
++requires = ["setuptools>=40.8.0", "cmake>=3.18", "ninja>=1.11.1"]
+ 
+ # We're incrementally switching from autopep8 to ruff.
+ [tool.autopep8]
+diff --git c/python/setup.py i/python/setup.py
+index c60dc6158..ad6f8edc9 100644
+--- c/python/setup.py
++++ i/python/setup.py
+@@ -22,7 +22,7 @@ from dataclasses import dataclass
+ from distutils.command.install import install
+ from setuptools.command.develop import develop
+ from setuptools.command.egg_info import egg_info
+-from wheel.bdist_wheel import bdist_wheel
++from setuptools.command.bdist_wheel import bdist_wheel
+ 
+ 
+ @dataclass
