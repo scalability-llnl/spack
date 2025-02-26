@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import copy
 import os
+import pathlib
 import sys
 
 import jinja2
@@ -22,6 +23,7 @@ import spack.deptypes as dt
 import spack.detection
 import spack.error
 import spack.hash_types as ht
+import spack.package_base
 import spack.paths
 import spack.platforms
 import spack.platforms.test
@@ -34,7 +36,7 @@ import spack.util.file_cache
 import spack.variant as vt
 from spack.installer import PackageInstaller
 from spack.spec import CompilerSpec, Spec
-from spack.version import Version, VersionList, ver
+from spack.version import GitVersion, Version, VersionList, ver
 
 
 def check_spec(abstract, concrete):
@@ -3179,22 +3181,90 @@ def test_spec_filters(specs, include, exclude, expected):
     assert f.selected_specs() == expected
 
 
-@pytest.mark.regression("38484")
-def test_git_ref_version_can_be_reused(install_mockery, do_not_check_runtimes_on_reuse):
-    first_spec = spack.concretize.concretize_one(
-        spack.spec.Spec("git-ref-package@git.2.1.5=2.1.5~opt")
+@pytest.mark.parametrize("git_ref,commit_index", [("main", 2), ("1.2", 0)])
+def test_git_ref_based_versions_pin_to_commits(
+    git_ref,
+    commit_index,
+    mock_git_version_info,
+    database,
+    mock_packages,
+    monkeypatch,
+    do_not_check_runtimes_on_reuse,
+):
+    repo_path, filename, commits = mock_git_version_info
+    monkeypatch.setattr(
+        spack.package_base.PackageBase, "git", pathlib.Path(repo_path).as_uri(), raising=False
     )
-    PackageInstaller([first_spec.package], fake=True, explicit=True).install()
+
+    spec = Spec(f"git-test-commit@{git_ref}").concretized()
+
+    assert isinstance(spec.versions.concrete, GitVersion)
+    assert spec.format("{version}") == f"git.{commits[commit_index]}={git_ref}"
+
+
+def test_versions_with_custom_git_ref_based_versions_pin_to_commits(
+    mock_git_version_info, database, mock_packages, monkeypatch, do_not_check_runtimes_on_reuse
+):
+    repo_path, filename, commits = mock_git_version_info
+
+    # get a package class instance we can modify and then patch into the
+    # concretizer
+    pkg_cls = spack.repo.PATH.get_pkg_class("version-test-pkg")
+
+    version = Version("develop")
+
+    new_version_attrs = pkg_cls.versions[version]
+    new_version_attrs["git"] = pathlib.Path(repo_path).as_uri()
+    new_version_attrs["branch"] = "main"
+
+    patch_versions = {version: new_version_attrs}
+
+    pkg_cls.versions = patch_versions
+
+    def patch_pkg_class(self, pkg_name):
+        if pkg_name == "version-test-pkg":
+            return pkg_cls
+        else:
+            return self.repo_for_pkg(pkg_name).get_pkg_class(pkg_name)
+
+    # not ideal to patch an internal method, but only way found to ensure the
+    # git property is propagated inside the solver
+    monkeypatch.setattr(spack.repo.RepoPath, "get_pkg_class", patch_pkg_class)
+
+    spec = Spec(f"version-test-pkg@{str(version)}").concretized()
+
+    # assure it is not a StandardVersion post solve
+    assert isinstance(spec.versions.concrete, GitVersion)
+    # last main commit was 3'rd in the list (see mock_git_version_info)
+    sha = spec.format("{version}").split("=")[0].split(".")[1]
+    assert sha in commits
+    assert spec.format("{version}") == f"git.{commits[2]}={str(version)}"
+
+
+@pytest.mark.regression("38484")
+@pytest.mark.parametrize("input_version", ("git.2.1.5=2.1.5", "main"))
+def test_git_ref_version_can_be_reused(
+    input_version,
+    mock_git_version_info,
+    install_mockery,
+    do_not_check_runtimes_on_reuse,
+    monkeypatch,
+):
+    repo_path, filename, commits = mock_git_version_info
+    monkeypatch.setattr(
+        spack.package_base.PackageBase, "git", pathlib.Path(repo_path).as_uri(), raising=False
+    )
+    first_spec = spack.spec.Spec(f"git-ref-package@{input_version}~opt").concretized()
+    first_spec.package.do_install(fake=True, explicit=True)
 
     with spack.config.override("concretizer:reuse", True):
         # reproducer of the issue is that spack will solve when there is a change to the base spec
-        second_spec = spack.concretize.concretize_one(
-            spack.spec.Spec("git-ref-package@git.2.1.5=2.1.5+opt")
-        )
+        second_spec = spack.spec.Spec(f"git-ref-package@{input_version}+opt").concretized()
+
         assert second_spec.dag_hash() != first_spec.dag_hash()
         # we also want to confirm that reuse actually works so leave variant off to
         # let solver reuse
-        third_spec = spack.spec.Spec("git-ref-package@git.2.1.5=2.1.5")
+        third_spec = spack.spec.Spec(f"git-ref-package@{input_version}")
         assert first_spec.satisfies(third_spec)
         third_spec = spack.concretize.concretize_one(third_spec)
         assert third_spec.dag_hash() == first_spec.dag_hash()
@@ -3202,16 +3272,18 @@ def test_git_ref_version_can_be_reused(install_mockery, do_not_check_runtimes_on
 
 @pytest.mark.parametrize("standard_version", ["2.0.0", "2.1.5", "2.1.6"])
 def test_reuse_prefers_standard_over_git_versions(
-    standard_version, install_mockery, do_not_check_runtimes_on_reuse
+    standard_version, install_mockery, do_not_check_runtimes_on_reuse, monkeypatch
 ):
     """
     order matters in this test. typically reuse would pick the highest versioned installed match
     but we want to prefer the standard version over git ref based versions
     so install git ref last and ensure it is not picked up by reuse
     """
-    standard_spec = spack.concretize.concretize_one(
-        spack.spec.Spec(f"git-ref-package@{standard_version}")
+    monkeypatch.setattr(
+        spack.package_base.PackageBase, "git", "https://github.com/dummy/dummy", raising=False
     )
+    standard_spec = spack.spec.Spec(f"git-ref-package@{standard_version}").concretized()
+
     PackageInstaller([standard_spec.package], fake=True, explicit=True).install()
 
     git_spec = spack.concretize.concretize_one("git-ref-package@git.2.1.5=2.1.5")

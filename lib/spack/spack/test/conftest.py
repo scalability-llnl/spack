@@ -185,7 +185,12 @@ def mock_git_version_info(git, tmpdir, override_git_repos_cache_path):
         commits.append(latest_commit())
 
         # Get name of default branch (differs by git version)
+        # assure the default branch is named `main`
         main = git("rev-parse", "--abbrev-ref", "HEAD", output=str, error=str).strip()
+        if main != "main":
+            git("branch", "-m", "main")
+            main = git("rev-parse", "--abbrev-ref", "HEAD", output=str, error=str).strip()
+        assert "main" == main
 
         # Tag second commit as v1.0
         write_file(filename, "[1, 0]")

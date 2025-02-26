@@ -11,6 +11,7 @@ class GitTestCommit(Package):
     homepage = "http://www.git-fetch-example.com"
     # git='to-be-filled-in-by-test'
 
+    version("main", branch="main")
     version("1.0", tag="v1.0")
     version("1.1", tag="v1.1")
     version("1.2", tag="1.2")  # not a typo

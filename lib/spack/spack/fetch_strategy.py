@@ -712,7 +712,6 @@ class GitFetchStrategy(VCSFetchStrategy):
     git_version_re = r"git version (\S+)"
 
     def __init__(self, **kwargs):
-
         self.commit: Optional[str] = None
         self.tag: Optional[str] = None
         self.branch: Optional[str] = None
@@ -1592,12 +1591,27 @@ def for_package_version(pkg, version=None):
 
     # if it's a commit, we must use a GitFetchStrategy
     if isinstance(version, spack.version.GitVersion):
-        if not hasattr(pkg, "git"):
+        effective_version = version._ref_version
+        git_attr = None
+
+        # The most general case is the git informaiton lives on the package
+        if not git_attr and hasattr(pkg, "git"):
+            git_attr = pkg.git
+
+        # If we know the version [git]=effective_version so check if it has a custom
+        # git attribute attached. This takes precedent over a git package attr
+        version_properties = pkg.versions.get(effective_version, None)
+
+        if version_properties:
+            git_attr = version_properties.get("git", git_attr)
+
+        if not git_attr:
             raise spack.error.FetchError(
                 f"Cannot fetch git version for {pkg.name}. Package has no 'git' attribute"
             )
         # Populate the version with comparisons to other commits
-        version.attach_lookup(spack.version.git_ref_lookup.GitRefLookup(pkg.name))
+        if effective_version is None:
+            version.attach_lookup(spack.version.git_ref_lookup.GitRefLookup(pkg.name))
 
         # For GitVersion, we have no way to determine whether a ref is a branch or tag
         # Fortunately, we handle branches and tags identically, except tags are
@@ -1606,7 +1620,7 @@ def for_package_version(pkg, version=None):
         # performance hit for branches on older versions of git.
         # Branches cannot be cached, so we tell the fetcher not to cache tags/branches
         ref_type = "commit" if version.is_commit else "tag"
-        kwargs = {"git": pkg.git, ref_type: version.ref, "no_cache": True}
+        kwargs = {"git": git_attr, ref_type: version.ref, "no_cache": True}
 
         kwargs["submodules"] = getattr(pkg, "submodules", False)
 

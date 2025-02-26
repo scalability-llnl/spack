@@ -51,6 +51,7 @@ import spack.variant as vt
 import spack.version as vn
 import spack.version.git_ref_lookup
 from spack import traverse
+from spack.git_ref_operators import maximally_resolved_version
 
 from .core import (
     AspFunction,
@@ -884,6 +885,7 @@ class PyclingoDriver:
         if result.satisfiable:
             timer.start("construct_specs")
             # get the best model
+            # TODO Pin branches here
             builder = SpecBuilder(specs, hash_lookup=setup.reusable_and_possible)
             min_cost, best_model = min(models)
 
@@ -3465,7 +3467,10 @@ class SpecBuilder:
             variant.append(value)
 
     def version(self, node, version):
-        self._specs[node].versions = vn.VersionList([vn.Version(version)])
+        pkg_name = self._specs[node].name
+        self._specs[node].versions = vn.VersionList(
+            [maximally_resolved_version(version, pkg_name)]
+        )
 
     def node_compiler_version(self, node, compiler, version):
         self._specs[node].compiler = spack.spec.CompilerSpec(compiler)
@@ -3735,7 +3740,7 @@ class SpecBuilder:
         # concretization process)
         for root in self._specs.values():
             for spec in root.traverse():
-                if isinstance(spec.version, vn.GitVersion):
+                if isinstance(spec.version, vn.GitVersion) and spec.version._ref_version is None:
                     spec.version.attach_lookup(
                         spack.version.git_ref_lookup.GitRefLookup(spec.fullname)
                     )
