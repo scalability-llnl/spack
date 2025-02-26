@@ -2485,21 +2485,31 @@ class WindowsSimulatedRPath:
         self._addl_rpaths: set[str] = set()
         if link_install_prefix and base_modification_prefix:
             raise RuntimeError(
-                "Invalid combination of arguments given to WindowsSimulated RPath. \n"
+                "Invalid combination of arguments given to WindowsSimulated RPath.\n"
                 "Select either `link_install_prefix` to create an install prefix rpath"
                 " or specify a `base_modification_prefix` for any other link type. "
                 "Specifying both arguments is invalid."
             )
+        if not (link_install_prefix or base_modification_prefix):
+            raise RuntimeError(
+                "Insufficient arguments given to WindowsSimulatedRpath.\n"
+                "WindowsSimulatedRPath requires one of link_install_prefix"
+                " or base_modification_prefix to be specified."
+                " Neither was provided."
+            )
 
         self.link_install_prefix = link_install_prefix
-        self.base_modification_prefix = (
-            pathlib.Path(base_modification_prefix)
-            if base_modification_prefix
-            else pathlib.Path(self.pkg.prefix)
-        )
-        self._additional_library_dependents: set[str] = set()
+        if base_modification_prefix:
+            self._base_modification_prefix = pathlib.Path(base_modification_prefix)
+        self._additional_library_dependents: set[pathlib.Path] = set()
         if not self.link_install_prefix:
             tty.debug(f"Generating rpath for non install context: {base_modification_prefix}")
+
+    @property
+    def base_modification_prefix(self) -> pathlib.Path:
+        if self.link_install_prefix:
+            self._base_modification_prefix = pathlib.Path(self.pkg.prefix)
+        return self._base_modification_prefix
 
     @property
     def library_dependents(self):
