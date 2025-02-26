@@ -27,7 +27,7 @@ class PyPsijPython(PythonPackage):
 
     # Python dependencies
     depends_on("python@3.7:", type=("build", "run"), when="@:0.9.8")
-    depends_on("python@3.8:", type=("build", "run"))
+    depends_on("python@3.8:", type=("build", "run"), when="@0.9.9:")
 
     # Build dependencies (in order listed in pyproject.toml)
     depends_on("py-setuptools", type="build")
