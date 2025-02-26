@@ -20,6 +20,9 @@ class Npm(Package):
 
     license("Artistic-2.0")
 
+    version("11.1.0", sha256="0f144846f78cc0eb230b0e228f736d5c06362e4ea867c72f059790568454abb7")
+    version("10.9.2", sha256="5cd1e5ab971ea6333f910bc2d50700167c5ef4e66da279b2a3efc874c6b116e4")
+    version("9.9.4", sha256="640bdd76a0b9d92e9da6e391abae75fd2f168478e416847f3acdb8373737e0ee")
     version("9.3.1", sha256="41caa26a340b0562bc5429d28792049c980fe3e872b42b82cad94e8f70e37f40")
     version("8.19.3", sha256="634bf4e0dc87be771ebf48a058629960e979a209c20a51ebdbc4897ca6a25260")
     version("7.24.2", sha256="5b9eeea011f8bc3b76e55cc33339e87213800677f37e0756ad13ef0e9eaccd64")
@@ -27,7 +30,15 @@ class Npm(Package):
 
     depends_on("cxx", type="build")  # generated
 
-    depends_on("node-js", type=("build", "run"))
+    # Based on https://registry.npmjs.org/npm/x.y.z engines.node
+    with default_args(type=("build", "run")):
+        depends_on("node-js@20.17.0:20,22.9.0:", when="@11")
+        depends_on("node-js@18.17.0:18,20.5.0:", when="@10")
+        depends_on("node-js@14.17.0:14,16.14.0:16,18.0.0:", when="@9")
+        depends_on("node-js@12.13.0:12,14.15.0:14,16:", when="@8")
+        depends_on("node-js@10:", when="@7")
+        depends_on("node-js@6.2.0:6,8,9.3.0:", when="@6")
+
     depends_on("libvips", when="@:7")
 
     # npm 6.13.4 ships with node-gyp 5.0.5, which contains several Python 3
@@ -99,14 +110,24 @@ class Npm(Package):
     def install(self, spec, prefix):
         # in npm 9, `npm install .` finally works within the repo, so we can just call it.
         node = which("node", required=True)
-        node("bin/npm-cli.js", "install", "-ddd", "--global", f"--prefix={prefix}", ".")
+        node(
+            "bin/npm-cli.js",
+            "install",
+            "--loglevel=silly",
+            "--install-links",
+            "--global",
+            f"--prefix={prefix}",
+            ".",
+        )
 
     def setup_dependent_build_environment(self, env, dependent_spec):
         npm_config_cache_dir = "%s/npm-cache" % dependent_spec.prefix
         if not os.path.isdir(npm_config_cache_dir):
             mkdirp(npm_config_cache_dir)
         env.set("npm_config_cache", npm_config_cache_dir)
+        env.set("npm_config_install_links", "true")
 
     def setup_dependent_run_environment(self, env, dependent_spec):
         npm_config_cache_dir = "%s/npm-cache" % dependent_spec.prefix
         env.set("npm_config_cache", npm_config_cache_dir)
+        env.set("npm_config_install_links", "true")
