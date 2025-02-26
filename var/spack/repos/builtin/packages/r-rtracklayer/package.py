@@ -17,6 +17,9 @@ class RRtracklayer(RPackage):
 
     bioc = "rtracklayer"
 
+    version("1.66.0", commit="d81035b2aa7efe3066e4bc6470bf940b0dd5954d")
+    version("1.64.0", commit="ba889ee7eb05809837dc66eebb13cfe2d76afc82")
+    version("1.62.0", commit="58efbf9c30c6f62e9c432746af75626fc10d2a3f")
     version("1.60.0", commit="de35bc03116fc7ad30f0e425b41715c3cb2e783b")
     version("1.58.0", commit="54a74972c08775fdf1e83e6e22cd0b8fad677fc1")
     version("1.56.1", commit="4c6d2201fcb102d471bd88f4f51cc34317669955")
@@ -51,8 +54,9 @@ class RRtracklayer(RPackage):
     depends_on("r-genomeinfodb@1.15.2:", type=("build", "run"), when="@1.40.6:")
     depends_on("r-biostrings@2.43.7:", type=("build", "run"))
     depends_on("r-biostrings@2.47.6:", type=("build", "run"), when="@1.40.6:")
+    depends_on("r-curl", type=("build", "run"), when="@1.63.2:")
+    depends_on("r-httr", type=("build", "run"), when="@1.63.1:")
     depends_on("r-zlibbioc", type=("build", "run"))
-    depends_on("r-rcurl@1.4-2:", type=("build", "run"))
     depends_on("r-rsamtools@1.17.8:", type=("build", "run"))
     depends_on("r-rsamtools@1.31.2:", type=("build", "run"), when="@1.40.6:")
     depends_on("r-genomicalignments@1.5.4:", type=("build", "run"))
@@ -61,3 +65,5 @@ class RRtracklayer(RPackage):
     depends_on("r-restfulr@0.0.13:", type=("build", "run"), when="@1.54.0:")
     depends_on("zlib-api")
     depends_on("openssl")
+
+    depends_on("r-rcurl@1.4-2:", type=("build", "run"), when="@:1.63.0")

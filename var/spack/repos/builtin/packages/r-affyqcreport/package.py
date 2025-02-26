@@ -14,6 +14,7 @@ class RAffyqcreport(RPackage):
 
     bioc = "affyQCReport"
 
+    version("1.70.0", commit="9e49c8c376d8b1d79981628920e5adc238bddeca")
     version("1.68.0", commit="34b42a16f87a90a595146f4a1802ed04f6bfccca")
     version("1.62.0", commit="92d4124b688b90a6a9b8a21ab9d13d92b368cee4")
     version("1.60.0", commit="d0c15b1c56fc1caf6f114877ea6c1b8483a0dcfa")

@@ -16,6 +16,11 @@ class RRhtslib(RPackage):
 
     bioc = "Rhtslib"
 
+    version("3.2.0", commit="3add51cbc8ea3cde6876b91cdd6180bfcbffbf49")
+    version("3.0.0", commit="1c89207b035dcd4b4a790beabc4462f969350ed2")
+    version("2.4.1", commit="33bf5d13817274d2fe2bf9183f94523cb99de459")
+    version("2.2.0", commit="ac2e2a62f7fdf87f16e7722c60e7d3fc7e48e2ba")
+    version("2.0.0", commit="1757333eb88625158505e5fa47840081110cf8a4")
     # There is a problem with the git repository where the commit for
     # version 1.28.0 pulls changes to a file that blocks checking out the
     # commit. Use the branch instead.
@@ -26,7 +31,6 @@ class RRhtslib(RPackage):
     #             branches.
     #             Aborting
     # version("1.28.0", commit='214fde2218bdbca89f1e12a30d2e081e76915aef')
-    version("2.0.0", commit="1757333eb88625158505e5fa47840081110cf8a4")
     version("1.28.0", branch="RELEASE_3_15")
     version("1.26.0", commit="f5b20e97b283942877529f750b28398782552655")
     version("1.22.0", commit="899b79faa54d42c7c9b9a2bc49972109637d367f")
@@ -39,11 +43,12 @@ class RRhtslib(RPackage):
 
     depends_on("c", type="build")  # generated
 
-    depends_on("r-zlibbioc", type=("build", "run"))
     depends_on("bzip2", type=("build", "link", "run"))
     depends_on("xz", type=("build", "link", "run"))
     depends_on("curl", type=("build", "link", "run"))
     depends_on("gmake", type="build")
+
+    depends_on("r-zlibbioc", type=("build", "run"), when="@:3.3.0")
 
     # Some versions of this package will leave the temporary installation
     # directory in the htslib shared object. R will fix this if patchelf is

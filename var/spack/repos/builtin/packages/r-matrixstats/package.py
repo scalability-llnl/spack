@@ -16,6 +16,7 @@ class RMatrixstats(RPackage):
 
     cran = "matrixStats"
 
+    version("1.4.1", sha256="ac6d65cab6ca30926f35bc3bc59b869946ae92e4738ceca90fad6620fc6ecd10")
     version("1.3.0", sha256="413ee607d95b243c514b4a7c4944c2caea1fb264d27c96ff547c3939f893245a")
     version("0.63.0", sha256="c000b60421742eb035ff4ceedd3e588a79e4b28985484f0c81361e5a6c351f5f")
     version("0.62.0", sha256="85e2016b6dd20cbfe32d38a2ef2578ae80e688d9a3590aefd1d2f4bf4bd44eca")
