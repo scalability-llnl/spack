@@ -67,6 +67,20 @@ def test_extends_spec(config, mock_packages):
     assert extender.package.extends(extendee)
 
 
+@pytest.mark.regression("48024")
+def test_conditionally_extends_transitive_dep(config, mock_packages):
+    spec = spack.spec.Spec("conditionally-extends-transitive-dep").concretized()
+
+    assert not spec.package.extendee_spec
+
+
+@pytest.mark.regression("48025")
+def test_conditionally_extends_direct_dep(config, mock_packages):
+    spec = spack.spec.Spec("conditionally-extends-direct-dep").concretized()
+
+    assert not spec.package.extendee_spec
+
+
 @pytest.mark.regression("34368")
 def test_error_on_anonymous_dependency(config, mock_packages):
     pkg = spack.repo.PATH.get_pkg_class("pkg-a")
