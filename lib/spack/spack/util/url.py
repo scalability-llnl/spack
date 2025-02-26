@@ -11,6 +11,7 @@ import posixpath
 import re
 import urllib.parse
 import urllib.request
+from pathlib import Path
 from typing import Optional
 
 from spack.util.path import sanitize_filename
@@ -40,9 +41,10 @@ def local_file_path(url):
 
 
 def path_to_file_url(path):
-    if not os.path.isabs(path):
-        path = os.path.abspath(path)
-    return urllib.parse.urljoin("file:", urllib.request.pathname2url(path))
+    path = Path(path)
+    if not path.is_absolute():
+        path = path.absolute()
+    return urllib.parse.urljoin("file:", urllib.request.pathname2url(os.fspath(path)))
 
 
 def file_url_string_to_path(url):
