@@ -13,13 +13,15 @@ class CaCertificatesMozilla(Package):
 
     maintainers("haampie")
 
-    version(
-        "2024-12-31",
-        sha256="a3f328c21e39ddd1f2be1cea43ac0dec819eaa20a90425d7da901a11531b3aa5",
-        expand=False,
-    )
+    with default_args(expand=False):
+        version(
+            "2025-02-25", sha256="50a6277ec69113f00c5fd45f09e8b97a4b3e32daa35d3a95ab30137a55386cef"
+        )
 
     with default_args(deprecated=True, expand=False):
+        version(
+            "2024-12-31", sha256="a3f328c21e39ddd1f2be1cea43ac0dec819eaa20a90425d7da901a11531b3aa5"
+        )
         version(
             "2024-11-26", sha256="bb1782d281fe60d4a2dcf41bc229abe3e46c280212597d4abcc25bddf667739b"
         )
