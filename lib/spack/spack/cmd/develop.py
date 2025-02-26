@@ -3,11 +3,13 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
 import shutil
+from typing import Optional
 
 import llnl.util.tty as tty
 
 import spack.cmd
 import spack.config
+import spack.environment
 import spack.fetch_strategy
 import spack.repo
 import spack.spec
@@ -31,14 +33,13 @@ def setup_parser(subparser):
         "--no-clone",
         action="store_false",
         dest="clone",
-        default=None,
         help="do not clone, the package already exists at the source path",
     )
     clone_group.add_argument(
         "--clone",
         action="store_true",
         dest="clone",
-        default=None,
+        default=True,
         help="clone the package even if the path already exists",
     )
 
@@ -46,20 +47,14 @@ def setup_parser(subparser):
         "-f", "--force", help="remove any files or directories that block cloning source code"
     )
 
+    subparser.add_argument(
+        "-r",
+        "--recursive",
+        action="store_true",
+        help="traverse nodes of the graph to mark everything up to the root as a develop spec",
+    )
+
     arguments.add_common_arguments(subparser, ["spec"])
-
-
-def _update_config(spec, path):
-    find_fn = lambda section: spec.name in section
-
-    entry = {"spec": str(spec)}
-    if path != spec.name:
-        entry["path"] = path
-
-    def change_fn(section):
-        section[spec.name] = entry
-
-    spack.config.change_or_add("develop", find_fn, change_fn)
 
 
 def _retrieve_develop_source(spec: spack.spec.Spec, abspath: str) -> None:
@@ -83,44 +78,43 @@ def _retrieve_develop_source(spec: spack.spec.Spec, abspath: str) -> None:
     package.stage.steal_source(abspath)
 
 
-def develop(parser, args):
-    # Note: we could put develop specs in any scope, but I assume
-    # users would only ever want to do this for either (a) an active
-    # env or (b) a specified config file (e.g. that is included by
-    # an environment)
-    # TODO: when https://github.com/spack/spack/pull/35307 is merged,
-    # an active env is not required if a scope is specified
-    env = spack.cmd.require_active_env(cmd_name="develop")
-    if not args.spec:
-        if args.clone is False:
-            raise SpackError("No spec provided to spack develop command")
+def assure_concrete_spec(env: spack.environment.Environment, spec: spack.spec.Spec):
+    version = spec.versions.concrete_range_as_version
+    if not version:
+        # first check environment for a matching concrete spec
+        matching_specs = env.all_matching_specs(spec)
+        if matching_specs:
+            version = matching_specs[0].version
+            test_spec = spack.spec.Spec(f"{spec}@{version}")
+            for m_spec in matching_specs:
+                if not m_spec.satisfies(test_spec):
+                    raise SpackError(
+                        f"{spec.name}: has multiple concrete instances in the graph that can't be"
+                        " satisified by a single develop spec. To use `spack develop` ensure one"
+                        " of the following:"
+                        f"\n a) {spec.name} nodes can satisfy the same develop spec (minimally "
+                        "this means they all share the same version)"
+                        f"\n b) Provide a concrete develop spec ({spec.name}@[version]) to clearly"
+                        " indicate what should be developed"
+                    )
+        else:
+            # look up the maximum version so infintiy versions are preferred for develop
+            version = max(spec.package_class.versions.keys())
+            tty.msg(f"Defaulting to highest version: {spec.name}@{version}")
+    spec.versions = spack.version.VersionList([version])
 
-        # download all dev specs
-        for name, entry in env.dev_specs.items():
-            path = entry.get("path", name)
-            abspath = spack.util.path.canonicalize_path(path, default_wd=env.path)
 
-            if os.path.exists(abspath):
-                msg = "Skipping developer download of %s" % entry["spec"]
-                msg += " because its path already exists."
-                tty.msg(msg)
-                continue
+def setup_src_code(spec: spack.spec.Spec, src_path: str, clone: bool = True, force: bool = False):
+    """
+    Handle checking, cloning or overwriting source code
+    """
+    assert spec.versions
 
-            # Both old syntax `spack develop pkg@x` and new syntax `spack develop pkg@=x`
-            # are currently supported.
-            spec = spack.spec.parse_with_version_concrete(entry["spec"])
-            _retrieve_develop_source(spec, abspath)
+    if clone:
+        _clone(spec, src_path, force)
 
-        if not env.dev_specs:
-            tty.warn("No develop specs to download")
-
-        return
-
-    specs = spack.cmd.parse_specs(args.spec)
-    if len(specs) > 1:
-        raise SpackError("spack develop requires at most one named spec")
-
-    spec = specs[0]
+    if not clone and not os.path.exists(src_path):
+        raise SpackError(f"Provided path {src_path} does not exist")
 
     version = spec.versions.concrete_range_as_version
     if not version:
@@ -129,40 +123,114 @@ def develop(parser, args):
         tty.msg(f"Defaulting to highest version: {spec.name}@{version}")
     spec.versions = spack.version.VersionList([version])
 
-    # If user does not specify --path, we choose to create a directory in the
-    # active environment's directory, named after the spec
-    path = args.path or spec.name
-    if not os.path.isabs(path):
-        abspath = spack.util.path.canonicalize_path(path, default_wd=env.path)
-    else:
-        abspath = path
 
-    # clone default: only if the path doesn't exist
-    clone = args.clone
-    if clone is None:
-        clone = not os.path.exists(abspath)
+def _update_config(spec, path):
+    find_fn = lambda section: spec.name in section
 
-    if not clone and not os.path.exists(abspath):
-        raise SpackError("Provided path %s does not exist" % abspath)
+    entry = {"spec": str(spec)}
+    if path and path != spec.name:
+        entry["path"] = path
 
-    if clone:
-        if os.path.exists(abspath):
-            if args.force:
-                shutil.rmtree(abspath)
-            else:
-                msg = "Path %s already exists and cannot be cloned to." % abspath
-                msg += " Use `spack develop -f` to overwrite."
-                raise SpackError(msg)
+    def change_fn(section):
+        section[spec.name] = entry
 
-        _retrieve_develop_source(spec, abspath)
+    spack.config.change_or_add("develop", find_fn, change_fn)
 
-    tty.debug("Updating develop config for {0} transactionally".format(env.name))
+
+def update_env(
+    env: spack.environment.Environment,
+    spec: spack.spec.Spec,
+    specified_path: Optional[str] = None,
+    build_dir: Optional[str] = None,
+):
+    """
+    Update the spack.yaml file with additions or changes from a develop call
+    """
+    tty.debug(f"Updating develop config for {env.name} transactionally")
+
+    if not specified_path:
+        dev_entry = env.dev_specs.get(spec.name)
+        if dev_entry:
+            specified_path = dev_entry.get("path", None)
+
     with env.write_transaction():
-        if args.build_directory is not None:
+        if build_dir is not None:
             spack.config.add(
-                "packages:{}:package_attributes:build_directory:{}".format(
-                    spec.name, args.build_directory
-                ),
+                f"packages:{spec.name}:package_attributes:build_directory:{build_dir}",
                 env.scope_name,
             )
-        _update_config(spec, path)
+        # add develop spec and update path
+        _update_config(spec, specified_path)
+
+
+def _clone(spec: spack.spec.Spec, abspath: str, force: bool = False):
+    if os.path.exists(abspath):
+        if force:
+            shutil.rmtree(abspath)
+        else:
+            msg = f"Skipping developer download of {spec.name}"
+            msg += f" because its path {abspath} already exists."
+            tty.msg(msg)
+            return
+
+    # cloning can take a while and it's nice to get a message for the longer clones
+    tty.msg(f"Cloning source code for {spec}")
+    _retrieve_develop_source(spec, abspath)
+
+
+def _abs_code_path(
+    env: spack.environment.Environment, spec: spack.spec.Spec, path: Optional[str] = None
+):
+    src_path = path if path else spec.name
+    return spack.util.path.canonicalize_path(src_path, default_wd=env.path)
+
+
+def _dev_spec_generator(args, env):
+    """
+    Generator function to loop over all the develop specs based on how the command is called
+    If no specs are supplied then loop over the develop specs listed in the environment.
+    """
+    if not args.spec:
+        if args.clone is False:
+            raise SpackError("No spec provided to spack develop command")
+
+        for name, entry in env.dev_specs.items():
+            path = entry.get("path", name)
+            abspath = spack.util.path.canonicalize_path(path, default_wd=env.path)
+            # Both old syntax `spack develop pkg@x` and new syntax `spack develop pkg@=x`
+            # are currently supported.
+            spec = spack.spec.parse_with_version_concrete(entry["spec"])
+            yield spec, abspath
+    else:
+        specs = spack.cmd.parse_specs(args.spec)
+        if (args.path or args.build_directory) and len(specs) > 1:
+            raise SpackError(
+                "spack develop requires at most one named spec when using the --path or"
+                " --build-directory arguments"
+            )
+
+        for spec in specs:
+            if args.recursive:
+                concrete_specs = env.all_matching_specs(spec)
+                if not concrete_specs:
+                    tty.warn(
+                        f"{spec.name} has no matching concrete specs in the environment and "
+                        "will be skipped. `spack develop --recursive` requires a concretized"
+                        " environment"
+                    )
+                else:
+                    for s in concrete_specs:
+                        for node_spec in s.traverse(direction="parents", root=True):
+                            tty.debug(f"Recursive develop for {node_spec.name}")
+                            yield node_spec, _abs_code_path(env, node_spec, args.path)
+            else:
+                yield spec, _abs_code_path(env, spec, args.path)
+
+
+def develop(parser, args):
+    env = spack.cmd.require_active_env(cmd_name="develop")
+
+    for spec, abspath in _dev_spec_generator(args, env):
+        assure_concrete_spec(env, spec)
+        setup_src_code(spec, abspath, clone=args.clone, force=args.force)
+        update_env(env, spec, args.path, args.build_directory)
