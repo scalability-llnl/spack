@@ -33,7 +33,7 @@ class PyIpympl(PythonPackage):
             depends_on("py-jupyter-packaging@0.7")
             depends_on("py-jupyterlab@3")
             depends_on("py-setuptools@40.8:")
-            depends_on("yarn")
+            depends_on("yarn@1")
 
     with default_args(type=("build", "run")):
         depends_on("py-ipython@:8")
