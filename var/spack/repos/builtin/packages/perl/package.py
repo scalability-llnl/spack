@@ -4,6 +4,7 @@
 
 import os
 import re
+import subprocess
 import sys
 from contextlib import contextmanager
 
@@ -263,6 +264,11 @@ class Perl(Package):  # Perl doesn't use Autotools, it should subclass Package
         with when("%intel@19.1.3"):
             os.chmod("hints/linux.sh", 0o644)
             filter_file("-we147 -mp -no-gcc", "", "hints/linux.sh")
+
+        pwd_full_path = subprocess.check_output(['which', 'pwd']).decode('ascii').rstrip()
+        script_to_patch = "dist/PathTools/Cwd.pm"
+        os.chmod(script_to_patch, 0o777)
+        filter_file("/QOpenSys/bin/pwd", pwd_full_path, script_to_patch)
 
     @classmethod
     def determine_version(cls, exe):

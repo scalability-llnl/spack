@@ -89,6 +89,9 @@ for your shell:
    # For fish
    $ . spack/share/spack/setup-env.fish
 
+   # For nix
+   $ nix-shell spack/share/shell.nix
+
 That's it! You're ready to use Spack.
 
 Sourcing these files will put the ``spack`` command in your ``PATH``, set
