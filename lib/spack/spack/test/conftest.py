@@ -627,6 +627,12 @@ def linux_os():
     return LinuxOS(name=name, version=version)
 
 
+@pytest.fixture(scope="function")
+def host_os(request):
+    with spack.platforms.use_platform(request.param):
+        yield
+
+
 @pytest.fixture
 def ensure_debug(monkeypatch):
     current_debug_level = tty.debug_level()

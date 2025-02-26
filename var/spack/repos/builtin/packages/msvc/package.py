@@ -2,9 +2,11 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import re
+from typing import Callable
 
 import spack.compiler
 from spack.package import *
+from spack.platforms import Platform, Windows
 
 
 class Msvc(Package, CompilerPackage):
@@ -25,6 +27,7 @@ class Msvc(Package, CompilerPackage):
     cxx_names = ["cl"]
     compiler_version_argument = ""
     compiler_version_regex = r"([1-9][0-9]*\.[0-9]*\.[0-9]*)"
+    is_supported_on_platform: Callable[[Platform], bool] = lambda x: isinstance(x, Windows)
 
     @classmethod
     def determine_version(cls, exe):
