@@ -395,6 +395,7 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
         # Create the build tree within this spec's test stage dir so it gets
         # cleaned up automatically
         build_dir = tempfile.mkdtemp(dir=test_stage_dir)
+        cmake = Executable(spec["cmake"].prefix.bin.cmake)
 
         std_cmake_args = []
 
@@ -409,7 +410,7 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
                 self, "test_examples_build", purpose="build example against installed adios2"
             ):
                 cmake(src_dir, *std_cmake_args)
-                make()
+                cmake(*(["--build", "."]))
 
             for p in built_programs:
                 exe = which(join_path(".", p))
