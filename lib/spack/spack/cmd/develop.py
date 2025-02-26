@@ -4,15 +4,19 @@
 import os
 import shutil
 
+import llnl.util.filesystem
 import llnl.util.tty as tty
 
 import spack.cmd
 import spack.config
 import spack.fetch_strategy
+import spack.mirrors.mirror
 import spack.repo
 import spack.spec
 import spack.stage
+import spack.util.compression
 import spack.util.path
+import spack.util.url
 import spack.version
 from spack.cmd.common import arguments
 from spack.error import SpackError
@@ -62,6 +66,48 @@ def _update_config(spec, path):
     spack.config.change_or_add("develop", find_fn, change_fn)
 
 
+def _retrieve_develop_from_cache(spec, dst):
+    """Check mirrors for a develop/ subdir.
+
+    Other than this check, mirrors are generally bypassed when
+    retrieving source for developed packages.
+    """
+    mirrors = spack.mirrors.mirror.MirrorCollection(source=True).values()
+    # Note: stages have a notion of one "main" download site, with
+    # possibly many alternatives. It doesn't quite fit the model of
+    # cached `spack develop` packages
+    for mirror in mirrors:
+        if not mirror.fetch_url.startswith("file://"):
+            continue
+        mirror_root = spack.util.url.local_file_path(mirror.fetch_url)
+        dev_cache_id = spec.format_path("{name}-{version}")
+        where_it_might_be = os.path.join(mirror_root, "develop", dev_cache_id) + ".tar.gz"
+        if os.path.exists(where_it_might_be):
+            llnl.util.filesystem.mkdirp(dst)
+            decompress_single_dir_archive_into(where_it_might_be, dst)
+            return True
+
+    return False
+
+
+def decompress_single_dir_archive_into(archive_file, dst):
+    """You have a /path/to/archive.tar.gz
+
+    It expands to x/...
+    We want all of ... (but not x) in `dst`
+    """
+    import llnl.util.filesystem
+
+    import spack.stage
+
+    decompressor = spack.util.compression.decompressor_for(archive_file)
+
+    with spack.stage.Stage("decompress") as stage:
+        with llnl.util.filesystem.exploding_archive_catch(stage):
+            decompressor(archive_file)
+        llnl.util.filesystem.mv_contents_from(stage.source_path, dst)
+
+
 def _retrieve_develop_source(spec: spack.spec.Spec, abspath: str) -> None:
     # "steal" the source code via staging API. We ask for a stage
     # to be created, then copy it afterwards somewhere else. It would be
@@ -109,7 +155,8 @@ def develop(parser, args):
             # Both old syntax `spack develop pkg@x` and new syntax `spack develop pkg@=x`
             # are currently supported.
             spec = spack.spec.parse_with_version_concrete(entry["spec"])
-            _retrieve_develop_source(spec, abspath)
+            if not _retrieve_develop_from_cache(spec, abspath):
+                _retrieve_develop_source(spec, abspath)
 
         if not env.dev_specs:
             tty.warn("No develop specs to download")
@@ -154,7 +201,8 @@ def develop(parser, args):
                 msg += " Use `spack develop -f` to overwrite."
                 raise SpackError(msg)
 
-        _retrieve_develop_source(spec, abspath)
+        if not _retrieve_develop_from_cache(spec, abspath):
+            _retrieve_develop_source(spec, abspath)
 
     tty.debug("Updating develop config for {0} transactionally".format(env.name))
     with env.write_transaction():

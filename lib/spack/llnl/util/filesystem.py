@@ -2966,3 +2966,16 @@ class FindFirstFile:
                 if self.match(file):
                     return os.path.join(dirpath, file)
         return None
+
+
+def mv_contents_from(src, dst):
+    import glob
+
+    # glob all files and directories in the source path
+    hidden_entries = glob.glob(os.path.join(src, ".*"))
+    entries = glob.glob(os.path.join(src, "*"))
+
+    # Move all files from stage to destination directory
+    # Include hidden files for VCS repo history
+    for entry in hidden_entries + entries:
+        shutil.move(entry, dst)

@@ -3,10 +3,10 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import errno
 import getpass
-import glob
 import hashlib
 import io
 import os
+import pathlib
 import shutil
 import stat
 import sys
@@ -14,6 +14,7 @@ import tempfile
 from typing import Callable, Dict, Generator, Iterable, List, Optional, Set
 
 import llnl.string
+import llnl.util.filesystem
 import llnl.util.lang
 import llnl.util.symlink
 import llnl.util.tty as tty
@@ -24,6 +25,7 @@ from llnl.util.filesystem import (
     install,
     install_tree,
     mkdirp,
+    mv_contents_from,
     partition_path,
     remove_linked_tree,
 )
@@ -37,6 +39,7 @@ import spack.mirrors.layout
 import spack.mirrors.utils
 import spack.resource
 import spack.spec
+import spack.util.archive
 import spack.util.crypto
 import spack.util.lock
 import spack.util.parallel
@@ -559,18 +562,7 @@ class Stage(LockableStagingDir):
         if not os.path.isdir(dest):
             mkdirp(dest)
 
-        # glob all files and directories in the source path
-        hidden_entries = glob.glob(os.path.join(self.source_path, ".*"))
-        entries = glob.glob(os.path.join(self.source_path, "*"))
-
-        # Move all files from stage to destination directory
-        # Include hidden files for VCS repo history
-        for entry in hidden_entries + entries:
-            if os.path.isdir(entry):
-                d = os.path.join(dest, os.path.basename(entry))
-                shutil.copytree(entry, d, symlinks=True)
-            else:
-                shutil.copy2(entry, dest)
+        mv_contents_from(self.source_path, dest)
 
         # copy archive file if we downloaded from url -- replaces for vcs
         if self.archive_file and os.path.exists(self.archive_file):
@@ -812,10 +804,11 @@ class StageComposite(pattern.Composite):
 class DevelopStage(LockableStagingDir):
     requires_patch_success = False
 
-    def __init__(self, name, dev_path, reference_link):
+    def __init__(self, name, dev_path, reference_link, mirror_id: Optional[str] = None):
         super().__init__(name=name, path=None, keep=False, lock=True)
         self.dev_path = dev_path
         self.source_path = dev_path
+        self.mirror_id = mirror_id
 
         # The path of a link that will point to this stage
         if os.path.isabs(reference_link):
@@ -869,6 +862,38 @@ class DevelopStage(LockableStagingDir):
 
     def cache_local(self):
         tty.debug("Sources for Develop stages are not cached")
+
+    def cache_mirror(
+        self, mirror: "spack.caches.MirrorCache", stats: "spack.mirrors.utils.MirrorStats"
+    ) -> None:
+        import llnl.util.filesystem
+
+        if not self.mirror_id:
+            raise ValueError()
+
+        llnl.util.filesystem.mkdirp(os.path.join(mirror.root, "develop"))
+
+        absolute_storage_path = os.path.join(mirror.root, "develop", self.mirror_id) + ".tar.gz"
+
+        if os.path.exists(absolute_storage_path):
+            stats.already_existed(absolute_storage_path)
+        else:
+            base = self.mirror_id
+            create_archive_of_x_at_y(self.dev_path, absolute_storage_path, base)
+
+            stats.added(absolute_storage_path)
+
+
+def create_archive_of_x_at_y(x, y, base):
+    # This is essentially the logic of `VCSFetchStrategy.archive`
+    with llnl.util.filesystem.working_dir(x), spack.util.archive.gzip_compressed_tarfile(y) as (
+        tar,
+        _,
+        _,
+    ):
+        spack.util.archive.reproducible_tarfile_from_prefix(
+            tar, prefix=".", path_to_name=lambda path: (base / pathlib.PurePath(path)).as_posix()
+        )
 
 
 def ensure_access(file):
