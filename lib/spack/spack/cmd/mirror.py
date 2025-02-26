@@ -117,6 +117,7 @@ def setup_parser(subparser):
         action="store_true",
         help=("set mirror to push automatically after installation"),
     )
+    add_parser.add_argument("--view", default=None, help="specify the binary mirror view name.")
     add_parser_signed = add_parser.add_mutually_exclusive_group(required=False)
     add_parser_signed.add_argument(
         "--unsigned",
@@ -315,6 +316,7 @@ def mirror_add(args):
         or args.oci_password
         or args.oci_username_variable
         or args.oci_password_variable
+        or args.view
         or args.autopush
         or args.signed is not None
     ):
@@ -365,6 +367,10 @@ def mirror_add(args):
             connection["autopush"] = args.autopush
         if args.signed is not None:
             connection["signed"] = args.signed
+        if args.view is not None:
+            if args.type and not ("binary" in args.type):
+                tty.warn("Adding a view name to non-binary mirrors has no effect")
+            connection["view"] = args.view
         mirror = spack.mirrors.mirror.Mirror(connection, name=args.name)
     else:
         mirror = spack.mirrors.mirror.Mirror(args.url, name=args.name)
