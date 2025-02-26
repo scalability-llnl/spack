@@ -3,6 +3,8 @@ ci:
   - mpich
   - openmpi
   pipeline-gen:
+  - build-job-remove:
+      tags: [spack]
   - build-job:
       tags: [ "macos-sequoia", "apple-clang-16", "aarch64-macos" ]
 
@@ -11,7 +13,6 @@ ci:
       # as part of installation of a golang package
       # see: https://github.com/spack/spack/issues/49147
       after_script-:
-      - - if [[ -d tmp ]] ; then chmod -R u+w tmp ; else echo tmp not found ; fi
-        - ./bin/spack clean -a
+      - - ./bin/spack clean -a
   - build-job-remove:
       image:: macos-run-on-metal
