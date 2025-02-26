@@ -2888,6 +2888,23 @@ class TestConcretizeSeparately:
         assert any(x.satisfies(hdf5_str) for x in result.specs)
         assert any(x.satisfies(pinned_str) for x in result.specs)
 
+    @pytest.mark.regression("44289")
+    def test_all_extensions_depend_on_same_extendee(self):
+        """Tests that we don't reuse dependencies that bring in a different extendee"""
+        setuptools = spack.concretize.concretize_one("py-setuptools ^python@3.10")
+
+        solver = spack.solver.asp.Solver()
+        setup = spack.solver.asp.SpackSolverSetup()
+        result, _, _ = solver.driver.solve(
+            setup, [Spec("py-floating ^python@3.11")], reuse=list(setuptools.traverse())
+        )
+        assert len(result.specs) == 1
+
+        floating = result.specs[0]
+        assert all(setuptools.dag_hash() != x.dag_hash() for x in floating.traverse())
+        pythons = [x for x in floating.traverse() if x.name == "python"]
+        assert len(pythons) == 1 and pythons[0].satisfies("@3.11")
+
 
 @pytest.mark.parametrize(
     "v_str,v_opts,checksummed",
