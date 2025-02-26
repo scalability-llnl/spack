@@ -5,6 +5,11 @@ import os
 import sys
 from os.path import dirname as dn
 
+# When called from installed main, remove spack from module list so it
+# can be imported properly.
+if "spack" in sys.modules:
+    del sys.modules["spack"]
+
 
 def get_spack_sys_paths(spack_prefix):
     """Given a spack prefix, return all the paths Spack needs to function."""
