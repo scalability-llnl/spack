@@ -1460,6 +1460,35 @@ class TestConcretize:
         new2 = spack.concretize.concretize_one("conditional-variant-pkg +two_whens")
         assert new2.satisfies("@2 +two_whens +version_based")
 
+    def test_reuse_by_namespace(self, mutable_database, mock_packages):
+        spack.config.set("concretizer:reuse", True)
+        # Set spack to prefer an older version when doing new builds, but prioritize reuse higher
+        spack.config.set("packages:libelf", {"version": ["0.8.10"]})
+
+        # Expected behavior is to reuse the libelf@0.8.13 from mutable database
+        # despite configured preference for older version
+        reuse = spack.concretize.concretize_one("libelf")
+        assert reuse.installed
+        assert reuse.satisfies("@0.8.13")
+
+        # Reuse is turned off, so preference will be respected
+        spack.config.set("concretizer:reuse", {"namespaces": []})
+        noreuse = spack.concretize.concretize_one("libelf")
+        assert not noreuse.installed
+        assert noreuse.satisfies("@0.8.10")
+
+        # Expected behavior same as first concretization
+        spack.config.set("concretizer:reuse", {"namespaces": ["builtin.mock"]})
+        noreuse = spack.concretize.concretize_one("libelf")
+        assert noreuse.installed
+        assert noreuse.satisfies("@0.8.13")
+
+        # Expected behavior same as second concretization
+        spack.config.set("concretizer:reuse", {"namespaces": ["foobar"]})
+        noreuse = spack.concretize.concretize_one("libelf")
+        assert not noreuse.installed
+        assert noreuse.satisfies("@0.8.10")
+
     def test_reuse_with_flags(self, mutable_database, mutable_config):
         spack.config.set("concretizer:reuse", True)
         spec = spack.concretize.concretize_one("pkg-a cflags=-g cxxflags=-g")
