@@ -37,3 +37,5 @@ class RMatrix(RPackage):
     depends_on("r@3.5.0:", type=("build", "run"), when="@1.3-3:")
     depends_on("r@4.4.0:", type=("build", "run"), when="@1.7-0:")
     depends_on("r-lattice", type=("build", "run"))
+    # looks for libintl.h directly
+    depends_on("gettext")
