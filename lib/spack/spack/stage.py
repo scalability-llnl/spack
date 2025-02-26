@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import errno
 import getpass
-import glob
 import hashlib
 import io
 import os
@@ -11,6 +10,7 @@ import shutil
 import stat
 import sys
 import tempfile
+from pathlib import Path
 from typing import Callable, Dict, Generator, Iterable, List, Optional, Set
 
 import llnl.string
@@ -46,6 +46,7 @@ import spack.util.url as url_util
 from spack import fetch_strategy as fs  # breaks a cycle
 from spack.util.crypto import bit_length, prefix_bits
 from spack.util.editor import editor, executable
+from spack.util.path import abstract_path, concrete_path, fs_path
 from spack.version import StandardVersion, VersionList
 
 # The well-known stage source subdirectory name.
@@ -64,23 +65,25 @@ def compute_stage_name(spec):
 
 def create_stage_root(path: str) -> None:
     """Create the stage root directory and ensure appropriate access perms."""
-    assert os.path.isabs(path) and len(path.strip()) > 1
+    path = concrete_path(path)
+    assert path.is_absolute() and len(fs_path(path).strip()) > 1
 
     err_msg = "Cannot create stage root {0}: Access to {1} is denied"
 
     user_uid = getuid()
 
     # Obtain lists of ancestor and descendant paths of the $user node, if any.
-    group_paths, user_node, user_paths = partition_path(path, getpass.getuser())
+    group_paths, user_node, user_paths = partition_path(fs_path(path), getpass.getuser())
 
     for p in group_paths:
-        if not os.path.exists(p):
+        p = concrete_path(p)
+        if not p.exists():
             # Ensure access controls of subdirs created above `$user` inherit
             # from the parent and share the group.
-            par_stat = os.stat(os.path.dirname(p))
+            par_stat = p.parent.stat()
             mkdirp(p, group=par_stat.st_gid, mode=par_stat.st_mode)
 
-            p_stat = os.stat(p)
+            p_stat = p.stat()
             if par_stat.st_gid != p_stat.st_gid:
                 tty.warn(
                     "Expected {0} to have group {1}, but it is {2}".format(
@@ -114,28 +117,29 @@ def create_stage_root(path: str) -> None:
                 )
             )
 
-    spack_src_subdir = os.path.join(path, _source_path_subdir)
+    spack_src_subdir = path / _source_path_subdir
     # When staging into a user-specified directory with `spack stage -p <PATH>`, we need
     # to ensure the `spack-src` subdirectory exists, as we can't rely on it being
     # created automatically by spack. It's not clear why this is the case for `spack
     # stage -p`, but since `mkdirp()` is idempotent, this should not change the behavior
     # for any other code paths.
-    if not os.path.isdir(spack_src_subdir):
+    if not spack_src_subdir.is_dir():
         mkdirp(spack_src_subdir, mode=stat.S_IRWXU)
 
 
 def _first_accessible_path(paths):
     """Find the first path that is accessible, creating it if necessary."""
     for path in paths:
+        path = concrete_path(path)
         try:
             # Ensure the user has access, creating the directory if necessary.
-            if os.path.exists(path):
+            if path.exists():
                 if can_access(path):
-                    return path
+                    return fs_path(path)
             else:
                 # Now create the stage root with the proper group/perms.
                 create_stage_root(path)
-                return path
+                return fs_path(path)
 
         except OSError as e:
             tty.debug("OSError while checking stage path %s: %s" % (path, str(e)))
@@ -150,15 +154,15 @@ def _resolve_paths(candidates):
     Adjustments involve removing extra $user from $tempdir if $tempdir includes
     $user and appending $user if it is not present in the path.
     """
-    temp_path = sup.canonicalize_path("$tempdir")
+    temp_path = abstract_path(sup.canonicalize_path("$tempdir"))
     user = getpass.getuser()
-    tmp_has_usr = user in temp_path.split(os.path.sep)
+    tmp_has_usr = user in temp_path.parts
 
     paths = []
     for path in candidates:
         # Remove the extra `$user` node from a `$tempdir/$user` entry for
         # hosts that automatically append `$user` to `$tempdir`.
-        if path.startswith(os.path.join("$tempdir", "$user")) and tmp_has_usr:
+        if path.startswith(fs_path(abstract_path("$tempdir", "$user"))) and tmp_has_usr:
             path = path.replace("/$user", "", 1)
 
         # Ensure the path is unique per user.
@@ -167,7 +171,7 @@ def _resolve_paths(candidates):
         # them by adding a per-user subdirectory.
         # Avoid doing this on Windows to keep stage absolute path as short as possible.
         if user not in can_path and not sys.platform == "win32":
-            can_path = os.path.join(can_path, user)
+            can_path = fs_path(abstract_path(can_path, user))
 
         paths.append(can_path)
 
@@ -227,7 +231,7 @@ class LockableStagingDir:
         if path is not None:
             self.path = path
         else:
-            self.path = os.path.join(get_stage_root(), self.name)
+            self.path = fs_path(abstract_path(get_stage_root(), self.name))
 
         # Flag to decide whether to delete the stage folder on exit or not
         self.keep = keep
@@ -246,7 +250,7 @@ class LockableStagingDir:
         if not self._lock:
             sha1 = hashlib.sha1(self.name.encode("utf-8")).digest()
             lock_id = prefix_bits(sha1, bit_length(sys.maxsize))
-            stage_lock_path = os.path.join(get_stage_root(), ".lock")
+            stage_lock_path = fs_path(abstract_path(get_stage_root(), ".lock"))
             self._lock = spack.util.lock.Lock(
                 stage_lock_path, start=lock_id, length=1, desc=self.name
             )
@@ -290,10 +294,11 @@ class LockableStagingDir:
         Ensures the top-level (config:build_stage) directory exists.
         """
         # User has full permissions and group has only read permissions
-        if not os.path.exists(self.path):
+        path = concrete_path(self.path)
+        if not path.exists():
             mkdirp(self.path, mode=stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP)
-        elif not os.path.isdir(self.path):
-            os.remove(self.path)
+        elif not path.is_dir():
+            path.unlink()
             mkdirp(self.path, mode=stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP)
 
         # Make sure we can actually do something with the stage we made.
@@ -427,13 +432,13 @@ class Stage(LockableStagingDir):
             fnames.append(url_util.default_download_filename(self.default_fetcher.url))
 
         if self.mirror_layout:
-            fnames.append(os.path.basename(self.mirror_layout.path))
+            fnames.append(abstract_path(self.mirror_layout.path).name)
 
-        paths = [os.path.join(self.path, f) for f in fnames]
+        paths = [fs_path(abstract_path(self.path, f)) for f in fnames]
         if not expanded:
             # If the download file is not compressed, the "archive" is a single file placed in
             # Stage.source_path
-            paths.extend(os.path.join(self.source_path, f) for f in fnames)
+            paths.extend(fs_path(abstract_path(self.source_path, f)) for f in fnames)
 
         return paths
 
@@ -450,7 +455,7 @@ class Stage(LockableStagingDir):
     def archive_file(self):
         """Path to the source archive within this stage directory."""
         for path in self.expected_archive_files:
-            if os.path.exists(path):
+            if concrete_path(path).exists():
                 return path
         else:
             return None
@@ -458,12 +463,12 @@ class Stage(LockableStagingDir):
     @property
     def expanded(self):
         """Returns True if source path expanded; else False."""
-        return os.path.exists(self.source_path)
+        return concrete_path(self.source_path).exists()
 
     @property
     def source_path(self):
         """Returns the well-known source directory path."""
-        return os.path.join(self.path, _source_path_subdir)
+        return fs_path(abstract_path(self.path, _source_path_subdir))
 
     def _generate_fetchers(self, mirror_only=False) -> Generator["fs.FetchStrategy", None, None]:
         fetchers: List[fs.FetchStrategy] = []
@@ -556,24 +561,25 @@ class Stage(LockableStagingDir):
         if not self.expanded:
             self.expand_archive()
 
-        if not os.path.isdir(dest):
-            mkdirp(dest)
+        dest = concrete_path(dest)
+        if not dest.is_dir():
+            mkdirp(fs_path(dest))
 
         # glob all files and directories in the source path
-        hidden_entries = glob.glob(os.path.join(self.source_path, ".*"))
-        entries = glob.glob(os.path.join(self.source_path, "*"))
+        source_path = concrete_path(self.source_path)
+        entries = source_path.glob("*")
 
         # Move all files from stage to destination directory
         # Include hidden files for VCS repo history
-        for entry in hidden_entries + entries:
-            if os.path.isdir(entry):
-                d = os.path.join(dest, os.path.basename(entry))
+        for entry in entries:
+            if entry.is_dir():
+                d = dest / entry.name
                 shutil.copytree(entry, d, symlinks=True)
             else:
                 shutil.copy2(entry, dest)
 
         # copy archive file if we downloaded from url -- replaces for vcs
-        if self.archive_file and os.path.exists(self.archive_file):
+        if self.archive_file and concrete_path(self.archive_file).exists():
             shutil.copy2(self.archive_file, dest)
 
         # remove leftover stage
@@ -623,15 +629,15 @@ class Stage(LockableStagingDir):
         elif not self.mirror_layout:
             return
 
-        absolute_storage_path = os.path.join(mirror.root, self.mirror_layout.path)
+        absolute_storage_path = concrete_path(mirror.root, self.mirror_layout.path)
 
-        if os.path.exists(absolute_storage_path):
-            stats.already_existed(absolute_storage_path)
+        if absolute_storage_path.exists():
+            stats.already_existed(fs_path(absolute_storage_path))
         else:
             self.fetch()
             self.check()
             mirror.store(self.fetcher, self.mirror_layout.path)
-            stats.added(absolute_storage_path)
+            stats.added(fs_path(absolute_storage_path))
 
         self.mirror_layout.make_alias(mirror.root)
 
@@ -657,10 +663,10 @@ class Stage(LockableStagingDir):
 
         # Make sure we don't end up in a removed directory
         try:
-            os.getcwd()
+            Path.cwd()
         except OSError as e:
             tty.debug(e)
-            os.chdir(os.path.dirname(self.path))
+            os.chdir(abstract_path(self.path).name)
 
         # mark as destroyed
         self.created = False
@@ -703,22 +709,22 @@ class ResourceStage(Stage):
         if not isinstance(placement, dict):
             placement = {"": placement}
 
-        target_path = os.path.join(root_stage.source_path, resource.destination)
+        target_path = concrete_path(root_stage.source_path, resource.destination)
 
         try:
-            os.makedirs(target_path)
+            concrete_path(target_path).mkdir(parents=True)
         except OSError as err:
             tty.debug(err)
-            if err.errno == errno.EEXIST and os.path.isdir(target_path):
+            if err.errno == errno.EEXIST and target_path.is_dir():
                 pass
             else:
                 raise
 
         for key, value in placement.items():
-            destination_path = os.path.join(target_path, value)
-            source_path = os.path.join(self.source_path, key)
+            destination_path = target_path / value
+            source_path = concrete_path(self.source_path, key)
 
-            if not os.path.exists(destination_path):
+            if not destination_path.exists():
                 tty.info(
                     "Moving resource stage\n\tsource: "
                     "{stage}\n\tdestination: {destination}".format(
@@ -726,12 +732,13 @@ class ResourceStage(Stage):
                     )
                 )
 
-                src = os.path.realpath(source_path)
+                src = source_path.resolve()
 
-                if os.path.isdir(src):
-                    install_tree(src, destination_path)
+                destination_path = fs_path(destination_path)
+                if src.is_dir():
+                    install_tree(fs_path(src), destination_path)
                 else:
-                    install(src, destination_path)
+                    install(fs_path(src), destination_path)
 
 
 class StageComposite(pattern.Composite):
@@ -818,13 +825,14 @@ class DevelopStage(LockableStagingDir):
         self.source_path = dev_path
 
         # The path of a link that will point to this stage
-        if os.path.isabs(reference_link):
+        reference_link = concrete_path(reference_link)
+        if reference_link.is_absolute():
             link_path = reference_link
         else:
-            link_path = os.path.join(self.source_path, reference_link)
-        if not os.path.isdir(os.path.dirname(link_path)):
+            link_path = concrete_path(self.source_path, reference_link)
+        if not link_path.parent.is_dir():
             raise StageError(f"The directory containing {link_path} must exist")
-        self.reference_link = link_path
+        self.reference_link = fs_path(link_path)
 
     @property
     def archive_file(self):
@@ -858,7 +866,7 @@ class DevelopStage(LockableStagingDir):
         except FileNotFoundError:
             pass
         try:
-            os.remove(self.reference_link)
+            concrete_path(self.reference_link).unlink()
         except FileNotFoundError:
             pass
         self.created = False
@@ -879,15 +887,16 @@ def ensure_access(file):
 
 def purge():
     """Remove all build directories in the top-level stage path."""
-    root = get_stage_root()
-    if os.path.isdir(root):
-        for stage_dir in os.listdir(root):
+    root = concrete_path(get_stage_root())
+    if root.is_dir():
+        for stage_dir in root.iterdir():
+            stage_dir = stage_dir.name
             if stage_dir.startswith(stage_prefix) or stage_dir == ".lock":
-                stage_path = os.path.join(root, stage_dir)
-                if os.path.isdir(stage_path):
-                    remove_linked_tree(stage_path)
+                stage_path = root / stage_dir
+                if stage_path.is_dir():
+                    remove_linked_tree(fs_path(stage_path))
                 else:
-                    os.remove(stage_path)
+                    stage_path.unlink()
 
 
 def interactive_version_filter(
@@ -981,14 +990,14 @@ def interactive_version_filter(
 
             short_hash = hashlib.sha1(data).hexdigest()[:7]
             filename = f"{stage_prefix}versions-{short_hash}.txt"
-            filepath = os.path.join(get_stage_root(), filename)
+            filepath = concrete_path(get_stage_root(), filename)
 
             # Write contents
             with open(filepath, "wb") as f:
                 f.write(data)
 
             # Open editor
-            editor(filepath, exec_fn=executable)
+            editor(fs_path(filepath), exec_fn=executable)
 
             # Read back in
             with open(filepath, "r", encoding="utf-8") as f:
@@ -1010,7 +1019,7 @@ def interactive_version_filter(
                         continue
                 sorted_and_filtered = sorted(url_dict.keys(), reverse=True)
 
-            os.unlink(filepath)
+            filepath.unlink()
         elif command == "f":
             tty.msg(
                 colorize(
