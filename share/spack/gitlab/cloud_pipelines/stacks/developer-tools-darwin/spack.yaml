@@ -9,7 +9,7 @@ spack:
     reuse: false
   specs:
       # editors
-    - neovim~no_luajit
+    #- neovim~no_luajit # build fails: https://github.com/spack/spack/pull/48453#issuecomment-2624788262
     - py-pynvim
     - emacs+json~native+treesitter   # TODO native not supported until gcc builds on darwin
       # - tree-sitter is a dep, should also have cli but no package
@@ -64,8 +64,6 @@ spack:
 
   ci:
     pipeline-gen:
-    - build-job-remove:
-        tags: [ spack, public ]
     - build-job:
         variables:
           CI_GPG_KEY_ROOT: /etc/protected-runner

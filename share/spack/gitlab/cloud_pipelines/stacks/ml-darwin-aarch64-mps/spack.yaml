@@ -9,13 +9,13 @@ spack:
       - ~cuda
       - ~rocm
     mpi:
-      require: openmpi
+      require: mpich
     openblas:
       require: ~fortran
 
   specs:
   # Horovod
-  - py-horovod
+  # - py-horovod # https://github.com/spack/spack/pull/48453#issuecomment-2676023970
 
   # Hugging Face
   - py-transformers
@@ -45,18 +45,18 @@ spack:
   - py-segmentation-models-pytorch
   - py-timm
   - py-torch
-  - py-torch-cluster
+  # - py-torch-cluster      # https://github.com/spack/spack/pull/48453#issuecomment-2676023970
   - py-torch-geometric
-  - py-torch-nvidia-apex
-  - py-torch-scatter
-  - py-torch-sparse
-  - py-torch-spline-conv
+  # - py-torch-nvidia-apex  # https://github.com/spack/spack/pull/48453#issuecomment-2676023970
+  # - py-torch-scatter      # https://github.com/spack/spack/pull/48453#issuecomment-2676023970
+  # - py-torch-sparse       # https://github.com/spack/spack/pull/48453#issuecomment-2676023970
+  # - py-torch-spline-conv  # https://github.com/spack/spack/pull/48453#issuecomment-2676023970
   - py-torchaudio
   - py-torchdata
   - py-torchfile
   - py-torchgeo
   - py-torchmetrics
-  - py-torchtext
+  # - py-torchtext          # https://github.com/spack/spack/pull/48453#issuecomment-2676023970
   - py-torchvision
   - py-vector-quantize-pytorch
 
@@ -84,8 +84,6 @@ spack:
 
   ci:
     pipeline-gen:
-    - build-job-remove:
-        tags: [ spack, public ]
     - build-job:
         variables:
           CI_GPG_KEY_ROOT: /etc/protected-runner
