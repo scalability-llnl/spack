@@ -122,13 +122,13 @@ class Seissol(CMakePackage, CudaPackage, ROCmPackage):
 
     requires("%oneapi", when="sycl_backend=oneapi")
 
-    depends_on("hipsycl@0.9.3: +cuda", when="+cuda sycl_backend=acpp")
+    depends_on("adaptivecpp@23.10: +cuda", when="+cuda sycl_backend=acpp")
 
     # TODO: this one needs to be +rocm as well--but that's not implemented yet
-    depends_on("hipsycl@develop", when="+rocm sycl_backend=acpp")
+    depends_on("adaptivecpp@develop", when="+rocm sycl_backend=acpp")
 
     # TODO: extend as soon as level zero is available
-    depends_on("hipsycl@develop", when="+intel_gpu sycl_backend=acpp")
+    depends_on("adaptivecpp@develop", when="+intel_gpu sycl_backend=acpp")
 
     # TODO: once adaptivecpp supports NVHPC, forward that (SYCL_USE_NVHPC)
 

@@ -59,7 +59,7 @@ packages:
       qmake: [qt-base, qt]
       rpc: [libtirpc]
       scalapack: [netlib-scalapack, amdscalapack]
-      sycl: [hipsycl]
+      sycl: [hipsycl, adaptivecpp]
       szip: [libaec, libszip]
       tbb: [intel-tbb]
       unwind: [libunwind]

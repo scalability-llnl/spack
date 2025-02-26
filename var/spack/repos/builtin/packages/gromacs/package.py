@@ -291,7 +291,7 @@ class Gromacs(CMakePackage, CudaPackage):
     variant("sycl", default=False, when="@2021:", description="Enable SYCL support")
     requires(
         "^intel-oneapi-runtime",
-        "^hipsycl %clang",
+        "^adaptivecpp %clang",
         policy="one_of",
         when="+sycl",
         msg="GROMACS SYCL support comes either from intel-oneapi-runtime or a "
