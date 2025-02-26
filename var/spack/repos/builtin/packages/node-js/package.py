@@ -37,12 +37,23 @@ class NodeJs(Package):
 
     # LTS (recommended for most users) - even major number
     version(
-        "22.11.0",
-        sha256="24e5130fa7bc1eaab218a0c9cb05e03168fa381bb9e3babddc6a11f655799222",
+        "22.14.0",
+        sha256="6c4e31ed5702dc45cfd8c435af56a36a474427e1bd7afe74c346136060beba8a",
         preferred=True,
     )
+    version("22.13.1", sha256="e7d5b1e84e7f3c3cebda81e2b138469eef41ba4ecf16a87fd15fc3f7afa3f701")
+    version("22.13.0", sha256="38e15a1d0dd0e95c237bc4651d7c9930a78d3fe7954a7ee7693b403f2d879e46")
+    version("22.12.0", sha256="3157e7c002b6e964bdbefb331ec38db1e2dceb064ab11c038275155461b22ce3")
+    version("22.11.0", sha256="24e5130fa7bc1eaab218a0c9cb05e03168fa381bb9e3babddc6a11f655799222")
     version("22.4.0", sha256="b62cd83c9a57a11349883f89b1727a16e66c02eb6255a4bf32714ff5d93165f5")
     version("22.3.0", sha256="6326484853093ab6b8f361a267445f4a5bff469042cda11a3585497b13136b55")
+    version("20.18.3", sha256="eba088fa562735140b283c7bb33f53e026ccd5febe68c52c5737ef6e577ec874")
+    version("20.18.2", sha256="cf3ef49fafbfee3cdcd936a0d6031341b73bfa6b26a484ea0a4936c26d24b829")
+    version("20.18.1", sha256="5bad8ced873eef3b32e7daee703156bce9224920ac6044f4232f5393df0628b8")
+    version("20.18.0", sha256="c0819f8fc5038584d24c22002aeffd23f2d4a6fd6b337b30c502cbe4a659720c")
+    version("20.17.0", sha256="409bda5f1896c7c20866610d778d1760991884ad2e7940837cd3f2854cf73747")
+    version("20.16.0", sha256="8f24bf9abe455a09ab30f9ae8edda1e945ed678a4b1c3b07ee0f901fdc0ff4fd")
+    version("20.15.1", sha256="da228a0c27922f02001d9a781793696432096ab2da658eb77d7fc21693f4c5cb")
     version("20.15.0", sha256="01e2c034467a324a33e778c81f2808dff13d289eaa9307d3e9b06c171e4d932d")
     version("18.12.1", sha256="ba8174dda00d5b90943f37c6a180a1d37c861d91e04a4cb38dc1c0c74981c186")
     version("16.18.1", sha256="3d24c9c3a953afee43edc44569045eda56cd45cd58b0539922d17da62736189c")
@@ -97,10 +108,10 @@ class NodeJs(Package):
     depends_on("python@:3.10", when="@19.0.0:19.0.1", type="build")
     depends_on("python@:3.11", when="@19.1.0:20.10.0", type="build")
     depends_on("python@:3.12", when="@20.11.0:20.15.1", type="build")
-    depends_on("python@:3.13", when="@20.16.0:20.18.1", type="build")
+    depends_on("python@:3.13", when="@20.16.0:20.18.3", type="build")
     depends_on("python@:3.11", when="@21.0.0:21.1.0", type="build")
     depends_on("python@:3.12", when="@21.2.0:22.2.0", type="build")
-    depends_on("python@:3.13", when="@22.3.0:22.7.0", type="build")
+    depends_on("python@:3.13", when="@22.3.0:22.14.0", type="build")
 
     depends_on("libtool", type="build", when=sys.platform != "darwin")
     depends_on("pkgconfig", type="build")
