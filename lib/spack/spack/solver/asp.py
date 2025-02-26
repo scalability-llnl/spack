@@ -27,9 +27,8 @@ from llnl.util.lang import elide_list
 
 import spack
 import spack.binary_distribution
-import spack.compiler
-import spack.compilers
-import spack.concretize
+import spack.compilers.config
+import spack.compilers.flags
 import spack.config
 import spack.deptypes as dt
 import spack.environment as ev
@@ -51,6 +50,7 @@ import spack.variant as vt
 import spack.version as vn
 import spack.version.git_ref_lookup
 from spack import traverse
+from spack.compilers.libraries import CompilerPropertyDetector
 
 from .core import (
     AspFunction,
@@ -72,9 +72,6 @@ from .version_order import concretization_version_order
 GitOrStandardVersion = Union[spack.version.GitVersion, spack.version.StandardVersion]
 
 TransformFunction = Callable[[spack.spec.Spec, List[AspFunction]], List[AspFunction]]
-
-#: Enable the addition of a runtime node
-WITH_RUNTIME = sys.platform != "win32"
 
 
 class OutputConfiguration(NamedTuple):
@@ -101,7 +98,7 @@ def default_clingo_control():
     control = clingo().Control()
     control.configuration.configuration = "tweety"
     control.configuration.solver.heuristic = "Domain"
-    control.configuration.solver.opt_strategy = "usc,one"
+    control.configuration.solver.opt_strategy = "usc,one,1"
     return control
 
 
@@ -279,12 +276,11 @@ def remove_node(spec: spack.spec.Spec, facts: List[AspFunction]) -> List[AspFunc
 def all_libcs() -> Set[spack.spec.Spec]:
     """Return a set of all libc specs targeted by any configured compiler. If none, fall back to
     libc determined from the current Python process if dynamically linked."""
-
-    libcs = {
-        c.default_libc
-        for c in spack.compilers.all_compilers_from(spack.config.CONFIG)
-        if c.default_libc
-    }
+    libcs = set()
+    for c in spack.compilers.config.all_compilers_from(spack.config.CONFIG):
+        candidate = CompilerPropertyDetector(c).default_libc()
+        if candidate is not None:
+            libcs.add(candidate)
 
     if libcs:
         return libcs
@@ -293,7 +289,7 @@ def all_libcs() -> Set[spack.spec.Spec]:
     return {libc} if libc else set()
 
 
-def libc_is_compatible(lhs: spack.spec.Spec, rhs: spack.spec.Spec) -> List[spack.spec.Spec]:
+def libc_is_compatible(lhs: spack.spec.Spec, rhs: spack.spec.Spec) -> bool:
     return (
         lhs.name == rhs.name
         and lhs.external_path == rhs.external_path
@@ -306,8 +302,8 @@ def using_libc_compatibility() -> bool:
     return spack.platforms.host().name == "linux"
 
 
-def c_compiler_runs(compiler: spack.compiler.Compiler) -> bool:
-    return compiler.compiler_verbose_output is not None
+def c_compiler_runs(compiler) -> bool:
+    return CompilerPropertyDetector(compiler).compiler_verbose_output() is not None
 
 
 def extend_flag_list(flag_list, new_flags):
@@ -597,10 +593,12 @@ def _external_config_with_implicit_externals(configuration):
     if not using_libc_compatibility():
         return packages_yaml
 
-    for compiler in spack.compilers.all_compilers_from(configuration):
-        libc = compiler.default_libc
-        if libc:
-            entry = {"spec": f"{libc} %{compiler.spec}", "prefix": libc.external_path}
+    seen = set()
+    for compiler in spack.compilers.config.all_compilers_from(configuration):
+        libc = CompilerPropertyDetector(compiler).default_libc()
+        if libc and libc not in seen:
+            seen.add(libc)
+            entry = {"spec": f"{libc}", "prefix": libc.external_path}
             packages_yaml.setdefault(libc.name, {}).setdefault("externals", []).append(entry)
     return packages_yaml
 
@@ -739,27 +737,6 @@ class ErrorHandler:
             )
             raise spack.error.SpackError(msg) from e
         raise UnsatisfiableSpecError(msg)
-
-
-class KnownCompiler(NamedTuple):
-    """Data class to collect information on compilers"""
-
-    spec: spack.spec.Spec
-    os: str
-    target: Optional[str]
-    available: bool
-    compiler_obj: Optional[spack.compiler.Compiler]
-
-    def _key(self):
-        return self.spec, self.os, self.target
-
-    def __eq__(self, other: object):
-        if not isinstance(other, KnownCompiler):
-            return NotImplemented
-        return self._key() == other._key()
-
-    def __hash__(self):
-        return hash(self._key())
 
 
 class PyclingoDriver:
@@ -1058,13 +1035,13 @@ class SourceContext:
     Facts generated for the spec may include this context.
     """
 
-    def __init__(self):
+    def __init__(self, *, source: Optional[str] = None):
         # This can be "literal" for constraints that come from a user
         # spec (e.g. from the command line); it can be the output of
         # `ConstraintOrigin.append_type_suffix`; the default is "none"
         # (which means it isn't important to keep track of the source
         # in that case).
-        self.source = "none"
+        self.source = "none" if source is None else source
 
 
 class ConditionIdContext(SourceContext):
@@ -1131,7 +1108,7 @@ class SpackSolverSetup:
             set
         )
 
-        self.possible_compilers: List[KnownCompiler] = []
+        self.possible_compilers: List[spack.spec.Spec] = []
         self.possible_oses: Set = set()
         self.variant_values_from_specs: Set = set()
         self.version_constraints: Set = set()
@@ -1260,16 +1237,6 @@ class SpackSolverSetup:
                 )
                 self.gen.newline()
 
-    def package_languages(self, pkg):
-        for when_spec, languages in pkg.languages.items():
-            condition_msg = f"{pkg.name} needs the {', '.join(sorted(languages))} language"
-            if when_spec != spack.spec.Spec():
-                condition_msg += f" when {when_spec}"
-            condition_id = self.condition(when_spec, required_name=pkg.name, msg=condition_msg)
-            for language in sorted(languages):
-                self.gen.fact(fn.pkg_fact(pkg.name, fn.language(condition_id, language)))
-        self.gen.newline()
-
     def config_compatible_os(self):
         """Facts about compatible os's specified in configs"""
         self.gen.h2("Compatible OS from concretizer config file")
@@ -1278,34 +1245,6 @@ class SpackSolverSetup:
             for old in reusable:
                 self.gen.fact(fn.os_compatible(recent, old))
                 self.gen.newline()
-
-    def compiler_facts(self):
-        """Facts about available compilers."""
-
-        self.gen.h2("Available compilers")
-        for compiler_id, compiler in enumerate(self.possible_compilers):
-            self.gen.fact(fn.compiler_id(compiler_id))
-            self.gen.fact(fn.compiler_name(compiler_id, compiler.spec.name))
-            self.gen.fact(fn.compiler_version(compiler_id, compiler.spec.version))
-
-            if compiler.os:
-                self.gen.fact(fn.compiler_os(compiler_id, compiler.os))
-
-            if compiler.target is not None:
-                self.gen.fact(fn.compiler_target(compiler_id, compiler.target))
-
-            if compiler.compiler_obj is not None:
-                c = compiler.compiler_obj
-                for flag_type, flags in c.flags.items():
-                    flag_group = " ".join(flags)
-                    for flag in flags:
-                        self.gen.fact(fn.compiler_flag(compiler_id, flag_type, flag, flag_group))
-
-            if compiler.available:
-                self.gen.fact(fn.compiler_available(compiler_id))
-
-            self.gen.fact(fn.compiler_weight(compiler_id, compiler_id))
-            self.gen.newline()
 
     def package_requirement_rules(self, pkg):
         self.emit_facts_from_requirement_rules(self.requirement_parser.rules(pkg))
@@ -1319,9 +1258,6 @@ class SpackSolverSetup:
         # versions
         self.pkg_version_rules(pkg)
         self.gen.newline()
-
-        # languages
-        self.package_languages(pkg)
 
         # variants
         self.variant_rules(pkg)
@@ -1338,12 +1274,6 @@ class SpackSolverSetup:
         # splices
         if self.enable_splicing:
             self.package_splice_rules(pkg)
-
-        # virtual preferences
-        self.virtual_preferences(
-            pkg.name,
-            lambda v, p, i: self.gen.fact(fn.pkg_fact(pkg.name, fn.provider_preference(v, p, i))),
-        )
 
         self.package_requirement_rules(pkg)
 
@@ -1873,8 +1803,6 @@ class SpackSolverSetup:
 
     def external_packages(self):
         """Facts on external packages, from packages.yaml and implicit externals."""
-        packages_yaml = _external_config_with_implicit_externals(spack.config.CONFIG)
-
         self.gen.h1("External packages")
         spec_filters = []
         concretizer_yaml = spack.config.get("concretizer")
@@ -1882,7 +1810,6 @@ class SpackSolverSetup:
         if isinstance(reuse_yaml, typing.Mapping):
             default_include = reuse_yaml.get("include", [])
             default_exclude = reuse_yaml.get("exclude", [])
-            libc_externals = list(all_libcs())
             for source in reuse_yaml.get("from", []):
                 if source["type"] != "external":
                     continue
@@ -1890,7 +1817,7 @@ class SpackSolverSetup:
                 include = source.get("include", default_include)
                 if include:
                     # Since libcs are implicit externals, we need to implicitly include them
-                    include = include + libc_externals
+                    include = include + self.libcs
                 exclude = source.get("exclude", default_exclude)
                 spec_filters.append(
                     SpecFilter(
@@ -1901,18 +1828,16 @@ class SpackSolverSetup:
                     )
                 )
 
+        packages_yaml = _external_config_with_implicit_externals(spack.config.CONFIG)
         for pkg_name, data in packages_yaml.items():
             if pkg_name == "all":
-                continue
-
-            # package isn't a possible dependency and can't be in the solution
-            if pkg_name not in self.pkgs:
                 continue
 
             # This package is not among possible dependencies
             if pkg_name not in self.pkgs:
                 continue
 
+            self.gen.h2(f"External package: {pkg_name}")
             # Check if the external package is buildable. If it is
             # not then "external(<pkg>)" is a fact, unless we can
             # reuse an already installed spec.
@@ -1947,13 +1872,32 @@ class SpackSolverSetup:
                     warnings.warn(f"cannot use the external spec {spec}: needs a concrete version")
                     continue
 
+                def external_requirement(input_spec, requirements):
+                    result = []
+                    for asp_fn in requirements:
+                        if asp_fn.args[0] == "depends_on":
+                            continue
+                        if asp_fn.args[1] != input_spec.name:
+                            continue
+                        result.append(asp_fn)
+                    return result
+
                 def external_imposition(input_spec, requirements):
-                    return requirements + [
-                        fn.attr("external_conditions_hold", input_spec.name, local_idx)
-                    ]
+                    result = []
+                    for asp_fn in requirements:
+                        if asp_fn.args[0] == "depends_on":
+                            continue
+                        elif asp_fn.args[0] == "build_requirement":
+                            asp_fn.args = "external_build_requirement", *asp_fn.args[1:]
+                        if asp_fn.args[1] != input_spec.name:
+                            continue
+                        result.append(asp_fn)
+                    result.append(fn.attr("external_conditions_hold", input_spec.name, local_idx))
+                    return result
 
                 try:
                     context = ConditionContext()
+                    context.transform_required = external_requirement
                     context.transform_imposed = external_imposition
                     self.condition(spec, spec, msg=msg, context=context)
                 except (spack.error.SpecError, RuntimeError) as e:
@@ -2133,28 +2077,6 @@ class SpackSolverSetup:
                 else:
                     clauses.append(f.variant_value(spec.name, vname, value))
 
-        # compiler and compiler version
-        if spec.compiler:
-            clauses.append(f.node_compiler(spec.name, spec.compiler.name))
-
-            if spec.compiler.concrete:
-                clauses.append(
-                    f.node_compiler_version(spec.name, spec.compiler.name, spec.compiler.version)
-                )
-
-            elif spec.compiler.versions and spec.compiler.versions != vn.any_version:
-                # The condition above emits a facts only if we have an actual constraint
-                # on the compiler version, and avoids emitting them if any version is fine
-                clauses.append(
-                    fn.attr(
-                        "node_compiler_version_satisfies",
-                        spec.name,
-                        spec.compiler.name,
-                        spec.compiler.versions,
-                    )
-                )
-                self.compiler_version_constraints.add(spec.compiler)
-
         # compiler flags
         source = context.source if context else "none"
         for flag_type, flags in spec.compiler_flags.items():
@@ -2192,6 +2114,7 @@ class SpackSolverSetup:
 
         # If the spec is external and concrete, we allow all the libcs on the system
         if spec.external and spec.concrete and using_libc_compatibility():
+            clauses.append(fn.attr("needs_libc", spec.name))
             for libc in self.libcs:
                 clauses.append(fn.attr("compatible_libc", spec.name, libc.name, libc.version))
 
@@ -2205,11 +2128,17 @@ class SpackSolverSetup:
                     # GCC runtime is solved again by clingo, even on concrete specs, to give
                     # the possibility to reuse specs built against a different runtime.
                     if dep.name == "gcc-runtime":
+                        clauses.append(
+                            fn.attr("compatible_runtime", spec.name, dep.name, f"{dep.version}:")
+                        )
+                        constraint_spec = spack.spec.Spec(f"{dep.name}@{dep.version}")
+                        self.spec_versions(constraint_spec)
                         continue
 
                     # libc is also solved again by clingo, but in this case the compatibility
                     # is not encoded in the parent node - so we need to emit explicit facts
                     if "libc" in dspec.virtuals:
+                        clauses.append(fn.attr("needs_libc", spec.name))
                         for libc in self.libcs:
                             if libc_is_compatible(libc, dep):
                                 clauses.append(
@@ -2244,15 +2173,23 @@ class SpackSolverSetup:
                 # if it's concrete, then the hashes above take care of dependency
                 # constraints, but expand the hashes if asked for.
                 if not spec.concrete or expand_hashes:
-                    clauses.extend(
-                        self._spec_clauses(
-                            dep,
-                            body=body,
-                            expand_hashes=expand_hashes,
-                            concrete_build_deps=concrete_build_deps,
-                            context=context,
-                        )
+                    dependency_clauses = self._spec_clauses(
+                        dep,
+                        body=body,
+                        expand_hashes=expand_hashes,
+                        concrete_build_deps=concrete_build_deps,
+                        context=context,
                     )
+                    if dspec.depflag == dt.BUILD:
+                        clauses.append(fn.attr("depends_on", spec.name, dep.name, "build"))
+                        if body is False:
+                            for clause in dependency_clauses:
+                                clause.name = "build_requirement"
+                                clauses.append(fn.attr("build_requirement", spec.name, clause))
+                        else:
+                            clauses.extend(dependency_clauses)
+                    else:
+                        clauses.extend(dependency_clauses)
 
         return clauses
 
@@ -2350,7 +2287,9 @@ class SpackSolverSetup:
             try:
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore")
-                    target.optimization_flags(compiler_name, str(compiler_version))
+                    target.optimization_flags(
+                        compiler_name, compiler_version.dotted_numeric_string
+                    )
                 supported.append(target)
             except archspec.cpu.UnsupportedMicroarchitecture:
                 continue
@@ -2431,39 +2370,21 @@ class SpackSolverSetup:
         platform = spack.platforms.host()
         uarch = archspec.cpu.TARGETS.get(platform.default)
         best_targets = {uarch.family.name}
-        for compiler_id, known_compiler in enumerate(self.possible_compilers):
-            if not known_compiler.available:
-                continue
-
-            compiler = known_compiler.compiler_obj
-            # Stub support for cross-compilation, to be expanded later
-            if known_compiler.target is not None and compiler.target not in (
-                str(uarch.family),
-                "any",
-            ):
-                self.gen.fact(fn.compiler_supports_target(compiler_id, compiler.target))
-                self.gen.newline()
-                continue
-
+        for compiler in self.possible_compilers:
             supported = self._supported_targets(compiler.name, compiler.version, candidate_targets)
-
-            # If we can't find supported targets it may be due to custom
-            # versions in the spec, e.g. gcc@foo. Try to match the
-            # real_version from the compiler object to get more accurate
-            # results.
-            if not supported:
-                supported = self._supported_targets(
-                    compiler.name, compiler.real_version, candidate_targets
-                )
 
             if not supported:
                 continue
 
             for target in supported:
                 best_targets.add(target.name)
-                self.gen.fact(fn.compiler_supports_target(compiler_id, target.name))
+                self.gen.fact(
+                    fn.compiler_supports_target(compiler.name, compiler.version, target.name)
+                )
 
-            self.gen.fact(fn.compiler_supports_target(compiler_id, uarch.family.name))
+            self.gen.fact(
+                fn.compiler_supports_target(compiler.name, compiler.version, uarch.family.name)
+            )
             self.gen.newline()
 
         i = 0  # TODO compute per-target offset?
@@ -2666,6 +2587,7 @@ class SpackSolverSetup:
             reuse: list of concrete specs that can be reused
             allow_deprecated: if True adds deprecated versions into the solve
         """
+        reuse = reuse or []
         check_packages_exist(specs)
 
         node_counter = create_counter(specs, tests=self.tests, possible_graph=self.possible_graph)
@@ -2688,14 +2610,17 @@ class SpackSolverSetup:
                 self.explicitly_required_namespaces[node.name] = node.namespace
 
         self.gen = ProblemInstanceBuilder()
-        compiler_parser = CompilerParser(configuration=spack.config.CONFIG).with_input_specs(specs)
-
+        self.gen.h1("Generic information")
         if using_libc_compatibility():
             for libc in self.libcs:
                 self.gen.fact(fn.host_libc(libc.name, libc.version))
 
         if not allow_deprecated:
             self.gen.fact(fn.deprecated_versions_not_allowed())
+
+        self.gen.newline()
+        for pkg_name in spack.compilers.config.supported_compilers():
+            self.gen.fact(fn.compiler_package(pkg_name))
 
         # Calculate develop specs
         # they will be used in addition to command line specs
@@ -2713,16 +2638,32 @@ class SpackSolverSetup:
 
         specs = tuple(specs)  # ensure compatible types to add
 
+        _ = spack.compilers.config.all_compilers(init_config=True)
+
+        # Get compilers from buildcache only if injected through "reuse" specs
+        supported_compilers = spack.compilers.config.supported_compilers()
+        compilers_from_reuse = {
+            x for x in reuse if x.name in supported_compilers and not x.external
+        }
+        candidate_compilers = possible_compilers(configuration=spack.config.CONFIG)
+        for x in candidate_compilers:
+            if x.external or x in reuse:
+                continue
+            reuse.append(x)
+            for dep in x.traverse(root=False, deptype="run"):
+                reuse.extend(dep.traverse(deptype=("link", "run")))
+
+        candidate_compilers.update(compilers_from_reuse)
+        self.possible_compilers = list(candidate_compilers)
+        self.possible_compilers.sort()  # type: ignore[call-overload]
+
         self.gen.h1("Reusable concrete specs")
         self.define_concrete_input_specs(specs, self.pkgs)
         if reuse:
             self.gen.fact(fn.optimize_for_reuse())
             for reusable_spec in reuse:
-                compiler_parser.add_compiler_from_concrete_spec(reusable_spec)
                 self.register_concrete_spec(reusable_spec, self.pkgs)
         self.concrete_specs()
-
-        self.possible_compilers = compiler_parser.possible_compilers()
 
         self.gen.h1("Generic statements on possible packages")
         node_counter.possible_packages_facts(self.gen, fn)
@@ -2734,7 +2675,6 @@ class SpackSolverSetup:
 
         self.gen.h1("General Constraints")
         self.config_compatible_os()
-        self.compiler_facts()
 
         # architecture defaults
         self.platform_defaults()
@@ -2788,9 +2728,8 @@ class SpackSolverSetup:
         self.gen.h1("Variant Values defined in specs")
         self.define_variant_values()
 
-        if WITH_RUNTIME:
-            self.gen.h1("Runtimes")
-            self.define_runtime_constraints()
+        self.gen.h1("Runtimes")
+        self.define_runtime_constraints()
 
         self.gen.h1("Version Constraints")
         self.collect_virtual_constraints()
@@ -2830,35 +2769,49 @@ class SpackSolverSetup:
         recorder = RuntimePropertyRecorder(self)
 
         for compiler in self.possible_compilers:
-            compiler_with_different_cls_names = {
-                "oneapi": "intel-oneapi-compilers",
-                "clang": "llvm",
-            }
-            compiler_cls_name = compiler_with_different_cls_names.get(
-                compiler.spec.name, compiler.spec.name
-            )
             try:
-                compiler_cls = spack.repo.PATH.get_pkg_class(compiler_cls_name)
-                if hasattr(compiler_cls, "runtime_constraints"):
-                    compiler_cls.runtime_constraints(spec=compiler.spec, pkg=recorder)
+                compiler_cls = spack.repo.PATH.get_pkg_class(compiler.name)
             except spack.repo.UnknownPackageError:
                 pass
+            else:
+                if hasattr(compiler_cls, "runtime_constraints"):
+                    compiler_cls.runtime_constraints(spec=compiler, pkg=recorder)
+                # Inject default flags for compilers
+                recorder("*").default_flags(compiler)
 
-            # Inject libc from available compilers, on Linux
-            if not compiler.available:
+            # FIXME (compiler as nodes): think of using isinstance(compiler_cls, WrappedCompiler)
+            # Add a dependency on the compiler wrapper
+            recorder("*").depends_on(
+                "compiler-wrapper",
+                when=f"%{compiler.name}@{compiler.versions}",
+                type="build",
+                description=f"Add the compiler wrapper when using {compiler}",
+            )
+
+            if not using_libc_compatibility():
                 continue
 
-            current_libc = compiler.compiler_obj.default_libc
+            current_libc = None
+            if compiler.external or compiler.installed:
+                current_libc = CompilerPropertyDetector(compiler).default_libc()
+            else:
+                try:
+                    current_libc = compiler["libc"]
+                except (KeyError, RuntimeError) as e:
+                    tty.debug(f"{compiler} cannot determine libc because: {e}")
 
-            if using_libc_compatibility() and current_libc:
+            if current_libc:
                 recorder("*").depends_on(
-                    "libc", when=f"%{compiler.spec}", type="link", description="Add libc"
+                    "libc",
+                    when=f"%{compiler.name}@{compiler.versions}",
+                    type="link",
+                    description=f"Add libc when using {compiler}",
                 )
                 recorder("*").depends_on(
-                    str(current_libc),
-                    when=f"%{compiler.spec}",
+                    f"{current_libc.name}@={current_libc.version}",
+                    when=f"%{compiler.name}@{compiler.versions}",
                     type="link",
-                    description="Add libc",
+                    description=f"Libc is {current_libc} when using {compiler}",
                 )
 
         recorder.consume_facts()
@@ -2893,6 +2846,9 @@ class SpackSolverSetup:
                 elif clause_name in ("node", "virtual_node", "hash"):
                     # These facts are needed to compute the "condition_set" of the root
                     pkg_name = clause.args[1]
+                    self.gen.fact(fn.mentioned_in_literal(trigger_id, root_name, pkg_name))
+                elif clause_name == "depends_on":
+                    pkg_name = clause.args[2]
                     self.gen.fact(fn.mentioned_in_literal(trigger_id, root_name, pkg_name))
 
             requirements.append(
@@ -2994,8 +2950,6 @@ class _Head:
     node_os = fn.attr("node_os_set")
     node_target = fn.attr("node_target_set")
     variant_value = fn.attr("variant_set")
-    node_compiler = fn.attr("node_compiler_set")
-    node_compiler_version = fn.attr("node_compiler_version_set")
     node_flag = fn.attr("node_flag_set")
     propagate = fn.attr("propagate")
 
@@ -3010,8 +2964,6 @@ class _Body:
     node_os = fn.attr("node_os")
     node_target = fn.attr("node_target")
     variant_value = fn.attr("variant_value")
-    node_compiler = fn.attr("node_compiler")
-    node_compiler_version = fn.attr("node_compiler_version")
     node_flag = fn.attr("node_flag")
     propagate = fn.attr("propagate")
 
@@ -3062,102 +3014,44 @@ class ProblemInstanceBuilder:
         return "".join(self.asp_problem)
 
 
-class CompilerParser:
-    """Parses configuration files, and builds a list of possible compilers for the solve."""
+def possible_compilers(*, configuration) -> Set["spack.spec.Spec"]:
+    result = set()
 
-    def __init__(self, configuration) -> None:
-        self.compilers: Set[KnownCompiler] = set()
-        for c in spack.compilers.all_compilers_from(configuration):
-            if using_libc_compatibility() and not c_compiler_runs(c):
+    # Compilers defined in configuration
+    for c in spack.compilers.config.all_compilers_from(configuration):
+        if using_libc_compatibility() and not c_compiler_runs(c):
+            try:
+                compiler = c.extra_attributes["compilers"]["c"]
                 tty.debug(
-                    f"the C compiler {c.cc} does not exist, or does not run correctly."
-                    f" The compiler {c.spec} will not be used during concretization."
+                    f"the C compiler {compiler} does not exist, or does not run correctly."
+                    f" The compiler {c} will not be used during concretization."
                 )
-                continue
+            except KeyError:
+                tty.debug(f"the spec {c} does not provide a C compiler.")
 
-            if using_libc_compatibility() and not c.default_libc:
-                warnings.warn(
-                    f"cannot detect libc from {c.spec}. The compiler will not be used "
-                    f"during concretization."
-                )
-                continue
+            continue
 
-            target = c.target if c.target != "any" else None
-            candidate = KnownCompiler(
-                spec=c.spec, os=c.operating_system, target=target, available=True, compiler_obj=c
+        if using_libc_compatibility() and not CompilerPropertyDetector(c).default_libc():
+            warnings.warn(
+                f"cannot detect libc from {c}. The compiler will not be used "
+                f"during concretization."
             )
-            if candidate in self.compilers:
-                warnings.warn(
-                    f"duplicate found for {c.spec} on {c.operating_system}/{c.target}. "
-                    f"Edit your compilers.yaml configuration to remove it."
-                )
-                continue
+            continue
 
-            self.compilers.add(candidate)
-
-    def with_input_specs(self, input_specs: List[spack.spec.Spec]) -> "CompilerParser":
-        """Accounts for input specs when building the list of possible compilers.
-
-        Args:
-            input_specs: specs to be concretized
-        """
-        strict = spack.concretize.CHECK_COMPILER_EXISTENCE
-        default_os = str(spack.platforms.host().default_os)
-        default_target = str(archspec.cpu.host().family)
-        for s in traverse.traverse_nodes(input_specs):
-            # we don't need to validate compilers for already-built specs
-            if s.concrete or not s.compiler:
-                continue
-
-            version = s.compiler.versions.concrete
-
-            if not version or any(item.spec.satisfies(s.compiler) for item in self.compilers):
-                continue
-
-            # Error when a compiler is not found and strict mode is enabled
-            if strict:
-                raise spack.concretize.UnavailableCompilerVersionError(s.compiler)
-
-            # Make up a compiler matching the input spec. This is for bootstrapping.
-            compiler_cls = spack.compilers.class_for_compiler_name(s.compiler.name)
-            compiler_obj = compiler_cls(
-                s.compiler, operating_system=default_os, target=default_target, paths=[None] * 4
+        if c in result:
+            warnings.warn(
+                f"duplicate {c.long_spec} compiler found. Edit your packages.yaml to remove it."
             )
-            self.compilers.add(
-                KnownCompiler(
-                    spec=s.compiler,
-                    os=default_os,
-                    target=default_target,
-                    available=True,
-                    compiler_obj=compiler_obj,
-                )
-            )
+            continue
 
-        return self
+        result.add(c)
 
-    def add_compiler_from_concrete_spec(self, spec: spack.spec.Spec) -> None:
-        """Account for compilers that are coming from concrete specs, through reuse.
+    # Compilers from the local store
+    supported_compilers = spack.compilers.config.supported_compilers()
+    for pkg_name in supported_compilers:
+        result.update(spack.store.STORE.db.query(pkg_name))
 
-        Args:
-            spec: concrete spec to be reused
-        """
-        assert spec.concrete, "the spec argument must be concrete"
-        candidate = KnownCompiler(
-            spec=spec.compiler,
-            os=str(spec.architecture.os),
-            target=str(spec.architecture.target.family),
-            available=False,
-            compiler_obj=None,
-        )
-        self.compilers.add(candidate)
-
-    def possible_compilers(self) -> List[KnownCompiler]:
-        # Here we have to sort two times, first sort by name and ascending version
-        result = sorted(self.compilers, key=lambda x: (x.spec.name, x.spec.version), reverse=True)
-        # Then stable sort to prefer available compilers and account for preferences
-        ppk = spack.package_prefs.PackagePrefs("all", "compiler", all=False)
-        result.sort(key=lambda x: (not x.available, ppk(x.spec)))
-        return result
+    return result
 
 
 class RuntimePropertyRecorder:
@@ -3200,15 +3094,7 @@ class RuntimePropertyRecorder:
         """Resets the current state."""
         self.current_package = None
 
-    def depends_on(
-        self,
-        dependency_str: str,
-        *,
-        when: str,
-        type: str,
-        description: str,
-        languages: Optional[List[str]] = None,
-    ) -> None:
+    def depends_on(self, dependency_str: str, *, when: str, type: str, description: str) -> None:
         """Injects conditional dependencies on packages.
 
         Conditional dependencies can be either "real" packages or virtual dependencies.
@@ -3217,7 +3103,6 @@ class RuntimePropertyRecorder:
             dependency_str: the dependency spec to inject
             when: anonymous condition to be met on a package to have the dependency
             type: dependency type
-            languages: languages needed by the package for the dependency to be considered
             description: human-readable description of the rule for adding the dependency
         """
         # TODO: The API for this function is not final, and is still subject to change. At
@@ -3233,25 +3118,10 @@ class RuntimePropertyRecorder:
         if dependency_spec.versions != vn.any_version:
             self._setup.version_constraints.add((dependency_spec.name, dependency_spec.versions))
 
-        placeholder = "XXX"
-        node_variable = "node(ID, Package)"
-        when_spec.name = placeholder
-
-        body_clauses = self._setup.spec_clauses(when_spec, body=True)
-        body_str = (
-            f"  {f',{os.linesep}  '.join(str(x) for x in body_clauses)},\n"
-            f"  not external({node_variable}),\n"
-            f"  not runtime(Package)"
-        ).replace(f'"{placeholder}"', f"{node_variable}")
-        if languages:
-            body_str += ",\n"
-            for language in languages:
-                body_str += f'  attr("language", {node_variable}, "{language}")'
+        body_str, node_variable = self.rule_body_from(when_spec)
 
         head_clauses = self._setup.spec_clauses(dependency_spec, body=False)
-
         runtime_pkg = dependency_spec.name
-
         is_virtual = head_clauses[0].args[0] == "virtual_node"
         main_rule = (
             f"% {description}\n"
@@ -3286,6 +3156,38 @@ class RuntimePropertyRecorder:
 
         self.reset()
 
+    @staticmethod
+    def node_for(name: str) -> str:
+        return f'node(ID{name.replace("-", "_")}, "{name}")'
+
+    def rule_body_from(self, when_spec: "spack.spec.Spec") -> Tuple[str, str]:
+        """Computes the rule body from a "when" spec, and returns it, along with the
+        node variable.
+        """
+
+        node_placeholder = "XXX"
+        node_variable = "node(ID, Package)"
+        when_substitutions = {}
+        for s in when_spec.traverse(root=False):
+            when_substitutions[f'"{s.name}"'] = self.node_for(s.name)
+        when_spec.name = node_placeholder
+        body_clauses = self._setup.spec_clauses(when_spec, body=True)
+        for clause in body_clauses:
+            if clause.args[0] == "virtual_on_incoming_edges":
+                # Substitute: attr("virtual_on_incoming_edges", ProviderNode, Virtual)
+                # with: attr("virtual_on_edge", ParentNode, ProviderNode, Virtual)
+                # (avoid adding virtuals everywhere, if a single edge needs it)
+                _, provider, virtual = clause.args
+                clause.args = "virtual_on_edge", node_placeholder, provider, virtual
+        body_str = (
+            f"  {f',{os.linesep}  '.join(str(x) for x in body_clauses)},\n"
+            f"  not external({node_variable}),\n"
+            f"  not runtime(Package)"
+        ).replace(f'"{node_placeholder}"', f"{node_variable}")
+        for old, replacement in when_substitutions.items():
+            body_str = body_str.replace(old, replacement)
+        return body_str, node_variable
+
     def requires(self, impose: str, *, when: str):
         """Injects conditional requirements on a given package.
 
@@ -3300,7 +3202,6 @@ class RuntimePropertyRecorder:
         when_spec = spack.spec.Spec(f"{self.current_package}{when}")
 
         assert imposed_spec.versions.concrete, f"{impose} must have a concrete version"
-        assert when_spec.compiler.concrete, f"{when} must have a concrete compiler"
 
         # Add versions to possible versions
         for s in (imposed_spec, when_spec):
@@ -3321,29 +3222,51 @@ class RuntimePropertyRecorder:
         when_spec = spack.spec.Spec(when)
         assert when_spec.name is None, "only anonymous when specs are accepted"
 
-        placeholder = "XXX"
-        node_variable = "node(ID, Package)"
-        when_spec.name = placeholder
+        when_substitutions = {}
+        for s in when_spec.traverse(root=False):
+            when_substitutions[f'"{s.name}"'] = self.node_for(s.name)
 
-        body_clauses = self._setup.spec_clauses(when_spec, body=True)
-        body_str = (
-            f"  {f',{os.linesep}  '.join(str(x) for x in body_clauses)},\n"
-            f"  not external({node_variable}),\n"
-            f"  not runtime(Package)"
-        ).replace(f'"{placeholder}"', f"{node_variable}")
-
+        body_str, node_variable = self.rule_body_from(when_spec)
         constraint_spec = spack.spec.Spec(constraint_str)
-        assert constraint_spec.name is None, "only anonymous constraint specs are accepted"
 
-        constraint_spec.name = placeholder
+        # constraint_spec.name = placeholder
         constraint_clauses = self._setup.spec_clauses(constraint_spec, body=False)
         for clause in constraint_clauses:
-            if clause.args[0] == "node_compiler_version_satisfies":
-                self._setup.compiler_version_constraints.add(constraint_spec.compiler)
-                args = f'"{constraint_spec.compiler.name}", "{constraint_spec.compiler.versions}"'
-                head_str = f"propagate({node_variable}, node_compiler_version_satisfies({args}))"
+            if clause.args[0] == "node_version_satisfies":
+                self._setup.version_constraints.add(
+                    (constraint_spec.name, constraint_spec.versions)
+                )
+                args = f'"{constraint_spec.name}", "{constraint_spec.versions}"'
+                head_str = f"propagate({node_variable}, node_version_satisfies({args}))"
                 rule = f"{head_str} :-\n{body_str}.\n\n"
                 self.rules.append(rule)
+
+        self.reset()
+
+    def default_flags(self, spec: "spack.spec.Spec"):
+        if not spec.external or "flags" not in spec.extra_attributes:
+            self.reset()
+            return
+
+        when_spec = spack.spec.Spec(f"^[deptypes=build] {spec}")
+        body_str, node_variable = self.rule_body_from(when_spec)
+
+        node_placeholder = "XXX"
+        flags = spec.extra_attributes["flags"]
+        root_spec_str = f"{node_placeholder}"
+        for flag_type, default_values in flags.items():
+            root_spec_str = f"{root_spec_str} {flag_type}='{default_values}'"
+        root_spec = spack.spec.Spec(root_spec_str)
+        head_clauses = self._setup.spec_clauses(
+            root_spec, body=False, context=SourceContext(source="compiler")
+        )
+        self.rules.append(f"% Default compiler flags for {spec}\n")
+        for clause in head_clauses:
+            if clause.args[0] == "node":
+                continue
+            head_str = str(clause).replace(f'"{node_placeholder}"', f"{node_variable}")
+            rule = f"{head_str} :-\n{body_str}.\n\n"
+            self.rules.append(rule)
 
         self.reset()
 
@@ -3386,7 +3309,6 @@ class SpecBuilder:
                 r"^compatible_libc$",
                 r"^dependency_holds$",
                 r"^external_conditions_hold$",
-                r"^node_compiler$",
                 r"^package_hash$",
                 r"^root$",
                 r"^track_dependencies$",
@@ -3467,10 +3389,6 @@ class SpecBuilder:
     def version(self, node, version):
         self._specs[node].versions = vn.VersionList([vn.Version(version)])
 
-    def node_compiler_version(self, node, compiler, version):
-        self._specs[node].compiler = spack.spec.CompilerSpec(compiler)
-        self._specs[node].compiler.versions = vn.VersionList([vn.Version(version)])
-
     def node_flag(self, node, node_flag):
         self._specs[node].compiler_flags.add_flag(
             node_flag.flag_type, node_flag.flag, False, node_flag.flag_group, node_flag.source
@@ -3525,17 +3443,14 @@ class SpecBuilder:
         e.g. for `y cflags="-z -a"` "-z" and "-a" should never have any intervening
         flags inserted, and should always appear in that order.
         """
-        # reverse compilers so we get highest priority compilers that share a spec
-        compilers = dict(
-            (c.spec, c) for c in reversed(spack.compilers.all_compilers_from(spack.config.CONFIG))
-        )
-        cmd_specs = dict((s.name, s) for spec in self._command_line_specs for s in spec.traverse())
+        cmd_specs = {s.name: s for spec in self._command_line_specs for s in spec.traverse()}
 
         for node, spec in self._specs.items():
             # if bootstrapping, compiler is not in config and has no flags
-            flagmap_from_compiler = {}
-            if spec.compiler in compilers:
-                flagmap_from_compiler = compilers[spec.compiler].flags
+            flagmap_from_compiler = {
+                flag_type: [x for x in values if x.source == "compiler"]
+                for flag_type, values in spec.compiler_flags.items()
+            }
 
             for flag_type in spec.compiler_flags.valid_compiler_flags():
                 ordered_flags = []
@@ -3583,7 +3498,7 @@ class SpecBuilder:
 
                 for grp in prioritized_groups:
                     grp_flags = tuple(
-                        x for (x, y) in spack.compiler.tokenize_flags(grp.flag_group)
+                        x for (x, y) in spack.compilers.flags.tokenize_flags(grp.flag_group)
                     )
                     if grp_flags == from_compiler:
                         continue
@@ -3651,9 +3566,8 @@ class SpecBuilder:
             return (-1, 0)
 
     def build_specs(self, function_tuples):
-        # Functions don't seem to be in particular order in output.  Sort
-        # them here so that directives that build objects (like node and
-        # node_compiler) are called in the right order.
+        # Functions don't seem to be in particular order in output. Sort them here so that
+        # directives that build objects, like node, are called in the right order.
         self.function_tuples = sorted(set(function_tuples), key=self.sort_fn)
         self._specs = {}
         for name, args in self.function_tuples:
@@ -3716,6 +3630,14 @@ class SpecBuilder:
         # mark concrete and assign hashes to all specs in the solve
         for root in roots.values():
             root._finalize_concretization()
+
+        # Unify hashes (this is to avoid duplicates of runtimes and compilers)
+        unifier = ConcreteSpecsByHash()
+        keys = list(self._specs)
+        for key in keys:
+            current_spec = self._specs[key]
+            unifier.add(current_spec)
+            self._specs[key] = unifier[current_spec.dag_hash()]
 
         # Only attempt to resolve automatic splices if the solver produced any
         if self._splices:
@@ -3904,6 +3826,9 @@ def _is_reusable(spec: spack.spec.Spec, packages, local: bool) -> bool:
     if "dev_path" in spec.variants:
         return False
 
+    if spec.name == "compiler-wrapper":
+        return False
+
     if not spec.external:
         return _has_runtime_dependencies(spec)
 
@@ -3931,13 +3856,10 @@ def _is_reusable(spec: spack.spec.Spec, packages, local: bool) -> bool:
 
 
 def _has_runtime_dependencies(spec: spack.spec.Spec) -> bool:
-    if not WITH_RUNTIME:
-        return True
-
-    if spec.compiler.name == "gcc" and not spec.dependencies("gcc-runtime"):
+    if "gcc" in spec and "gcc-runtime" not in spec:
         return False
 
-    if spec.compiler.name == "oneapi" and not spec.dependencies("intel-oneapi-runtime"):
+    if "intel-oneapi-compilers" in spec and "intel-oneapi-runtime" not in spec:
         return False
 
     return True
@@ -4182,14 +4104,38 @@ class Solver:
         self.selector = ReusableSpecsSelector(configuration=spack.config.CONFIG)
 
     @staticmethod
-    def _check_input_and_extract_concrete_specs(specs):
-        reusable = []
+    def _check_input_and_extract_concrete_specs(
+        specs: List[spack.spec.Spec],
+    ) -> List[spack.spec.Spec]:
+        reusable: List[spack.spec.Spec] = []
+        analyzer = create_graph_analyzer()
         for root in specs:
             for s in root.traverse():
                 if s.concrete:
                     reusable.append(s)
-                elif spack.repo.PATH.is_virtual(s.name):
-                    continue
+                else:
+                    if spack.repo.PATH.is_virtual(s.name):
+                        continue
+                    # Error if direct dependencies cannot be satisfied
+                    deps = {edge.spec.name for edge in s.edges_to_dependencies() if edge.direct}
+                    if deps:
+                        graph = analyzer.possible_dependencies(
+                            s, allowed_deps=dt.ALL, transitive=False
+                        )
+                        deps.difference_update(graph.real_pkgs, graph.virtuals)
+                        if deps:
+                            start_str = f"'{root}'" if s == root else f"'{s}' in '{root}'"
+                            raise UnsatisfiableSpecError(
+                                f"{start_str} cannot depend on {', '.join(deps)}"
+                            )
+
+                try:
+                    spack.repo.PATH.get_pkg_class(s.fullname)
+                except spack.repo.UnknownPackageError:
+                    raise UnsatisfiableSpecError(
+                        f"cannot concretize '{root}', since '{s.name}' does not exist"
+                    )
+
                 spack.spec.Spec.ensure_valid_variants(s)
         return reusable
 

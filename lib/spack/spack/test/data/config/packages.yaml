@@ -1,30 +1,35 @@
 packages:
   all:
-    compiler: [gcc, clang]
     providers:
-      mpi: [openmpi, mpich, zmpi]
+      c: [gcc, llvm]
+      cxx: [gcc, llvm]
+      fortran: [gcc]
+      fortran-rt: [gcc-runtime]
+      libc: [glibc]
+      libgfortran: [gcc-runtime]
+      mpi: [mpich, zmpi]
       lapack: [openblas-with-lapack]
       blas: [openblas]
   externaltool:
     buildable: False
     externals:
-    - spec: externaltool@1.0%gcc@10.2.1
+    - spec: externaltool@1.0
       prefix: /path/to/external_tool
-    - spec: externaltool@0.9%gcc@10.2.1
+    - spec: externaltool@0.9
       prefix: /usr
-    - spec: externaltool@0_8%gcc@10.2.1
+    - spec: externaltool@0_8
       prefix: /usr
   externalvirtual:
     buildable: False
     externals:
-    - spec: externalvirtual@2.0%clang@15.0.0
+    - spec: externalvirtual@2.0
       prefix: /path/to/external_virtual_clang
-    - spec: externalvirtual@1.0%gcc@10.2.1
+    - spec: externalvirtual@1.0
       prefix: /path/to/external_virtual_gcc
   externalmodule:
     buildable: False
     externals:
-    - spec: externalmodule@1.0%gcc@4.5.0
+    - spec: externalmodule@1.0
       modules:
       - external-module
   'requires-virtual':
@@ -51,3 +56,34 @@ packages:
         prefix: /usr
   version-test-dependency-preferred:
     version: ['5.2.5']
+
+  # Compilers
+  gcc:
+    externals:
+      - spec: "gcc@9.4.0 languages='c,c++' os={linux_os.name}{linux_os.version} target={target}"
+        prefix: /path
+        extra_attributes:
+          compilers:
+            c: /path/bin/gcc
+            cxx: /path/bin/g++
+      - spec: "gcc@9.4.0 languages='c,c++' os=redhat6 target={target}"
+        prefix: /path
+        extra_attributes:
+          compilers:
+            c: /path/bin/gcc
+            cxx: /path/bin/g++
+      - spec: "gcc@10.2.1 languages='c,c++,fortran' os={linux_os.name}{linux_os.version} target={target}"
+        prefix: /path
+        extra_attributes:
+          compilers:
+            c: /path/bin/gcc-10
+            cxx: /path/bin/g++-10
+            fortran: /path/bin/gfortran-10
+  llvm:
+    externals:
+      - spec: "llvm@15.0.0 +clang os={linux_os.name}{linux_os.version} target={target}"
+        prefix: /path
+        extra_attributes:
+          compilers:
+            c: /path/bin/clang
+            cxx: /path/bin/clang++

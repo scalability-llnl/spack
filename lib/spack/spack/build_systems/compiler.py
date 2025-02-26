@@ -6,12 +6,13 @@ import os
 import pathlib
 import re
 import sys
-from typing import Dict, List, Sequence, Tuple, Union
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import llnl.util.tty as tty
-from llnl.util.lang import classproperty
+from llnl.util.lang import classproperty, memoized
 
-import spack.compiler
+import spack
+import spack.compilers.error
 import spack.package_base
 import spack.util.executable
 
@@ -42,6 +43,9 @@ class CompilerPackage(spack.package_base.PackageBase):
 
     #: Static definition of languages supported by this class
     compiler_languages: Sequence[str] = ["c", "cxx", "fortran"]
+
+    #: Relative path to compiler wrappers
+    link_paths: Dict[str, str] = {}
 
     def __init__(self, spec: "spack.spec.Spec"):
         super().__init__(spec)
@@ -77,14 +81,14 @@ class CompilerPackage(spack.package_base.PackageBase):
         ]
 
     @classmethod
-    def determine_version(cls, exe: Path):
+    def determine_version(cls, exe: Path) -> str:
         version_argument = cls.compiler_version_argument
         if isinstance(version_argument, str):
             version_argument = (version_argument,)
 
         for va in version_argument:
             try:
-                output = spack.compiler.get_compiler_version_output(exe, va)
+                output = compiler_output(exe, version_argument=va)
                 match = re.search(cls.compiler_version_regex, output)
                 if match:
                     return ".".join(match.groups())
@@ -95,10 +99,11 @@ class CompilerPackage(spack.package_base.PackageBase):
                     f"[{__file__}] Cannot detect a valid version for the executable "
                     f"{str(exe)}, for package '{cls.name}': {e}"
                 )
+        return ""
 
     @classmethod
     def compiler_bindir(cls, prefix: Path) -> Path:
-        """Overridable method for the location of the compiler bindir within the preifx"""
+        """Overridable method for the location of the compiler bindir within the prefix"""
         return os.path.join(prefix, "bin")
 
     @classmethod
@@ -142,3 +147,109 @@ class CompilerPackage(spack.package_base.PackageBase):
     def determine_variants(cls, exes: Sequence[Path], version_str: str) -> Tuple:
         # path determination is separated so it can be reused in subclasses
         return "", {"compilers": cls.determine_compiler_paths(exes=exes)}
+
+    #: Returns the argument needed to set the RPATH, or None if it does not exist
+    rpath_arg: Optional[str] = "-Wl,-rpath,"
+    #: Flag that needs to be used to pass an argument to the linker
+    linker_arg: str = "-Wl,"
+    #: Flag used to produce Position Independent Code
+    pic_flag: str = "-fPIC"
+    #: Flag used to get verbose output
+    verbose_flags: str = "-v"
+    #: Flag to activate OpenMP support
+    openmp_flag: str = "-fopenmp"
+
+    required_libs: List[str] = []
+
+    def standard_flag(self, *, language: str, standard: str) -> str:
+        """Returns the flag used to enforce a given standard for a language"""
+        if language not in self.supported_languages:
+            raise spack.compilers.error.UnsupportedCompilerFlag(
+                f"{self.spec} does not provide the '{language}' language"
+            )
+        try:
+            return self._standard_flag(language=language, standard=standard)
+        except (KeyError, RuntimeError) as e:
+            raise spack.compilers.error.UnsupportedCompilerFlag(
+                f"{self.spec} does not provide the '{language}' standard {standard}"
+            ) from e
+
+    def _standard_flag(self, *, language: str, standard: str) -> str:
+        raise NotImplementedError("Must be implemented by derived classes")
+
+    def archspec_name(self) -> str:
+        """Name that archspec uses to refer to this compiler"""
+        return self.spec.name
+
+    @property
+    def cc(self) -> Optional[str]:
+        assert self.spec.concrete, "cannot retrieve C compiler, spec is not concrete"
+        if self.spec.external:
+            return self.spec.extra_attributes["compilers"].get("c", None)
+        return self._cc_path()
+
+    def _cc_path(self) -> Optional[str]:
+        """Returns the path to the C compiler, if the package was installed by Spack"""
+        return None
+
+    @property
+    def cxx(self) -> Optional[str]:
+        assert self.spec.concrete, "cannot retrieve C++ compiler, spec is not concrete"
+        if self.spec.external:
+            return self.spec.extra_attributes["compilers"].get("cxx", None)
+        return self._cxx_path()
+
+    def _cxx_path(self) -> Optional[str]:
+        """Returns the path to the C++ compiler, if the package was installed by Spack"""
+        return None
+
+    @property
+    def fortran(self):
+        assert self.spec.concrete, "cannot retrieve Fortran compiler, spec is not concrete"
+        if self.spec.external:
+            return self.spec.extra_attributes["compilers"].get("fortran", None)
+        return self._fortran_path()
+
+    def _fortran_path(self) -> Optional[str]:
+        """Returns the path to the Fortran compiler, if the package was installed by Spack"""
+        return None
+
+
+@memoized
+def _compiler_output(
+    compiler_path: Path, *, version_argument: str, ignore_errors: Tuple[int, ...] = ()
+) -> str:
+    """Returns the output from the compiler invoked with the given version argument.
+
+    Args:
+        compiler_path: path of the compiler to be invoked
+        version_argument: the argument used to extract version information
+    """
+    compiler = spack.util.executable.Executable(compiler_path)
+    if not version_argument:
+        return compiler(
+            output=str, error=str, ignore_errors=ignore_errors, timeout=120, fail_on_error=True
+        )
+    return compiler(
+        version_argument,
+        output=str,
+        error=str,
+        ignore_errors=ignore_errors,
+        timeout=120,
+        fail_on_error=True,
+    )
+
+
+def compiler_output(
+    compiler_path: Path, *, version_argument: str, ignore_errors: Tuple[int, ...] = ()
+) -> str:
+    """Wrapper for _get_compiler_version_output()."""
+    # This ensures that we memoize compiler output by *absolute path*,
+    # not just executable name. If we don't do this, and the path changes
+    # (e.g., during testing), we can get incorrect results.
+    if not os.path.isabs(compiler_path):
+        compiler_path = spack.util.executable.which_string(str(compiler_path), required=True)
+
+    return _compiler_output(
+        compiler_path, version_argument=version_argument, ignore_errors=ignore_errors
+    )

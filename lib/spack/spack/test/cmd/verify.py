@@ -76,7 +76,7 @@ def test_single_file_verify_cmd(tmpdir):
 
 def test_single_spec_verify_cmd(tmpdir, mock_packages, mock_archive, mock_fetch, install_mockery):
     # Test the verify command interface to verify a single spec
-    install("libelf")
+    install("--fake", "libelf")
     s = spack.concretize.concretize_one("libelf")
     prefix = s.prefix
     hash = s.dag_hash()
@@ -103,8 +103,7 @@ def test_single_spec_verify_cmd(tmpdir, mock_packages, mock_archive, mock_fetch,
 def test_libraries(tmp_path, install_mockery, mock_fetch):
     gcc = spack.util.executable.which("gcc", required=True)
     s = spack.concretize.concretize_one("libelf")
-    spack.installer.PackageInstaller([s.package]).install()
-    os.mkdir(s.prefix.bin)
+    spack.installer.PackageInstaller([s.package], fake=True).install()
 
     # There are no ELF files so the verification should pass
     verify("libraries", f"/{s.dag_hash()}")

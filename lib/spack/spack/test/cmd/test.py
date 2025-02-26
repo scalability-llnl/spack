@@ -51,7 +51,7 @@ def test_test_dup_alias(
     mock_test_stage, mock_packages, mock_archive, mock_fetch, install_mockery, capfd
 ):
     """Ensure re-using an alias fails with suggestion to change."""
-    install("libdwarf")
+    install("--fake", "libdwarf")
 
     # Run the (no) tests with the alias once
     spack_test("run", "--alias", "libdwarf", "libdwarf")

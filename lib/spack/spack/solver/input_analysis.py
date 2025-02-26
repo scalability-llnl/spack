@@ -461,7 +461,10 @@ class MinimalDuplicatesCounter(NoDuplicatesCounter):
         self._possible_dependencies = set(self._link_run) | set(self._total_build)
 
     def possible_packages_facts(self, gen, fn):
-        build_tools = spack.repo.PATH.packages_with_tags("build-tools")
+        build_tools = set()
+        for current_tag in ("build-tools", "compiler"):
+            build_tools.update(spack.repo.PATH.packages_with_tags(current_tag))
+
         gen.h2("Packages with at most a single node")
         for package_name in sorted(self.possible_dependencies() - build_tools):
             gen.fact(fn.max_dupes(package_name, 1))
@@ -499,7 +502,6 @@ class MinimalDuplicatesCounter(NoDuplicatesCounter):
 
 class FullDuplicatesCounter(MinimalDuplicatesCounter):
     def possible_packages_facts(self, gen, fn):
-        build_tools = spack.repo.PATH.packages_with_tags("build-tools")
         counter = collections.Counter(
             list(self._link_run) + list(self._total_build) + list(self._direct_build)
         )
@@ -510,6 +512,10 @@ class FullDuplicatesCounter(MinimalDuplicatesCounter):
         gen.newline()
 
         gen.h2("Build unification sets ")
+        build_tools = set()
+        for current_tag in ("build-tools", "compiler"):
+            build_tools.update(spack.repo.PATH.packages_with_tags(current_tag))
+
         for name in sorted(self.possible_dependencies() & build_tools):
             gen.fact(fn.multiple_unification_sets(name))
         gen.newline()

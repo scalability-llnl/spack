@@ -72,7 +72,7 @@ def index_by(objects, *funcs):
     if isinstance(f, str):
         f = lambda x: getattr(x, funcs[0])
     elif isinstance(f, tuple):
-        f = lambda x: tuple(getattr(x, p) for p in funcs[0])
+        f = lambda x: tuple(getattr(x, p, None) for p in funcs[0])
 
     result = {}
     for o in objects:
@@ -996,11 +996,8 @@ class GroupedExceptionHandler:
     def grouped_message(self, with_tracebacks: bool = True) -> str:
         """Print out an error message coalescing all the forwarded errors."""
         each_exception_message = [
-            "{0} raised {1}: {2}{3}".format(
-                context,
-                exc.__class__.__name__,
-                exc,
-                "\n{0}".format("".join(tb)) if with_tracebacks else "",
+            "\n\t{0} raised {1}: {2}\n{3}".format(
+                context, exc.__class__.__name__, exc, f"\n{''.join(tb)}" if with_tracebacks else ""
             )
             for context, exc, tb in self.exceptions
         ]

@@ -67,6 +67,7 @@ from typing import (
     List,
     Match,
     Optional,
+    Sequence,
     Set,
     Tuple,
     Union,
@@ -85,8 +86,7 @@ import llnl.util.tty as tty
 import llnl.util.tty.color as clr
 
 import spack
-import spack.compiler
-import spack.compilers
+import spack.compilers.flags
 import spack.deptypes as dt
 import spack.error
 import spack.hash_types as ht
@@ -174,15 +174,13 @@ HASH_COLOR = "@K"  #: color for highlighting package hashes
 #: Default format for Spec.format(). This format can be round-tripped, so that:
 #:     Spec(Spec("string").format()) == Spec("string)"
 DEFAULT_FORMAT = (
-    "{name}{@versions}"
-    "{%compiler.name}{@compiler.versions}{compiler_flags}"
+    "{name}{@versions}{compiler_flags}"
     "{variants}{ namespace=namespace_if_anonymous}{ arch=architecture}{/abstract_hash}"
 )
 
 #: Display format, which eliminates extra `@=` in the output, for readability.
 DISPLAY_FORMAT = (
-    "{name}{@version}"
-    "{%compiler.name}{@compiler.version}{compiler_flags}"
+    "{name}{@version}{compiler_flags}"
     "{variants}{ namespace=namespace_if_anonymous}{ arch=architecture}{/abstract_hash}"
 )
 
@@ -197,7 +195,7 @@ CLEARSIGN_FILE_REGEX = re.compile(
 )
 
 #: specfile format version. Must increase monotonically
-SPECFILE_FORMAT_VERSION = 4
+SPECFILE_FORMAT_VERSION = 5
 
 
 class InstallStatus(enum.Enum):
@@ -631,134 +629,82 @@ class ArchSpec:
     def __contains__(self, string):
         return string in str(self) or string in self.target
 
+    def complete_with_defaults(self) -> None:
+        default_architecture = ArchSpec.default_arch()
+        if not self.platform:
+            self.platform = default_architecture.platform
 
-@lang.lazy_lexicographic_ordering
+        if not self.os:
+            self.os = default_architecture.os
+
+        if not self.target:
+            self.target = default_architecture.target
+
+
 class CompilerSpec:
-    """The CompilerSpec field represents the compiler or range of compiler
-    versions that a package should be built with.  CompilerSpecs have a
-    name and a version list."""
+    """Adaptor to the old compiler spec interface. Exposes just a few attributes"""
 
-    __slots__ = "name", "versions"
-
-    def __init__(self, *args):
-        nargs = len(args)
-        if nargs == 1:
-            arg = args[0]
-            # If there is one argument, it's either another CompilerSpec
-            # to copy or a string to parse
-            if isinstance(arg, str):
-                spec = spack.spec_parser.parse_one_or_raise(f"%{arg}")
-                self.name = spec.compiler.name
-                self.versions = spec.compiler.versions
-
-            elif isinstance(arg, CompilerSpec):
-                self.name = arg.name
-                self.versions = arg.versions.copy()
-
-            else:
-                raise TypeError(
-                    "Can only build CompilerSpec from string or "
-                    + "CompilerSpec. Found %s" % type(arg)
-                )
-
-        elif nargs == 2:
-            name, version = args
-            self.name = name
-            self.versions = vn.VersionList([vn.ver(version)])
-
-        else:
-            raise TypeError("__init__ takes 1 or 2 arguments. (%d given)" % nargs)
-
-    def _autospec(self, compiler_spec_like):
-        if isinstance(compiler_spec_like, CompilerSpec):
-            return compiler_spec_like
-        return CompilerSpec(compiler_spec_like)
-
-    def intersects(self, other: "CompilerSpec") -> bool:
-        """Return True if all concrete specs matching self also match other, otherwise False.
-
-        For compiler specs this means that the name of the compiler must be the same for
-        self and other, and that the versions ranges should intersect.
-
-        Args:
-            other: spec to be satisfied
-        """
-        other = self._autospec(other)
-        return self.name == other.name and self.versions.intersects(other.versions)
-
-    def satisfies(self, other: "CompilerSpec") -> bool:
-        """Return True if all concrete specs matching self also match other, otherwise False.
-
-        For compiler specs this means that the name of the compiler must be the same for
-        self and other, and that the version range of self is a subset of that of other.
-
-        Args:
-            other: spec to be satisfied
-        """
-        other = self._autospec(other)
-        return self.name == other.name and self.versions.satisfies(other.versions)
-
-    def constrain(self, other: "CompilerSpec") -> bool:
-        """Intersect self's versions with other.
-
-        Return whether the CompilerSpec changed.
-        """
-        other = self._autospec(other)
-
-        # ensure that other will actually constrain this spec.
-        if not other.intersects(self):
-            raise UnsatisfiableCompilerSpecError(other, self)
-
-        return self.versions.intersect(other.versions)
+    def __init__(self, spec):
+        self.spec = spec
 
     @property
-    def concrete(self):
-        """A CompilerSpec is concrete if its versions are concrete and there
-        is an available compiler with the right version."""
-        return self.versions.concrete
+    def name(self):
+        return self.spec.name
 
     @property
     def version(self):
-        if not self.concrete:
-            raise spack.error.SpecError("Spec is not concrete: " + str(self))
-        return self.versions[0]
+        return self.spec.version
 
-    def copy(self):
-        clone = CompilerSpec.__new__(CompilerSpec)
-        clone.name = self.name
-        clone.versions = self.versions.copy()
-        return clone
-
-    def _cmp_iter(self):
-        yield self.name
-        yield self.versions
-
-    def to_dict(self):
-        return {"compiler": {"name": self.name, **self.versions.to_dict()}}
-
-    @staticmethod
-    def from_dict(d):
-        d = d["compiler"]
-        return CompilerSpec(d["name"], vn.VersionList.from_dict(d))
+    @property
+    def versions(self):
+        return self.spec.versions
 
     @property
     def display_str(self):
         """Equivalent to {compiler.name}{@compiler.version} for Specs, without extra
         @= for readability."""
-        if self.concrete:
+        if self.spec.concrete:
             return f"{self.name}@{self.version}"
         elif self.versions != vn.any_version:
             return f"{self.name}@{self.versions}"
         return self.name
 
-    def __str__(self):
-        out = self.name
-        if self.versions and self.versions != vn.any_version:
-            out += f"@{self.versions}"
-        return out
+    def __lt__(self, other):
+        if not isinstance(other, CompilerSpec):
+            return self.spec < other
+        return self.spec < other.spec
 
-    def __repr__(self):
-        return str(self)
+    def __eq__(self, other):
+        if not isinstance(other, CompilerSpec):
+            return self.spec == other
+        return self.spec == other.spec
+
+    def __hash__(self):
+        return hash(self.spec)
+
+    def __str__(self):
+        return str(self.spec)
+
+    def _cmp_iter(self):
+        return self.spec._cmp_iter()
+
+    def __bool__(self):
+        if self.spec == Spec():
+            return False
+        return bool(self.spec)
+
+
+class DeprecatedCompilerSpec(lang.DeprecatedProperty):
+    def __init__(self):
+        super().__init__(name="compiler")
+
+    def factory(self, instance, owner):
+        for language in ("c", "cxx", "fortran"):
+            deps = instance.dependencies(virtuals=language)
+            if deps:
+                return CompilerSpec(deps[0])
+
+        raise AttributeError(f"{instance} has no C, C++, or Fortran compiler")
 
 
 @lang.lazy_lexicographic_ordering
@@ -779,15 +725,22 @@ class DependencySpec:
         virtuals: virtual packages provided from child to parent node.
     """
 
-    __slots__ = "parent", "spec", "depflag", "virtuals"
+    __slots__ = "parent", "spec", "depflag", "virtuals", "direct"
 
     def __init__(
-        self, parent: "Spec", spec: "Spec", *, depflag: dt.DepFlag, virtuals: Tuple[str, ...]
+        self,
+        parent: "Spec",
+        spec: "Spec",
+        *,
+        depflag: dt.DepFlag,
+        virtuals: Tuple[str, ...],
+        direct: bool = False,
     ):
         self.parent = parent
         self.spec = spec
         self.depflag = depflag
         self.virtuals = tuple(sorted(set(virtuals)))
+        self.direct = direct
 
     def update_deptypes(self, depflag: dt.DepFlag) -> bool:
         """Update the current dependency types"""
@@ -806,7 +759,13 @@ class DependencySpec:
 
     def copy(self) -> "DependencySpec":
         """Return a copy of this edge"""
-        return DependencySpec(self.parent, self.spec, depflag=self.depflag, virtuals=self.virtuals)
+        return DependencySpec(
+            self.parent,
+            self.spec,
+            depflag=self.depflag,
+            virtuals=self.virtuals,
+            direct=self.direct,
+        )
 
     def _cmp_iter(self):
         yield self.parent.name if self.parent else None
@@ -1060,7 +1019,7 @@ class _EdgeMap(collections.abc.Mapping):
         parent: Optional[str] = None,
         child: Optional[str] = None,
         depflag: dt.DepFlag = dt.ALL,
-        virtuals: Optional[List[str]] = None,
+        virtuals: Optional[Sequence[str]] = None,
     ) -> List[DependencySpec]:
         """Selects a list of edges and returns them.
 
@@ -1474,8 +1433,30 @@ def tree(
     return out
 
 
+class SpecAnnotations:
+    def __init__(self) -> None:
+        self.original_spec_format = SPECFILE_FORMAT_VERSION
+        self.compiler_node_attribute: Optional["Spec"] = None
+
+    def with_spec_format(self, spec_format: int) -> "SpecAnnotations":
+        self.original_spec_format = spec_format
+        return self
+
+    def with_compiler(self, compiler: "Spec") -> "SpecAnnotations":
+        self.compiler_node_attribute = compiler
+        return self
+
+    def __repr__(self) -> str:
+        result = f"SpecAnnotations().with_spec_format({self.original_spec_format})"
+        if self.compiler_node_attribute:
+            result += f"with_compiler({str(self.compiler_node_attribute)})"
+        return result
+
+
 @lang.lazy_lexicographic_ordering(set_hash=False)
 class Spec:
+    compiler = DeprecatedCompilerSpec()
+
     @staticmethod
     def default_arch():
         """Return an anonymous spec for the default architecture"""
@@ -1505,7 +1486,6 @@ class Spec:
         self.versions = vn.VersionList(":")
         self.variants = VariantMap(self)
         self.architecture = None
-        self.compiler = None
         self.compiler_flags = FlagMap(self)
         self._dependents = _EdgeMap(store_by_child=False)
         self._dependencies = _EdgeMap(store_by_child=True)
@@ -1541,12 +1521,13 @@ class Spec:
         # is deployed "as built."
         # Build spec should be the actual build spec unless marked dirty.
         self._build_spec = None
+        self.annotations = SpecAnnotations()
 
         if isinstance(spec_like, str):
             spack.spec_parser.parse_one_or_raise(spec_like, self)
 
         elif spec_like is not None:
-            raise TypeError("Can't make spec out of %s" % type(spec_like))
+            raise TypeError(f"Can't make spec out of {type(spec_like)}")
 
     @staticmethod
     def _format_module_list(modules):
@@ -1642,12 +1623,12 @@ class Spec:
         ]
 
     def edges_to_dependencies(
-        self, name=None, depflag: dt.DepFlag = dt.ALL, *, virtuals: Optional[List[str]] = None
+        self, name=None, depflag: dt.DepFlag = dt.ALL, *, virtuals: Optional[Sequence[str]] = None
     ) -> List[DependencySpec]:
         """Returns a list of edges connecting this node in the DAG to children.
 
         Args:
-            name (str): filter dependencies by package name
+            name: filter dependencies by package name
             depflag: allowed dependency types
             virtuals: allowed virtuals
         """
@@ -1680,7 +1661,7 @@ class Spec:
         name=None,
         deptype: Union[dt.DepTypes, dt.DepFlag] = dt.ALL,
         *,
-        virtuals: Optional[List[str]] = None,
+        virtuals: Optional[Sequence[str]] = None,
     ) -> List["Spec"]:
         """Returns a list of direct dependencies (nodes in the DAG)
 
@@ -1750,7 +1731,7 @@ class Spec:
             self.namespace = value
         elif name in valid_flags:
             assert self.compiler_flags is not None
-            flags_and_propagation = spack.compiler.tokenize_flags(value, propagate)
+            flags_and_propagation = spack.compilers.flags.tokenize_flags(value, propagate)
             flag_group = " ".join(x for (x, y) in flags_and_propagation)
             for flag, propagation in flags_and_propagation:
                 self.compiler_flags.add_flag(name, flag, propagation, flag_group)
@@ -1781,10 +1762,18 @@ class Spec:
                 else:
                     setattr(self.architecture, new_attr, new_value)
 
-    def _add_dependency(self, spec: "Spec", *, depflag: dt.DepFlag, virtuals: Tuple[str, ...]):
-        """Called by the parser to add another spec as a dependency."""
+    def _add_dependency(
+        self, spec: "Spec", *, depflag: dt.DepFlag, virtuals: Tuple[str, ...], direct: bool = False
+    ):
+        """Called by the parser to add another spec as a dependency.
+
+        Args:
+            depflag: dependency type for this edge
+            virtuals: virtuals on this edge
+            direct: if True denotes a direct dependency (associated with the % sigil)
+        """
         if spec.name not in self._dependencies or not spec.name:
-            self.add_dependency_edge(spec, depflag=depflag, virtuals=virtuals)
+            self.add_dependency_edge(spec, depflag=depflag, virtuals=virtuals, direct=direct)
             return
 
         # Keep the intersection of constraints when a dependency is added multiple times with
@@ -1807,7 +1796,7 @@ class Spec:
                     f"\t'{str(self)}' cannot depend on '{required_dep_str}'"
                 )
 
-            self.add_dependency_edge(spec, depflag=depflag, virtuals=virtuals)
+            self.add_dependency_edge(spec, depflag=depflag, virtuals=virtuals, direct=direct)
             return
 
         try:
@@ -1819,7 +1808,12 @@ class Spec:
             )
 
     def add_dependency_edge(
-        self, dependency_spec: "Spec", *, depflag: dt.DepFlag, virtuals: Tuple[str, ...]
+        self,
+        dependency_spec: "Spec",
+        *,
+        depflag: dt.DepFlag,
+        virtuals: Tuple[str, ...],
+        direct: bool = False,
     ):
         """Add a dependency edge to this spec.
 
@@ -1827,6 +1821,7 @@ class Spec:
             dependency_spec: spec of the dependency
             deptypes: dependency types for this edge
             virtuals: virtuals provided by this edge
+            direct: if True denotes a direct dependency
         """
         # Check if we need to update edges that are already present
         selected = self._dependencies.select(child=dependency_spec.name)
@@ -1865,7 +1860,9 @@ class Spec:
                 edge.update_virtuals(virtuals=virtuals)
                 return
 
-        edge = DependencySpec(self, dependency_spec, depflag=depflag, virtuals=virtuals)
+        edge = DependencySpec(
+            self, dependency_spec, depflag=depflag, virtuals=virtuals, direct=direct
+        )
         self._dependencies.add(edge)
         dependency_spec._dependents.add(edge)
 
@@ -2092,30 +2089,39 @@ class Spec:
     def long_spec(self):
         """Returns a string of the spec with the dependencies completely
         enumerated."""
-        root_str = [self.format()]
-        sorted_dependencies = sorted(
-            self.traverse(root=False), key=lambda x: (x.name, x.abstract_hash)
+        name_conversion = {
+            "llvm": "clang",
+            "intel-oneapi-compilers": "oneapi",
+            "llvm-amdgpu": "rocmcc",
+            "intel-oneapi-compiler-classic": "intel",
+            "acfl": "arm",
+        }
+        parts = [self.format()]
+        direct, transitive = lang.stable_partition(
+            self.edges_to_dependencies(), predicate_fn=lambda x: x.direct
         )
-        sorted_dependencies = [
-            d.format("{edge_attributes} " + DEFAULT_FORMAT) for d in sorted_dependencies
-        ]
-        spec_str = " ^".join(root_str + sorted_dependencies)
-        return spec_str.strip()
+        for item in sorted(direct, key=lambda x: x.spec.name):
+            current_name = item.spec.name
+            new_name = name_conversion.get(current_name, current_name)
+            parts.append(f"%{item.spec.format()}".replace(current_name, new_name))
+        for item in sorted(transitive, key=lambda x: x.spec.name):
+            # Recurse to attach build deps in order
+            edge_attributes = ""
+            if item.virtuals or item.depflag:
+                edge_attributes = item.spec.format("{edge_attributes}") + " "
+            parts.append(f"^{edge_attributes}{str(item.spec)}")
+        return " ".join(parts).strip()
 
     @property
     def short_spec(self):
         """Returns a version of the spec with the dependencies hashed
         instead of completely enumerated."""
-        spec_format = "{name}{@version}{%compiler.name}{@compiler.version}"
-        spec_format += "{variants}{ arch=architecture}{/hash:7}"
-        return self.format(spec_format)
+        return self.format("{name}{@version}{variants}{ arch=architecture}{/hash:7}")
 
     @property
     def cshort_spec(self):
         """Returns an auto-colorized version of ``self.short_spec``."""
-        spec_format = "{name}{@version}{%compiler.name}{@compiler.version}"
-        spec_format += "{variants}{ arch=architecture}{/hash:7}"
-        return self.cformat(spec_format)
+        return self.cformat("{name}{@version}{variants}{ arch=architecture}{/hash:7}")
 
     @property
     def prefix(self) -> spack.util.prefix.Prefix:
@@ -2294,10 +2300,6 @@ class Spec:
                         'platform_os': 'mojave',
                         'target': 'x86_64',
                     },
-                    'compiler': {
-                        'name': 'apple-clang',
-                        'version': '10.0.0',
-                    },
                     'namespace': 'builtin',
                     'parameters': {
                         'fts': 'true',
@@ -2337,9 +2339,6 @@ class Spec:
 
         if self.architecture:
             d.update(self.architecture.to_dict())
-
-        if self.compiler:
-            d.update(self.compiler.to_dict())
 
         if self.namespace:
             d["namespace"] = self.namespace
@@ -2424,6 +2423,12 @@ class Spec:
                 "name": self.build_spec.name,
                 hash.name: self.build_spec._cached_hash(hash),
             }
+
+        # Annotations
+        d["annotations"] = {"original_specfile_version": self.annotations.original_spec_format}
+        if self.annotations.original_spec_format < 5:
+            d["annotations"]["compiler"] = str(self.annotations.compiler_node_attribute)
+
         return d
 
     def to_dict(self, hash=ht.dag_hash):
@@ -2577,8 +2582,6 @@ class Spec:
             else:
                 raise ValueError("{0} is not a variant of {1}".format(vname, new_spec.name))
 
-        if change_spec.compiler:
-            new_spec.compiler = change_spec.compiler
         if change_spec.compiler_flags:
             for flagname, flagvals in change_spec.compiler_flags.items():
                 new_spec.compiler_flags[flagname] = flagvals
@@ -2750,8 +2753,10 @@ class Spec:
             spec = SpecfileV2.load(data)
         elif int(data["spec"]["_meta"]["version"]) == 3:
             spec = SpecfileV3.load(data)
-        else:
+        elif int(data["spec"]["_meta"]["version"]) == 4:
             spec = SpecfileV4.load(data)
+        else:
+            spec = SpecfileV5.load(data)
 
         # Any git version should
         for s in spec.traverse():
@@ -3001,10 +3006,14 @@ class Spec:
             if spec.name and not spack.repo.PATH.is_virtual(spec.name):
                 spack.repo.PATH.get_pkg_class(spec.fullname)
 
-            # validate compiler in addition to the package name.
-            if spec.compiler:
-                if not spack.compilers.supported(spec.compiler):
-                    raise UnsupportedCompilerError(spec.compiler.name)
+            # FIXME: atm allow '%' on abstract specs only if they depend on C, C++, or Fortran
+            if spec.dependencies(deptype="build"):
+                pkg_cls = spack.repo.PATH.get_pkg_class(spec.fullname)
+                pkg_dependencies = pkg_cls.dependency_names()
+                if not any(x in pkg_dependencies for x in ("c", "cxx", "fortran")):
+                    raise UnsupportedCompilerError(
+                        f"{spec.fullname} does not depend on 'c', 'cxx, or 'fortran'"
+                    )
 
             # Ensure correctness of variants (if the spec is not virtual)
             if not spack.repo.PATH.is_virtual(spec.name):
@@ -3106,12 +3115,6 @@ class Spec:
             self.namespace = other.namespace
             changed = True
 
-        if self.compiler is not None and other.compiler is not None:
-            changed |= self.compiler.constrain(other.compiler)
-        elif self.compiler is None:
-            changed |= self.compiler != other.compiler
-            self.compiler = other.compiler
-
         changed |= self.versions.intersect(other.versions)
         changed |= self.variants.constrain(other.variants)
 
@@ -3132,10 +3135,8 @@ class Spec:
 
         return changed
 
-    def _constrain_dependencies(self, other):
+    def _constrain_dependencies(self, other: "Spec") -> bool:
         """Apply constraints of other spec's dependencies to this spec."""
-        other = self._autospec(other)
-
         if not other._dependencies:
             return False
 
@@ -3150,8 +3151,10 @@ class Spec:
 
         # Handle common first-order constraints directly
         changed = False
-        for name in self.common_dependencies(other):
-            changed |= self[name].constrain(other[name], deps=False)
+        common_dependencies = {x.name for x in self.dependencies()}
+        common_dependencies &= {x.name for x in other.dependencies()}
+        for name in common_dependencies:
+            changed |= self[name].constrain(other[name], deps=True)
             if name in self._dependencies:
                 # WARNING: This function is an implementation detail of the
                 # WARNING: original concretizer. Since with that greedy
@@ -3174,13 +3177,14 @@ class Spec:
                 dep_spec_copy.spec.copy(),
                 depflag=dep_spec_copy.depflag,
                 virtuals=dep_spec_copy.virtuals,
+                direct=dep_spec_copy.direct,
             )
             changed = True
 
         return changed
 
     def common_dependencies(self, other):
-        """Return names of dependencies that self an other have in common."""
+        """Return names of dependencies that self and other have in common."""
         common = set(s.name for s in self.traverse(root=False))
         common.intersection_update(s.name for s in other.traverse(root=False))
         return common
@@ -3282,10 +3286,6 @@ class Spec:
             if not self.versions.intersects(other.versions):
                 return False
 
-        if self.compiler and other.compiler:
-            if not self.compiler.intersects(other.compiler):
-                return False
-
         if not self.variants.intersects(other.variants):
             return False
 
@@ -3308,8 +3308,10 @@ class Spec:
             return True
 
         # Handle first-order constraints directly
-        for name in self.common_dependencies(other):
-            if not self[name].intersects(other[name], deps=False):
+        common_dependencies = {x.name for x in self.dependencies()}
+        common_dependencies &= {x.name for x in other.dependencies()}
+        for name in common_dependencies:
+            if not self[name].intersects(other[name], deps=True):
                 return False
 
         # For virtual dependencies, we need to dig a little deeper.
@@ -3396,12 +3398,6 @@ class Spec:
         if not self.versions.satisfies(other.versions):
             return False
 
-        if self.compiler and other.compiler:
-            if not self.compiler.satisfies(other.compiler):
-                return False
-        elif other.compiler and not self.compiler:
-            return False
-
         if not self.variants.satisfies(other.variants):
             return False
 
@@ -3438,6 +3434,19 @@ class Spec:
             # If we are checking for ^mpi we need to verify if there is any edge
             if spack.repo.PATH.is_virtual(rhs_edge.spec.name):
                 rhs_edge.update_virtuals(virtuals=(rhs_edge.spec.name,))
+
+            if rhs_edge.direct:
+                # Note: this relies on abstract specs from string not being deeper than 2 levels
+                # e.g. in foo %fee ^bar %baz we cannot go deeper than "baz" and e.g. specify its
+                # dependencies too.
+                current_node = self if rhs_edge.parent.name is None else self[rhs_edge.parent.name]
+                candidates = current_node.dependencies(
+                    name=rhs_edge.spec.name,
+                    deptype=rhs_edge.depflag,
+                    virtuals=rhs_edge.virtuals or None,
+                )
+                if not candidates or not any(x.satisfies(rhs_edge.spec) for x in candidates):
+                    return False
 
             if not rhs_edge.virtuals:
                 continue
@@ -3529,7 +3538,6 @@ class Spec:
                 self.name != other.name
                 and self.versions != other.versions
                 and self.architecture != other.architecture
-                and self.compiler != other.compiler
                 and self.variants != other.variants
                 and self.concrete != other.concrete
                 and self.external_path != other.external_path
@@ -3544,7 +3552,6 @@ class Spec:
         self.name = other.name
         self.versions = other.versions.copy()
         self.architecture = other.architecture.copy() if other.architecture else None
-        self.compiler = other.compiler.copy() if other.compiler else None
         self.compiler_flags = other.compiler_flags.copy()
         self.compiler_flags.spec = self
         self.variants = other.variants.copy()
@@ -3567,6 +3574,7 @@ class Spec:
         self.external_modules = other.external_modules
         self.extra_attributes = other.extra_attributes
         self.namespace = other.namespace
+        self.annotations = other.annotations
 
         # If we copy dependencies, preserve DAG structure in the new spec
         if deps:
@@ -3609,7 +3617,10 @@ class Spec:
                 new_specs[spid(edge.spec)] = edge.spec.copy(deps=False)
 
             new_specs[spid(edge.parent)].add_dependency_edge(
-                new_specs[spid(edge.spec)], depflag=edge.depflag, virtuals=edge.virtuals
+                new_specs[spid(edge.spec)],
+                depflag=edge.depflag,
+                virtuals=edge.virtuals,
+                direct=edge.direct,
             )
 
     def copy(self, deps: Union[bool, dt.DepTypes, dt.DepFlag] = True, **kwargs):
@@ -3671,8 +3682,8 @@ class Spec:
 
         # Consider all direct dependencies and transitive runtime dependencies
         order = itertools.chain(
-            self.edges_to_dependencies(depflag=dt.ALL),
             self.traverse_edges(deptype=dt.LINK | dt.RUN, order="breadth", cover="edges"),
+            self.edges_to_dependencies(depflag=dt.BUILD | dt.TEST),
         )
 
         try:
@@ -3755,7 +3766,6 @@ class Spec:
         yield self.namespace
         yield self.versions
         yield self.variants
-        yield self.compiler
         yield self.compiler_flags
         yield self.architecture
         yield self.abstract_hash
@@ -3816,9 +3826,6 @@ class Spec:
 
             name
             version
-            compiler
-            compiler.name
-            compiler.version
             compiler_flags
             variants
             architecture
@@ -3960,6 +3967,9 @@ class Spec:
                     try:
                         current = getattr(current, part)
                     except AttributeError:
+                        if part == "compiler":
+                            return "none"
+
                         raise SpecFormatStringError(
                             f"Attempted to format attribute {attribute}. "
                             f"Spec {'.'.join(parts[:idx])} has no attribute {part}"
@@ -4482,6 +4492,10 @@ class Spec:
             if isinstance(v, vn.GitVersion) and v._ref_version is None:
                 v.attach_lookup(spack.version.git_ref_lookup.GitRefLookup(self.fullname))
 
+    def original_spec_format(self) -> int:
+        """Returns the spec format originally used for this spec."""
+        return self.annotations.original_spec_format
+
 
 class VariantMap(lang.HashableMap):
     """Map containing variant instances. New values can be added only
@@ -4703,9 +4717,9 @@ def substitute_abstract_variants(spec: Spec):
         )
 
 
-def parse_with_version_concrete(spec_like: Union[str, Spec], compiler: bool = False):
+def parse_with_version_concrete(spec_like: Union[str, Spec]):
     """Same as Spec(string), but interprets @x as @=x"""
-    s: Union[CompilerSpec, Spec] = CompilerSpec(spec_like) if compiler else Spec(spec_like)
+    s = Spec(spec_like)
     interpreted_version = s.versions.concrete_range_as_version
     if interpreted_version:
         s.versions = vn.VersionList([interpreted_version])
@@ -4807,11 +4821,6 @@ class SpecfileReaderBase:
         if "arch" in node:
             spec.architecture = ArchSpec.from_dict(node)
 
-        if "compiler" in node:
-            spec.compiler = CompilerSpec.from_dict(node)
-        else:
-            spec.compiler = None
-
         propagated_names = node.get("propagate", [])
         for name, values in node.get("parameters", {}).items():
             propagate = name in propagated_names
@@ -4850,11 +4859,27 @@ class SpecfileReaderBase:
                 # FIXME: Monkey patches mvar to store patches order
                 mvar._patches_in_order_of_appearance = patches
 
+        # Annotate the compiler spec, might be used later
+        if "annotations" not in node:
+            # Specfile v4 and earlier
+            spec.annotations.with_spec_format(cls.SPEC_VERSION)
+            if "compiler" in node:
+                spec.annotations.with_compiler(cls.legacy_compiler(node))
+        else:
+            spec.annotations.with_spec_format(node["annotations"]["original_specfile_version"])
+            if "compiler" in node["annotations"]:
+                spec.annotations.with_compiler(Spec(f"{node['annotations']['compiler']}"))
+
         # Don't read dependencies here; from_dict() is used by
         # from_yaml() and from_json() to read the root *and* each dependency
         # spec.
 
         return spec
+
+    @classmethod
+    def legacy_compiler(cls, node):
+        d = node["compiler"]
+        return Spec(f"{d['name']}@{vn.VersionList.from_dict(d)}")
 
     @classmethod
     def _load(cls, data):
@@ -4922,6 +4947,8 @@ class SpecfileReaderBase:
 
 
 class SpecfileV1(SpecfileReaderBase):
+    SPEC_VERSION = 1
+
     @classmethod
     def load(cls, data):
         """Construct a spec from JSON/YAML using the format version 1.
@@ -4991,6 +5018,8 @@ class SpecfileV1(SpecfileReaderBase):
 
 
 class SpecfileV2(SpecfileReaderBase):
+    SPEC_VERSION = 2
+
     @classmethod
     def load(cls, data):
         result = cls._load(data)
@@ -5045,10 +5074,12 @@ class SpecfileV2(SpecfileReaderBase):
 
 
 class SpecfileV3(SpecfileV2):
-    pass
+    SPEC_VERSION = 3
 
 
 class SpecfileV4(SpecfileV2):
+    SPEC_VERSION = 4
+
     @classmethod
     def extract_info_from_dep(cls, elt, hash):
         dep_hash = elt[hash.name]
@@ -5060,6 +5091,18 @@ class SpecfileV4(SpecfileV2):
     @classmethod
     def load(cls, data):
         return cls._load(data)
+
+
+class SpecfileV5(SpecfileV4):
+    SPEC_VERSION = 5
+
+    @classmethod
+    def legacy_compiler(cls, node):
+        raise RuntimeError("The 'compiler' option is unexpected in specfiles at v5 or greater")
+
+
+#: Alias to the latest version of specfiles
+SpecfileLatest = SpecfileV5
 
 
 class LazySpecCache(collections.defaultdict):
@@ -5177,9 +5220,6 @@ class DuplicateCompilerSpecError(spack.error.SpecError):
 class UnsupportedCompilerError(spack.error.SpecError):
     """Raised when the user asks for a compiler spack doesn't know about."""
 
-    def __init__(self, compiler_name):
-        super().__init__("The '%s' compiler is not yet supported." % compiler_name)
-
 
 class DuplicateArchitectureError(spack.error.SpecError):
     """Raised when the same architecture occurs in a spec twice."""
@@ -5288,8 +5328,7 @@ class UnconstrainableDependencySpecError(spack.error.SpecError):
 
 class AmbiguousHashError(spack.error.SpecError):
     def __init__(self, msg, *specs):
-        spec_fmt = "{namespace}.{name}{@version}{%compiler}{compiler_flags}"
-        spec_fmt += "{variants}{ arch=architecture}{/hash:7}"
+        spec_fmt = "{namespace}.{name}{@version}{variants}{ arch=architecture}{/hash:7}"
         specs_str = "\n  " + "\n  ".join(spec.format(spec_fmt) for spec in specs)
         super().__init__(msg + specs_str)
 

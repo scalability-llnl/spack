@@ -21,7 +21,7 @@ import spack.util.spack_json as sjson
 from spack.error import SpackError
 
 default_projections = {
-    "all": "{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}"
+    "all": "{architecture.platform}-{architecture.target}/{name}-{version}-{hash}"
 }
 
 

@@ -234,12 +234,8 @@ def _root_spec(spec_str: str) -> str:
     # Add a compiler and platform requirement to the root spec.
     platform = str(spack.platforms.host())
 
-    if platform == "darwin":
-        spec_str += " %apple-clang"
-    elif platform == "windows":
+    if platform == "windows":
         spec_str += " %msvc"
-    elif platform == "linux":
-        spec_str += " %gcc"
     elif platform == "freebsd":
         spec_str += " %clang"
     spec_str += f" platform={platform}"

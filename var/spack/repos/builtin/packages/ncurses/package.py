@@ -106,9 +106,9 @@ class Ncurses(AutotoolsPackage, GNUMirrorPackage):
 
     def flag_handler(self, name, flags):
         if name == "cflags":
-            flags.append(self.compiler.cc_pic_flag)
+            flags.append(self["c"].pic_flag)
         elif name == "cxxflags":
-            flags.append(self.compiler.cxx_pic_flag)
+            flags.append(self["cxx"].pic_flag)
 
         # ncurses@:6.0 fails in definition of macro 'mouse_trafo' without -P
         if self.spec.satisfies("@:6.0 %gcc@5.0:"):
@@ -118,7 +118,7 @@ class Ncurses(AutotoolsPackage, GNUMirrorPackage):
         # ncurses@:6.0 uses dynamic exception specifications not allowed in c++17
         if self.spec.satisfies("@:5"):
             if name == "cxxflags":
-                flags.append(self.compiler.cxx14_flag)
+                flags.append(self["cxx"].standard_flag(language="cxx", standard="14"))
 
         return (flags, None, None)
 

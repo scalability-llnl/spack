@@ -14,7 +14,6 @@ from typing import Dict, List
 
 from llnl.util.lang import dedupe
 
-import spack.paths
 from spack.build_environment import dso_suffix, stat_suffix
 from spack.package import *
 
@@ -692,7 +691,7 @@ class Python(Package):
         config_args.append("--without-ensurepip")
 
         if "+pic" in spec:
-            cflags.append(self.compiler.cc_pic_flag)
+            cflags.append(self["c"].pic_flag)
 
         if "+ssl" in spec:
             config_args.append("--with-openssl={0}".format(spec["openssl"].prefix))
@@ -810,9 +809,9 @@ class Python(Package):
 
         filenames = [self.get_sysconfigdata_name(), self.config_vars["makefile_filename"]]
 
-        filter_file(spack_cc, self.compiler.cc, *filenames, **kwargs)
-        if spack_cxx and self.compiler.cxx:
-            filter_file(spack_cxx, self.compiler.cxx, *filenames, **kwargs)
+        filter_file(spack_cc, self["c"].cc, *filenames, **kwargs)
+        if spack_cxx:
+            filter_file(spack_cxx, self["cxx"].cxx, *filenames, **kwargs)
 
     @run_after("install")
     def symlink(self):
@@ -1269,6 +1268,9 @@ print(json.dumps(config))
         """Set PYTHONPATH to include the site-packages directory for the
         extension and any other python extensions it depends on.
         """
+        if sys.platform == "win32":
+            return
+
         # We need to make sure that the extensions are compiled and linked with
         # the Spack wrapper. Paths to the executables that are used for these
         # operations are normally taken from the sysconfigdata file, which we
@@ -1288,17 +1290,23 @@ print(json.dumps(config))
         # try to modify LDSHARED (LDCXXSHARED), the second variable, which is
         # used for linking, in a consistent manner.
 
-        for compile_var, link_var in [("CC", "LDSHARED"), ("CXX", "LDCXXSHARED")]:
+        for language, compile_var, link_var in [
+            ("c", "CC", "LDSHARED"),
+            ("cxx", "CXX", "LDCXXSHARED"),
+        ]:
+            if not dependent_spec.dependencies(virtuals=(language,)):
+                continue
+
+            compiler_wrapper_pkg = dependent_spec["compiler-wrapper"].package
+            compiler_pkg = dependent_spec[language].package
+
             # First, we get the values from the sysconfigdata:
             config_compile = self.config_vars[compile_var]
             config_link = self.config_vars[link_var]
 
             # The dependent environment will have the compilation command set to
             # the following:
-            new_compile = join_path(
-                spack.paths.build_env_path,
-                dependent_spec.package.compiler.link_paths[compile_var.lower()],
-            )
+            new_compile = str(compiler_wrapper_pkg.bin_dir() / compiler_pkg.link_paths[language])
 
             # Normally, the link command starts with the compilation command:
             if config_link.startswith(config_compile):

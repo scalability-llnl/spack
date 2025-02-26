@@ -24,6 +24,8 @@ class Mpileaks(Package):
     depends_on("mpi")
     depends_on("callpath")
 
+    depends_on("c", type="build")
+
     # Will be used to try raising an exception
     libs = None
 

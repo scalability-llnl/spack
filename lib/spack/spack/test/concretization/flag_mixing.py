@@ -75,39 +75,48 @@ def test_mix_spec_and_dependent(concretize_scope, test_repo):
 
 def _compiler_cfg_one_entry_with_cflags(cflags):
     return f"""\
-compilers::
-- compiler:
-    spec: gcc@12.100.100
-    paths:
-      cc: /usr/bin/fake-gcc
-      cxx: /usr/bin/fake-g++
-      f77: null
-      fc: null
-    flags:
-      cflags: {cflags}
-    operating_system: debian6
-    modules: []
+packages:
+  gcc:
+    externals:
+    - spec: gcc@12.100.100
+      prefix: /fake
+      extra_attributes:
+        compilers:
+          c: /fake/bin/gcc
+          cxx: /fake/bin/g++
+        flags:
+          cflags: {cflags}
 """
 
 
 def test_mix_spec_and_compiler_cfg(concretize_scope, test_repo):
     conf_str = _compiler_cfg_one_entry_with_cflags("-Wall")
-    update_concretize_scope(conf_str, "compilers")
+    update_concretize_scope(conf_str, "packages")
 
     s1 = spack.concretize.concretize_one('y %gcc@12.100.100 cflags="-O2"')
     assert s1.satisfies('cflags="-Wall -O2"')
 
 
 def test_pkg_flags_from_compiler_and_none(concretize_scope, mock_packages):
-    conf_str = _compiler_cfg_one_entry_with_cflags("-Wall")
-    update_concretize_scope(conf_str, "compilers")
+    packages_yaml = f"""
+{_compiler_cfg_one_entry_with_cflags("-Wall")}
+  llvm:
+    externals:
+    - spec: llvm+clang@19.1.0
+      prefix: /fake
+      extra_attributes:
+        compilers:
+          c: /fake/bin/clang
+          cxx: /fake/bin/clang++
+"""
+    update_concretize_scope(packages_yaml, "packages")
 
     s1 = spack.spec.Spec("cmake%gcc@12.100.100")
-    s2 = spack.spec.Spec("cmake-client^cmake%clang")
+    s2 = spack.spec.Spec("cmake-client^cmake%clang@19.1.0")
     concrete = dict(spack.concretize.concretize_together([(s1, None), (s2, None)]))
 
     assert concrete[s1].compiler_flags["cflags"] == ["-Wall"]
-    assert concrete[s2].compiler_flags["cflags"] == []
+    assert concrete[s2]["cmake"].compiler_flags["cflags"] == []
 
 
 @pytest.mark.parametrize(
@@ -135,17 +144,20 @@ def test_flag_order_and_grouping(
 
     The ordering rules are explained in ``asp.SpecBuilder.reorder_flags``.
     """
+    conf_str = """
+packages:
+"""
+    if cmp_flags:
+        conf_str = _compiler_cfg_one_entry_with_cflags(cmp_flags)
+
     if req_flags:
         conf_str = f"""\
-packages:
+{conf_str}
   y:
     require: cflags="{req_flags}"
 """
-        update_concretize_scope(conf_str, "packages")
 
-    if cmp_flags:
-        conf_str = _compiler_cfg_one_entry_with_cflags(cmp_flags)
-        update_concretize_scope(conf_str, "compilers")
+    update_concretize_scope(conf_str, "packages")
 
     compiler_spec = ""
     if cmp_flags:
@@ -180,14 +192,10 @@ def test_two_dependents_flag_mixing(concretize_scope, test_repo):
 
 def test_propagate_and_compiler_cfg(concretize_scope, test_repo):
     conf_str = _compiler_cfg_one_entry_with_cflags("-f2")
-    update_concretize_scope(conf_str, "compilers")
+    update_concretize_scope(conf_str, "packages")
 
     root_spec = spack.concretize.concretize_one("v %gcc@12.100.100 cflags=='-f1'")
     assert root_spec["y"].satisfies("cflags='-f1 -f2'")
-
-
-# Note: setting flags on a dependency overrides propagation, which
-# is tested in test/concretize.py:test_compiler_flag_propagation
 
 
 def test_propagate_and_pkg_dep(concretize_scope, test_repo):
@@ -237,7 +245,7 @@ spack:
 """
 
     conf_str = _compiler_cfg_one_entry_with_cflags("-f1")
-    update_concretize_scope(conf_str, "compilers")
+    update_concretize_scope(conf_str, "packages")
 
     manifest_file = tmp_path / ev.manifest_name
     manifest_file.write_text(env_content)
@@ -263,3 +271,12 @@ def test_diamond_dep_flag_mixing(concretize_scope, test_repo):
     spec1 = root_spec1["y"]
     assert spec1.satisfies('cflags="-c1 -c2 -d1 -d2 -e1 -e2"')
     assert spec1.compiler_flags["cflags"] == "-c1 -c2 -e1 -e2 -d1 -d2".split()
+
+
+def test_flag_injection_different_compilers(mock_packages, mutable_config):
+    """Tests that flag propagation is not activated on nodes with a compiler that is different
+    from the propagation source.
+    """
+    s = spack.concretize.concretize_one('mpileaks %gcc cflags=="-O2" ^callpath %llvm')
+    assert s.satisfies('cflags="-O2"') and s["c"].name == "gcc"
+    assert not s["callpath"].satisfies('cflags="-O2"') and s["callpath"]["c"].name == "llvm"

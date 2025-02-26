@@ -95,11 +95,11 @@ def upstream_and_downstream_db(tmpdir, gen_mock_layout):
 @pytest.mark.parametrize(
     "install_tree,result",
     [
-        ("all", ["pkg-b", "pkg-c"]),
+        ("all", ["pkg-b", "pkg-c", "gcc-runtime", "gcc", "compiler-wrapper"]),
         ("upstream", ["pkg-c"]),
-        ("local", ["pkg-b"]),
+        ("local", ["pkg-b", "gcc-runtime", "gcc", "compiler-wrapper"]),
         ("{u}", ["pkg-c"]),
-        ("{d}", ["pkg-b"]),
+        ("{d}", ["pkg-b", "gcc-runtime", "gcc", "compiler-wrapper"]),
     ],
     ids=["all", "upstream", "local", "upstream_path", "downstream_path"],
 )
@@ -117,7 +117,7 @@ def test_query_by_install_tree(
     down_db.add(b)
 
     specs = down_db.query(install_tree=install_tree.format(u=up_db.root, d=down_db.root))
-    assert [s.name for s in specs] == result
+    assert {s.name for s in specs} == set(result)
 
 
 def test_spec_installed_upstream(
@@ -491,7 +491,7 @@ def test_005_db_exists(database):
 def test_010_all_install_sanity(database):
     """Ensure that the install layout reflects what we think it does."""
     all_specs = spack.store.STORE.layout.all_specs()
-    assert len(all_specs) == 15
+    assert len(all_specs) == 17
 
     # Query specs with multiple configurations
     mpileaks_specs = [s for s in all_specs if s.satisfies("mpileaks")]
@@ -608,7 +608,7 @@ def test_050_basic_query(database):
     """Ensure querying database is consistent with what is installed."""
     # query everything
     total_specs = len(spack.store.STORE.db.query())
-    assert total_specs == 17
+    assert total_specs == 20
 
     # query specs with multiple configurations
     mpileaks_specs = database.query("mpileaks")
@@ -827,11 +827,11 @@ def test_query_unused_specs(mutable_database):
         assert set(u.name for u in unused) == set(expected)
 
     default_dt = dt.LINK | dt.RUN
-    check_unused(None, default_dt, ["cmake"])
+    check_unused(None, default_dt, ["cmake", "gcc", "compiler-wrapper"])
     check_unused(
         [si, ml_mpich, ml_mpich2, ml_zmpi, externaltest],
         default_dt,
-        ["trivial-smoke-test", "cmake"],
+        ["trivial-smoke-test", "cmake", "gcc", "compiler-wrapper"],
     )
     check_unused(
         [si, ml_mpich, ml_mpich2, ml_zmpi, externaltest],
@@ -846,7 +846,15 @@ def test_query_unused_specs(mutable_database):
     check_unused(
         [si, ml_mpich, ml_mpich2, ml_zmpi],
         default_dt,
-        ["trivial-smoke-test", "cmake", "externaltest", "externaltool", "externalvirtual"],
+        [
+            "trivial-smoke-test",
+            "cmake",
+            "externaltest",
+            "externaltool",
+            "externalvirtual",
+            "gcc",
+            "compiler-wrapper",
+        ],
     )
 
 
@@ -1080,7 +1088,7 @@ def test_check_parents(spec_str, parent_name, expected_nparents, database):
 def test_db_all_hashes(database):
     # ensure we get the right number of hashes without a read transaction
     hashes = database.all_hashes()
-    assert len(hashes) == 17
+    assert len(hashes) == 20
 
     # and make sure the hashes match
     with database.read_transaction():

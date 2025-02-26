@@ -15,5 +15,8 @@ class Bowtie(Package):
     version("1.2.2", md5="1c837ecd990bb022d07e7aab32b09847")
     version("1.2.0", md5="1c837ecd990bb022d07e7aab32b09847")
 
+    depends_on("c", type="build")
+
     conflicts("%gcc@:4.5.0", when="@1.2.2")
-    conflicts("%gcc@:10.2.1", when="@:1.3.0")
+    conflicts("%gcc@:10.2.1", when="@:1.2.9")
+    conflicts("%gcc", when="@1.3")
