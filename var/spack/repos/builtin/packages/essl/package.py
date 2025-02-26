@@ -71,3 +71,7 @@ class Essl(BundlePackage):
             ["liblapackforessl", "liblapackforessl_"], root=self.prefix.lib64, shared=True
         )
         return essl_libs
+
+    @property
+    def cmake_bla_vendor(self):
+        return "IBMESSL"

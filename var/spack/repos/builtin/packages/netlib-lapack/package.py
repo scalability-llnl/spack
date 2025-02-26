@@ -221,6 +221,10 @@ class NetlibLapack(CMakePackage):
         lapacke_h = join_path(include_dir, "lapacke.h")
         return HeaderList([cblas_h, lapacke_h])
 
+    @property
+    def cmake_bla_vendor(self):
+        return "Generic"
+
 
 class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
     def cmake_args(self):

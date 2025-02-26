@@ -76,6 +76,10 @@ class Atlas(Package):
 
     parallel = False
 
+    @property
+    def cmake_bla_vendor(self):
+        return "ATLAS"
+
     def url_for_version(self, version):
         url = "https://sourceforge.net/projects/math-atlas/files/"
 
