@@ -1,0 +1,5 @@
+#!/bin/bash
+if [[ "$*" != *"-gui"* ]]; then
+  VMARGS="-Djava.awt.headless=true"
+fi
+exec java $VMARGS -jar "$PLANTUML_JAR_LOCATION" "$@"
