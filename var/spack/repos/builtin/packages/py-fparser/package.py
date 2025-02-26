@@ -7,23 +7,27 @@ from spack.package import *
 
 class PyFparser(PythonPackage):
     """
-    This project is based upon the Fortran (77..2003) parser
+    This project is based upon the Fortran parser
     originally developed by Pearu Peterson for the F2PY project,
     www.f2py.com. It provides a parser for Fortran source code
-    implemented purely in Python with minimal dependencies.
+    (up to and including F2008) implemented purely in Python with
+    minimal dependencies.
 
     """
 
     # Links
     homepage = "https://github.com/stfc/fparser"
     git = "https://github.com/stfc/fparser.git"
-    pypi = "fparser/fparser-0.1.4.tar.gz"
+    pypi = "fparser/fparser-0.2.0.tar.gz"
+
+    maintainers("arporter")
 
     # License
     license("BSD-3-Clause")
 
     # Releases
     version("develop", branch="master")
+    version("0.2.0", sha256="3901d31c104062c4e532248286929e7405e43b79a6a85815146a176673e69c82")
     version("0.1.4", sha256="00d4f7e9bbd8a9024c3c2f308dd3be9b0eeff3cb852772c9f3cf0c4909dbafd4")
     version("0.1.3", sha256="10ba8b2803632846f6f011278e3810188a078d89afcb4a38bed0cbf10f775736")
     version("0.0.16", sha256="a06389b95a1b9ed12f8141b69c67343da5ba0a29277b2997b02573a93af14e13")
@@ -33,8 +37,6 @@ class PyFparser(PythonPackage):
     version("0.0.12", sha256="9ea2cf3cdf64e440ab9d5b526dda2dc3528fe5aa7a85634e81b0ee3c0c39886f")
     version("0.0.6", sha256="bf8a419cb528df1bfc24ddd26d63f2ebea6f1e103f1a259d8d3a6c9b1cd53012")
     version("0.0.5", sha256="f3b5b0ac56fd22abed558c0fb0ba4f28edb8de7ef24cfda8ca8996562215822f")
-
-    depends_on("fortran", type="build")  # generated
 
     # Dependencies for latest version
     depends_on("py-setuptools@61:", type="build", when="@0.1.4:")
