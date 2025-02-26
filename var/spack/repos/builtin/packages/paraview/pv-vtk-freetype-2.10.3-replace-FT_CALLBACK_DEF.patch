@@ -1,0 +1,35 @@
+diff -Naur --exclude .git spack-src/VTK/Rendering/FreeType/vtkFreeTypeTools.cxx spack-src.patched/VTK/Rendering/FreeType/vtkFreeTypeTools.cxx
+--- spack-src/VTK/Rendering/FreeType/vtkFreeTypeTools.cxx	2021-06-10 11:42:57.000000000 -0400
++++ spack-src.patched/VTK/Rendering/FreeType/vtkFreeTypeTools.cxx	2021-06-10 13:27:56.000000000 -0400
+@@ -378,7 +378,7 @@
+ }
+ 
+ //----------------------------------------------------------------------------
+-FT_CALLBACK_DEF(FT_Error)
++extern "C" FT_Error
+ vtkFreeTypeToolsFaceRequester(
+   FTC_FaceID face_id, FT_Library lib, FT_Pointer request_data, FT_Face* face)
+ {
+diff -Naur --exclude .git spack-src/VTK/Rendering/FreeTypeFontConfig/vtkFontConfigFreeTypeTools.cxx spack-src.patched/VTK/Rendering/FreeTypeFontConfig/vtkFontConfigFreeTypeTools.cxx
+--- spack-src/VTK/Rendering/FreeTypeFontConfig/vtkFontConfigFreeTypeTools.cxx	2020-02-17 22:44:50.000000000 -0500
++++ spack-src.patched/VTK/Rendering/FreeTypeFontConfig/vtkFontConfigFreeTypeTools.cxx	2021-06-10 13:29:11.000000000 -0400
+@@ -26,10 +26,8 @@
+ 
+ vtkStandardNewMacro(vtkFontConfigFreeTypeTools);
+ 
+-namespace
+-{
+ // The FreeType face requester callback:
+-FT_CALLBACK_DEF(FT_Error)
++extern "C" FT_Error
+ vtkFontConfigFreeTypeToolsFaceRequester(
+   FTC_FaceID face_id, FT_Library lib, FT_Pointer request_data, FT_Face* face)
+ {
+@@ -71,7 +69,6 @@
+ 
+   return static_cast<FT_Error>(0);
+ }
+-} // end anon namespace
+ 
+ void vtkFontConfigFreeTypeTools::PrintSelf(ostream& os, vtkIndent indent)
+ {

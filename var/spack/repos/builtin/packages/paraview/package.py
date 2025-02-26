@@ -389,6 +389,12 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
     conflicts("generator=ninja", when="%xl")
     conflicts("generator=ninja", when="%xl_r")
 
+    # Freetype@2.10.3 no longer exports FT_CALLBACK_DEF, this
+    # patch replaces FT_CALLBACK_DEF with simple extern "C"
+    # See https://gitlab.kitware.com/vtk/vtk/-/issues/18033
+    patch('pv-vtk-freetype-2.10.3-replace-FT_CALLBACK_DEF.patch',
+          when='^freetype@2.10.3:')
+
     def url_for_version(self, version):
         _urlfmt = "http://www.paraview.org/files/v{0}/ParaView-v{1}{2}.tar.{3}"
         # Handle ParaView version-based custom URLs
