@@ -25,13 +25,19 @@ class PyPsijPython(PythonPackage):
         deprecated=True,
     )
 
+    # Python dependencies
     depends_on("python@3.7:", type=("build", "run"), when="@:0.9.8")
-    depends_on("py-filelock", type=("build", "run"), when="@:0.9.7")
-    depends_on("py-psutil", type=("build", "run"), when="@:0.1")
-
     depends_on("python@3.8:", type=("build", "run"))
+
+    # Build dependencies (in order listed in pyproject.toml)
+    depends_on("py-setuptools", type="build")
+
+    # Install dependencies (in order listed in pyproject.toml or setup.cfg/py)
+    depends_on("py-psutil", type=("build", "run"), when="@:0.1")
     depends_on("py-psutil@5.9:6.1.1", type=("build", "run"), when="@0.9.9:")
     depends_on("py-pystache@0.6.0:", type=("build", "run"))
     depends_on("py-typeguard@3.0.1:", type=("build", "run"), when="@0.9.8:")
     depends_on("py-packaging@24.0:24.2", type=("build", "run"), when="@0.9.9:")
-    depends_on("py-setuptools", type="build")
+
+    # Historical dependencies
+    depends_on("py-filelock", type=("build", "run"), when="@:0.9.7")
