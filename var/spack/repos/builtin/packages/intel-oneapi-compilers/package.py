@@ -330,7 +330,7 @@ class IntelOneapiCompilers(IntelOneApiPackage, CompilerPackage):
     )
 
     # See https://github.com/spack/spack/issues/39252
-    depends_on("patchelf@:0.17", type="build", when="@:2024.1")
+    depends_on("patchelf@:0.17", type="build")
     # Add the nvidia variant
     variant("nvidia", default=False, description="Install NVIDIA plugin for OneAPI")
     conflicts("@:2022.2.1", when="+nvidia", msg="Codeplay NVIDIA plugin requires newer release")
@@ -463,22 +463,23 @@ class IntelOneapiCompilers(IntelOneApiPackage, CompilerPackage):
         # patching everything and just patching the binaries that have
         # a problem.
 
-        # 2024.2 no longer needs patching
-        if self.spec.satisfies("@2024.2:"):
-            return
-
-        # 2024 fixed all but these 2
-        patchelf = which("patchelf")
-        if self.spec.satisfies("@2024:"):
-            patchelf.add_default_arg("--set-rpath", self.component_prefix.lib)
-            patchelf(self.component_prefix.bin.join("sycl-post-link"))
-            patchelf(self.component_prefix.bin.compiler.join("llvm-spirv"))
-            return
-
+        # @2024: fixed most bin, but lib is still broken, e.g. if -flto is used
         # Sets rpath so the compilers can work without setting LD_LIBRARY_PATH.
+        patchelf = which("patchelf")
         patchelf.add_default_arg("--set-rpath", ":".join(self._ld_library_path()))
-        for pd in ["bin", "lib", join_path("compiler", "lib", "intel64_lin")]:
-            for file in find(self.component_prefix.linux.join(pd), "*", recursive=False):
+        for pd in [
+            "bin",
+            join_path("bin", "compiler"),
+            "lib",
+            join_path("compiler", "lib", "intel64_lin"),
+        ]:
+            for file in find(
+                join_path(
+                    self.component_prefix if self.v2_layout else self.component_prefix.linux, pd
+                ),
+                "*",
+                recursive=False,
+            ):
                 # Try to patch all files, patchelf will do nothing and fail if file
                 # should not be patched
                 patchelf(file, fail_on_error=False)
@@ -538,16 +539,19 @@ class IntelOneapiCompilers(IntelOneApiPackage, CompilerPackage):
     def _ld_library_path(self):
         # Returns an iterable of directories that might contain shared runtime libraries
         # of the compilers themselves and the executables they produce.
+
         for d in [
             "lib",
+            join_path("compiler", "lib", "intel64_lin"),
+            join_path("lib", "clang", "*", "lib", "*"),
             join_path("lib", "x64"),
             join_path("lib", "emu"),
             join_path("lib", "oclfpga", "host", "linux64", "lib"),
             join_path("lib", "oclfpga", "linux64", "lib"),
-            join_path("compiler", "lib", "intel64_lin"),
-            join_path("compiler", "lib"),
         ]:
-            p = join_path(self.component_prefix.linux, d)
+            p = join_path(
+                self.component_prefix if self.v2_layout else self.component_prefix.linux, d
+            )
             if find(p, "*." + dso_suffix, recursive=False):
                 yield p
 
