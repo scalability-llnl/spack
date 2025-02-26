@@ -979,15 +979,6 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         """
         pass
 
-    def detect_dev_src_change(self) -> bool:
-        """
-        Method for checking for source code changes to trigger rebuild/reinstall
-        """
-        dev_path_var = self.spec.variants.get("dev_path", None)
-        _, record = spack.store.STORE.db.query_by_spec_hash(self.spec.dag_hash())
-        assert dev_path_var and record, "dev_path variant and record must be present"
-        return fsys.recursive_mtime_greater_than(dev_path_var.value, record.installation_time)
-
     def all_urls_for_version(self, version: StandardVersion) -> List[str]:
         """Return all URLs derived from version_urls(), url, urls, and
         list_url (if it contains a version) in a package in that order.

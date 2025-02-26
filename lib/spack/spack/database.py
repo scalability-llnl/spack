@@ -1239,6 +1239,20 @@ class Database:
         upstream, record = self.query_by_spec_hash(key)
         return record
 
+    def installed(self, spec):
+        """Installation status of a package.
+        Returns:
+            True if the spec has been installed, False otherwise.
+        """
+        try:
+            # If the spec is in the DB, check the installed
+            # attribute of the record
+            return self.get_record(spec).installed
+        except KeyError:
+            # If the spec is not in the DB, the method
+            #  above raises a Key error
+            return False
+
     def _decrement_ref_count(self, spec: "spack.spec.Spec") -> None:
         key = spec.dag_hash()
 

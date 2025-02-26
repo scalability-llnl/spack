@@ -33,6 +33,7 @@ properties: Dict[str, Any] = {
                 "include": {"type": "array", "default": [], "items": {"type": "string"}},
                 "specs": spec_list_schema,
                 "include_concrete": include_concrete,
+                "detect-changes-with-git": {"type": "boolean", "default": False},
             },
         ),
     }

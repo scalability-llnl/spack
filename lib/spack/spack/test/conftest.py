@@ -1356,6 +1356,23 @@ def mock_cvs_repository(tmpdir_factory):
     yield test
 
 
+@pytest.fixture
+def mutable_mock_git_repo(git, tmpdir_factory):
+    repo_dir = tmpdir_factory.mktemp("test-git-repo")
+
+    with repo_dir.as_cwd():
+        git("init")
+        git("config", "user.name", "Spack")
+        git("config", "user.email", "spack@spack.io")
+
+        managed_file = "managed_file"
+        repo_dir.ensure(managed_file)
+        git("add", managed_file)
+        git("-c", "commit.gpgsign=false", "commit", "-m", "mock-git-repo r0")
+
+    yield repo_dir, managed_file
+
+
 @pytest.fixture(scope="session")
 def mock_git_repository(git, tmpdir_factory):
     """Creates a git repository multiple commits, branches, submodules, and
