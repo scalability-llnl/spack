@@ -249,15 +249,6 @@ def report_filename(args: argparse.Namespace, specs: List[spack.spec.Spec]) -> s
     return result
 
 
-def compute_tests_install_kwargs(specs, cli_test_arg):
-    """Translate the test cli argument into the proper install argument"""
-    if cli_test_arg == "all":
-        return True
-    elif cli_test_arg == "root":
-        return [spec.name for spec in specs]
-    return False
-
-
 def require_user_confirmation_for_overwrite(concrete_specs, args):
     if args.yes_to_all:
         return
@@ -371,7 +362,7 @@ def _maybe_add_and_concretize(args, env, specs):
                 env.add(spec)
 
         # `spack concretize`
-        tests = compute_tests_install_kwargs(env.user_specs, args.test)
+        tests = spack.cmd.test_settings(args.test, env.user_specs)
         concretized_specs = env.concretize(tests=tests)
         if concretized_specs:
             tty.msg(f"Concretized {plural(len(concretized_specs), 'spec')}")
@@ -409,7 +400,7 @@ def install_with_active_env(env: ev.Environment, args, install_kwargs, reporter_
             ).format(" ".join(args.spec))
             tty.die(msg)
 
-    install_kwargs["tests"] = compute_tests_install_kwargs(specs_to_install, args.test)
+    install_kwargs["tests"] = spack.cmd.test_settings(args.test, specs_to_install)
 
     if args.overwrite:
         require_user_confirmation_for_overwrite(specs_to_install, args)
@@ -427,7 +418,7 @@ def install_with_active_env(env: ev.Environment, args, install_kwargs, reporter_
 def concrete_specs_from_cli(args, install_kwargs):
     """Return abstract and concrete spec parsed from the command line."""
     abstract_specs = spack.cmd.parse_specs(args.spec)
-    install_kwargs["tests"] = compute_tests_install_kwargs(abstract_specs, args.test)
+    install_kwargs["tests"] = spack.cmd.test_settings(args.test, abstract_specs)
     try:
         concrete_specs = spack.cmd.parse_specs(
             args.spec, concretize=True, tests=install_kwargs["tests"]

@@ -26,11 +26,14 @@ import spack.error
 import spack.hash_types as ht
 import spack.installer
 import spack.package_base
+import spack.repo
 import spack.store
+import spack.util.spack_yaml as syaml
 from spack.error import SpackError, SpecSyntaxError
 from spack.installer import PackageInstaller
 from spack.main import SpackCommand
 from spack.spec import Spec
+from spack.test.conftest import create_test_repo
 
 install = SpackCommand("install")
 env = SpackCommand("env")
@@ -1087,3 +1090,214 @@ def test_report_filename_for_cdash(install_mockery, mock_fetch):
     specs = spack.cmd.install.concrete_specs_from_cli(args, {})
     filename = spack.cmd.install.report_filename(args, specs)
     assert filename != "https://blahblah/submit.php?project=debugging"
+
+
+_pkga = (
+    "a0",
+    """\
+from spack.package import *
+
+class A0(Package):
+    version("1.1")
+    depends_on("c0")
+""",
+)
+
+
+_pkgb = (
+    "b0",
+    """\
+from spack.package import *
+
+class B0(Package):
+    version("1.1")
+    depends_on("c0")
+    depends_on("t0", type="test")
+
+    @run_after("install")
+    @on_package_attributes(run_tests=True)
+    def test_b0(self):
+        print("Tested b0")
+""",
+)
+
+
+_pkgc = (
+    "c0",
+    """\
+from spack.package import *
+
+class C0(Package):
+    version("1.1")
+    depends_on("d0")
+    depends_on("t0", type="test")
+
+    @run_after("install")
+    @on_package_attributes(run_tests=True)
+    def test_c0(self):
+        # Test dependencies of c0 must be active for this to work
+        self.spec["t0"]
+
+        print("Tested c0")
+""",
+)
+
+
+_pkgd = (
+    "d0",
+    """\
+from spack.package import *
+
+class D0(Package):
+    version("1.1")
+""",
+)
+
+
+_pkgt = (
+    "t0",
+    """\
+from spack.package import *
+
+class T0(Package):
+    version("1.1")
+""",
+)
+
+
+_pkga1 = (
+    "a1",
+    """\
+from spack.package import *
+
+class A1(Package):
+    version("1.1")
+
+    depends_on("b1")
+
+    def install(self, spec, prefix):
+        touch(prefix.example)
+""",
+)
+
+
+_pkgb1 = (
+    "b1",
+    """\
+from spack.package import *
+
+class B1(Package):
+    version("1.1")
+
+    depends_on("c1")
+
+    def install(self, spec, prefix):
+        touch(prefix.example)
+""",
+)
+
+
+_pkgc1 = (
+    "c1",
+    """\
+from spack.package import *
+
+class C1(Package):
+    version("1.1")
+
+    variant("shared", default=True)
+
+    def install(self, spec, prefix):
+        touch(prefix.example)
+""",
+)
+
+
+@pytest.fixture
+def _create_test_repo(tmpdir, mutable_config):
+    r"""
+    a0 b0
+     \ | \
+      c0  |
+      | \ |
+      d0 t0
+
+    and
+
+    a1 -> b1 -> c1
+    """
+    yield create_test_repo(tmpdir, [_pkga, _pkgb, _pkgc, _pkgd, _pkgt, _pkga1, _pkgb1, _pkgc1])
+
+
+@pytest.fixture
+def test_repo(_create_test_repo, monkeypatch, mock_stage):
+    with spack.repo.use_repositories(_create_test_repo) as mock_repo_path:
+        yield mock_repo_path
+
+
+def update_packages_config(conf_str):
+    conf = syaml.load_config(conf_str)
+    spack.config.set("packages", conf["packages"], scope="concretize")
+
+
+logs = SpackCommand("logs")
+
+
+@pytest.mark.disable_clean_stage_check
+def test_install_args_cfg(
+    mutable_mock_env_path, install_mockery, mutable_config, concretize_scope, test_repo, mock_fetch
+):
+    conf_str = """\
+packages:
+  c0:
+    install_args:
+      keep_stage: true
+      install_source: true
+"""
+    update_packages_config(conf_str)
+    install("--test=root", "a0", "b0")
+    a0_spec = spack.store.STORE.db.query_one("a0")
+
+    assert os.path.isdir(a0_spec["c0"].package.stage.path)
+    assert not os.path.exists(a0_spec.package.stage.path)
+
+    c0_spec = spack.store.STORE.db.query_one("c0")
+    assert bool(os.listdir(c0_spec.prefix.share.c0.src))
+
+    assert "Tested b0" in logs("b0")
+
+
+def test_install_args_cfg_cache_control(
+    mutable_mock_env_path, mutable_config, concretize_scope, test_repo, mock_fetch, mock_archive
+):
+    with spack.config.override("config:checksum", False):
+        install("a1 ^c1+shared")
+
+    conf_str = """\
+packages:
+  c1:
+    install_args:
+      package_cache_only: true
+      dependencies_cache_only: true
+"""
+    update_packages_config(conf_str)
+    with spack.config.override("config:checksum", False):
+        output = install("a1 ^c1~shared", fail_on_error=False)
+        expected_msg = "No binary found when cache-only was specified"
+        assert expected_msg in output
+
+
+@pytest.mark.skipif(True, reason="Not handled yet")
+def test_install_args_cfg_testproperty(
+    mutable_mock_env_path, install_mockery, mutable_config, concretize_scope, test_repo, mock_fetch
+):
+    conf_str = """\
+packages:
+  c0:
+    install_args:
+      test: true
+"""
+    update_packages_config(conf_str)
+    install("b0")
+
+    assert "Tested c0" in logs("c0")

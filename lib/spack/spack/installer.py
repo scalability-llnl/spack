@@ -864,6 +864,10 @@ class BuildRequest:
             yield dep
 
 
+def _install_args_from_cfg(pkg_name):
+    return spack.config.get(f"packages:{pkg_name}:install_args") or {}
+
+
 class Task:
     """Base class for representing a task for a package."""
 
@@ -912,6 +916,8 @@ class Task:
         if not isinstance(request, BuildRequest):
             raise TypeError(f"{request} is not a valid build request")
         self.request = request
+        self.install_args = request.install_args.copy()
+        self.install_args.update(_install_args_from_cfg(pkg.name))
 
         # Initialize the status to an active state.  The status is used to
         # ensure priority queue invariants when tasks are "removed" from the
@@ -1091,7 +1097,7 @@ class Task:
 
     @property
     def explicit(self) -> bool:
-        return self.pkg.spec.dag_hash() in self.request.install_args.get("explicit", [])
+        return self.pkg.spec.dag_hash() in self.install_args.get("explicit", [])
 
     @property
     def is_build_request(self) -> bool:
@@ -1102,17 +1108,17 @@ class Task:
     def use_cache(self) -> bool:
         _use_cache = True
         if self.is_build_request:
-            return self.request.install_args.get("package_use_cache", _use_cache)
+            return self.install_args.get("package_use_cache", _use_cache)
         else:
-            return self.request.install_args.get("dependencies_use_cache", _use_cache)
+            return self.install_args.get("dependencies_use_cache", _use_cache)
 
     @property
     def cache_only(self) -> bool:
         _cache_only = False
         if self.is_build_request:
-            return self.request.install_args.get("package_cache_only", _cache_only)
+            return self.install_args.get("package_cache_only", _cache_only)
         else:
-            return self.request.install_args.get("dependencies_cache_only", _cache_only)
+            return self.install_args.get("dependencies_cache_only", _cache_only)
 
     @property
     def key(self) -> Tuple[int, int]:
@@ -1141,7 +1147,7 @@ class BuildTask(Task):
         Perform the installation of the requested spec and/or dependency
         represented by the build task.
         """
-        install_args = self.request.install_args
+        install_args = self.install_args
         tests = install_args.get("tests")
         unsigned = install_args.get("unsigned")
 
@@ -1213,7 +1219,7 @@ class RewireTask(Task):
         self.start = self.start or time.time()
         if not self.pkg.spec.build_spec.installed:
             try:
-                install_args = self.request.install_args
+                install_args = self.install_args
                 unsigned = install_args.get("unsigned")
                 _process_binary_cache_tarball(self.pkg, explicit=self.explicit, unsigned=unsigned)
                 _print_installed_pkg(self.pkg.prefix)
@@ -1463,7 +1469,7 @@ class PackageInstaller:
             task: the task whose associated package is
                 being checked
         """
-        install_args = task.request.install_args
+        install_args = task.install_args
         keep_prefix = install_args.get("keep_prefix")
 
         # Make sure the package is ready to be locally installed.
@@ -2033,7 +2039,7 @@ class PackageInstaller:
             if task is None:
                 continue
 
-            install_args = task.request.install_args
+            install_args = task.install_args
             keep_prefix = install_args.get("keep_prefix")
 
             pkg, pkg_id, spec = task.pkg, task.pkg_id, task.pkg.spec
