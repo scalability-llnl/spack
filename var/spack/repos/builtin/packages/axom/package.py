@@ -8,6 +8,7 @@ import socket
 from os.path import join as pjoin
 
 from spack.package import *
+from spack.util.executable import which_string
 
 
 def get_spec_path(spec, package_name, path_replacements={}, use_bin=False):
@@ -44,6 +45,8 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     version("main", branch="main")
     version("develop", branch="develop")
+    version("0.10.1", tag="v0.10.1", commit="6626ee1c5668176fb64dd9a52dec3e8596b3ba6b")
+    version("0.10.0", tag="v0.10.0", commit="ea853a34a834415ea75f824160fc44cba9a0755d")
     version("0.9.0", tag="v0.9.0", commit="5f531595d941d16fa3b8583bfc347a845d9feb6d")
     version("0.8.1", tag="v0.8.1", commit="0da8a5b1be596887158ac2fcd321524ba5259e15")
     version("0.8.0", tag="v0.8.0", commit="71fab3262eb7e1aa44a04c21d072b77f06362f7b")
@@ -58,9 +61,9 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
     version("0.3.0", tag="v0.3.0", commit="20068ccab4b4f70055918b4f17960ec3ed6dbce8")
     version("0.2.9", tag="v0.2.9", commit="9e9a54ede3326817c05f35922738516e43b5ec3d")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build", when="+fortran")
 
     # https://github.com/spack/spack/issues/31829
     patch("examples-oneapi.patch", when="@0.6.1 +examples %oneapi")
@@ -94,6 +97,8 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
         when="@develop",
         description="Build with hooks for Adiak/Caliper performance analysis",
     )
+
+    variant("opencascade", default=False, description="Build with opencascade")
 
     variant("mfem", default=False, description="Build with mfem")
     variant("hdf5", default=True, description="Build with hdf5")
@@ -180,6 +185,8 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     depends_on("rocprim", when="+rocm")
 
+    depends_on("opencascade", when="+opencascade")
+
     with when("+mfem"):
         depends_on("mfem+mpi", when="+mpi")
         depends_on("mfem~mpi", when="~mpi")
@@ -196,7 +203,7 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
         depends_on("py-sphinx")
         depends_on("py-shroud")
         depends_on("py-jsonschema")
-        depends_on("llvm+clang@10.0.0", type="build")
+        depends_on("llvm+clang@14", type="build")
 
     # -----------------------------------------------------------------------
     # Conflicts
@@ -212,6 +219,11 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     conflicts("+openmp", when="+rocm")
     conflicts("+cuda", when="+rocm")
+
+    conflicts("~raja", when="+cuda")
+    conflicts("~raja", when="+rocm")
+    conflicts("~umpire", when="+cuda")
+    conflicts("~umpire", when="+rocm")
 
     conflicts("^blt@:0.3.6", when="+rocm")
 
@@ -277,12 +289,12 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
         else:
             entries.append(cmake_cache_option("ENABLE_FORTRAN", False))
 
-        if "+cpp14" in spec and spec.satisfies("@:0.6.1"):
+        if spec.satisfies("+cpp14") and spec.satisfies("@:0.6.1"):
             entries.append(cmake_cache_string("BLT_CXX_STD", "c++14", ""))
 
-        # Add optimization flag workaround for Debug builds with cray compiler or newer HIP
-        if spec.satisfies("+rocm"):
-            entries.append(cmake_cache_string("CMAKE_CXX_FLAGS_DEBUG", "-O1 -g -DNDEBUG"))
+        # Add optimization flag workaround for builds with cray compiler
+        if spec.satisfies("%cce"):
+            entries.append(cmake_cache_string("CMAKE_CXX_FLAGS_DEBUG", "-O1 -g"))
 
         return entries
 
@@ -319,43 +331,40 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
 
             entries.append(cmake_cache_option("ENABLE_HIP", True))
 
-            hip_root = spec["hip"].prefix
-            rocm_root = hip_root + "/.."
+            rocm_root = os.path.dirname(spec["llvm-amdgpu"].prefix)
+            entries.append(cmake_cache_path("ROCM_PATH", rocm_root))
 
-            # Fix blt_hip getting HIP_CLANG_INCLUDE_PATH-NOTFOUND bad include directory
-            # TODO: verify that this is still needed and is indeed specific to LC
-            if (
-                self.spec.satisfies("%cce") or self.spec.satisfies("%clang")
-            ) and "toss_4" in self._get_sys_type(spec):
-                # Set the patch version to 0 if not already
-                clang_version = str(self.compiler.version)[:-1] + "0"
-                hip_clang_include_path = (
-                    rocm_root + "/llvm/lib/clang/" + clang_version + "/include"
-                )
-                if os.path.isdir(hip_clang_include_path):
-                    entries.append(
-                        cmake_cache_path("HIP_CLANG_INCLUDE_PATH", hip_clang_include_path)
-                    )
+            hip_link_flags = "-L{0}/lib -Wl,-rpath,{0}/lib ".format(rocm_root)
+
+            # Recommended MPI flags
+            hip_link_flags += "-lxpmem "
+            hip_link_flags += "-L/opt/cray/pe/mpich/{0}/gtl/lib ".format(spec["mpi"].version)
+            hip_link_flags += "-Wl,-rpath,/opt/cray/pe/mpich/{0}/gtl/lib ".format(
+                spec["mpi"].version
+            )
+            hip_link_flags += "-lmpi_gtl_hsa "
 
             # Fixes for mpi for rocm until wrapper paths are fixed
             # These flags are already part of the wrapped compilers on TOSS4 systems
-            hip_link_flags = ""
-            if "+fortran" in spec and self.is_fortran_compiler("amdflang"):
+            if spec.satisfies("+fortran") and self.is_fortran_compiler("amdflang"):
                 hip_link_flags += "-Wl,--disable-new-dtags "
-                hip_link_flags += "-L{0}/../llvm/lib -L{0}/lib ".format(hip_root)
-                hip_link_flags += "-Wl,-rpath,{0}/../llvm/lib:{0}/lib ".format(hip_root)
-                hip_link_flags += "-lpgmath -lflang -lflangrti -lompstub -lamdhip64 "
+
+                if spec.satisfies("^hip@6.0.0:"):
+                    hip_link_flags += "-L{0}/lib/llvm/lib -Wl,-rpath,{0}/lib/llvm/lib ".format(
+                        rocm_root
+                    )
+                else:
+                    hip_link_flags += "-L{0}/llvm/lib -Wl,-rpath,{0}/llvm/lib ".format(rocm_root)
+                hip_link_flags += "-lpgmath -lflang -lflangrti -lompstub "
 
             # Remove extra link library for crayftn
-            if "+fortran" in spec and self.is_fortran_compiler("crayftn"):
+            if spec.satisfies("+fortran") and self.is_fortran_compiler("crayftn"):
                 entries.append(
                     cmake_cache_string("BLT_CMAKE_IMPLICIT_LINK_LIBRARIES_EXCLUDE", "unwind")
                 )
 
             # Additional libraries for TOSS4
-            hip_link_flags += " -L{0}/../lib64 -Wl,-rpath,{0}/../lib64 ".format(hip_root)
-            hip_link_flags += " -L{0}/../lib -Wl,-rpath,{0}/../lib ".format(hip_root)
-            hip_link_flags += "-lamd_comgr -lhsa-runtime64 "
+            hip_link_flags += "-lamdhip64 -lhsakmt -lhsa-runtime64 -lamd_comgr "
 
             entries.append(cmake_cache_string("CMAKE_EXE_LINKER_FLAGS", hip_link_flags))
 
@@ -373,7 +382,7 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
             )
         )
 
-        if "+fortran" in spec and self.is_fortran_compiler("xlf"):
+        if spec.satisfies("+fortran") and self.is_fortran_compiler("xlf"):
             # Grab lib directory for the current fortran compiler
             libdir = pjoin(os.path.dirname(os.path.dirname(self.compiler.fc)), "lib")
             description = (
@@ -398,9 +407,9 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
             )
 
         if (
-            "+openmp" in spec
+            spec.satisfies("+openmp")
             and "clang" in self.compiler.cxx
-            and "+fortran" in spec
+            and spec.satisfies("+fortran")
             and self.is_fortran_compiler("xlf")
         ):
             openmp_gen_exp = (
@@ -453,7 +462,8 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
                 mpi_exec_index = [
                     index for index, entry in enumerate(entries) if "MPIEXEC_EXECUTABLE" in entry
                 ]
-                del entries[mpi_exec_index[0]]
+                if mpi_exec_index:
+                    del entries[mpi_exec_index[0]]
                 entries.append(cmake_cache_path("MPIEXEC_EXECUTABLE", srun_wrapper))
         else:
             entries.append(cmake_cache_option("ENABLE_MPI", False))
@@ -488,8 +498,8 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
         entries.append(cmake_cache_path("CONDUIT_DIR", conduit_dir))
 
         # optional tpls
-        for dep in ("mfem", "hdf5", "lua", "raja", "umpire"):
-            if "+%s" % dep in spec:
+        for dep in ("mfem", "hdf5", "lua", "raja", "umpire", "opencascade"):
+            if spec.satisfies("+%s" % dep):
                 dep_dir = get_spec_path(spec, dep, path_replacements)
                 entries.append(cmake_cache_path("%s_DIR" % dep.upper(), dep_dir))
             else:
@@ -502,7 +512,7 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
             dep_dir = get_spec_path(spec, "caliper", path_replacements)
             entries.append(cmake_cache_path("CALIPER_DIR", dep_dir))
 
-        if "+umpire" in spec and spec.satisfies("^camp"):
+        if spec.satisfies("+umpire") and spec.satisfies("^camp"):
             dep_dir = get_spec_path(spec, "camp", path_replacements)
             entries.append(cmake_cache_path("CAMP_DIR", dep_dir))
 
@@ -546,14 +556,14 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
             path2 = os.path.realpath(spec["doxygen"].prefix)
             self.find_path_replacement(path1, path2, path_replacements, "DEVTOOLS_ROOT", entries)
 
-        if "+devtools" in spec and spec.satisfies("^llvm"):
+        if spec.satisfies("+devtools") and spec.satisfies("^llvm"):
             clang_fmt_path = spec["llvm"].prefix.bin.join("clang-format")
             entries.append(cmake_cache_path("CLANGFORMAT_EXECUTABLE", clang_fmt_path))
         else:
             entries.append("# ClangFormat disabled due to llvm and devtools not in spec\n")
             entries.append(cmake_cache_option("ENABLE_CLANGFORMAT", False))
 
-        if "+python" in spec or "+devtools" in spec:
+        if spec.satisfies("+python") or spec.satisfies("+devtools"):
             python_path = os.path.realpath(spec["python"].command.path)
             for key in path_replacements:
                 python_path = python_path.replace(key, path_replacements[key])
@@ -599,6 +609,8 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
         options.append(self.define_from_variant("BUILD_SHARED_LIBS", "shared"))
         options.append(self.define_from_variant("AXOM_ENABLE_EXAMPLES", "examples"))
         options.append(self.define_from_variant("AXOM_ENABLE_TOOLS", "tools"))
+        if self.spec.satisfies("~raja") or self.spec.satisfies("+umpire"):
+            options.append("-DAXOM_ENABLE_MIR:BOOL=OFF")
 
         return options
 
