@@ -4,6 +4,7 @@
 
 import copy
 import os
+import pathlib
 import shutil
 
 import pytest
@@ -19,6 +20,7 @@ import spack.repo
 from spack.fetch_strategy import GitFetchStrategy
 from spack.spec import Spec
 from spack.stage import Stage
+from spack.variant import SingleValuedVariant
 from spack.version import Version
 
 _mock_transport_error = "Mock HTTP transport error"
@@ -429,3 +431,19 @@ def test_git_sparse_paths_partial_clone(
 
         # fixture file is in the sparse-path expansion tree
         assert os.path.isfile(t.file)
+
+
+@pytest.mark.disable_clean_stage_check
+def test_commit_variant_clone(
+    git, default_mock_concretization, mutable_mock_repo, mock_git_version_info, monkeypatch
+):
+
+    repo_path, filename, commits = mock_git_version_info
+    test_commit = commits[-1]
+    s = default_mock_concretization("git-test")
+    args = {"git": pathlib.Path(repo_path).as_uri()}
+    monkeypatch.setitem(s.package.versions, Version("git"), args)
+    s.variants["commit"] = SingleValuedVariant("commit", test_commit)
+    s.package.do_stage()
+    with working_dir(s.package.stage.source_path):
+        assert git("rev-parse", "HEAD", output=str, error=str).strip() == test_commit
