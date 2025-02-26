@@ -13,6 +13,7 @@ import sys
 
 import pytest
 
+import llnl.util.symlink
 from llnl.util.filesystem import getuid, mkdirp, partition_path, touch, working_dir
 from llnl.util.symlink import readlink
 
@@ -840,7 +841,7 @@ class TestDevelopStage:
 
         assert os.path.exists(os.path.join(srcdir, "a2"))
 
-    def test_develop_stage(self, develop_path, tmp_build_stage_dir):
+    def test_develop_stage_basic(self, develop_path, tmp_build_stage_dir):
         """Check that (a) develop stages update the given
         `dev_path` with a symlink that points to the stage dir and
         (b) that destroying the stage does not destroy `dev_path`
@@ -853,15 +854,50 @@ class TestDevelopStage:
         srctree1 = _create_tree_from_dir_recursive(stage.source_path)
         assert os.path.samefile(srctree1["link-to-stage"], stage.path)
         del srctree1["link-to-stage"]
+        del srctree1[".spack-develop-links"]
         assert srctree1 == devtree
 
         stage.destroy()
         assert not os.path.exists(stage.reference_link)
+        assert not llnl.util.symlink.islink(stage.reference_link)
         # Make sure destroying the stage doesn't change anything
         # about the path
         assert not os.path.exists(stage.path)
         srctree2 = _create_tree_from_dir_recursive(srcdir)
+        del srctree2[".spack-develop-links"]
         assert srctree2 == devtree
+
+    def test_develop_stage_purge_rms_ref_link(self, develop_path, tmp_build_stage_dir):
+        """stage.purge removes all `Stage.path`s. Check that for
+        develop stages, this removes the associated symlink.
+        """
+        devtree, srcdir = develop_path
+        # Note: the stage name has to start with "spack-stage-" to be
+        # purge-able
+        stage = DevelopStage("spack-stage-test", srcdir, reference_link="link-to-stage1")
+        stage.create()
+        assert os.path.exists(stage.reference_link)
+
+        spack.stage.purge()
+        assert not os.path.exists(stage.path)
+        assert not os.path.exists(stage.reference_link)
+        assert not llnl.util.symlink.islink(stage.reference_link)
+
+    def test_develop_stage_link_path_in_use(self, develop_path, tmp_build_stage_dir):
+        """We try to put a symlink in dev_path, but if the path where
+        we want to write it already exists, we don't want to overwite
+        or delete it.
+        """
+        devtree, srcdir = develop_path
+        collision = "link-to-stage"
+        stage = DevelopStage("test-stage", srcdir, reference_link=collision)
+        with open(os.path.join(srcdir, collision), "wb"):
+            # Touch this file, which is where spack wants to put the symlink
+            pass
+        stage.create()
+        stage.destroy()
+        assert not os.path.exists(stage.path)
+        assert os.path.exists(stage.reference_link)
 
 
 def test_stage_create_replace_path(tmp_build_stage_dir):

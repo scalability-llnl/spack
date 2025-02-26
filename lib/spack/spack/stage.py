@@ -824,6 +824,10 @@ class DevelopStage(LockableStagingDir):
             link_path = os.path.join(self.source_path, reference_link)
         if not os.path.isdir(os.path.dirname(link_path)):
             raise StageError(f"The directory containing {link_path} must exist")
+
+        # Created inside of dev_path (typically a user-managed source directory
+        # that is not edited by spack except for this and .spack-develop-links),
+        # points to self.path
         self.reference_link = link_path
 
     @property
@@ -847,20 +851,72 @@ class DevelopStage(LockableStagingDir):
     def create(self):
         super().create()
         try:
+            DevelopStage._update_link_dict(self.dev_path, updates={self.reference_link: self.path})
+            llnl.util.symlink.symlink(self.dev_path, DevelopStage._dev_path_link(self.path))
             llnl.util.symlink.symlink(self.path, self.reference_link)
         except (llnl.util.symlink.AlreadyExistsError, FileExistsError):
             pass
 
+    @staticmethod
+    def _dev_path_link(stage_path):
+        return os.path.join(stage_path, ".dev-path-link")
+
+    @staticmethod
+    def _update_link_dict(dev_path, updates=None):
+        path = os.path.join(dev_path, ".spack-develop-links")
+        import json
+
+        new_refs = {}
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                link_to_stage = json.load(f)
+            for link_path, stage_path in link_to_stage.items():
+                if not llnl.util.symlink.islink(link_path):
+                    continue
+                target = llnl.util.symlink.readlink(link_path)
+                if target == stage_path and not os.path.exists(stage_path):
+                    os.unlink(link_path)
+                else:
+                    new_refs[link_path] = stage_path
+        if updates:
+            new_refs.update(updates)
+        if new_refs:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(new_refs, f)
+
+    @staticmethod
+    def _rm_stage_path(stage_path):
+        """Called on any stage path. Returns whether the stage was
+        a DevelopStage. It does this because it needs to delete things
+        in a particular order: when symlinks are updated in the dev_path
+        they are only removed if the target stage path no longer exists,
+        so the stage path needs to be gone then; we need to make sure to
+        figure out where the dev_path is though before we do that, and
+        since we do it without constructing a DevelopStage object, we
+        need to read the symlink inside of the stage path.
+        """
+        if not os.path.exists(stage_path):
+            return False
+
+        dev_path_link = DevelopStage._dev_path_link(stage_path)
+
+        if os.path.exists(dev_path_link):
+            dev_path = llnl.util.symlink.readlink(dev_path_link)
+        else:
+            return False
+
+        try:
+            # Destroy all files, but do not follow symlinks
+            shutil.rmtree(stage_path)
+        except FileNotFoundError:
+            pass
+
+        DevelopStage._update_link_dict(dev_path)
+        return True
+
     def destroy(self):
-        # Destroy all files, but do not follow symlinks
-        try:
-            shutil.rmtree(self.path)
-        except FileNotFoundError:
-            pass
-        try:
-            os.remove(self.reference_link)
-        except FileNotFoundError:
-            pass
+        DevelopStage._rm_stage_path(self.path)
+
         self.created = False
 
     def restage(self):
@@ -884,10 +940,14 @@ def purge():
         for stage_dir in os.listdir(root):
             if stage_dir.startswith(stage_prefix) or stage_dir == ".lock":
                 stage_path = os.path.join(root, stage_dir)
-                if os.path.isdir(stage_path):
-                    remove_linked_tree(stage_path)
-                else:
-                    os.remove(stage_path)
+
+                was_a_dev_stage = DevelopStage._rm_stage_path(stage_path)
+
+                if not was_a_dev_stage:
+                    if os.path.isdir(stage_path):
+                        remove_linked_tree(stage_path)
+                    else:
+                        os.remove(stage_path)
 
 
 def interactive_version_filter(
