@@ -77,8 +77,7 @@ class Gmake(Package, GNUMirrorPackage):
         ]
 
     def install(self, spec, prefix):
-        configure_path = join_path(self.stage.source_path, "configure")
-        configure = Executable(configure_path)
+        configure = Executable(join_path(self.stage.source_path, "configure"))
         with working_dir(self.build_directory, create=True):
             configure(f"--prefix={prefix}", *self.configure_args())
             if spec.satisfies("@:4.2.1"):  # generated files in build dir
