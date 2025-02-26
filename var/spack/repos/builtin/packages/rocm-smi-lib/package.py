@@ -98,7 +98,7 @@ class RocmSmiLib(CMakePackage):
         return args
 
     def setup_build_environment(self, env):
-        if self.spec.satisfies("@5.7: +asan"):
+        if self.spec.satisfies("@6.1: +asan"):
             env.set("CC", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang")
             env.set("CXX", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang++")
             env.set("ASAN_OPTIONS", "detect_leaks=0")
