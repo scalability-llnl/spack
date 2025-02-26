@@ -45,3 +45,9 @@ class PyRadicalUtils(PythonPackage):
         depends_on("py-setuptools")
         # https://github.com/radical-cybertools/radical.utils/issues/403
         depends_on("py-setuptools@:69.2", when="@:1.51")
+
+    def url_for_version(self, version):
+        if version >= Version("1.48.1"):
+            return super().url_for_version(version)
+        self.pypi = "radical.utils/radical.utils-{0}.tar.gz".format(version)
+        return self.url()

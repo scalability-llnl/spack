@@ -44,3 +44,9 @@ class PyRadicalEntk(PythonPackage):
     depends_on("python@3.6:", type=("build", "run"), when="@:1.52")
 
     depends_on("py-setuptools", type="build")
+
+    def url_for_version(self, version):
+        if version >= Version("1.48.1"):
+            return super().url_for_version(version)
+        self.pypi = "radical.entk/radical.entk-{0}.tar.gz".format(version)
+        return self.url()

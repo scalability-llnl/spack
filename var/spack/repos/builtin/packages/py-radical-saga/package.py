@@ -43,3 +43,9 @@ class PyRadicalSaga(PythonPackage):
     depends_on("py-apache-libcloud", type=("build", "run"), when="@:1.60")
     depends_on("py-parse", type=("build", "run"))
     depends_on("py-setuptools", type="build")
+
+    def url_for_version(self, version):
+        if version >= Version("1.47.1"):
+            return super().url_for_version(version)
+        self.pypi = "radical.saga/radical.saga-{0}.tar.gz".format(version)
+        return self.url()

@@ -53,3 +53,9 @@ class PyRadicalPilot(PythonPackage):
     depends_on("py-dill", type=("build", "run"), when="@1.14:")
     depends_on("py-setproctitle", type=("build", "run"))
     depends_on("py-setuptools", type="build")
+
+    def url_for_version(self, version):
+        if version >= Version("1.49.3"):
+            return super().url_for_version(version)
+        self.pypi = "radical.pilot/radical.pilot-{0}.tar.gz".format(version)
+        return self.url()
