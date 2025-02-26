@@ -1427,7 +1427,7 @@ class Environment:
         """Returns true when the spec is built from local sources"""
         return spec.name in self.dev_specs
 
-    def concretize(self, force=False, tests=False):
+    def concretize(self, tests=False):
         """Concretize user_specs in this environment.
 
         Only concretizes specs that haven't been concretized yet unless
@@ -1437,8 +1437,6 @@ class Environment:
         write out a lockfile containing concretized specs.
 
         Arguments:
-            force (bool): re-concretize ALL specs, even those that were
-               already concretized
             tests (bool or list or set): False to run no tests, True to test
                 all packages, or a list of package names to run tests for some
 
@@ -1446,7 +1444,7 @@ class Environment:
             List of specs that have been concretized. Each entry is a tuple of
             the user spec and the corresponding concretized spec.
         """
-        if force:
+        if spack.config.get("concretizer:force", False):
             # Clear previously concretized specs
             self.concretized_user_specs = []
             self.concretized_order = []
