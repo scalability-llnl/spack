@@ -197,6 +197,8 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         "tests": [False, "Build for tests"],
     }
 
+    conflicts("~cuda_lambda", when="@4.1: +cuda ~deprecated_code")
+
     spack_micro_arch_map = {
         "thunderx2": "THUNDERX2",
         "zen": "ZEN",
@@ -399,7 +401,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         return smam[target.name]
 
     def append_args(self, cmake_prefix, cmake_options, spack_options):
-        variant_to_cmake_option = {"rocm": "hip"}
+        variant_to_cmake_option = {"rocm": "hip", "deprecated_code": "deprecated_code_4"}
         for variant_name in cmake_options:
             opt = variant_to_cmake_option.get(variant_name, variant_name)
             optname = f"Kokkos_{cmake_prefix}_{opt.upper()}"
