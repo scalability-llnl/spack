@@ -15,23 +15,25 @@ class Cryodrgn(PythonPackage):
 
     license("GPL-3.0-only", checked_by="A-N-Other")
 
+    version("3.4.3", sha256="eadc41190d3c6abe983164db299ebb0d7340840281774eaaea1a12627a80dc10")
     version("2.3.0", sha256="9dd75967fddfa56d6b2fbfc56933c50c9fb994326112513f223e8296adbf0afc")
 
-    depends_on("python@3.7:", type=("build", "run"))
+    depends_on("python@3.9:3.11", type=("build", "run"))
 
     depends_on("py-setuptools@61:", type="build")
     depends_on("py-setuptools-scm@6.2:", type="build")
 
     depends_on("py-torch@1:", type=("build", "run"))
     depends_on("py-pandas@:1", type=("build", "run"))
-    depends_on("py-numpy", type=("build", "run"))
-    depends_on("py-matplotlib", type=("build", "run"))
+    depends_on("py-numpy@:1.26", type=("build", "run"))
+    depends_on("py-matplotlib@:3.6", type=("build", "run"))
     depends_on("py-pyyaml", type=("build", "run"))
     depends_on("py-scipy@1.3.1:", type=("build", "run"))
     depends_on("py-scikit-learn", type=("build", "run"))
     depends_on("py-seaborn@:0.11", type=("build", "run"))
     depends_on("py-cufflinks", type=("build", "run"))
     depends_on("py-jupyterlab", type=("build", "run"))
+    depends_on("py-notebook@:6", type=("build", "run"))
     depends_on("py-umap-learn", type=("build", "run"))
     depends_on("py-ipywidgets@:7", type=("build", "run"))
     depends_on("py-healpy", type=("build", "run"))
