@@ -1658,13 +1658,16 @@ class SpackSolverSetup:
                     return requirements + [fn.attr("track_dependencies", input_spec.name)]
 
                 def dependency_holds(input_spec, requirements):
-                    return remove_node(input_spec, requirements) + [
+                    result = remove_node(input_spec, requirements) + [
                         fn.attr(
                             "dependency_holds", pkg.name, input_spec.name, dt.flag_to_string(t)
                         )
                         for t in dt.ALL_FLAGS
                         if t & depflag
                     ]
+                    if input_spec.name not in pkg.extendees:
+                        return result
+                    return result + [fn.attr("extends", pkg.name, input_spec.name)]
 
                 context = ConditionContext()
                 context.source = ConstraintOrigin.append_type_suffix(

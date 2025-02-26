@@ -14,6 +14,8 @@ class PythonVenv(Package):
     homepage = "https://docs.python.org/3/library/venv.html"
     has_code = False
 
+    tags = ["build-tools"]
+
     maintainers("haampie")
 
     version("1.0")

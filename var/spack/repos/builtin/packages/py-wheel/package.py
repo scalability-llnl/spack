@@ -13,6 +13,8 @@ class PyWheel(Package, PythonExtension):
     url = "https://files.pythonhosted.org/packages/py3/w/wheel/wheel-0.41.2-py3-none-any.whl"
     list_url = "https://pypi.org/simple/wheel/"
 
+    tags = ["build-tools"]
+
     version("0.41.2", sha256="75909db2664838d015e3d9139004ee16711748a52c8f336b52882266540215d8")
     version("0.37.1", sha256="4bdcd7d840138086126cd09254dc6195fb4fc6f01c050a1d7236f2630db1d22a")
     version("0.37.0", sha256="21014b2bd93c6d0034b6ba5d35e4eb284340e09d63c59aef6fc14b0f346146fd")
