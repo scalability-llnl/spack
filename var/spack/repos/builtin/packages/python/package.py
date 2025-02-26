@@ -621,7 +621,10 @@ class Python(Package):
         copy_tree(tools_dir, prefix.Tools)
         lib_dir = os.path.join(proj_root, "Lib")
         copy_tree(lib_dir, prefix.Lib)
-        pyconfig = os.path.join(proj_root, "PC", "pyconfig.h")
+        if self.spec.satisfies("@3.13:"):
+            pyconfig = os.path.join(pcbuild_root, platform.machine().lower(), "pyconfig.h")
+        else:
+            pyconfig = os.path.join(proj_root, "PC", "pyconfig.h")
         copy(pyconfig, prefix.include)
         shared_libraries = []
         shared_libraries.extend(glob.glob("%s\\*.exe" % build_root))
