@@ -48,6 +48,7 @@ import spack.spec
 import spack.store
 import spack.url
 import spack.util.environment
+import spack.util.executable
 import spack.util.path
 import spack.util.web
 import spack.variant
@@ -1368,6 +1369,51 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
     @property
     def home(self):
         return self.prefix
+
+    @property
+    def command(self) -> spack.util.executable.Executable:
+        home = self.home
+        spec = self.spec
+        path = os.path.join(home.bin, spec.name)
+
+        if fsys.is_exe(path):
+            return spack.util.executable.Executable(path)
+        raise RuntimeError(f"Unable to locate {spec.name} command in {home.bin}")
+
+    def headers(self, *, query: spack.spec.QueryState) -> fsys.HeaderList:
+        spec = self.spec
+        home = self.home
+        headers = fsys.find_headers("*", root=home.include, recursive=True)
+
+        if headers:
+            return headers
+        raise spack.error.NoHeadersError(f"Unable to locate {spec.name} headers in {home}")
+
+    def libs(self, *, query: spack.spec.QueryState) -> fsys.LibraryList:
+        spec = self.spec
+        home = self.home
+        name = self.spec.name.replace("-", "?")
+
+        # Avoid double 'lib' for packages whose names already start with lib
+        if not name.startswith("lib") and not spec.satisfies("platform=windows"):
+            name = "lib" + name
+
+        # If '+shared' search only for shared library; if '~shared' search only for
+        # static library; otherwise, first search for shared and then for static.
+        search_shared = (
+            [True] if ("+shared" in spec) else ([False] if ("~shared" in spec) else [True, False])
+        )
+
+        for shared in search_shared:
+            # Since we are searching for link libraries, on Windows search only for
+            # ".Lib" extensions by default as those represent import libraries for implicit links.
+            libs = fsys.find_libraries(name, home, shared=shared, recursive=True, runtime=False)
+            if libs:
+                return libs
+
+        raise spack.error.NoLibrariesError(
+            f"Unable to recursively locate {spec.name} libraries in {home}"
+        )
 
     @property  # type: ignore[misc]
     @memoized
