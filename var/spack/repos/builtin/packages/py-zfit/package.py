@@ -19,6 +19,8 @@ class PyZfit(PythonPackage):
 
     tags = ["likelihood", "statistics", "inference", "fitting", "hep"]
 
+    version("0.20.3", sha256="c300ce5d4dd75d351184c4e10c1b1afb7969f99be1f803e8dd50b09ecc951406")
+    version("0.20.2", sha256="f822ff857346fe5b244e0a13f6fa2f2216c60d8c93f512405890289e2fbfac97")
     version("0.18.2", sha256="099b111e135937966b4c6342c7738731f112aea33e1b9f4a9785d2eac9e530f1")
     version("0.18.1", sha256="fbc6b3a636d8dc74fb2e69dfec5855f534c4583ec18efac9e9107ad45b18eb43")
     version("0.18.0", sha256="21d9479480f74945c67707b715780693bd4e94062c551bf41fe04a2eddb47fab")
@@ -27,7 +29,8 @@ class PyZfit(PythonPackage):
     version("0.15.5", sha256="00a1138429e8a7f830c9e229b9c0bcd6071b95dadd8c87eb81191079fb679225")
     version("0.14.1", sha256="66d1e349403f1d6c6350138d0f2b422046bcbdfb34fd95453dadae29a8b0c98a")
 
-    depends_on("python@3.9:3.11", type=("build", "run"))
+    depends_on("python@3.9:3.12", type=("build", "run"), when="@0.20:")
+    depends_on("python@3.9:3.11", type=("build", "run"), when="@0.18:")
     depends_on("py-setuptools@42:", type="build")
     depends_on("py-setuptools-scm-git-archive", type="build")
     depends_on("py-setuptools-scm@3.4:+toml", type="build")
@@ -37,6 +40,8 @@ class PyZfit(PythonPackage):
 
     # TODO: remove "build" once fixed in spack that tests need "run", not "build"
     with default_args(type=("build", "run")):
+        depends_on("py-tensorflow@2.16", when="@0.20:")
+        depends_on("py-tensorflow-probability@0.24", when="@0.20:")
 
         depends_on("py-tensorflow@2.15", type=("run"), when="@0.18")
         depends_on("py-tensorflow-probability@0.23", type=("run"), when="@0.18")
