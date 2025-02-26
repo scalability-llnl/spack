@@ -3258,7 +3258,7 @@ class Spec:
                     # Here we might get an abstract spec
                     pkg_cls = spack.repo.PATH.get_pkg_class(non_virtual_spec.fullname)
                     pkg = pkg_cls(non_virtual_spec)
-                except spack.repo.UnknownEntityError:
+                except spack.error.UnknownEntityError:
                     # If we can't get package info on this spec, don't treat
                     # it as a provider of this vdep.
                     return False
@@ -3373,7 +3373,7 @@ class Spec:
                     # Here we might get an abstract spec
                     pkg_cls = spack.repo.PATH.get_pkg_class(self.fullname)
                     pkg = pkg_cls(self)
-                except spack.repo.UnknownEntityError:
+                except spack.error.UnknownEntityError:
                     # If we can't get package info on this spec, don't treat
                     # it as a provider of this vdep.
                     return False

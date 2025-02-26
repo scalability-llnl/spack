@@ -560,7 +560,7 @@ def dump_packages(spec: "spack.spec.Spec", path: str) -> None:
             try:
                 source_repo = spack.repo.from_path(source_repo_root)
                 source_pkg_dir = source_repo.dirname_for_package_name(node.name)
-            except spack.repo.RepoError as err:
+            except spack.error.RepoError as err:
                 tty.debug(f"Failed to create source repo for {node.name}: {str(err)}")
                 source_pkg_dir = None
                 tty.warn(f"Warning: Couldn't copy in provenance for {node.name}")
