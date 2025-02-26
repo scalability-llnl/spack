@@ -401,9 +401,9 @@ class Openmpi(AutotoolsPackage, CudaPackage):
         "1.0", sha256="cf75e56852caebe90231d295806ac3441f37dc6d9ad17b1381791ebb78e21564"
     )  # libmpi.so.0.0.0
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
 
     patch("ad_lustre_rwcontig_open_source.patch", when="@1.6.5")
     patch("llnl-platforms.patch", when="@1.6.5")
@@ -971,37 +971,37 @@ with '-Wl,-commons,use_dylibs' and without
     def with_or_without_fca(self, activated):
         if not activated:
             return "--without-fca"
-        return "--with-fca={0}".format(self.spec["fca"].prefix)
+        return f"--with-fca={self.spec['fca'].prefix}"
 
     def with_or_without_hcoll(self, activated):
         if not activated:
             return "--without-hcoll"
-        return "--with-hcoll={0}".format(self.spec["hcoll"].prefix)
+        return f"--with-hcoll={self.spec['hcoll'].prefix}"
 
     def with_or_without_ucc(self, activated):
         if not activated:
             return "--without-ucc"
-        return "--with-ucc={0}".format(self.spec["ucc"].prefix)
+        return f"--with-ucc={self.spec['ucc'].prefix}"
 
     def with_or_without_xpmem(self, activated):
         if not activated:
             return "--without-xpmem"
-        return "--with-xpmem={0}".format(self.spec["xpmem"].prefix)
+        return f"--with-xpmem={self.spec['xpmem'].prefix}"
 
     def with_or_without_knem(self, activated):
         if not activated:
             return "--without-knem"
-        return "--with-knem={0}".format(self.spec["knem"].prefix)
+        return f"--with-knem={self.spec['knem'].prefix}"
 
     def with_or_without_lsf(self, activated):
         if not activated:
             return "--without-lsf"
-        return "--with-lsf={0}".format(self.spec["lsf"].prefix)
+        return f"--with-lsf={self.spec['lsf'].prefix}"
 
     def with_or_without_tm(self, activated):
         if not activated:
             return "--without-tm"
-        return "--with-tm={0}".format(self.spec["pbs"].prefix)
+        return f"--with-tm={self.spec['pbs'].prefix}"
 
     @run_before("autoreconf")
     def die_without_fortran(self):

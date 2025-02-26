@@ -233,21 +233,27 @@ def test_display_json_deps(database, capsys):
 @pytest.mark.db
 def test_find_format(database, config):
     output = find("--format", "{name}-{^mpi.name}", "mpileaks")
-    assert set(output.strip().split("\n")) == set(
-        ["mpileaks-zmpi", "mpileaks-mpich", "mpileaks-mpich2"]
-    )
+    assert set(output.strip().split("\n")) == {
+        "mpileaks-zmpi",
+        "mpileaks-mpich",
+        "mpileaks-mpich2",
+    }
 
     output = find("--format", "{name}-{version}-{compiler.name}-{^mpi.name}", "mpileaks")
     assert "installed package" not in output
-    assert set(output.strip().split("\n")) == set(
-        ["mpileaks-2.3-gcc-zmpi", "mpileaks-2.3-gcc-mpich", "mpileaks-2.3-gcc-mpich2"]
-    )
+    assert set(output.strip().split("\n")) == {
+        "mpileaks-2.3-gcc-zmpi",
+        "mpileaks-2.3-gcc-mpich",
+        "mpileaks-2.3-gcc-mpich2",
+    }
 
     output = find("--format", "{name}-{^mpi.name}-{hash:7}", "mpileaks")
     elements = output.strip().split("\n")
-    assert set(e[:-7] for e in elements) == set(
-        ["mpileaks-zmpi-", "mpileaks-mpich-", "mpileaks-mpich2-"]
-    )
+    assert set(e[:-7] for e in elements) == {
+        "mpileaks-zmpi-",
+        "mpileaks-mpich-",
+        "mpileaks-mpich2-",
+    }
 
     # hashes are in base32
     for e in elements:
@@ -348,7 +354,7 @@ def test_find_prefix_in_env(
     """Test `find` formats requiring concrete specs work in environments."""
     env("create", "test")
     with ev.read("test"):
-        install("--add", "mpileaks")
+        install("--fake", "--add", "mpileaks")
         find("-p")
         find("-l")
         find("-L")

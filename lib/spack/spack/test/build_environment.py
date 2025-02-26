@@ -388,7 +388,7 @@ def test_wrapper_variables(
     root = spack.concretize.concretize_one("dt-diamond")
 
     for s in root.traverse():
-        s.prefix = "/{0}-prefix/".format(s.name)
+        s.set_prefix(f"/{s.name}-prefix/")
 
     dep_pkg = root["dt-diamond-left"].package
     dep_lib_paths = ["/test/path/to/ex1.so", "/test/path/to/subdir/ex2.so"]
@@ -396,7 +396,7 @@ def test_wrapper_variables(
     dep_libs = LibraryList(dep_lib_paths)
 
     dep2_pkg = root["dt-diamond-right"].package
-    dep2_pkg.spec.prefix = str(installation_dir_with_headers)
+    dep2_pkg.spec.set_prefix(str(installation_dir_with_headers))
 
     setattr(dep_pkg, "libs", dep_libs)
     try:
@@ -542,7 +542,7 @@ def test_build_jobs_sequential_is_sequential():
         spack.config.determine_number_of_jobs(
             parallel=False,
             max_cpus=8,
-            config=spack.config.Configuration(
+            config=spack.config.create_from(
                 spack.config.InternalConfigScope("command_line", {"config": {"build_jobs": 8}}),
                 spack.config.InternalConfigScope("defaults", {"config": {"build_jobs": 8}}),
             ),
@@ -556,7 +556,7 @@ def test_build_jobs_command_line_overrides():
         spack.config.determine_number_of_jobs(
             parallel=True,
             max_cpus=1,
-            config=spack.config.Configuration(
+            config=spack.config.create_from(
                 spack.config.InternalConfigScope("command_line", {"config": {"build_jobs": 10}}),
                 spack.config.InternalConfigScope("defaults", {"config": {"build_jobs": 1}}),
             ),
@@ -567,7 +567,7 @@ def test_build_jobs_command_line_overrides():
         spack.config.determine_number_of_jobs(
             parallel=True,
             max_cpus=100,
-            config=spack.config.Configuration(
+            config=spack.config.create_from(
                 spack.config.InternalConfigScope("command_line", {"config": {"build_jobs": 10}}),
                 spack.config.InternalConfigScope("defaults", {"config": {"build_jobs": 100}}),
             ),
@@ -581,7 +581,7 @@ def test_build_jobs_defaults():
         spack.config.determine_number_of_jobs(
             parallel=True,
             max_cpus=10,
-            config=spack.config.Configuration(
+            config=spack.config.create_from(
                 spack.config.InternalConfigScope("defaults", {"config": {"build_jobs": 1}})
             ),
         )
@@ -591,7 +591,7 @@ def test_build_jobs_defaults():
         spack.config.determine_number_of_jobs(
             parallel=True,
             max_cpus=10,
-            config=spack.config.Configuration(
+            config=spack.config.create_from(
                 spack.config.InternalConfigScope("defaults", {"config": {"build_jobs": 100}})
             ),
         )

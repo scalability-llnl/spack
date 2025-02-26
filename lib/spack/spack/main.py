@@ -47,6 +47,8 @@ import spack.util.debug
 import spack.util.environment
 import spack.util.lock
 
+from .enums import ConfigScopePriority
+
 #: names of profile statistics
 stat_names = pstats.Stats.sort_arg_dict_default
 
@@ -872,14 +874,19 @@ def add_command_line_scopes(
         scopes = ev.environment_path_scopes(name, path)
         if scopes is None:
             if os.path.isdir(path):  # directory with config files
-                cfg.push_scope(spack.config.DirectoryConfigScope(name, path, writable=False))
-                spack.config._add_platform_scope(cfg, name, path, writable=False)
+                cfg.push_scope(
+                    spack.config.DirectoryConfigScope(name, path, writable=False),
+                    priority=ConfigScopePriority.CUSTOM,
+                )
+                spack.config._add_platform_scope(
+                    cfg, name, path, priority=ConfigScopePriority.CUSTOM, writable=False
+                )
                 continue
             else:
                 raise spack.error.ConfigError(f"Invalid configuration scope: {path}")
 
         for scope in scopes:
-            cfg.push_scope(scope)
+            cfg.push_scope(scope, priority=ConfigScopePriority.CUSTOM)
 
 
 def _main(argv=None):
@@ -952,7 +959,9 @@ def _main(argv=None):
     # Push scopes from the command line last
     if args.config_scopes:
         add_command_line_scopes(spack.config.CONFIG, args.config_scopes)
-    spack.config.CONFIG.push_scope(spack.config.InternalConfigScope("command_line"))
+    spack.config.CONFIG.push_scope(
+        spack.config.InternalConfigScope("command_line"), priority=ConfigScopePriority.COMMAND_LINE
+    )
     setup_main_options(args)
 
     # ------------------------------------------------------------------------
@@ -998,6 +1007,7 @@ def finish_parse_and_run(parser, cmd_name, main_args, env_format_error):
     args, unknown = parser.parse_known_args(main_args.command)
     # we need to inherit verbose since the install command checks for it
     args.verbose = main_args.verbose
+    args.lines = main_args.lines
 
     # Now that we know what command this is and what its args are, determine
     # whether we can continue with a bad environment and raise if not.

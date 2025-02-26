@@ -218,8 +218,6 @@ spack env activate --temp
 spack config add "config:ccache:false"
 
 contains 'True' spack -c config:ccache:true python -c "import spack.config;print(spack.config.CONFIG.get('config:ccache'))"
-contains 'True' spack -C "$SHARE_DIR/qa/configuration" python -c "import spack.config;print(spack.config.CONFIG.get('config:ccache'))"
 succeeds spack -c config:ccache:true python "$SHARE_DIR/qa/config_state.py"
-succeeds spack -C "$SHARE_DIR/qa/configuration" python "$SHARE_DIR/qa/config_state.py"
 
 spack env deactivate

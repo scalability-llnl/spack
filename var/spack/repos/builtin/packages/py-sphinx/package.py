@@ -11,10 +11,13 @@ class PySphinx(PythonPackage):
     homepage = "https://www.sphinx-doc.org/en/master/"
     pypi = "Sphinx/sphinx-7.1.0.tar.gz"
 
+    license("BSD-2-Clause")
     maintainers("adamjstewart")
 
-    license("BSD-2-Clause")
-
+    version("8.2.0", sha256="5b0067853d6e97f3fa87563e3404ebd008fce03525b55b25da90706764da6215")
+    version("8.1.3", sha256="43c1911eecb0d3e161ad78611bc905d1ad0e523e4ddc202a58a821773dc4c927")
+    version("8.1.2", sha256="b19e24b51d1926567e0bb8f4fbd372e40cb19f1f62bcba91b45c9ee0cdd8874e")
+    version("8.1.1", sha256="65e0ee8f76c9cbfd53ec8466ac8c87a73f9ed911767a8ef36c3bf3c522242bcd")
     version("8.1.0", sha256="109454425dbf4c78ecfdd481e56f078376d077edbda29804dba05c5161c8de06")
     version("8.0.2", sha256="0cce1ddcc4fd3532cf1dd283bc7d886758362c5c1de6598696579ce96d8ffa5b")
     version("8.0.1", sha256="7f762c18cfc1d4493e42f4a06a204c1ca55806c53f80a059e208e88d0668d661")
@@ -101,9 +104,12 @@ class PySphinx(PythonPackage):
     version("1.4.5", sha256="c5df65d97a58365cbf4ea10212186a9a45d89c61ed2c071de6090cdf9ddb4028")
     version("1.3.1", sha256="1a6e5130c2b42d2de301693c299f78cc4bd3501e78b610c08e45efc70e2b5114")
 
-    depends_on("py-flit-core@3.7:", when="@5.2:", type="build")
+    with default_args(type="build"):
+        depends_on("py-flit-core@3.10:", when="@8.2:")
+        depends_on("py-flit-core@3.7:", when="@5.2:")
 
     with default_args(type=("build", "run")):
+        depends_on("python@3.11:", when="@8.2:")
         depends_on("python@3.10:", when="@8:")
         depends_on("python@3.9:", when="@7.2:")
         depends_on("python@3.8:", when="@6:")
@@ -156,10 +162,10 @@ class PySphinx(PythonPackage):
         depends_on("py-requests@2.25:", when="@6:")
         depends_on("py-requests@2.5:", when="@2:")
         depends_on("py-requests@2.4:", when="@1.5.2:")
+        depends_on("py-roman-numerals-py@1:", when="@8.2:")
         depends_on("py-packaging@23:", when="@7.4:")
         depends_on("py-packaging@21:", when="@5.2:")
         depends_on("py-packaging", when="@1.7:")
-        depends_on("py-tomli@2:", when="@7.3.1: ^python@:3.10")
         depends_on("py-colorama@0.4.6:", when="@7.4: platform=windows")
         depends_on("py-colorama@0.4.5:", when="@5.2: platform=windows")
         depends_on("py-colorama@0.3.5:", when="platform=windows")
@@ -175,6 +181,7 @@ class PySphinx(PythonPackage):
         depends_on("py-sphinxcontrib-websupport", when="@1.6:1")
         depends_on("py-six@1.5:", when="@:1")
         depends_on("py-sphinx-rtd-theme@0.1:", when="@:1.3")
+        depends_on("py-tomli@2:", when="@7.3.1: ^python@:3.10")
 
     def url_for_version(self, version):
         url = "https://files.pythonhosted.org/packages/source/S/Sphinx/{}-{}.tar.gz"

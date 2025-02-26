@@ -194,7 +194,7 @@ def test_diff_cmd(install_mockery, mock_fetch, mock_archive, mock_packages):
 
 def test_load_first(install_mockery, mock_fetch, mock_archive, mock_packages):
     """Test with and without the --first option"""
-    install_cmd("mpileaks")
+    install_cmd("--fake", "mpileaks")
 
     # Only one version of mpileaks will work
     diff_cmd("mpileaks", "mpileaks")

@@ -99,7 +99,6 @@ import spack.store
 import spack.traverse
 import spack.util.executable
 import spack.util.hash
-import spack.util.module_cmd as md
 import spack.util.prefix
 import spack.util.spack_json as sjson
 import spack.util.spack_yaml as syaml
@@ -799,7 +798,7 @@ class DependencySpec:
         self.depflag = new
         return True
 
-    def update_virtuals(self, virtuals: Tuple[str, ...]) -> bool:
+    def update_virtuals(self, virtuals: Iterable[str]) -> bool:
         """Update the list of provided virtuals"""
         old = self.virtuals
         self.virtuals = tuple(sorted(set(virtuals).union(self.virtuals)))
@@ -2119,20 +2118,20 @@ class Spec:
         return self.cformat(spec_format)
 
     @property
-    def prefix(self):
+    def prefix(self) -> spack.util.prefix.Prefix:
         if not self._concrete:
-            raise spack.error.SpecError("Spec is not concrete: " + str(self))
+            raise spack.error.SpecError(f"Spec is not concrete: {self}")
 
         if self._prefix is None:
-            upstream, record = spack.store.STORE.db.query_by_spec_hash(self.dag_hash())
+            _, record = spack.store.STORE.db.query_by_spec_hash(self.dag_hash())
             if record and record.path:
-                self.prefix = record.path
+                self.set_prefix(record.path)
             else:
-                self.prefix = spack.store.STORE.layout.path_for_spec(self)
+                self.set_prefix(spack.store.STORE.layout.path_for_spec(self))
+        assert self._prefix is not None
         return self._prefix
 
-    @prefix.setter
-    def prefix(self, value):
+    def set_prefix(self, value: str) -> None:
         self._prefix = spack.util.prefix.Prefix(llnl.path.convert_to_platform_path(value))
 
     def spec_hash(self, hash):
@@ -2738,7 +2737,7 @@ class Spec:
         return spec_builder(spec_dict)
 
     @staticmethod
-    def from_dict(data):
+    def from_dict(data) -> "Spec":
         """Construct a spec from JSON/YAML.
 
         Args:
@@ -2761,7 +2760,7 @@ class Spec:
         return spec
 
     @staticmethod
-    def from_yaml(stream):
+    def from_yaml(stream) -> "Spec":
         """Construct a spec from YAML.
 
         Args:
@@ -2771,7 +2770,7 @@ class Spec:
         return Spec.from_dict(data)
 
     @staticmethod
-    def from_json(stream):
+    def from_json(stream) -> "Spec":
         """Construct a spec from JSON.
 
         Args:
@@ -2781,7 +2780,7 @@ class Spec:
             data = sjson.load(stream)
             return Spec.from_dict(data)
         except Exception as e:
-            raise sjson.SpackJSONError("error parsing JSON spec:", str(e)) from e
+            raise sjson.SpackJSONError("error parsing JSON spec:", e) from e
 
     @staticmethod
     def extract_json_from_clearsig(data):
@@ -2844,94 +2843,6 @@ class Spec:
         ), "patches should always be assigned with a patch variant."
 
         return True
-
-    @staticmethod
-    def inject_patches_variant(root):
-        # This dictionary will store object IDs rather than Specs as keys
-        # since the Spec __hash__ will change as patches are added to them
-        spec_to_patches = {}
-        for s in root.traverse():
-            # After concretizing, assign namespaces to anything left.
-            # Note that this doesn't count as a "change".  The repository
-            # configuration is constant throughout a spack run, and
-            # normalize and concretize evaluate Packages using Repo.get(),
-            # which respects precedence.  So, a namespace assignment isn't
-            # changing how a package name would have been interpreted and
-            # we can do it as late as possible to allow as much
-            # compatibility across repositories as possible.
-            if s.namespace is None:
-                s.namespace = spack.repo.PATH.repo_for_pkg(s.name).namespace
-
-            if s.concrete:
-                continue
-
-            # Add any patches from the package to the spec.
-            patches = set()
-            for cond, patch_list in spack.repo.PATH.get_pkg_class(s.fullname).patches.items():
-                if s.satisfies(cond):
-                    for patch in patch_list:
-                        patches.add(patch)
-            if patches:
-                spec_to_patches[id(s)] = patches
-
-        # Also record all patches required on dependencies by
-        # depends_on(..., patch=...)
-        for dspec in root.traverse_edges(deptype=all, cover="edges", root=False):
-            if dspec.spec.concrete:
-                continue
-
-            pkg_deps = spack.repo.PATH.get_pkg_class(dspec.parent.fullname).dependencies
-
-            patches = []
-            for cond, deps_by_name in pkg_deps.items():
-                if not dspec.parent.satisfies(cond):
-                    continue
-
-                dependency = deps_by_name.get(dspec.spec.name)
-                if not dependency:
-                    continue
-
-                for pcond, patch_list in dependency.patches.items():
-                    if dspec.spec.satisfies(pcond):
-                        patches.extend(patch_list)
-
-            if patches:
-                all_patches = spec_to_patches.setdefault(id(dspec.spec), set())
-                for patch in patches:
-                    all_patches.add(patch)
-
-        for spec in root.traverse():
-            if id(spec) not in spec_to_patches:
-                continue
-
-            patches = list(lang.dedupe(spec_to_patches[id(spec)]))
-            mvar = spec.variants.setdefault("patches", vt.MultiValuedVariant("patches", ()))
-            mvar.value = tuple(p.sha256 for p in patches)
-            # FIXME: Monkey patches mvar to store patches order
-            full_order_keys = list(tuple(p.ordering_key) + (p.sha256,) for p in patches)
-            ordered_hashes = sorted(full_order_keys)
-            tty.debug(
-                "Ordered hashes [{0}]: ".format(spec.name)
-                + ", ".join("/".join(str(e) for e in t) for t in ordered_hashes)
-            )
-            mvar._patches_in_order_of_appearance = list(t[-1] for t in ordered_hashes)
-
-    @staticmethod
-    def ensure_external_path_if_external(external_spec):
-        if external_spec.external_modules and not external_spec.external_path:
-            compiler = spack.compilers.compiler_for_spec(
-                external_spec.compiler, external_spec.architecture
-            )
-            for mod in compiler.modules:
-                md.load_module(mod)
-
-            # Get the path from the module the package can override the default
-            # (this is mostly needed for Cray)
-            pkg_cls = spack.repo.PATH.get_pkg_class(external_spec.name)
-            package = pkg_cls(external_spec)
-            external_spec.external_path = getattr(
-                package, "external_prefix", md.path_from_modules(external_spec.external_modules)
-            )
 
     @staticmethod
     def ensure_no_deprecated(root):
@@ -4704,17 +4615,6 @@ class VariantMap(lang.HashableMap):
 
         return changed
 
-    @property
-    def concrete(self):
-        """Returns True if the spec is concrete in terms of variants.
-
-        Returns:
-            bool: True or False
-        """
-        return self.spec._concrete or all(
-            v in self for v in spack.repo.PATH.get_pkg_class(self.spec.fullname).variant_names()
-        )
-
     def copy(self) -> "VariantMap":
         clone = VariantMap(self.spec)
         for name, variant in self.items():
@@ -4841,33 +4741,51 @@ def merge_abstract_anonymous_specs(*abstract_specs: Spec):
     return merged_spec
 
 
-def reconstruct_virtuals_on_edges(spec):
-    """Reconstruct virtuals on edges. Used to read from old DB and reindex.
+def reconstruct_virtuals_on_edges(spec: Spec) -> None:
+    """Reconstruct virtuals on edges. Used to read from old DB and reindex."""
+    virtuals_needed: Dict[str, Set[str]] = {}
+    virtuals_provided: Dict[str, Set[str]] = {}
+    for edge in spec.traverse_edges(cover="edges", root=False):
+        parent_key = edge.parent.dag_hash()
+        if parent_key not in virtuals_needed:
+            # Construct which virtuals are needed by parent
+            virtuals_needed[parent_key] = set()
+            try:
+                parent_pkg = edge.parent.package
+            except Exception as e:
+                warnings.warn(
+                    f"cannot reconstruct virtual dependencies on {edge.parent.name}: {e}"
+                )
+                continue
 
-    Args:
-        spec: spec on which we want to reconstruct virtuals
-    """
-    # Collect all possible virtuals
-    possible_virtuals = set()
-    for node in spec.traverse():
-        try:
-            possible_virtuals.update(
-                {x for x in node.package.dependencies if spack.repo.PATH.is_virtual(x)}
+            virtuals_needed[parent_key].update(
+                name
+                for name, when_deps in parent_pkg.dependencies_by_name(when=True).items()
+                if spack.repo.PATH.is_virtual(name)
+                and any(edge.parent.satisfies(x) for x in when_deps)
             )
-        except Exception as e:
-            warnings.warn(f"cannot reconstruct virtual dependencies on package {node.name}: {e}")
+
+        if not virtuals_needed[parent_key]:
             continue
 
-    # Assume all incoming edges to provider are marked with virtuals=
-    for vspec in possible_virtuals:
-        try:
-            provider = spec[vspec]
-        except KeyError:
-            # Virtual not in the DAG
+        child_key = edge.spec.dag_hash()
+        if child_key not in virtuals_provided:
+            virtuals_provided[child_key] = set()
+            try:
+                child_pkg = edge.spec.package
+            except Exception as e:
+                warnings.warn(
+                    f"cannot reconstruct virtual dependencies on {edge.parent.name}: {e}"
+                )
+                continue
+            virtuals_provided[child_key].update(x.name for x in child_pkg.virtuals_provided)
+
+        if not virtuals_provided[child_key]:
             continue
 
-        for edge in provider.edges_from_dependents():
-            edge.update_virtuals([vspec])
+        virtuals_to_add = virtuals_needed[parent_key] & virtuals_provided[child_key]
+        if virtuals_to_add:
+            edge.update_virtuals(virtuals_to_add)
 
 
 class SpecfileReaderBase:

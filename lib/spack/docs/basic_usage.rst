@@ -1761,19 +1761,24 @@ Verifying installations
 The ``spack verify`` command can be used to verify the validity of
 Spack-installed packages any time after installation.
 
+
+^^^^^^^^^^^^^^^^^^^^^^^^^
+``spack verify manifest``
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
 At installation time, Spack creates a manifest of every file in the
 installation prefix. For links, Spack tracks the mode, ownership, and
 destination. For directories, Spack tracks the mode, and
 ownership. For files, Spack tracks the mode, ownership, modification
-time, hash, and size. The Spack verify command will check, for every
-file in each package, whether any of those attributes have changed. It
-will also check for newly added files or deleted files from the
-installation prefix. Spack can either check all installed packages
+time, hash, and size. The ``spack verify manifest`` command will check,
+for every file in each package, whether any of those attributes have
+changed. It will also check for newly added files or deleted files from
+the installation prefix. Spack can either check all installed packages
 using the `-a,--all` or accept specs listed on the command line to
 verify.
 
-The ``spack verify`` command can also verify for individual files that
-they haven't been altered since installation time. If the given file
+The ``spack verify manifest`` command can also verify for individual files
+that they haven't been altered since installation time. If the given file
 is not in a Spack installation prefix, Spack will report that it is
 not owned by any package. To check individual files instead of specs,
 use the ``-f,--files`` option.
@@ -1787,6 +1792,22 @@ The ``spack verify`` command also accepts the ``-l,--local`` option to
 check only local packages (as opposed to those used transparently from
 ``upstream`` spack instances) and the ``-j,--json`` option to output
 machine-readable json data for any errors.
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+``spack verify libraries``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``spack verify libraries`` command can be used to verify that packages
+do not have accidental system dependencies. This command scans the install
+prefixes of packages for executables and shared libraries, and resolves
+their needed libraries in their RPATHs. When needed libraries cannot be
+located, an error is reported. This typically indicates that a package
+was linked against a system library, instead of a library provided by
+a Spack package.
+
+This verification can also be enabled as a post-install hook by setting
+``config:shared_linking:missing_library_policy`` to ``error`` or ``warn``
+in :ref:`config.yaml <config-yaml>`.
 
 -----------------------
 Filesystem requirements
