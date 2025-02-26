@@ -7,7 +7,9 @@ spack:
 
   packages:
     all:
-      require: '%gcc target=neoverse_v2'
+      require:
+      - "%gcc"
+      - target=neoverse_v2
       providers:
         blas: [openblas]
         mpi: [mpich]
