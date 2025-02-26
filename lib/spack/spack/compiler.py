@@ -12,6 +12,7 @@ import re
 import shutil
 import sys
 import tempfile
+from pathlib import Path
 from typing import Dict, List, Optional, Sequence
 
 import llnl.path
@@ -177,7 +178,7 @@ def _parse_non_system_link_dirs(string: str) -> List[str]:
 
     # Remove directories that do not exist. Some versions of the Cray compiler
     # report nonexistent directories
-    link_dirs = [d for d in link_dirs if os.path.isdir(d)]
+    link_dirs = [d for d in link_dirs if Path(d).is_dir()]
 
     # Return set of directories containing needed compiler libs, minus
     # system paths. Note that 'filter_system_paths' only checks for an
