@@ -17,6 +17,7 @@ class PyBlack(PythonPackage):
     license("MIT", checked_by="tgamblin")
     maintainers("spack/spack-releasers")
 
+    version("25.1.0", sha256="33496d5cd1222ad73391352b4ae8da15253c5de89b93a80b3e2c8d9a19ec2666")
     version("24.3.0", sha256="a0c9c4a0771afc6919578cec71ce82a3e31e054904e7197deacbc9382671c41f")
     version("24.2.0", sha256="bce4f25c27c3435e4dace4815bcb2008b87e167e3bf4ee47ccdc5ce906eb4894")
     version("24.1.1", sha256="48b5760dcbfe5cf97fd4fba23946681f3a81514c6ab8a45b50da67ac8fbc6c7b")
@@ -49,6 +50,7 @@ class PyBlack(PythonPackage):
     depends_on("py-hatch-fancy-pypi-readme", when="@22.10:", type="build")
 
     with default_args(type=("build", "run")):
+        depends_on("python@3.9:", when="@25.1:")
         depends_on("python@3.8:", when="@23.7:")
         depends_on("python@3.7:", when="@22.10:")
         depends_on("py-click@8:")
@@ -63,7 +65,9 @@ class PyBlack(PythonPackage):
 
         depends_on("py-colorama@0.4.3:", when="+colorama")
         depends_on("py-uvloop@0.15.2:", when="+uvloop")
-        depends_on("py-aiohttp@3.7.4:", when="+d")
+        with when("+d"):
+            depends_on("py-aiohttp@3.10:", when="@24.10")
+            depends_on("py-aiohttp@3.7.4:")
         depends_on("py-ipython@7.8:", when="+jupyter")
         depends_on("py-tokenize-rt@3.2:", when="+jupyter")
 
