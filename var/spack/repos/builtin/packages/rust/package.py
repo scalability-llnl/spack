@@ -30,11 +30,11 @@ class Rust(Package):
     #
     #     $ spack install -n rust@pre-release-version
     #
-    version("beta")
     version("master", branch="master", submodules=True)
     version("nightly")
 
     # Stable versions.
+    version("1.85.0", sha256="2f4f3142ffb7c8402139cfa0796e24baaac8b9fd3f96b2deec3b94b4045c6a8a")
     version("1.83.0", sha256="722d773bd4eab2d828d7dd35b59f0b017ddf9a97ee2b46c1b7f7fac5c8841c6e")
     version("1.81.0", sha256="872448febdff32e50c3c90a7e15f9bb2db131d13c588fe9071b0ed88837ccfa7")
     version("1.78.0", sha256="ff544823a5cb27f2738128577f1e7e00ee8f4c83f2a348781ae4fc355e91d5a9")
@@ -46,9 +46,6 @@ class Rust(Package):
     version("1.65.0", sha256="5828bb67f677eabf8c384020582b0ce7af884e1c84389484f7f8d00dd82c0038")
     version("1.60.0", sha256="20ca826d1cf674daf8e22c4f8c4b9743af07973211c839b85839742314c838b7")
 
-    depends_on("c", type="build")
-    depends_on("cxx", type="build")
-
     variant(
         "dev",
         default=False,
@@ -58,6 +55,9 @@ class Rust(Package):
     variant("src", default=True, description="Include standard library source files.")
 
     # Core dependencies
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     depends_on("curl+nghttp2")
     depends_on("libgit2")
     depends_on("libssh2")
@@ -76,24 +76,22 @@ class Rust(Package):
     # Compiling Rust requires a previous version of Rust.
     # The easiest way to bootstrap a Rust environment is to
     # download the binary distribution of the compiler and build with that.
-    depends_on("rust-bootstrap", type="build")
 
     # Pre-release version dependencies
-    depends_on("rust-bootstrap@beta", type="build", when="@beta")
     depends_on("rust-bootstrap@nightly", type="build", when="@master")
     depends_on("rust-bootstrap@nightly", type="build", when="@nightly")
 
     # Stable version dependencies
-    depends_on("rust-bootstrap", type="build")
-    depends_on("rust-bootstrap@1.59:1.60", type="build", when="@1.60")
-    depends_on("rust-bootstrap@1.64:1.65", type="build", when="@1.65")
-    depends_on("rust-bootstrap@1.69:1.70", type="build", when="@1.70")
-    depends_on("rust-bootstrap@1.72:1.73", type="build", when="@1.73")
-    depends_on("rust-bootstrap@1.73:1.74", type="build", when="@1.74")
-    depends_on("rust-bootstrap@1.74:1.75", type="build", when="@1.75")
-    depends_on("rust-bootstrap@1.77:1.78", type="build", when="@1.78")
-    depends_on("rust-bootstrap@1.80:1.81", type="build", when="@1.81")
+    depends_on("rust-bootstrap@1.84:1.85", type="build", when="@1.85")
     depends_on("rust-bootstrap@1.82:1.83", type="build", when="@1.83")
+    depends_on("rust-bootstrap@1.80:1.81", type="build", when="@1.81")
+    depends_on("rust-bootstrap@1.77:1.78", type="build", when="@1.78")
+    depends_on("rust-bootstrap@1.74:1.75", type="build", when="@1.75")
+    depends_on("rust-bootstrap@1.73:1.74", type="build", when="@1.74")
+    depends_on("rust-bootstrap@1.72:1.73", type="build", when="@1.73")
+    depends_on("rust-bootstrap@1.69:1.70", type="build", when="@1.70")
+    depends_on("rust-bootstrap@1.64:1.65", type="build", when="@1.65")
+    depends_on("rust-bootstrap@1.59:1.60", type="build", when="@1.60")
 
     # src/llvm-project/llvm/cmake/modules/CheckCompilerVersion.cmake
     conflicts("%gcc@:7.3", when="@1.73:", msg="Host GCC version must be at least 7.4")
