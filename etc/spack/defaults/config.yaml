@@ -17,7 +17,6 @@ config:
   # This is the path to the root of the Spack install tree.
   # You can use $spack here to refer to the root of the spack instance.
   install_tree:
-    root: $spack/opt/spack
     projections:
       all: "{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}"
     # install_tree can include an optional padded length (int or boolean)
@@ -76,10 +75,6 @@ config:
   # name/hash.
   test_stage: $user_cache_path/test
 
-  # Cache directory for already downloaded source tarballs and archived
-  # repositories. This can be purged with `spack clean --downloads`.
-  source_cache: $spack/var/spack/cache
-
 
   ## Directory where spack managed environments are created and stored
   # environments_root: $spack/var/spack/environments
@@ -87,7 +82,7 @@ config:
 
   # Cache directory for miscellaneous files, like the package index.
   # This can be purged with `spack clean --misc-cache`
-  misc_cache: $user_cache_path/cache
+  misc_cache: $per_spack_user/cache
 
 
   # Timeout in seconds used for downloading sources etc. This only applies

@@ -12,6 +12,7 @@ import spack.caches
 import spack.cmd.clean
 import spack.main
 import spack.package_base
+import spack.paths
 import spack.stage
 import spack.store
 
@@ -89,19 +90,17 @@ def test_remove_python_cache(tmpdir, monkeypatch):
         assert not os.path.exists(fs.join_path(directory, "__pycache__"))
 
     source_dir = fs.join_path(tmpdir, "lib", "spack", "spack")
-    var_dir = fs.join_path(tmpdir, "var", "spack", "stuff")
+    repos_dir = fs.join_path(tmpdir, "var", "spack", "repos")
 
-    for d in [source_dir, var_dir]:
+    for d in [source_dir, repos_dir]:
         _setup_files(d)
 
-    # Patching the path variables from-import'd by spack.cmd.clean is needed
-    # to ensure the paths used by the command for this test reflect the
-    # temporary directory locations and not those from spack.paths when
-    # the clean command's module was imported.
-    monkeypatch.setattr(spack.cmd.clean, "lib_path", source_dir)
-    monkeypatch.setattr(spack.cmd.clean, "var_path", var_dir)
+    # spack.cmd.clean references paths from spack.paths: we want to
+    # update them for the duration of this test.
+    monkeypatch.setattr(spack.paths, "lib_path", source_dir)
+    monkeypatch.setattr(spack.paths, "repos_path", repos_dir)
 
     spack.cmd.clean.remove_python_cache()
 
-    for d in [source_dir, var_dir]:
+    for d in [source_dir, repos_dir]:
         _check_files(d)
