@@ -314,15 +314,15 @@ def usr_folder_exists(monkeypatch):
     fixture makes it such that its existence is mocked, so we have no
     requirements on the system running tests.
     """
-    isdir = os.path.isdir
+    is_dir = pathlib.Path
 
-    @functools.wraps(os.path.isdir)
+    @functools.wraps(pathlib.Path.is_dir)
     def mock_isdir(path):
         if path == "/usr":
             return True
-        return isdir(path)
+        return is_dir(path)
 
-    monkeypatch.setattr(os.path, "isdir", mock_isdir)
+    monkeypatch.setattr(pathlib.Path, "is_dir", mock_isdir)
 
 
 def _print_ref_counts():
@@ -452,7 +452,7 @@ def test_default_queries(database):
     command = spec["zmpi"].command
     assert isinstance(command, Executable)
     assert command.name == "zmpi"
-    assert os.path.exists(command.path)
+    assert pathlib.Path(command.path).exists()
 
     # Testing a package whose name *does* start with 'lib'
     # to ensure the library doesn't have a double 'lib' prefix
@@ -471,17 +471,18 @@ def test_default_queries(database):
     command = spec["libelf"].command
     assert isinstance(command, Executable)
     assert command.name == "libelf"
-    assert os.path.exists(command.path)
+    assert pathlib.Path(command.path).exists()
 
 
 def test_005_db_exists(database):
     """Make sure db cache file exists after creating."""
-    index_file = os.path.join(database.root, ".spack-db", spack.database.INDEX_JSON_FILE)
-    lock_file = os.path.join(database.root, ".spack-db", spack.database._LOCK_FILE)
-    assert os.path.exists(str(index_file))
+    root = pathlib.Path(database.root)
+    index_file = root / ".spack-db" / spack.database.INDEX_JSON_FILE
+    lock_file = root / ".spack-db" / spack.database._LOCK_FILE
+    assert index_file.exists()
     # Lockfiles not currently supported on Windows
     if sys.platform != "win32":
-        assert os.path.exists(str(lock_file))
+        assert lock_file.exists()
 
     with open(index_file, encoding="utf-8") as fd:
         index_object = json.load(fd)
@@ -751,13 +752,14 @@ def test_external_entries_in_db(mutable_database):
     assert not rec.spec.external_modules
 
     rec = mutable_database.get_record("externaltool")
-    assert rec.spec.external_path == os.path.sep + os.path.join("path", "to", "external_tool")
+    root = pathlib.Path(os.path.sep)
+    assert rec.spec.external_path == os.fspath(root / "path" / "to" / "external_tool")
     assert not rec.spec.external_modules
     assert rec.explicit is False
 
     PackageInstaller([rec.spec.package], fake=True, explicit=True).install()
     rec = mutable_database.get_record("externaltool")
-    assert rec.spec.external_path == os.path.sep + os.path.join("path", "to", "external_tool")
+    assert rec.spec.external_path == os.fspath(root / "path" / "to" / "external_tool")
     assert not rec.spec.external_modules
     assert rec.explicit is True
 
@@ -989,7 +991,7 @@ def test_database_works_with_empty_dir(tmpdir):
     with db.read_transaction():
         db.query()
     # Check that reading an empty directory didn't create a new index.json
-    assert not os.path.exists(db._index_path)
+    assert not db._index_path.exists()
 
 
 @pytest.mark.parametrize(
@@ -1141,7 +1143,7 @@ def test_database_construction_doesnt_use_globals(tmpdir, config, nullify_global
     db = spack.database.Database(str(tmpdir), lock_cfg=lock_cfg)
     with db.write_transaction():
         pass  # ensure the DB is written
-    assert os.path.exists(db.database_directory)
+    assert db.database_directory.exists()
 
 
 def test_database_read_works_with_trailing_data(tmp_path, default_mock_concretization):
