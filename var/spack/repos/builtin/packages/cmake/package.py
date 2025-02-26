@@ -30,6 +30,12 @@ class Cmake(Package):
     license("BSD-3-Clause")
 
     version("master", branch="master")
+    version(
+        "4.0.0-rc2",
+        sha256="087dde74196edfba0ed48a25ac0aae419a10c814f76ba2a3cf30f0c467c83b7d",
+        preferred=True,
+    )
+    version("4.0.0-rc1", sha256="70428d4deede456100acf8573b0263bc4d53a55675e62df89cc187dfb40b8618")
     version("3.31.5", sha256="66fb53a145648be56b46fa9e8ccade3a4d0dfc92e401e52ce76bdad1fea43d27")
     version("3.31.4", sha256="a6130bfe75f5ba5c73e672e34359f7c0a1931521957e8393a5c2922c8b0f7f25")
     version("3.31.3", sha256="fac45bc6d410b49b3113ab866074888d6c9e9dc81a141874446eb239ac38cb87")
@@ -368,6 +374,12 @@ class Cmake(Package):
 
         module.cmake = Executable(self.spec.prefix.bin.cmake)
         module.ctest = Executable(self.spec.prefix.bin.ctest)
+
+    def setup_dependent_build_environment(self, env, dependent_spec):
+        # CMake 4.0.0 pedantically errors when projects define cmake_minimum_required < 3.5. We
+        # override the project's minimum policy version to 3.5 to avoid this error.
+        if self.spec.satisfies("@4.0.0-rc1:"):
+            env.set("CMAKE_POLICY_VERSION_MINIMUM", "3.5")
 
     @property
     def libs(self):
