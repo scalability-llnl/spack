@@ -410,6 +410,7 @@ class Openmpi(AutotoolsPackage, CudaPackage):
     patch("configure.patch", when="@1.10.1")
     patch("fix_multidef_pmi_class.patch", when="@2.0.0:2.0.1")
     patch("fix-ucx-1.7.0-api-instability.patch", when="@4.0.0:4.0.2")
+    patch("fix-type-mismatch-error.patch", when="@4.1.8,5.0.7")
 
     # Vader Bug: https://github.com/open-mpi/ompi/issues/5375
     # Haven't release fix for 2.1.x
