@@ -524,6 +524,13 @@ error(10, "'{0}' is not a valid dependency for any package in the DAG", Package)
   :- attr("node", node(ID, Package)),
      not needed(node(ID, Package)).
 
+error(100, "{0} and {1} must depend on the same {2}", ExtensionParent, ExtensionChild, ExtendeePackage)
+  :- depends_on(ExtensionParent, ExtensionChild),
+     attr("extends", ExtensionParent, ExtendeePackage),
+     depends_on(ExtensionParent, node(X, ExtendeePackage)),
+     depends_on(ExtensionChild,  node(Y, ExtendeePackage)),
+     X != Y.
+
 #defined dependency_type/2.
 
 %-----------------------------------------------------------------------------

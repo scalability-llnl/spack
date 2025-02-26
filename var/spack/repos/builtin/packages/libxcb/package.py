@@ -16,6 +16,8 @@ class Libxcb(AutotoolsPackage, XorgPackage):
 
     license("MIT")
 
+    tags = ["build-tools"]
+
     maintainers("wdconinc")
 
     version("1.17.0", sha256="599ebf9996710fea71622e6e184f3a8ad5b43d0e5fa8c4e407123c88a59a6d55")
