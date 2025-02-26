@@ -18,7 +18,7 @@ class PyPsyclone(PythonPackage):
     # Links
     homepage = "https://github.com/stfc/PSyclone"
     git = "https://github.com/stfc/PSyclone.git"
-    pypi = "PSyclone/psyclone-3.0.0.tar.gz"
+    pypi = "PSyclone/psyclone-3.1.0.tar.gz"
 
     # Maintainers
     maintainers("arporter", "sergisiso", "TeranIvy", "hiker")
@@ -28,6 +28,7 @@ class PyPsyclone(PythonPackage):
 
     # Releases
     version("master", branch="master")
+    version("3.1.0", sha256="7b369353942358afcb93b199ef2b11116d756cf9d671667ca95fa83fb31f0355")
     version("3.0.0", sha256="25085a6d0dad36c03ec1f06becf7e2f915ded26603d4a1a2981392f5752fdb3e")
     version("2.5.0", sha256="dd1b40d635423c6b23effd2c569908d319afa6153680692e1cbae27f7b5bf4dc")
     version("2.4.0", sha256="14fd3717f99b317471356c59c1d4c4c22c41fd264af11b78ed831dd2eb71a270")
@@ -41,7 +42,7 @@ class PyPsyclone(PythonPackage):
     # Current dependencies
     depends_on("py-setuptools", type="build")
     depends_on("py-pyparsing", type=("build", "run"))
-    depends_on("py-fparser@0.2.0:", type=("build", "run"), when="@3.0.0")
+    depends_on("py-fparser@0.2.0:", type=("build", "run"), when="@3.0.0:")
     depends_on("py-graphviz", type=("build", "run"))
     depends_on("py-configparser", type=("build", "run"))
     depends_on("py-jinja2", type="build")
