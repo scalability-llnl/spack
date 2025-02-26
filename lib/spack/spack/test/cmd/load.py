@@ -52,7 +52,8 @@ def test_load_recursive(install_mockery, mock_fetch, mock_archive, mock_packages
         mpileaks_spec = spack.concretize.concretize_one("mpileaks")
 
         # Ensure our reference variable is clean.
-        os.environ["CMAKE_PREFIX_PATH"] = "/hello" + os.pathsep + "/world"
+        hello_world_paths = [os.path.normpath(p) for p in ("/hello", "/world")]
+        os.environ["CMAKE_PREFIX_PATH"] = os.pathsep.join(hello_world_paths)
 
         shell_out = load(shell, "mpileaks")
 
@@ -69,7 +70,7 @@ def test_load_recursive(install_mockery, mock_fetch, mock_archive, mock_packages
         paths_shell = extract_value(shell_out, "CMAKE_PREFIX_PATH")
 
         # We should've prepended new paths, and keep old ones.
-        assert paths_shell[-2:] == ["/hello", "/world"]
+        assert paths_shell[-2:] == hello_world_paths
 
         # All but the last two paths are added by spack load; lookup what packages they're from.
         pkgs = [prefix_to_pkg(p) for p in paths_shell[:-2]]
