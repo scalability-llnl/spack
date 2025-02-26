@@ -268,5 +268,18 @@ def test_include_duplicate_source(tmpdir, mutable_config):
     write_configs(site_filename, site_config)
     spack.main.add_command_line_scopes(mutable_config, [os.path.dirname(site_filename)])
 
-    # Ensure takes the last value of the option
+    # Ensure takes the last value of the option pushed onto the stack
     assert mutable_config.get("config:debug") == site_config["config"]["debug"]
+
+
+def test_include_recurse_limit(tmpdir, mutable_config):
+    """Ensure hit the recursion limit."""
+    include_yaml = "include.yaml"
+    include_list = {"include": [f"./{include_yaml}"]}
+
+    include_path = str(tmpdir.join(include_yaml))
+    with open(include_path, "w", encoding="utf-8") as f:
+        syaml.dump_config(include_list, f)
+
+    with pytest.raises(spack.config.RecursiveIncludeError, match="recursion exceeded"):
+        spack.main.add_command_line_scopes(mutable_config, [os.path.dirname(include_path)])
