@@ -63,6 +63,7 @@ class SstElements(AutotoolsPackage):
     variant("ramulator", default=False, description="Build with Ramulator support")
     variant("otf", default=False, description="Build with OTF")
     variant("otf2", default=False, description="Build with OTF2")
+    variant("ariel_mpi", default=False, description="Build Ariel with MPI Support")
 
     depends_on("python@:3.11", type=("build", "run"))
     depends_on("sst-core")
@@ -85,6 +86,8 @@ class SstElements(AutotoolsPackage):
     depends_on("otf2", when="+otf2")
     depends_on("gettext")
     depends_on("zlib-api")
+    depends_on("sst-core~pdes_mpi", when="+ariel_mpi")
+    depends_on("mpi", when="+ariel_mpi")
 
     for version_name in ("master", "develop"):
         depends_on("autoconf@1.68:", type="build", when="@{}".format(version_name))
@@ -104,6 +107,7 @@ class SstElements(AutotoolsPackage):
         when="+hybridsim",
         msg="hybridsim requires nvdimmsim, spec should include +nvdimmsim",
     )
+    requires("+pin", when="+ariel_mpi", msg="Building Ariel requires pin")
 
     # force out-of-source builds
     build_directory = "spack-build"
@@ -158,6 +162,9 @@ class SstElements(AutotoolsPackage):
 
         if "+otf" in spec:
             args.append("--with-otf=%s" % spec["otf"].prefix)
+
+        if "+ariel_mpi" in spec:
+            args.append("--enable-ariel-mpi")
 
         args.append("--with-sst-core=%s" % spec["sst-core"].prefix)
         return args
