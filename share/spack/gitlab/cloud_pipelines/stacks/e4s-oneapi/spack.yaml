@@ -131,7 +131,7 @@ spack:
   - nccmp
   - nco
   - netlib-scalapack
-  - nrm
+  - nrm ^py-scipy cflags="-Wno-error=incompatible-function-pointer-types"
   - nwchem
   - omega-h
   - openfoam
