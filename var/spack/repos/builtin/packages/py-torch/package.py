@@ -512,7 +512,7 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     )
 
     def patch(self):
-        if self.version <= Version("1.5.0"):
+        if self.version >= Version("1.5.0"):
             # https://github.com/pytorch/pytorch/issues/52208
             filter_file(
                 "torch_global_deps PROPERTIES LINKER_LANGUAGE C",
