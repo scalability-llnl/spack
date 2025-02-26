@@ -1,0 +1,29 @@
+From 343ce23b3ef9cbe49df22befedd0fda06215349a Mon Sep 17 00:00:00 2001
+From: Kenneth Moreland <morelandkd@ornl.gov>
+Date: Mon, 16 Dec 2024 16:33:32 -0500
+Subject: [PATCH] Fix reference to HIP point attribute structure
+
+When checking whether a pointer is on a HIP device, the previous code
+had an incorrect name for the member of the `hipPointerAttribute_t`
+structure. The code is changed to use the correct identifier for
+this member.
+---
+ include/mgard-x/RuntimeX/DeviceAdapters/DeviceAdapterHip.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/mgard-x/RuntimeX/DeviceAdapters/DeviceAdapterHip.h b/include/mgard-x/RuntimeX/DeviceAdapters/DeviceAdapterHip.h
+index cb6feeaa..5689be9f 100644
+--- a/include/mgard-x/RuntimeX/DeviceAdapters/DeviceAdapterHip.h
++++ b/include/mgard-x/RuntimeX/DeviceAdapters/DeviceAdapterHip.h
+@@ -928,7 +928,7 @@ public:
+     log::dbg("Calling MemoryManager<HIP>::IsDevicePointer");
+     hipPointerAttribute_t attr;
+     hipPointerGetAttributes(&attr, ptr);
+-    return attr.memoryType == hipMemoryTypeDevice;
++    return attr.type == hipMemoryTypeDevice;
+   }
+ 
+   template <typename T> MGARDX_CONT static int GetPointerDevice(T *ptr) {
+-- 
+2.47.1
+
