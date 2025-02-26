@@ -199,10 +199,12 @@ def concretize_one(spec: Union[str, Spec], tests: TestsType = False) -> Spec:
             the packages in the list, if True activate 'test' dependencies for all packages.
     """
     from spack.solver.asp import Solver, SpecBuilder
+    from spack.spec_lookup import replace_hash
 
     if isinstance(spec, str):
         spec = Spec(spec)
-    spec = spec.lookup_hash()
+
+    replace_hash(spec)
 
     if spec.concrete:
         return spec.copy()

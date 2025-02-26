@@ -11,6 +11,7 @@ from llnl.util.tty.color import cprint, get_color_when
 import spack.cmd
 import spack.environment as ev
 import spack.solver.asp as asp
+import spack.spec_lookup
 import spack.util.spack_json as sjson
 from spack.cmd.common import arguments
 
@@ -210,7 +211,7 @@ def diff(parser, args):
     specs = []
     for spec in spack.cmd.parse_specs(args.specs):
         # If the spec has a hash, check it before disambiguating
-        spec.replace_hash()
+        spack.spec_lookup.replace_hash(spec)
         if spec.concrete:
             specs.append(spec)
         else:
