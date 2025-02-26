@@ -1,7 +1,7 @@
 # Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import os
+import os.path
 
 import pytest
 
@@ -32,7 +32,7 @@ def test_rfc_local_path_bad_scheme(path, err):
 )
 def test_rfc_local_path_file(path):
     actual = path.split("://")[1] if ":" in path else path
-    assert rfc_util.local_path(path, "") == actual
+    assert rfc_util.local_path(path, "") == os.path.normpath(actual)
 
 
 def test_rfc_remote_local_path_no_dest():
