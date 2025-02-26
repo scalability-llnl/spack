@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
+import spack.deptypes as dt
 from spack.package import *
 from spack.pkg.builtin.llvm import LlvmDetection
 
@@ -67,6 +68,16 @@ class Aocc(Package, LlvmDetection, CompilerPackage):
     depends_on("zlib-api")
     depends_on("ncurses")
     depends_on("libtool")
+
+    # Hack for working around things like having old binutils in RHEL9.5
+    # https://access.redhat.com/solutions/7049696
+    variant(
+        "binutils",
+        default=False,
+        description="Build a binutils. (Use if unsupported opcode by OS ld/as)",
+    )
+    with when("+binutils"):
+        depends_on("binutils", type=dt.ALL_TYPES)
 
     variant(
         "license-agreed",
