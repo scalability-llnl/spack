@@ -4,7 +4,6 @@
 
 
 from spack.package import *
-from spack.pkg.builtin.boost import Boost
 
 
 class Gnuradio(CMakePackage):
@@ -39,11 +38,6 @@ class Gnuradio(CMakePackage):
     depends_on("log4cpp@1.0:")
     # https://github.com/gnuradio/gnuradio/pull/3566
     depends_on("boost@1.53:1.72")
-
-    # TODO: replace this with an explicit list of components of Boost,
-    # for instance depends_on('boost +filesystem')
-    # See https://github.com/spack/spack/pull/22303 for reference
-    depends_on(Boost.with_default_variants)
     depends_on("py-numpy", type=("build", "run"))
     # https://github.com/gnuradio/gnuradio/issues/7378
     depends_on("py-numpy@:1", when="@:3.10.10.0", type=("build", "run"))

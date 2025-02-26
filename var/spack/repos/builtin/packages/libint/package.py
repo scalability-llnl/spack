@@ -5,7 +5,6 @@
 import os
 
 from spack.package import *
-from spack.pkg.builtin.boost import Boost
 
 TUNE_VARIANTS = (
     "none",
@@ -72,7 +71,7 @@ class Libint(AutotoolsPackage):
 
     # Libint 2 dependencies
     # Fixme: Can maintainers please confirm that this is a required dependency
-    depends_on(Boost.with_default_variants, when="@2:")
+    depends_on("boost", when="@2:")
     depends_on("gmp+cxx", when="@2:")
     depends_on("eigen", when="@2.7.0:")
     # unicode variable names in @2.9.0:

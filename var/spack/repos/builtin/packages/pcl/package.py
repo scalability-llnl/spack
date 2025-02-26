@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
-from spack.pkg.builtin.boost import Boost
 
 
 class Pcl(CMakePackage):
@@ -42,8 +41,3 @@ class Pcl(CMakePackage):
             "https://github.com/PointCloudLibrary/pcl/commit/dff16af269fbd2c15772d53064882b2bf8c2ffe9.patch?full_index=1",
             sha256="17a7a7aec8e63701294612cbb25d46ac1ce58f643dbc68e1517329ae0b68956d",
         )
-
-    # TODO: replace this with an explicit list of components of Boost,
-    # for instance depends_on('boost +filesystem')
-    # See https://github.com/spack/spack/pull/22303 for reference
-    depends_on(Boost.with_default_variants)

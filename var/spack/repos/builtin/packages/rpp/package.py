@@ -4,7 +4,6 @@
 
 
 from spack.package import *
-from spack.pkg.builtin.boost import Boost
 
 
 class Rpp(CMakePackage):
@@ -139,7 +138,6 @@ class Rpp(CMakePackage):
 
     depends_on("cmake@3.5:", type="build")
     depends_on("pkgconfig", type="build")
-    depends_on(Boost.with_default_variants)
     depends_on("boost@1.72.0:1.85.0")
     depends_on("bzip2")
     depends_on("half")

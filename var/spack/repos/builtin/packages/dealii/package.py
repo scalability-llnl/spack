@@ -5,7 +5,6 @@
 import os
 
 from spack.package import *
-from spack.pkg.builtin.boost import Boost
 
 
 class Dealii(CMakePackage, CudaPackage):
@@ -167,10 +166,6 @@ class Dealii(CMakePackage, CudaPackage):
     depends_on("boost cxxstd=17", when="cxxstd=17")
     depends_on("bzip2", when="@:8")
 
-    # TODO: replace this with an explicit list of components of Boost,
-    # for instance depends_on('boost +filesystem')
-    # See https://github.com/spack/spack/pull/22303 for reference
-    depends_on(Boost.with_default_variants)
     depends_on("lapack")
     depends_on("suite-sparse")
     depends_on("zlib-api")

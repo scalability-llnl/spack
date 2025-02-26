@@ -1,0 +1,588 @@
+--- boost/container/allocator_traits.hpp	Thu Apr 11 20:48:02 2024
++++ boost/container/allocator_traits.hpp	Sat Jul 27 23:53:19 2024
+@@ -32,6 +32,8 @@
+ #include <boost/container/detail/mpl.hpp>
+ #include <boost/container/detail/type_traits.hpp>  //is_empty
+ #include <boost/container/detail/placement_new.hpp>
++#include <boost/container/detail/is_pair.hpp>
++#include <boost/container/detail/addressof.hpp>
+ #ifndef BOOST_CONTAINER_DETAIL_STD_FWD_HPP
+ #include <boost/container/detail/std_fwd.hpp>
+ #endif
+@@ -47,9 +49,10 @@
+ 
+ #ifndef BOOST_CONTAINER_DOXYGEN_INVOKED
+ 
+-#if defined(BOOST_GCC) && (BOOST_GCC >= 40600)
++#if defined(BOOST_CONTAINER_GCC_COMPATIBLE_HAS_DIAGNOSTIC_IGNORED)
+ #pragma GCC diagnostic push
+ #pragma GCC diagnostic ignored "-Wunused-result"
++#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+ #endif
+ 
+ #define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_FUNCNAME allocate
+@@ -73,7 +76,7 @@
+ #define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_MAX 9
+ #include <boost/intrusive/detail/has_member_function_callable_with.hpp>
+ 
+-#if defined(BOOST_GCC) && (BOOST_GCC >= 40600)
++#if defined(BOOST_CONTAINER_GCC_COMPATIBLE_HAS_DIAGNOSTIC_IGNORED)
+ #pragma GCC diagnostic pop
+ #endif
+ 
+@@ -81,6 +84,144 @@
+ 
+ namespace boost {
+ namespace container {
++namespace dtl {
++
++#if !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
++
++template<class T, class ...Args>
++BOOST_CONTAINER_FORCEINLINE void construct_type(T *p, BOOST_FWD_REF(Args) ...args)
++{
++   ::new((void*)p, boost_container_new_t()) T(::boost::forward<Args>(args)...);
++}
++
++template < class Pair, class KeyType, class ... Args>
++typename dtl::enable_if< dtl::is_pair<Pair>, void >::type
++construct_type
++   (Pair* p, try_emplace_t, BOOST_FWD_REF(KeyType) k, BOOST_FWD_REF(Args) ...args)
++{
++   construct_type(dtl::addressof(p->first), ::boost::forward<KeyType>(k));
++   BOOST_CONTAINER_TRY{
++      construct_type(dtl::addressof(p->second), ::boost::forward<Args>(args)...);
++   }
++   BOOST_CONTAINER_CATCH(...) {
++      typedef typename Pair::first_type first_type;
++      dtl::addressof(p->first)->~first_type();
++      BOOST_CONTAINER_RETHROW
++   }
++   BOOST_CONTAINER_CATCH_END
++}
++
++#else
++
++#define BOOST_CONTAINER_ALLOCATOR_TRAITS_CONSTRUCT_TYPEJ(N) \
++template<class T BOOST_MOVE_I##N BOOST_MOVE_CLASS##N>\
++BOOST_CONTAINER_FORCEINLINE \
++   typename dtl::disable_if_c<dtl::is_pair<T>::value, void >::type \
++construct_type(T *p BOOST_MOVE_I##N BOOST_MOVE_UREF##N)\
++{\
++   ::new((void*)p, boost_container_new_t()) T( BOOST_MOVE_FWD##N );\
++}\
++//
++BOOST_MOVE_ITERATE_0TO8(BOOST_CONTAINER_ALLOCATOR_TRAITS_CONSTRUCT_TYPEJ)
++#undef BOOST_CONTAINER_ALLOCATOR_TRAITS_CONSTRUCT_TYPEJ
++
++#define BOOST_CONTAINER_ALLOCATOR_TRAITS_CONSTRUCT_TYPE(N) \
++template < class Pair, class KeyType BOOST_MOVE_I##N BOOST_MOVE_CLASS##N>\
++typename dtl::enable_if< dtl::is_pair<Pair>, void >::type construct_type\
++   (Pair* p, try_emplace_t, BOOST_FWD_REF(KeyType) k BOOST_MOVE_I##N BOOST_MOVE_UREF##N)\
++{\
++   construct_type(dtl::addressof(p->first), ::boost::forward<KeyType>(k));\
++   BOOST_CONTAINER_TRY{\
++      construct_type(dtl::addressof(p->second) BOOST_MOVE_I##N BOOST_MOVE_FWD##N);\
++   }\
++   BOOST_CONTAINER_CATCH(...) {\
++      typedef typename Pair::first_type first_type;\
++      dtl::addressof(p->first)->~first_type();\
++      BOOST_CONTAINER_RETHROW\
++   }\
++   BOOST_CONTAINER_CATCH_END\
++}\
++//
++BOOST_MOVE_ITERATE_0TO8(BOOST_CONTAINER_ALLOCATOR_TRAITS_CONSTRUCT_TYPE)
++#undef BOOST_CONTAINER_ALLOCATOR_TRAITS_CONSTRUCT_TYPE
++
++#endif
++
++template<class T>
++inline
++typename dtl::enable_if<dtl::is_pair<T>, void >::type
++construct_type(T* p)
++{
++   dtl::construct_type(dtl::addressof(p->first));
++   BOOST_CONTAINER_TRY{
++      dtl::construct_type(dtl::addressof(p->second));
++   }
++   BOOST_CONTAINER_CATCH(...) {
++      typedef typename T::first_type first_type;
++      dtl::addressof(p->first)->~first_type();
++      BOOST_CONTAINER_RETHROW
++   }
++   BOOST_CONTAINER_CATCH_END
++}
++
++
++template<class T, class U>
++inline
++typename dtl::enable_if_c
++   <  dtl::is_pair<T>::value
++   , void >::type
++construct_type(T* p, U &u)
++{
++   dtl::construct_type(dtl::addressof(p->first), u.first);
++   BOOST_CONTAINER_TRY{
++      dtl::construct_type(dtl::addressof(p->second), u.second);
++   }
++   BOOST_CONTAINER_CATCH(...) {
++      typedef typename T::first_type first_type;
++      dtl::addressof(p->first)->~first_type();
++      BOOST_CONTAINER_RETHROW
++   }
++   BOOST_CONTAINER_CATCH_END
++}
++
++template<class T, class U>
++inline
++typename dtl::enable_if_c
++   <  dtl::is_pair<typename dtl::remove_reference<T>::type>::value &&
++      !boost::move_detail::is_reference<U>::value  //This is needed for MSVC10 and ambiguous overloads
++   , void >::type
++construct_type(T* p, BOOST_RV_REF(U) u)
++{
++   dtl::construct_type(dtl::addressof(p->first), ::boost::move(u.first));
++   BOOST_CONTAINER_TRY{
++      dtl::construct_type(dtl::addressof(p->second), ::boost::move(u.second));
++   }
++   BOOST_CONTAINER_CATCH(...) {
++      typedef typename T::first_type first_type;
++      dtl::addressof(p->first)->~first_type();
++      BOOST_CONTAINER_RETHROW
++   }
++   BOOST_CONTAINER_CATCH_END
++}
++
++template<class T, class U, class V>
++inline
++typename dtl::enable_if<dtl::is_pair<T>, void >::type
++construct_type(T* p, BOOST_FWD_REF(U) x, BOOST_FWD_REF(V) y)
++{
++   dtl::construct_type(dtl::addressof(p->first), ::boost::forward<U>(x));
++   BOOST_CONTAINER_TRY{
++      dtl::construct_type(dtl::addressof(p->second), ::boost::forward<V>(y));
++   }
++   BOOST_CONTAINER_CATCH(...) {
++      typedef typename T::first_type first_type;
++      dtl::addressof(p->first)->~first_type();
++      BOOST_CONTAINER_RETHROW
++   }
++   BOOST_CONTAINER_CATCH_END
++}
++
++}  //namespace dtl
+ 
+ #ifndef BOOST_CONTAINER_DOXYGEN_INVOKED
+ 
+@@ -100,19 +241,19 @@
+ //supporting rvalue references
+ template<class Allocator>
+ struct is_std_allocator
+-{  static const bool value = false; };
++{  BOOST_STATIC_CONSTEXPR bool value = false; };
+ 
+ template<class T>
+ struct is_std_allocator< std::allocator<T> >
+-{  static const bool value = true; };
++{  BOOST_STATIC_CONSTEXPR bool value = true; };
+ 
+ template<class T, class Options>
+ struct is_std_allocator< small_vector_allocator<T, std::allocator<T>, Options > >
+-{  static const bool value = true; };
++{  BOOST_STATIC_CONSTEXPR bool value = true; };
+ 
+ template<class Allocator>
+ struct is_not_std_allocator
+-{  static const bool value = !is_std_allocator<Allocator>::value; };
++{  BOOST_STATIC_CONSTEXPR bool value = !is_std_allocator<Allocator>::value; };
+ 
+ BOOST_INTRUSIVE_INSTANTIATE_DEFAULT_TYPE_TMPLT(pointer)
+ BOOST_INTRUSIVE_INSTANTIATE_EVAL_DEFAULT_TYPE_TMPLT(const_pointer)
+@@ -358,7 +499,7 @@
+       template <class T, class ...Args>
+       inline static void construct(Allocator & a, T* p, BOOST_FWD_REF(Args)... args)
+       {
+-         static const bool value = ::boost::move_detail::and_
++         BOOST_STATIC_CONSTEXPR bool value = ::boost::move_detail::and_
+             < dtl::is_not_std_allocator<Allocator>
+             , boost::container::dtl::has_member_function_callable_with_construct
+                   < Allocator, T*, Args... >
+@@ -419,7 +560,7 @@
+ 
+       template<class T, class ...Args>
+       inline static void priv_construct(dtl::false_type, Allocator &, T *p, BOOST_FWD_REF(Args) ...args)
+-      {  ::new((void*)p, boost_container_new_t()) T(::boost::forward<Args>(args)...); }
++      {  dtl::construct_type(p, ::boost::forward<Args>(args)...); }
+    #else // #if !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
+       public:
+ 
+@@ -427,7 +568,7 @@
+       template<class T BOOST_MOVE_I##N BOOST_MOVE_CLASS##N >\
+       inline static void construct(Allocator &a, T *p BOOST_MOVE_I##N BOOST_MOVE_UREF##N)\
+       {\
+-         static const bool value = ::boost::move_detail::and_ \
++         BOOST_STATIC_CONSTEXPR bool value = ::boost::move_detail::and_ \
+             < dtl::is_not_std_allocator<Allocator> \
+             , boost::container::dtl::has_member_function_callable_with_construct \
+                   < Allocator, T* BOOST_MOVE_I##N BOOST_MOVE_FWD_T##N > \
+@@ -450,7 +591,7 @@
+       \
+       template<class T BOOST_MOVE_I##N BOOST_MOVE_CLASS##N >\
+       inline static void priv_construct(dtl::false_type, Allocator &, T *p BOOST_MOVE_I##N BOOST_MOVE_UREF##N)\
+-      {  ::new((void*)p, boost_container_new_t()) T(BOOST_MOVE_FWD##N); }\
++      {  dtl::construct_type(p BOOST_MOVE_I##N BOOST_MOVE_FWD##N); }\
+       //
+       BOOST_MOVE_ITERATE_0TO8(BOOST_CONTAINER_ALLOCATOR_TRAITS_PRIV_CONSTRUCT_IMPL)
+       #undef BOOST_CONTAINER_ALLOCATOR_TRAITS_PRIV_CONSTRUCT_IMPL
+--- boost/container/detail/construct_in_place.hpp	Thu Apr 11 20:48:02 2024
++++ boost/container/detail/construct_in_place.hpp	Sat Jul 27 23:53:27 2024
+@@ -24,6 +24,7 @@
+ #include <boost/container/allocator_traits.hpp>
+ #include <boost/container/detail/iterators.hpp>
+ #include <boost/container/detail/value_init.hpp>
++#include <boost/container/detail/is_pair.hpp>
+ 
+ namespace boost {
+ namespace container {
+@@ -62,9 +63,42 @@
+ 
+ //Assignment
+ 
++template<class T, class U>
++BOOST_CONTAINER_FORCEINLINE
++   typename dtl::disable_if_c
++      <  dtl::is_pair<typename dtl::remove_reference<T>::type>::value
++      && dtl::is_pair<typename dtl::remove_reference<U>::type>::value
++      , void>::type
++assign_in_place_ref(T &t, BOOST_FWD_REF(U) u)
++{  t = ::boost::forward<U>(u);  }
++
++template<class T, class U>
++BOOST_CONTAINER_FORCEINLINE
++   typename dtl::enable_if_c
++      <  dtl::is_pair<typename dtl::remove_reference<T>::type>::value
++      && dtl::is_pair<typename dtl::remove_reference<U>::type>::value
++      , void>::type
++assign_in_place_ref(T &t, const U &u)
++{
++   assign_in_place_ref(t.first, u.first);
++   assign_in_place_ref(t.second, u.second);
++}
++
++template<class T, class U>
++BOOST_CONTAINER_FORCEINLINE
++   typename dtl::enable_if_c
++      <  dtl::is_pair<typename dtl::remove_reference<T>::type>::value
++      && dtl::is_pair<typename dtl::remove_reference<U>::type>::value
++      , void>::type
++assign_in_place_ref(T &t, BOOST_RV_REF(U) u)
++{
++   assign_in_place_ref(t.first,  ::boost::move(u.first));
++   assign_in_place_ref(t.second, ::boost::move(u.second));
++}
++
+ template<class DstIt, class InpIt>
+ BOOST_CONTAINER_FORCEINLINE void assign_in_place(DstIt dest, InpIt source)
+-{  *dest = *source;  }
++{  assign_in_place_ref(*dest, *source);  }
+ 
+ template<class DstIt, class U>
+ BOOST_CONTAINER_FORCEINLINE void assign_in_place(DstIt dest, value_init_construct_iterator<U>)
+--- boost/container/flat_map.hpp	Thu Apr 11 20:48:02 2024
++++ boost/container/flat_map.hpp	Sat Jul 27 23:55:40 2024
+@@ -31,6 +31,7 @@
+ #include <boost/container/detail/mpl.hpp>
+ #include <boost/container/detail/algorithm.hpp> //equal()
+ #include <boost/container/detail/container_or_allocator_rebind.hpp>
++#include <boost/container/detail/pair.hpp>
+ // move
+ #include <boost/move/utility_core.hpp>
+ #include <boost/move/traits.hpp>
+@@ -44,10 +45,22 @@
+ #include <boost/intrusive/detail/minimal_pair_header.hpp>      //pair
+ #include <boost/intrusive/detail/minimal_less_equal_header.hpp>//less, equal
+ 
++
+ #if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
+ #include <initializer_list>
+ #endif
+ 
++#if !defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
++#define BOOST_CONTAINER_STD_PAIR_IS_MOVABLE
++#endif
++
++//for C++03 compilers, were type-puning is the only option for std::pair
++//disable strict aliasing to reduce problems.
++#if defined(BOOST_GCC) && (BOOST_GCC >= 100000) && !defined(BOOST_CONTAINER_STD_PAIR_IS_MOVABLE)
++#pragma GCC push_options
++#pragma GCC optimize("no-strict-aliasing")
++#endif
++
+ namespace boost {
+ namespace container {
+ 
+@@ -58,6 +71,21 @@
+ 
+ namespace dtl{
+ 
++#if defined(BOOST_CONTAINER_STD_PAIR_IS_MOVABLE)
++template<class D, class S>
++BOOST_CONTAINER_FORCEINLINE static D &force(S &s)
++{  return s; }
++
++template<class D, class S>
++BOOST_CONTAINER_FORCEINLINE static const D &force(const S &s)
++{  return s; }
++
++template<class D>
++BOOST_CONTAINER_FORCEINLINE static D force_copy(D s)
++{  return s; }
++
++#else //!BOOST_CONTAINER_DOXYGEN_INVOKED
++
+ template<class D, class S>
+ BOOST_CONTAINER_FORCEINLINE static D &force(S &s)
+ {  return *move_detail::force_ptr<D*>(&s); }
+@@ -74,6 +102,8 @@
+    return ret_val;
+ }
+ 
++#endif   //BOOST_CONTAINER_DOXYGEN_INVOKED
++
+ }  //namespace dtl{
+ 
+ #endif   //#ifndef BOOST_CONTAINER_DOXYGEN_INVOKED
+@@ -118,18 +148,27 @@
+    private:
+    BOOST_COPYABLE_AND_MOVABLE(flat_map)
+    //This is the tree that we should store if pair was movable
++   typedef std::pair<Key, T> std_pair_t;
+    typedef dtl::flat_tree<
+-                           std::pair<Key, T>,
++                           std_pair_t,
+                            dtl::select1st<Key>,
+                            Compare,
+                            AllocatorOrContainer> tree_t;
+ 
+    //This is the real tree stored here. It's based on a movable pair
++   typedef dtl::pair<Key, T> dtl_pair_t;
++
++   #ifdef BOOST_CONTAINER_STD_PAIR_IS_MOVABLE
++   typedef std_pair_t impl_pair_t;
++   #else
++   typedef dtl_pair_t impl_pair_t;
++   #endif
++
+    typedef dtl::flat_tree<
+-                           dtl::pair<Key, T>,
++                           impl_pair_t,
+                            dtl::select1st<Key>,
+                            Compare,
+-                           typename dtl::container_or_allocator_rebind<AllocatorOrContainer, dtl::pair<Key, T> >::type
++                           typename dtl::container_or_allocator_rebind<AllocatorOrContainer, impl_pair_t >::type
+                            > impl_tree_t;
+    impl_tree_t m_flat_tree;  // flat tree representing flat_map
+ 
+@@ -851,7 +890,7 @@
+    //! @copydoc ::boost::container::flat_set::nth(size_type) const
+    BOOST_CONTAINER_ATTRIBUTE_NODISCARD inline
+       const_iterator nth(size_type n) const BOOST_NOEXCEPT_OR_NOTHROW
+-   {  return dtl::force_copy<iterator>(m_flat_tree.nth(n));  }
++   {  return dtl::force_copy<const_iterator>(m_flat_tree.nth(n));  }
+ 
+    //! @copydoc ::boost::container::flat_set::index_of(iterator)
+    BOOST_CONTAINER_ATTRIBUTE_NODISCARD inline
+@@ -1099,7 +1138,7 @@
+    template <class Pair>
+    inline BOOST_CONTAINER_DOC1ST
+          ( std::pair<iterator BOOST_MOVE_I bool>
+-         , typename dtl::enable_if_c<dtl::is_convertible<Pair BOOST_MOVE_I impl_value_type>::value
++         , typename dtl::enable_if_c<dtl::is_convertible<Pair BOOST_MOVE_I dtl_pair_t>::value
+             BOOST_MOVE_I std::pair<iterator BOOST_MOVE_I bool> >::type)
+       insert(BOOST_FWD_REF(Pair) x)
+    {
+@@ -1153,7 +1192,7 @@
+    template <class Pair>
+    inline BOOST_CONTAINER_DOC1ST
+          ( iterator
+-         , typename dtl::enable_if_c<dtl::is_convertible<Pair BOOST_MOVE_I impl_value_type>::value
++         , typename dtl::enable_if_c<dtl::is_convertible<Pair BOOST_MOVE_I dtl_pair_t>::value
+             BOOST_MOVE_I iterator>::type)
+       insert(const_iterator p, BOOST_FWD_REF(Pair) x)
+    {
+@@ -1277,6 +1316,23 @@
+    inline size_type erase(const key_type& x)
+       { return m_flat_tree.erase_unique(x); }
+ 
++   //! <b>Requires</b>: This overload is available only if
++   //! key_compare::is_transparent exists.
++   //!
++   //! <b>Effects</b>: If present, erases the element in the container with key equivalent to x.
++   //!
++   //! <b>Returns</b>: Returns the number of erased elements (0/1).
++   template <class K>
++   inline BOOST_CONTAINER_DOC1ST
++   (size_type
++      , typename dtl::enable_if_c<
++      dtl::is_transparent<key_compare>::value &&                  //transparent
++      !dtl::is_convertible<K BOOST_MOVE_I iterator>::value &&     //not convertible to iterator
++      !dtl::is_convertible<K BOOST_MOVE_I const_iterator>::value  //not convertible to const_iterator
++      BOOST_MOVE_I size_type>::type)
++      erase(const K& x)
++   {  return m_flat_tree.erase_unique(x); }
++
+    //! <b>Effects</b>: Erases all the elements in the range [first, last).
+    //!
+    //! <b>Returns</b>: Returns last.
+@@ -1637,7 +1693,7 @@
+       if (i == end() || key_comp()(k, (*i).first)){
+          dtl::value_init<mapped_type> m;
+          impl_value_type v(k, ::boost::move(m.m_t));
+-         i = this->insert(i, ::boost::move(v));
++         i = dtl::force_copy<iterator>(this->m_flat_tree.insert_equal(::boost::move(v)));
+       }
+       return (*i).second;
+    }
+@@ -1646,10 +1702,10 @@
+       key_type &k = mk;
+       iterator i = this->lower_bound(k);
+       // i->first is greater than or equivalent to k.
+-      if (i == end() || key_comp()(k, (*i).first)){
++      if (i == end() || key_comp()(k, (*i).first)) {
+          dtl::value_init<mapped_type> m;
+          impl_value_type v(::boost::move(k), ::boost::move(m.m_t));
+-         i = this->insert(i, ::boost::move(v));
++         i = dtl::force_copy<iterator>(this->m_flat_tree.insert_equal(::boost::move(v)));
+       }
+       return (*i).second;
+    }
+@@ -1729,10 +1785,10 @@
+ template <class Key, class T, class Compare, class AllocatorOrContainer>
+ struct has_trivial_destructor_after_move<boost::container::flat_map<Key, T, Compare, AllocatorOrContainer> >
+ {
+-   typedef ::boost::container::dtl::pair<Key, T> value_t;
++   typedef typename boost::container::flat_map<Key, T, Compare, AllocatorOrContainer>::value_type value_t;
+    typedef typename ::boost::container::dtl::container_or_allocator_rebind<AllocatorOrContainer, value_t>::type alloc_or_cont_t;
+    typedef ::boost::container::dtl::flat_tree<value_t,::boost::container::dtl::select1st<Key>, Compare, alloc_or_cont_t> tree;
+-   static const bool value = ::boost::has_trivial_destructor_after_move<tree>::value;
++   BOOST_STATIC_CONSTEXPR bool value = ::boost::has_trivial_destructor_after_move<tree>::value;
+ };
+ 
+ namespace container {
+@@ -1777,17 +1833,24 @@
+    #ifndef BOOST_CONTAINER_DOXYGEN_INVOKED
+    private:
+    BOOST_COPYABLE_AND_MOVABLE(flat_multimap)
++   typedef std::pair<Key, T> std_pair_t;
+    typedef dtl::flat_tree<
+-                           std::pair<Key, T>,
++                           std_pair_t,
+                            dtl::select1st<Key>,
+                            Compare,
+                            AllocatorOrContainer> tree_t;
+    //This is the real tree stored here. It's based on a movable pair
++   typedef dtl::pair<Key, T> dtl_pair_t;
++   #ifdef BOOST_CONTAINER_STD_PAIR_IS_MOVABLE
++   typedef std_pair_t impl_pair_t;
++   #else
++   typedef dtl_pair_t impl_pair_t;
++   #endif
+    typedef dtl::flat_tree<
+-                           dtl::pair<Key, T>,
++                           impl_pair_t,
+                            dtl::select1st<Key>,
+                            Compare,
+-                           typename dtl::container_or_allocator_rebind<AllocatorOrContainer, dtl::pair<Key, T> >::type
++                           typename dtl::container_or_allocator_rebind<AllocatorOrContainer, impl_pair_t >::type
+                            > impl_tree_t;
+    impl_tree_t m_flat_tree;  // flat tree representing flat_map
+ 
+@@ -2388,7 +2451,7 @@
+    //! @copydoc ::boost::container::flat_set::nth(size_type) const
+    BOOST_CONTAINER_ATTRIBUTE_NODISCARD inline
+    const_iterator nth(size_type n) const BOOST_NOEXCEPT_OR_NOTHROW
+-   {  return dtl::force_copy<iterator>(m_flat_tree.nth(n));  }
++   {  return dtl::force_copy<const_iterator>(m_flat_tree.nth(n));  }
+ 
+    //! @copydoc ::boost::container::flat_set::index_of(iterator)
+    BOOST_CONTAINER_ATTRIBUTE_NODISCARD inline
+@@ -2477,7 +2540,7 @@
+    template<class Pair>
+    inline BOOST_CONTAINER_DOC1ST
+          ( iterator
+-         , typename dtl::enable_if_c<dtl::is_convertible<Pair BOOST_MOVE_I impl_value_type>::value
++         , typename dtl::enable_if_c<dtl::is_convertible<Pair BOOST_MOVE_I dtl_pair_t>::value
+             BOOST_MOVE_I iterator >::type)
+       insert(BOOST_FWD_REF(Pair) x)
+    { return dtl::force_copy<iterator>(m_flat_tree.emplace_equal(boost::forward<Pair>(x))); }
+@@ -2514,7 +2577,7 @@
+    template<class Pair>
+    inline BOOST_CONTAINER_DOC1ST
+          ( iterator
+-         , typename dtl::enable_if_c<dtl::is_convertible<Pair BOOST_MOVE_I impl_value_type>::value
++         , typename dtl::enable_if_c<dtl::is_convertible<Pair BOOST_MOVE_I dtl_pair_t>::value
+             BOOST_MOVE_I iterator>::type)
+       insert(const_iterator p, BOOST_FWD_REF(Pair) x)
+    {
+@@ -2633,6 +2696,23 @@
+    inline size_type erase(const key_type& x)
+       { return m_flat_tree.erase(x); }
+ 
++   //! <b>Requires</b>: This overload is available only if
++   //! key_compare::is_transparent exists.
++   //!
++   //! <b>Effects</b>: Erases all elements in the container with key equivalent to x.
++   //!
++   //! <b>Returns</b>: Returns the number of erased elements.
++   template <class K>
++   inline BOOST_CONTAINER_DOC1ST
++   (size_type
++      , typename dtl::enable_if_c<
++      dtl::is_transparent<key_compare>::value &&                  //transparent
++      !dtl::is_convertible<K BOOST_MOVE_I iterator>::value &&     //not convertible to iterator
++      !dtl::is_convertible<K BOOST_MOVE_I const_iterator>::value  //not convertible to const_iterator
++      BOOST_MOVE_I size_type>::type)
++      erase(const K& x)
++      { return m_flat_tree.erase(x); }
++
+    //! <b>Effects</b>: Erases all the elements in the range [first, last).
+    //!
+    //! <b>Returns</b>: Returns last.
+@@ -2977,6 +3057,10 @@
+    {  x.swap(y);  }
+ };
+ 
++#if defined(BOOST_GCC) && (BOOST_GCC >= 100000) && !defined(BOOST_CONTAINER_STD_PAIR_IS_MOVABLE)
++#pragma GCC pop_options
++#endif
++
+ #ifndef BOOST_CONTAINER_NO_CXX17_CTAD
+ 
+ template <typename InputIterator>
+@@ -3052,10 +3136,10 @@
+ template <class Key, class T, class Compare, class AllocatorOrContainer>
+ struct has_trivial_destructor_after_move< boost::container::flat_multimap<Key, T, Compare, AllocatorOrContainer> >
+ {
+-   typedef ::boost::container::dtl::pair<Key, T> value_t;
++   typedef typename boost::container::flat_multimap<Key, T, Compare, AllocatorOrContainer>::value_type value_t;
+    typedef typename ::boost::container::dtl::container_or_allocator_rebind<AllocatorOrContainer, value_t>::type alloc_or_cont_t;
+    typedef ::boost::container::dtl::flat_tree<value_t,::boost::container::dtl::select1st<Key>, Compare, alloc_or_cont_t> tree;
+-   static const bool value = ::boost::has_trivial_destructor_after_move<tree>::value;
++   BOOST_STATIC_CONSTEXPR bool value = ::boost::has_trivial_destructor_after_move<tree>::value;
+ };
+ 
+ }  //namespace boost {
+--- boost/container/detail/workaround.hpp	Thu Apr 11 20:48:02 2024
++++ boost/container/detail/workaround.hpp	Sun Jul 28 00:19:33 2024
+@@ -230,4 +230,10 @@
+ #     define BOOST_CONTAINER_STATIC_ASSERT_MSG( B, Msg ) BOOST_CONTAINER_STATIC_ASSERT( B )
+ #endif
+ 
++#if defined(__GNUC__) && ((__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__) >= 40600)
++#define BOOST_CONTAINER_GCC_COMPATIBLE_HAS_DIAGNOSTIC_IGNORED
++#elif defined(__clang__)
++#define BOOST_CONTAINER_GCC_COMPATIBLE_HAS_DIAGNOSTIC_IGNORED
++#endif
++
+ #endif   //#ifndef BOOST_CONTAINER_DETAIL_WORKAROUND_HPP
